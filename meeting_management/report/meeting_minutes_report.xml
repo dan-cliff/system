@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Report action ─────────────────────────────────────────────────── -->
+    <record id="report_meeting_minutes" model="ir.actions.report">
+        <field name="name">Meeting Minutes</field>
+        <field name="model">meeting.meeting</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meeting_management.report_meeting_minutes_template</field>
+        <field name="report_file">meeting_management.report_meeting_minutes_template</field>
+        <field name="print_report_name">'Minutes - %s' % (object.reference or object.name)</field>
+        <field name="binding_model_id" ref="model_meeting_meeting"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ── QWeb template ─────────────────────────────────────────────────── -->
+    <template id="report_meeting_minutes_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="meeting">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- ── Header ──────────────────────────────────── -->
+                        <div style="border-bottom: 3px solid #1a6b3c; padding-bottom: 12px; margin-bottom: 20px;">
+                            <h1 style="color: #1a6b3c; margin: 0; font-size: 24pt;">
+                                MEETING MINUTES
+                                <t t-if="meeting.minutes_approved">
+                                    <span style="font-size: 10pt; background:#1a6b3c; color:white; padding:3px 8px; border-radius:4px; vertical-align: middle;">
+                                        APPROVED
+                                    </span>
+                                </t>
+                            </h1>
+                            <h2 style="margin: 4px 0 0 0; font-size: 16pt; color: #333;">
+                                <t t-esc="meeting.name"/>
+                            </h2>
+                        </div>
+
+                        <!-- ── Meeting details ─────────────────────────── -->
+                        <table style="width: 100%; margin-bottom: 20px; font-size: 10pt;" cellspacing="0">
+                            <tr>
+                                <td style="width: 25%; font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Reference:</td>
+                                <td style="width: 25%; padding: 4px 0;"><t t-esc="meeting.reference"/></td>
+                                <td style="width: 20%; font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Date:</td>
+                                <td style="padding: 4px 0;">
+                                    <t t-esc="meeting.date_start" t-options="{'widget': 'datetime', 'format': 'dd MMMM yyyy HH:mm'}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Location:</td>
+                                <td><t t-esc="meeting.location or ''"/></td>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Duration:</td>
+                                <td>
+                                    <t t-if="meeting.date_end">
+                                        <t t-esc="meeting.date_end" t-options="{'widget': 'datetime', 'format': 'HH:mm'}"/>
+                                        (<t t-esc="'%.1f' % meeting.duration"/> hours)
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Chairperson:</td>
+                                <td><t t-esc="meeting.chairperson_id.name or ''"/></td>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Secretary:</td>
+                                <td><t t-esc="meeting.secretary_id.name or ''"/></td>
+                            </tr>
+                            <t t-if="meeting.minutes_approved">
+                                <tr>
+                                    <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Minutes Approved:</td>
+                                    <td colspan="3">
+                                        <t t-esc="meeting.minutes_approved_date" t-options="{'widget': 'date', 'format': 'dd MMMM yyyy'}"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </table>
+
+                        <!-- ── Attendees ───────────────────────────────── -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #1a6b3c; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                                ATTENDEES
+                            </h3>
+                            <table style="width: 100%; font-size: 10pt;" cellspacing="0">
+                                <tr>
+                                    <t t-foreach="meeting.invitee_ids" t-as="invitee">
+                                        <td style="padding: 2px 10px 2px 0; width: 33%;">
+                                            ✓ <t t-esc="invitee.name"/>
+                                            <t t-if="invitee.job_position">
+                                                <span style="color:#777; font-size:9pt;">(<t t-esc="invitee.job_position"/>)</span>
+                                            </t>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- ── Previous meeting outstanding actions ────── -->
+                        <t t-if="meeting.previous_meeting_id">
+                            <t t-set="prev_open" t-value="meeting.previous_meeting_id.action_item_ids.filtered(lambda a: a.state in ('open','in_progress'))"/>
+                            <t t-if="prev_open">
+                                <div style="margin-bottom: 20px;">
+                                    <h3 style="color: #1a6b3c; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                                        OUTSTANDING ACTIONS FROM PREVIOUS MEETING
+                                        (<t t-esc="meeting.previous_meeting_id.reference"/>)
+                                    </h3>
+                                    <table style="width: 100%; font-size: 10pt; border-collapse: collapse;" cellspacing="0">
+                                        <thead>
+                                            <tr style="background-color: #1a6b3c; color: white;">
+                                                <th style="padding: 5px 8px; text-align: left; width: 45%;">Action</th>
+                                                <th style="padding: 5px 8px; text-align: left; width: 25%;">Assigned To</th>
+                                                <th style="padding: 5px 8px; text-align: left; width: 15%;">Due Date</th>
+                                                <th style="padding: 5px 8px; text-align: left; width: 15%;">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="prev_open" t-as="action">
+                                                <tr t-attf-style="background-color: {{ '#f0fff4' if action_index % 2 == 0 else 'white' }};">
+                                                    <td style="padding: 5px 8px;"><t t-esc="action.name"/></td>
+                                                    <td style="padding: 5px 8px;"><t t-esc="action.assigned_to_id.name or ''"/></td>
+                                                    <td style="padding: 5px 8px;">
+                                                        <t t-if="action.due_date">
+                                                            <t t-esc="action.due_date" t-options="{'widget': 'date', 'format': 'dd MMM yyyy'}"/>
+                                                        </t>
+                                                    </td>
+                                                    <td style="padding: 5px 8px; color: #c0392b; font-weight: bold;">
+                                                        <t t-if="action.state == 'open'">Open</t>
+                                                        <t t-else="">In Progress</t>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+                        </t>
+
+                        <!-- ── Minutes items ───────────────────────────── -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #1a6b3c; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                                MINUTES
+                            </h3>
+                            <t t-if="not meeting.minutes_item_ids">
+                                <p style="color:#999; font-style:italic;">No minutes have been recorded.</p>
+                            </t>
+                            <t t-foreach="meeting.minutes_item_ids.sorted('sequence')" t-as="item">
+                                <div style="margin-bottom: 16px; padding: 10px; border-left: 4px solid #1a6b3c; background-color: #f9fffe;">
+                                    <h4 style="margin: 0 0 6px 0; font-size: 11pt; color: #1a6b3c;">
+                                        <t t-esc="item_index + 1"/>. <t t-esc="item.name"/>
+                                        <t t-if="item.agenda_item_id">
+                                            <span style="font-size: 9pt; color: #777; font-weight: normal;">
+                                                (Agenda item: <t t-esc="item.agenda_item_id.name"/>)
+                                            </span>
+                                        </t>
+                                    </h4>
+                                    <t t-if="item.discussion">
+                                        <div style="font-size: 10pt; margin-bottom: 8px;">
+                                            <strong style="color: #555;">Discussion:</strong>
+                                            <div style="margin-top: 4px;"><t t-out="item.discussion"/></div>
+                                        </div>
+                                    </t>
+                                    <t t-if="item.decisions">
+                                        <div style="font-size: 10pt; margin-bottom: 8px; background: #e8f5e9; padding: 6px; border-radius: 3px;">
+                                            <strong style="color: #1a6b3c;">&#10003; Decisions Made:</strong>
+                                            <div style="margin-top: 4px;"><t t-out="item.decisions"/></div>
+                                        </div>
+                                    </t>
+                                    <t t-if="item.action_item_ids">
+                                        <div style="font-size: 10pt;">
+                                            <strong style="color: #c0392b;">&#9654; Action Items:</strong>
+                                            <table style="width: 100%; margin-top: 4px; border-collapse: collapse;">
+                                                <t t-foreach="item.action_item_ids" t-as="act">
+                                                    <tr>
+                                                        <td style="padding: 2px 6px; width: 50%;">
+                                                            &#9675; <t t-esc="act.name"/>
+                                                        </td>
+                                                        <td style="padding: 2px 6px; width: 25%; color: #555;">
+                                                            <t t-esc="act.assigned_to_id.name or 'Unassigned'"/>
+                                                        </td>
+                                                        <td style="padding: 2px 6px; width: 25%; color: #777;">
+                                                            <t t-if="act.due_date">
+                                                                Due: <t t-esc="act.due_date" t-options="{'widget': 'date', 'format': 'dd MMM yyyy'}"/>
+                                                            </t>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </table>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- ── General notes ───────────────────────────── -->
+                        <t t-if="meeting.general_notes">
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="color: #1a6b3c; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                                    GENERAL NOTES / ANY OTHER BUSINESS
+                                </h3>
+                                <div style="font-size: 10pt;">
+                                    <t t-out="meeting.general_notes"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- ── All action items summary ────────────────── -->
+                        <t t-if="meeting.action_item_ids">
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="color: #1a6b3c; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                                    ACTION ITEMS SUMMARY
+                                </h3>
+                                <table style="width: 100%; font-size: 10pt; border-collapse: collapse;" cellspacing="0">
+                                    <thead>
+                                        <tr style="background-color: #1a6b3c; color: white;">
+                                            <th style="padding: 5px 8px; text-align: left; width: 5%;">#</th>
+                                            <th style="padding: 5px 8px; text-align: left; width: 45%;">Action</th>
+                                            <th style="padding: 5px 8px; text-align: left; width: 25%;">Assigned To</th>
+                                            <th style="padding: 5px 8px; text-align: left; width: 15%;">Due Date</th>
+                                            <th style="padding: 5px 8px; text-align: left; width: 10%;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="meeting.action_item_ids" t-as="act">
+                                            <tr t-attf-style="background-color: {{ '#f0fff4' if act_index % 2 == 0 else 'white' }};">
+                                                <td style="padding: 5px 8px; font-weight: bold;">
+                                                    <t t-esc="act_index + 1"/>
+                                                </td>
+                                                <td style="padding: 5px 8px;">
+                                                    <t t-esc="act.name"/>
+                                                    <t t-if="act.description">
+                                                        <div style="font-size: 9pt; color: #666;"><t t-esc="act.description"/></div>
+                                                    </t>
+                                                </td>
+                                                <td style="padding: 5px 8px;">
+                                                    <t t-esc="act.assigned_to_id.name or 'Unassigned'"/>
+                                                </td>
+                                                <td style="padding: 5px 8px;">
+                                                    <t t-if="act.due_date">
+                                                        <t t-esc="act.due_date" t-options="{'widget': 'date', 'format': 'dd MMM yyyy'}"/>
+                                                    </t>
+                                                </td>
+                                                <td style="padding: 5px 8px; font-size: 9pt;">
+                                                    <t t-if="act.state == 'open'">
+                                                        <span style="color: #c0392b;">Open</span>
+                                                    </t>
+                                                    <t t-elif="act.state == 'in_progress'">
+                                                        <span style="color: #e67e22;">In Progress</span>
+                                                    </t>
+                                                    <t t-elif="act.state == 'done'">
+                                                        <span style="color: #27ae60;">Done</span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span style="color: #999;">Cancelled</span>
+                                                    </t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- ── Next meeting ────────────────────────────── -->
+                        <t t-if="meeting.next_meeting_id">
+                            <div style="margin-top: 20px; padding: 12px; background-color: #f0fff0; border: 1px solid #90EE90; border-radius: 4px;">
+                                <strong style="color: #1a6b3c;">&#128197; Next Meeting:</strong>
+                                <t t-esc="meeting.next_meeting_id.name"/> —
+                                <t t-esc="meeting.next_meeting_id.date_start"
+                                   t-options="{'widget': 'datetime', 'format': 'dd MMMM yyyy HH:mm'}"/>
+                                <t t-if="meeting.next_meeting_id.location">
+                                    at <t t-esc="meeting.next_meeting_id.location"/>
+                                </t>
+                                <t t-if="meeting.next_meeting_id.teams_join_url">
+                                    <br/>
+                                    <span style="font-size: 9pt; color: #555;">
+                                        Teams: <t t-esc="meeting.next_meeting_id.teams_join_url"/>
+                                    </span>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── Signature blocks ────────────────────────── -->
+                        <div style="margin-top: 40px;">
+                            <table style="width: 100%; font-size: 10pt;">
+                                <tr>
+                                    <td style="width: 45%; padding: 0 20px 0 0;">
+                                        <div style="border-bottom: 1px solid #333; margin-bottom: 4px; height: 40px;"/>
+                                        <strong>Chairperson:</strong>
+                                        <t t-esc="meeting.chairperson_id.name or ''"/>
+                                        <div style="font-size: 9pt; color: #777;">Date: _______________</div>
+                                    </td>
+                                    <td style="width: 10%;"/>
+                                    <td style="width: 45%;">
+                                        <div style="border-bottom: 1px solid #333; margin-bottom: 4px; height: 40px;"/>
+                                        <strong>Secretary:</strong>
+                                        <t t-esc="meeting.secretary_id.name or ''"/>
+                                        <div style="font-size: 9pt; color: #777;">Date: _______________</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- ── Footer ──────────────────────────────────── -->
+                        <div style="margin-top: 20px; font-size: 8pt; color: #999; border-top: 1px solid #ddd; padding-top: 8px;">
+                            Minutes generated on
+                            <t t-esc="context_timestamp(datetime.datetime.now())"
+                               t-options="{'widget': 'datetime', 'format': 'dd MMMM yyyy HH:mm'}"/>
+                            by <t t-esc="env.user.name"/>
+                            <t t-if="meeting.minutes_approved">
+                                — <strong style="color: #1a6b3c;">APPROVED</strong>
+                                on <t t-esc="meeting.minutes_approved_date" t-options="{'widget': 'date', 'format': 'dd MMMM yyyy'}"/>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

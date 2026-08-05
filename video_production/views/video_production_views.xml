@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Search ────────────────────────────────────────────────────── -->
+    <record id="view_video_production_search" model="ir.ui.view">
+        <field name="name">video.production.search</field>
+        <field name="model">video.production</field>
+        <field name="arch" type="xml">
+            <search string="Search Productions">
+                <field name="name" string="Title"/>
+                <field name="reference"/>
+                <field name="producer_id"/>
+                <field name="editor_id"/>
+                <field name="tag_ids"/>
+                <field name="partner_id"/>
+                <filter string="Starred" name="starred" domain="[('priority','=','1')]"/>
+                <filter string="Mine" name="mine" domain="[('producer_id','=',uid)]"/>
+                <filter string="Overdue" name="overdue"
+                        domain="[('date_planned_publish','&lt;',context_today().strftime('%Y-%m-%d')),
+                                 ('date_published','=',False)]"/>
+                <filter string="Publishing This Month" name="this_month"
+                        domain="[('date_planned_publish','&gt;=',
+                                  (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                 ('date_planned_publish','&lt;',
+                                  (context_today() + relativedelta(months=1,day=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter string="Published" name="published" domain="[('date_published','!=',False)]"/>
+                <filter string="Unpublished" name="unpublished" domain="[('date_published','=',False)]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active','=',False)]"/>
+                <group name="group_by">
+                    <filter string="Stage" name="group_stage" context="{'group_by': 'stage_id'}"/>
+                    <filter string="Content Type" name="group_type" context="{'group_by': 'video_type'}"/>
+                    <filter string="Producer" name="group_producer" context="{'group_by': 'producer_id'}"/>
+                    <filter string="Editor" name="group_editor" context="{'group_by': 'editor_id'}"/>
+                    <filter string="Planned Publish Month" name="group_publish_month"
+                            context="{'group_by': 'date_planned_publish:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── List ──────────────────────────────────────────────────────── -->
+    <record id="view_video_production_list" model="ir.ui.view">
+        <field name="name">video.production.list</field>
+        <field name="model">video.production</field>
+        <field name="arch" type="xml">
+            <list string="Productions" multi_edit="1">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="reference" optional="show"/>
+                <field name="name"/>
+                <field name="stage_id"/>
+                <field name="video_type"/>
+                <field name="producer_id" widget="many2one_avatar_user"/>
+                <field name="editor_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="date_planned_shoot" optional="show" options="{'numeric': True}"/>
+                <field name="date_planned_publish" options="{'numeric': True}"/>
+                <field name="date_published" optional="show" options="{'numeric': True}"/>
+                <field name="partner_id" optional="show"/>
+                <field name="kanban_state" widget="kanban_state_selection" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Calendar: Production Schedule ──────────────────────────────── -->
+    <record id="view_video_production_calendar" model="ir.ui.view">
+        <field name="name">video.production.calendar</field>
+        <field name="model">video.production</field>
+        <field name="arch" type="xml">
+            <calendar string="Production Schedule"
+                      date_start="date_planned_shoot"
+                      color="stage_id"
+                      quick_create="0"
+                      mode="month">
+                <field name="name"/>
+                <field name="producer_id" filters="1"/>
+                <field name="video_type"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ── Calendar: Publishing Calendar ─────────────────────────────── -->
+    <record id="view_video_production_publish_calendar" model="ir.ui.view">
+        <field name="name">video.production.publish.calendar</field>
+        <field name="model">video.production</field>
+        <field name="arch" type="xml">
+            <calendar string="Publishing Calendar"
+                      date_start="date_planned_publish"
+                      color="video_type"
+                      quick_create="0"
+                      mode="month">
+                <field name="name"/>
+                <field name="producer_id" filters="1"/>
+                <field name="stage_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ── Form ──────────────────────────────────────────────────────── -->
+    <record id="view_video_production_form" model="ir.ui.view">
+        <field name="name">video.production.form</field>
+        <field name="model">video.production</field>
+        <field name="arch" type="xml">
+            <form string="Video Production">
+                <header>
+                    <button name="action_mark_published" type="object"
+                            string="Mark as Published"
+                            class="btn-primary"
+                            invisible="date_published != False"
+                            confirm="Mark this production as published?"/>
+                    <button name="action_open_teleprompter" type="object"
+                            string="📺 Teleprompter"
+                            class="btn-secondary"
+                            invisible="not approved_script_id"
+                            title="Open teleprompter for the latest approved script"/>
+                    <field name="stage_id" widget="statusbar" clickable="1"
+                           options="{'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <!-- Smart Buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_scripts" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="script_count == 0">
+                            <field name="script_count" widget="statinfo" string="Scripts"/>
+                        </button>
+                        <button name="action_view_shoots" type="object"
+                                class="oe_stat_button" icon="fa-video-camera"
+                                invisible="shoot_count == 0">
+                            <field name="shoot_count" widget="statinfo" string="Shoots"/>
+                        </button>
+                        <button name="action_view_edit_jobs" type="object"
+                                class="oe_stat_button" icon="fa-cut"
+                                invisible="edit_job_count == 0">
+                            <field name="edit_job_count" widget="statinfo" string="Edit Jobs"/>
+                        </button>
+                        <button name="action_view_reviews" type="object"
+                                class="oe_stat_button" icon="fa-check-circle-o"
+                                invisible="review_count == 0">
+                            <field name="review_count" widget="statinfo" string="Reviews"/>
+                        </button>
+                        <button name="action_view_metadata" type="object"
+                                class="oe_stat_button" icon="fa-youtube-play">
+                            <span>Metadata</span>
+                        </button>
+                        <button name="action_view_purchases" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="not show_purchase_integration">
+                            <field name="currency_id" invisible="1"/>
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="purchase_total" widget="monetary"
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </span>
+                                <span class="o_stat_text">Purchase Orders</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Published" bg_color="text-bg-success"
+                            invisible="not date_published"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="reference" class="text-muted small"/>
+                        <h6 class="text-muted">
+                            <field name="reference" readonly="1"/>
+                        </h6>
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Best Budget Cameras 2025"/>
+                        </h1>
+                        <field name="priority" widget="priority"/>
+                    </div>
+                    <group>
+                        <group string="Production Details">
+                            <field name="video_type"/>
+                            <field name="producer_id" widget="many2one_avatar_user"/>
+                            <field name="editor_id" widget="many2one_avatar_user"/>
+                            <field name="thumbnail_artist_id" widget="many2one_avatar_user"/>
+                            <field name="partner_id" widget="res_partner_many2one"
+                                   context="{'res_partner_search_mode': 'customer'}"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="date_planned_shoot" options="{'numeric': True}"/>
+                            <field name="date_planned_edit" options="{'numeric': True}"/>
+                            <field name="date_planned_publish" options="{'numeric': True}"/>
+                            <field name="date_published" readonly="1" options="{'numeric': True}"/>
+                            <field name="kanban_state" widget="statusbar"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Overview" name="overview">
+                            <group string="Source &amp; Tags">
+                                <field name="idea_id"/>
+                                <field name="tag_ids" widget="many2many_tags"
+                                       options="{'color_field': 'color'}"/>
+                            </group>
+                            <group string="Brief">
+                                <field name="description" nolabel="1" colspan="2"/>
+                            </group>
+                        </page>
+                        <page string="Scripts" name="scripts">
+                            <div class="mb8">
+                                <button name="action_new_script" type="object"
+                                        string="New Script" class="btn btn-sm btn-primary"/>
+                            </div>
+                            <field name="script_ids" mode="list" nolabel="1">
+                                <list>
+                                    <field name="version_number" string="Ver."/>
+                                    <field name="name"/>
+                                    <field name="author_id" widget="many2one_avatar_user"/>
+                                    <field name="state"/>
+                                    <field name="date_approved" optional="show" options="{'numeric': True}"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Shoots" name="shoots">
+                            <field name="shoot_ids" mode="list" nolabel="1"
+                                   >
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date_start" options="{'numeric': True}"/>
+                                    <field name="date_stop" options="{'numeric': True}"/>
+                                    <field name="location"/>
+                                    <field name="state"/>
+                                    <field name="crew_count" string="Crew"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Editing" name="editing">
+                            <field name="edit_job_ids" mode="list" nolabel="1"
+                                   >
+                                <list>
+                                    <field name="name"/>
+                                    <field name="editor_id" widget="many2one_avatar_user"/>
+                                    <field name="state"/>
+                                    <field name="date_deadline" options="{'numeric': True}"/>
+                                    <field name="current_version" string="Ver."/>
+                                    <field name="is_overdue" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Reviews &amp; Approvals" name="reviews">
+                            <div class="mb8">
+                                <button name="action_new_review" type="object"
+                                        string="New Review" class="btn btn-sm btn-primary"/>
+                            </div>
+                            <field name="review_ids" mode="list" nolabel="1"
+                                   >
+                                <list>
+                                    <field name="name"/>
+                                    <field name="review_type"/>
+                                    <field name="state"/>
+                                    <field name="deadline"/>
+                                    <field name="approved_count" string="Approved"/>
+                                    <field name="required_count" string="Required"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Integrations" name="integrations">
+                            <group string="Sales" invisible="not show_sales_integration">
+                                <field name="sale_order_id"/>
+                            </group>
+                            <group string="Project" invisible="not show_project_integration">
+                                <field name="project_ref" string="Project Reference"/>
+                            </group>
+                            <group string="Note"
+                                   invisible="show_sales_integration or show_project_integration or show_crm_integration or show_expenses_integration or show_maintenance_integration">
+                                <div class="text-muted">
+                                    No integrations are currently enabled. Go to
+                                    <strong>Configuration → Settings</strong> to enable integrations.
+                                </div>
+                            </group>
+                            <field name="show_sales_integration" invisible="1"/>
+                            <field name="show_purchase_integration" invisible="1"/>
+                            <field name="show_project_integration" invisible="1"/>
+                            <field name="show_crm_integration" invisible="1"/>
+                            <field name="show_expenses_integration" invisible="1"/>
+                            <field name="show_maintenance_integration" invisible="1"/>
+                            <field name="show_social_integration" invisible="1"/>
+                            <field name="show_timesheet_integration" invisible="1"/>
+                            <field name="approved_script_id" invisible="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Actions ───────────────────────────────────────────────────── -->
+    <record id="action_video_production" model="ir.actions.act_window">
+        <field name="name">Productions</field>
+        <field name="res_model">video.production</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first video production!
+            </p>
+            <p>
+                Track every video from concept through filming, editing,
+                review, and publishing.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_video_production_calendar" model="ir.actions.act_window">
+        <field name="name">Production Schedule</field>
+        <field name="res_model">video.production</field>
+        <field name="view_mode">calendar,list</field>
+        <field name="view_id" ref="view_video_production_calendar"/>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_video_production_publish_calendar" model="ir.actions.act_window">
+        <field name="name">Publishing Calendar</field>
+        <field name="res_model">video.production</field>
+        <field name="view_mode">calendar,list</field>
+        <field name="view_id" ref="view_video_production_publish_calendar"/>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_video_production_tag" model="ir.actions.act_window">
+        <field name="name">Production Tags</field>
+        <field name="res_model">video.production.tag</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

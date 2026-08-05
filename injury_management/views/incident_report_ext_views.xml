@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add RTW Cases smart button to the incident report form -->
+    <record id="view_incident_report_form_inherit_rtw" model="ir.ui.view">
+        <field name="name">incident.report.form.inherit.injury_management</field>
+        <field name="model">incident.report</field>
+        <field name="inherit_id" ref="incident_management.view_incident_report_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_rtw_cases" type="object"
+                        class="oe_stat_button" icon="fa-ambulance"
+                        invisible="rtw_case_count == 0">
+                    <field name="rtw_case_count" widget="statinfo" string="RTW Cases"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

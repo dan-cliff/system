@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Root App Menu ─────────────────────────────────────────── -->
+    <menuitem id="menu_dangerous_goods_root"
+              name="Dangerous Goods"
+              sequence="82"
+              web_icon="dangerous_goods,static/description/icon.png"
+              groups="dangerous_goods.group_dg_user"/>
+
+    <!-- ── Chemical Register ─────────────────────────────────────── -->
+    <menuitem id="menu_dg_chemical_root"
+              name="Chemical Register"
+              parent="menu_dangerous_goods_root"
+              sequence="10"
+              groups="dangerous_goods.group_dg_user"/>
+
+    <menuitem id="menu_dg_chemical_all"
+              name="All Chemicals"
+              parent="menu_dg_chemical_root"
+              action="action_dg_chemical_all"
+              sequence="10"
+              groups="dangerous_goods.group_dg_user"/>
+
+    <!-- ── Asbestos Register ──────────────────────────────────────── -->
+    <menuitem id="menu_dg_asbestos_root"
+              name="Asbestos Register"
+              parent="menu_dangerous_goods_root"
+              sequence="20"
+              groups="dangerous_goods.group_dg_user"/>
+
+    <menuitem id="menu_dg_asbestos_all"
+              name="All Items"
+              parent="menu_dg_asbestos_root"
+              action="action_dg_asbestos_all"
+              sequence="10"
+              groups="dangerous_goods.group_dg_user"/>
+
+    <menuitem id="menu_dg_asbestos_inspections"
+              name="Inspection Records"
+              parent="menu_dg_asbestos_root"
+              action="action_dg_asbestos_inspection_all"
+              sequence="20"
+              groups="dangerous_goods.group_dg_manager"/>
+
+    <!-- ── Configuration ─────────────────────────────────────────── -->
+    <menuitem id="menu_dg_config_root"
+              name="Configuration"
+              parent="menu_dangerous_goods_root"
+              sequence="100"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <!-- Workplace / Site config -->
+    <menuitem id="menu_dg_buildings"
+              name="Buildings / Sites"
+              parent="menu_dg_config_root"
+              action="action_dg_building"
+              sequence="10"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_storage_locations"
+              name="Storage Locations"
+              parent="menu_dg_config_root"
+              action="action_dg_storage_location"
+              sequence="20"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <!-- Chemical config -->
+    <menuitem id="menu_dg_chemical_stages"
+              name="Chemical Register Stages"
+              parent="menu_dg_config_root"
+              action="action_dg_chemical_stage"
+              sequence="25"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_ppe_types"
+              name="PPE Types"
+              parent="menu_dg_config_root"
+              action="action_dg_ppe_type"
+              sequence="30"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_storage_classes"
+              name="DG Storage Classes (AS 3833)"
+              parent="menu_dg_config_root"
+              action="action_dg_storage_class"
+              sequence="40"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_adg_classes"
+              name="ADG Transport Classes"
+              parent="menu_dg_config_root"
+              action="action_dg_adg_class"
+              sequence="50"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <!-- Asbestos config -->
+    <menuitem id="menu_dg_asbestos_forms"
+              name="Asbestos Forms / Materials"
+              parent="menu_dg_config_root"
+              action="action_dg_asbestos_form"
+              sequence="60"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_control_measures"
+              name="Control Measures"
+              parent="menu_dg_config_root"
+              action="action_dg_control_measure"
+              sequence="70"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_asbestos_removers"
+              name="Asbestos Removalists"
+              parent="menu_dg_config_root"
+              action="action_dg_asbestos_remover"
+              sequence="80"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <!-- GHS Data -->
+    <menuitem id="menu_dg_ghs_hazard_classes"
+              name="GHS Hazard Classes"
+              parent="menu_dg_config_root"
+              action="action_ghs_hazard_class"
+              sequence="110"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_ghs_pictograms"
+              name="GHS Pictograms"
+              parent="menu_dg_config_root"
+              action="action_ghs_pictogram"
+              sequence="120"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_hazard_statements"
+              name="Hazard Statements (H-codes)"
+              parent="menu_dg_config_root"
+              action="action_ghs_hazard_statement"
+              sequence="130"
+              groups="dangerous_goods.group_dg_admin"/>
+
+    <menuitem id="menu_dg_precautionary_statements"
+              name="Precautionary Statements (P-codes)"
+              parent="menu_dg_config_root"
+              action="action_ghs_precautionary_statement"
+              sequence="140"
+              groups="dangerous_goods.group_dg_admin"/>
+
+</odoo>

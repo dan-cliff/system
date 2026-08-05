@@ -1,0 +1,1050 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         INCIDENT REPORT — FORM VIEW
+         ══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_incident_report_form" model="ir.ui.view">
+        <field name="name">incident.report.form</field>
+        <field name="model">incident.report</field>
+        <field name="arch" type="xml">
+            <form string="Incident Report">
+                <header>
+                    <!-- Reporter actions -->
+                    <button name="action_submit" string="Submit Report"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="Submit this incident report for review? You will not be able to edit it after submission."/>
+
+                    <!-- Manager actions -->
+                    <button name="action_open_assign_wizard" string="Assign Manager"
+                            type="object" class="btn-primary"
+                            invisible="state != 'submitted'"
+                            groups="incident_management.group_incident_manager"/>
+                    <button name="action_open_assign_wizard" string="Reassign Manager"
+                            type="object" class="btn-secondary"
+                            invisible="state != 'assigned'"
+                            groups="incident_management.group_incident_manager"/>
+                    <button name="action_start_investigation" string="Start Investigation"
+                            type="object" class="btn-primary"
+                            invisible="state != 'assigned'"
+                            groups="incident_management.group_incident_manager"/>
+                    <button name="action_complete_investigation" string="Complete Investigation"
+                            type="object" class="btn-primary"
+                            invisible="state != 'under_investigation'"
+                            groups="incident_management.group_incident_manager"/>
+                    <button name="action_close" string="Close Incident"
+                            type="object" class="btn-primary"
+                            invisible="state != 'corrective_actions' or (corrective_action_ids and not corrective_actions_complete)"
+                            groups="incident_management.group_incident_manager"/>
+
+                    <!-- Confidentiality toggle — managers only -->
+                    <button name="action_mark_confidential"
+                            string="Mark Confidential"
+                            type="object" class="btn-secondary"
+                            icon="fa-lock"
+                            invisible="is_confidential"
+                            groups="incident_management.group_incident_manager"
+                            confirm="Mark this incident as confidential? Access will be restricted to authorised users only."/>
+                    <button name="action_remove_confidential"
+                            string="Remove Confidential"
+                            type="object" class="btn-secondary"
+                            icon="fa-unlock"
+                            invisible="not is_confidential"
+                            groups="incident_management.group_incident_manager"
+                            confirm="Remove confidential status? This incident will become visible to all users with access to the Incidents module."/>
+
+                    <!-- Common actions -->
+                    <button name="action_cancel" string="Cancel"
+                            type="object" class="btn-secondary"
+                            invisible="state in ('draft', 'closed', 'cancelled')"
+                            groups="incident_management.group_incident_manager"
+                            confirm="Are you sure you want to cancel this incident?"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft"
+                            type="object" class="btn-secondary"
+                            invisible="state not in ('submitted', 'cancelled')"
+                            groups="incident_management.group_incident_manager"/>
+                    <button name="action_open_report_wizard" string="Export PDF"
+                            type="object" class="btn-secondary"
+                            icon="fa-file-pdf-o"
+                            invisible="state == 'draft'"
+                            groups="incident_management.group_incident_manager"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,assigned,under_investigation,corrective_actions,closed"/>
+                </header>
+
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_attachments" type="object"
+                                class="oe_stat_button" icon="fa-paperclip">
+                            <field name="attachment_count" widget="statinfo" string="Files"/>
+                        </button>
+                        <button name="%(action_incident_corrective_action_all)d" type="action"
+                                class="oe_stat_button" icon="fa-check-square-o"
+                                invisible="corrective_action_count == 0">
+                            <field name="corrective_action_count" widget="statinfo" string="Actions"/>
+                        </button>
+                        <!-- Confidential access management — managers only -->
+                        <button name="action_manage_confidential_access" type="object"
+                                class="oe_stat_button" icon="fa-lock"
+                                invisible="not is_confidential"
+                                groups="incident_management.group_incident_manager"
+                                title="Manage who can view this confidential record">
+                            <field name="confidential_user_count" widget="statinfo" string="Authorised"/>
+                        </button>
+                    </div>
+
+                    <!-- Title row -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <field name="severity" widget="priority"/>
+                            <field name="near_miss" invisible="1"/>
+                            <!-- Confidential badge — visible to all authorised viewers -->
+                            <span class="badge text-bg-danger ms-1"
+                                  invisible="not is_confidential"
+                                  title="Access to this incident report is restricted">
+                                <i class="fa fa-lock me-1"/> Confidential
+                            </span>
+                        </div>
+                    </div>
+
+                    <notebook>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 1 — INCIDENT DETAILS                   ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Incident Details" name="incident_details">
+                            <group string="Reporter Information">
+                                <group>
+                                    <field name="reporter_id" options="{'no_create': True}"/>
+                                    <field name="reporter_phone" placeholder="+61 400 000 000"/>
+                                    <field name="date_reported" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="employee_id" options="{'no_create': True}"/>
+                                    <field name="department_id" options="{'no_create': True}"/>
+                                    <field name="job_title"/>
+                                    <field name="person_type"/>
+                                </group>
+                            </group>
+
+                            <group string="Incident Information">
+                                <group>
+                                    <field name="incident_type_ids"
+                                           widget="many2many_tags"
+                                           options="{'color_field': 'color', 'no_create': True}"
+                                           placeholder="Select one or more categories…"/>
+                                    <field name="severity" widget="priority"/>
+                                    <field name="date_occurred"/>
+                                </group>
+                                <group>
+                                    <field name="location"/>
+                                    <field name="exact_location" placeholder="e.g. Workshop Bay 3, North entry gate…"/>
+                                    <field name="near_miss"/>
+                                </group>
+                            </group>
+
+                            <separator string="Description"/>
+                            <field name="description" nolabel="0"
+                                   placeholder="Describe what happened, in sequence, with as much detail as possible…"
+                                   widget="text"/>
+
+                            <separator string="Immediate Actions Taken"/>
+                            <field name="immediate_action_taken" nolabel="0"
+                                   placeholder="Describe any first aid given, hazard isolation, notifications made…"
+                                   widget="text"/>
+
+                            <separator string="Witnesses"/>
+                            <field name="witnesses" nolabel="0"
+                                   placeholder="Full name and contact details of any witnesses…"
+                                   widget="text"/>
+
+                            <!-- Assignment info — visible once assigned -->
+                            <group string="Manager Assignment"
+                                   invisible="state not in ('assigned','under_investigation','corrective_actions','closed')">
+                                <group>
+                                    <field name="responsible_manager_id" readonly="1"/>
+                                    <field name="date_assigned" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="assignment_note" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 2 — INJURY TYPE DETAILS                ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Injury Details" name="injury_details"
+                              invisible="not is_injury">
+                            <separator string="Body Parts Affected"/>
+                            <field name="injury_body_parts"
+                                   widget="body_part_selector"
+                                   nolabel="0"/>
+                            <field name="injury_body_parts_display" invisible="1"/>
+
+                            <group string="Injury Classification">
+                                <group>
+                                    <field name="injury_nature"/>
+                                    <field name="injury_mechanism"/>
+                                </group>
+                                <group>
+                                    <field name="injury_treatment"/>
+                                    <field name="injury_lost_time"/>
+                                    <field name="injury_days_lost"
+                                           invisible="not injury_lost_time"/>
+                                    <field name="injury_restricted_duties"/>
+                                    <field name="injury_return_date"/>
+                                </group>
+                            </group>
+                            <separator string="Medical Officer / Facility"/>
+                            <field name="injury_medical_officer" nolabel="0"
+                                   placeholder="e.g. Dr Smith / City Medical Centre"/>
+                            <group string="Regulatory / Notifiable Incident">
+                                <group>
+                                    <field name="injury_notifiable"/>
+                                    <field name="injury_regulator_notified"
+                                           invisible="not injury_notifiable"/>
+                                    <field name="injury_notification_date"
+                                           invisible="not injury_notifiable"/>
+                                </group>
+                            </group>
+                            <separator string="Additional Notes"/>
+                            <field name="injury_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 3 — ILLNESS TYPE DETAILS               ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Illness Details" name="illness_details"
+                              invisible="not is_illness">
+                            <group string="Illness Classification">
+                                <group>
+                                    <field name="illness_type"/>
+                                    <field name="illness_onset_date"/>
+                                    <field name="illness_exposure_type"
+                                           placeholder="e.g. Chemical fumes, Noise, Dust…"/>
+                                    <field name="illness_exposure_duration"
+                                           placeholder="e.g. 3 years, Daily for 6 months…"/>
+                                </group>
+                                <group>
+                                    <field name="illness_treatment"/>
+                                    <field name="illness_lost_time"/>
+                                    <field name="illness_days_lost"
+                                           invisible="not illness_lost_time"/>
+                                    <field name="illness_return_date"/>
+                                    <field name="illness_workers_comp"/>
+                                </group>
+                            </group>
+                            <separator string="Symptoms"/>
+                            <field name="illness_symptoms" nolabel="0" widget="text"
+                                   placeholder="Describe the symptoms experienced…"/>
+                            <separator string="Additional Notes"/>
+                            <field name="illness_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 4 — VEHICLE TYPE DETAILS               ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Vehicle Details" name="vehicle_details"
+                              invisible="not is_vehicle">
+                            <group string="Vehicle Information">
+                                <group>
+                                    <field name="vehicle_registration" placeholder="ABC 123"/>
+                                    <field name="vehicle_type"/>
+                                    <field name="vehicle_make_model"
+                                           placeholder="e.g. Toyota Hilux"/>
+                                    <field name="vehicle_ownership"/>
+                                </group>
+                                <group>
+                                    <field name="vehicle_driver_name"/>
+                                    <field name="vehicle_driver_licence"/>
+                                    <field name="vehicle_estimated_speed"/>
+                                    <field name="vehicle_road_conditions"/>
+                                    <field name="vehicle_towed"/>
+                                </group>
+                            </group>
+                            <group string="Third Party">
+                                <group>
+                                    <field name="vehicle_third_party"/>
+                                </group>
+                            </group>
+                            <div invisible="not vehicle_third_party">
+                                <separator string="Third Party Details"/>
+                                <field name="vehicle_third_party_details" nolabel="0"
+                                       widget="text"
+                                       placeholder="Name, registration, insurance details…"/>
+                            </div>
+                            <group string="Police">
+                                <group>
+                                    <field name="vehicle_police_reported"/>
+                                    <field name="vehicle_police_report_no"
+                                           invisible="not vehicle_police_reported"/>
+                                </group>
+                            </group>
+                            <separator string="Damage Description"/>
+                            <field name="vehicle_damage_description" nolabel="0" widget="text"
+                                   placeholder="Describe damage to vehicle(s) and any other property…"/>
+                            <separator string="Additional Notes"/>
+                            <field name="vehicle_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 5 — PLANT AND EQUIPMENT DETAILS        ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Plant &amp; Equipment Details" name="plant_details"
+                              invisible="not is_plant_equipment">
+                            <group string="Equipment Identification">
+                                <group>
+                                    <field name="plant_equipment_name"
+                                           placeholder="e.g. Overhead Crane #2, Angle Grinder"/>
+                                    <field name="plant_equipment_tag"
+                                           placeholder="e.g. EQ-0042"/>
+                                    <field name="plant_equipment_type"/>
+                                </group>
+                                <group>
+                                    <field name="plant_operator_name"/>
+                                    <field name="plant_failure_type"/>
+                                    <field name="plant_last_maintenance_date"/>
+                                    <field name="plant_current_certification"/>
+                                    <field name="plant_taken_out_of_service"/>
+                                </group>
+                            </group>
+                            <separator string="Damage / Fault Description"/>
+                            <field name="plant_damage_description" nolabel="0" widget="text"
+                                   placeholder="Describe the fault, failure, or damage in detail…"/>
+                            <separator string="Additional Notes"/>
+                            <field name="plant_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 6 — DRUG AND ALCOHOL DETAILS           ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Drug &amp; Alcohol Details" name="da_details"
+                              invisible="not is_drug_alcohol">
+                            <group string="Incident Details">
+                                <group>
+                                    <field name="da_substance_suspected"
+                                           placeholder="e.g. Alcohol, Cannabis, Unknown substance"/>
+                                    <field name="da_stood_down"/>
+                                    <field name="da_referred_eap"/>
+                                    <field name="da_disciplinary"/>
+                                </group>
+                                <group>
+                                    <field name="da_test_conducted"/>
+                                    <field name="da_test_type"
+                                           invisible="not da_test_conducted"/>
+                                    <field name="da_test_result"
+                                           invisible="not da_test_conducted"/>
+                                    <field name="da_testing_officer"
+                                           invisible="not da_test_conducted"/>
+                                </group>
+                            </group>
+                            <separator string="Person(s) Involved"/>
+                            <field name="da_persons_involved" nolabel="0" widget="text"
+                                   placeholder="Names and roles of the persons involved…"/>
+                            <separator string="Observed Behaviour / Indicators"/>
+                            <field name="da_observed_behaviour" nolabel="0" widget="text"
+                                   placeholder="Describe observed behaviour or indicators that triggered this report…"/>
+                            <separator string="Additional Notes"/>
+                            <field name="da_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 7 — BUILDINGS AND GROUNDS DETAILS      ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Buildings &amp; Grounds Details" name="bg_details"
+                              invisible="not is_buildings_grounds">
+                            <group string="Location and Damage">
+                                <group>
+                                    <field name="bg_building"
+                                           placeholder="e.g. Building A, Warehouse 3"/>
+                                    <field name="bg_area"
+                                           placeholder="e.g. Level 2 boardroom, Northern car park"/>
+                                    <field name="bg_damage_type"/>
+                                    <field name="bg_damage_cause"
+                                           placeholder="e.g. Storm water ingress, Vehicle collision"/>
+                                </group>
+                                <group>
+                                    <field name="bg_estimated_cost"/>
+                                    <field name="bg_area_isolated"/>
+                                    <field name="bg_repairs_required"/>
+                                    <field name="bg_insurance_claim"/>
+                                </group>
+                            </group>
+                            <div invisible="not bg_area_isolated">
+                                <separator string="Temporary / Interim Measures Taken"/>
+                                <field name="bg_temporary_measures" nolabel="0" widget="text"
+                                       placeholder="Describe any temporary controls put in place…"/>
+                            </div>
+                            <div invisible="not bg_repairs_required">
+                                <separator string="Repairs Required — Description"/>
+                                <field name="bg_repair_description" nolabel="0" widget="text"
+                                       placeholder="Describe the repairs required…"/>
+                            </div>
+                            <separator string="Additional Notes"/>
+                            <field name="bg_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 8 — SECURITY DETAILS                   ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Security Details" name="security_details"
+                              invisible="not is_security">
+                            <group string="Incident Classification">
+                                <group>
+                                    <field name="security_breach_type"/>
+                                    <field name="security_area"
+                                           placeholder="e.g. Main gate, Server room, Car park B"/>
+                                </group>
+                                <group>
+                                    <field name="security_footage_available"/>
+                                    <field name="security_footage_preserved"
+                                           invisible="not security_footage_available"/>
+                                    <field name="security_access_revoked"/>
+                                    <field name="security_police_notified"/>
+                                    <field name="security_police_report_no"
+                                           invisible="not security_police_notified"/>
+                                </group>
+                            </group>
+                            <separator string="Description of Persons Involved"/>
+                            <field name="security_persons_involved" nolabel="0" widget="text"
+                                   placeholder="Physical description, clothing, direction of travel…"/>
+                            <separator string="Security Response Taken"/>
+                            <field name="security_response_taken" nolabel="0" widget="text"
+                                   placeholder="Describe what actions were taken by security or management…"/>
+                            <separator string="Additional Notes"/>
+                            <field name="security_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 9 — THEFT DETAILS                      ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Theft Details" name="theft_details"
+                              invisible="not is_theft">
+                            <group string="Theft Information">
+                                <group>
+                                    <field name="theft_location"
+                                           placeholder="e.g. Tool storage shed, Office level 3"/>
+                                    <field name="theft_estimated_value"/>
+                                    <field name="theft_insurance_claim"/>
+                                </group>
+                                <group>
+                                    <field name="theft_cctv_available"/>
+                                    <field name="theft_cctv_preserved"
+                                           invisible="not theft_cctv_available"/>
+                                    <field name="theft_police_notified"/>
+                                    <field name="theft_police_report_no"
+                                           invisible="not theft_police_notified"/>
+                                </group>
+                            </group>
+                            <separator string="Items Stolen / Missing"/>
+                            <field name="theft_items_description" nolabel="0" widget="text"
+                                   placeholder="Provide a detailed description of all items stolen or missing, including serial numbers if known…"/>
+                            <separator string="Suspect Details (if known)"/>
+                            <field name="theft_suspect_details" nolabel="0" widget="text"
+                                   placeholder="Any known information about suspects…"/>
+                            <separator string="Additional Notes"/>
+                            <field name="theft_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 10 — ENVIRONMENTAL DETAILS             ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Environmental Details" name="environmental_details"
+                              invisible="not is_environmental">
+                            <group string="Incident Classification">
+                                <group>
+                                    <field name="env_media_affected"/>
+                                    <field name="env_substance"
+                                           placeholder="e.g. Diesel fuel, Hydraulic oil, Sewage…"/>
+                                    <field name="env_quantity_released"
+                                           placeholder="e.g. Approx. 200 litres, Unknown"/>
+                                </group>
+                                <group>
+                                    <field name="env_containment_taken"/>
+                                    <field name="env_cleanup_required"/>
+                                    <field name="env_regulatory_required"/>
+                                    <field name="env_regulatory_body"
+                                           invisible="not env_regulatory_required"
+                                           placeholder="e.g. EPA, Department of Environment"/>
+                                    <field name="env_notified"
+                                           invisible="not env_regulatory_required"/>
+                                    <field name="env_notification_date"
+                                           invisible="not env_notified"/>
+                                </group>
+                            </group>
+                            <div invisible="not env_containment_taken">
+                                <separator string="Containment / Response Actions"/>
+                                <field name="env_containment_description" nolabel="0" widget="text"
+                                       placeholder="Describe the containment and response actions taken…"/>
+                            </div>
+                            <div invisible="not env_cleanup_required">
+                                <separator string="Cleanup / Remediation Plan"/>
+                                <field name="env_cleanup_description" nolabel="0" widget="text"
+                                       placeholder="Describe the cleanup or remediation required and planned…"/>
+                            </div>
+                            <separator string="Additional Notes"/>
+                            <field name="env_additional_notes" nolabel="0" widget="text"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 11 — PSYCHOSOCIAL DETAILS              ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Psychosocial Details" name="psychosocial_details"
+                              invisible="not is_psychosocial">
+
+                            <div class="alert alert-info mb-3" role="alert">
+                                <i class="fa fa-lock me-2"/>
+                                This tab contains sensitive information relating to a psychosocial
+                                incident. This report has been automatically marked
+                                <strong>Confidential</strong> and access is restricted to
+                                authorised users only. Handle all information with care and in
+                                accordance with your organisation's privacy obligations.
+                            </div>
+
+                            <group string="Incident Classification">
+                                <group>
+                                    <field name="ps_incident_type"/>
+                                    <field name="ps_relationship"/>
+                                    <field name="ps_duration"/>
+                                </group>
+                                <group>
+                                    <field name="ps_support_offered"/>
+                                    <field name="ps_eap_referral"
+                                           invisible="ps_support_offered != 'eap_referral'"/>
+                                    <field name="ps_hr_notified"/>
+                                    <field name="ps_formal_complaint"/>
+                                    <field name="ps_formal_complaint_ref"
+                                           invisible="not ps_formal_complaint"
+                                           placeholder="e.g. HR-2026-042"/>
+                                </group>
+                            </group>
+
+                            <separator string="Person(s) Involved"/>
+                            <field name="ps_persons_involved" nolabel="0" widget="text"
+                                   placeholder="Names and roles/positions of the person(s) involved. This information is strictly confidential…"/>
+
+                            <separator string="Impact on Work / Wellbeing"/>
+                            <field name="ps_impact_on_work" nolabel="0" widget="text"
+                                   placeholder="Describe the impact on the affected person's work performance, attendance, health, or general wellbeing…"/>
+
+                            <group string="Prior Reports">
+                                <group>
+                                    <field name="ps_prior_reports"/>
+                                </group>
+                            </group>
+                            <div invisible="not ps_prior_reports">
+                                <separator string="Prior Report Details"/>
+                                <field name="ps_prior_reports_details" nolabel="0" widget="text"
+                                       placeholder="Provide any known details of prior reports or similar incidents involving the same parties…"/>
+                            </div>
+
+                            <separator string="Witness / Bystander Details"/>
+                            <field name="ps_witness_details" nolabel="0" widget="text"
+                                   placeholder="Names and contact details of any witnesses or bystanders…"/>
+
+                            <separator string="Additional Notes"/>
+                            <field name="ps_additional_notes" nolabel="0" widget="text"
+                                   placeholder="Any additional information relevant to this psychosocial incident report…"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 12 — CHILD SAFEGUARDING DETAILS        ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Child Safeguarding Details" name="child_safeguarding_details"
+                              invisible="not is_child_safeguarding">
+
+                            <div class="alert alert-danger mb-3" role="alert">
+                                <i class="fa fa-shield me-2"/>
+                                This tab contains sensitive information relating to a child
+                                safeguarding concern. This report has been automatically marked
+                                <strong>Confidential</strong> and access is restricted to
+                                authorised users only. Handle all information in accordance with
+                                your organisation's Child Safe policies and legal obligations.
+                            </div>
+
+                            <group string="Concern Classification">
+                                <group>
+                                    <field name="cs_concern_type"/>
+                                    <field name="cs_child_identifier"/>
+                                    <field name="cs_child_age_range"/>
+                                </group>
+                                <group>
+                                    <field name="cs_mandatory_report_required"/>
+                                    <field name="cs_mandatory_report_date"
+                                           invisible="not cs_mandatory_report_required"/>
+                                    <field name="cs_mandatory_report_ref"
+                                           invisible="not cs_mandatory_report_required"/>
+                                    <field name="cs_cpo_notified"/>
+                                    <field name="cs_cpo_name"
+                                           invisible="not cs_cpo_notified"/>
+                                </group>
+                            </group>
+
+                            <group string="External Agency">
+                                <group>
+                                    <field name="cs_external_agency_notified"/>
+                                    <field name="cs_external_agency_name"
+                                           invisible="not cs_external_agency_notified"
+                                           placeholder="e.g. Victoria Police, DHHS Child Protection"/>
+                                    <field name="cs_external_ref"
+                                           invisible="not cs_external_agency_notified"/>
+                                </group>
+                            </group>
+
+                            <separator string="Person(s) of Concern"/>
+                            <field name="cs_persons_of_concern" nolabel="0" widget="text"
+                                   placeholder="Names and roles of the person(s) of concern. Strictly confidential…"/>
+
+                            <separator string="Support Provided to Child"/>
+                            <field name="cs_support_provided" nolabel="0" widget="text"
+                                   placeholder="Describe any support, counselling, or protective measures arranged for the child…"/>
+
+                            <separator string="Additional Notes"/>
+                            <field name="cs_additional_notes" nolabel="0" widget="text"
+                                   placeholder="Any additional information relevant to this child safeguarding report…"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 13 — COMPLAINT DETAILS                 ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Complaint Details" name="complaint_details"
+                              invisible="not is_complaint">
+
+                            <group string="Complaint Classification">
+                                <group>
+                                    <field name="cmp_complaint_type"/>
+                                    <field name="cmp_received_by"/>
+                                    <field name="cmp_received_date"/>
+                                </group>
+                                <group>
+                                    <field name="cmp_formal_complaint"/>
+                                    <field name="cmp_formal_ref"
+                                           invisible="not cmp_formal_complaint"
+                                           placeholder="e.g. CMP-2026-042"/>
+                                    <field name="cmp_escalated"/>
+                                </group>
+                            </group>
+
+                            <separator string="Subject of Complaint"/>
+                            <field name="cmp_subject" nolabel="0" widget="text"
+                                   placeholder="Summarise the subject and nature of the complaint…"/>
+
+                            <separator string="Resolution Sought by Complainant"/>
+                            <field name="cmp_resolution_sought" nolabel="0" widget="text"
+                                   placeholder="Describe the outcome or resolution the complainant is seeking…"/>
+
+                            <separator string="Outcome / Resolution"/>
+                            <field name="cmp_outcome" nolabel="0" widget="text"
+                                   placeholder="Document the final outcome and any resolution reached…"/>
+
+                            <separator string="Additional Notes"/>
+                            <field name="cmp_additional_notes" nolabel="0" widget="text"
+                                   placeholder="Any additional information relevant to this complaint…"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 14 — INFORMATION TECHNOLOGY DETAILS    ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="IT Details" name="it_details"
+                              invisible="not is_it">
+
+                            <group string="Incident Classification">
+                                <group>
+                                    <field name="it_incident_category"/>
+                                    <field name="it_ticket_number"
+                                           placeholder="e.g. INC-20260427-001"/>
+                                    <field name="it_department_notified"/>
+                                    <field name="it_department_notified_date"
+                                           invisible="not it_department_notified"/>
+                                </group>
+                                <group>
+                                    <field name="it_data_involved"/>
+                                    <field name="it_regulatory_notification"
+                                           invisible="not it_data_involved"/>
+                                </group>
+                            </group>
+
+                            <separator string="Systems / Applications Affected"/>
+                            <field name="it_systems_affected" nolabel="0" widget="text"
+                                   placeholder="List all affected systems, applications, or services…"/>
+
+                            <div invisible="not it_data_involved">
+                                <separator string="Description of Data Involved"/>
+                                <field name="it_data_description" nolabel="0" widget="text"
+                                       placeholder="Describe the type and scope of data involved or potentially exposed…"/>
+                            </div>
+
+                            <separator string="Additional Notes"/>
+                            <field name="it_additional_notes" nolabel="0" widget="text"
+                                   placeholder="Any additional information relevant to this IT incident…"/>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 15 — INVESTIGATION (ICAM)              ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Investigation" name="investigation"
+                              invisible="state not in ('assigned','under_investigation','corrective_actions','closed')">
+                            <group string="Investigation Team">
+                                <group>
+                                    <field name="investigator_ids"
+                                           widget="many2many_tags"
+                                           options="{'no_create': True}"/>
+                                </group>
+                                <group>
+                                    <field name="investigation_start"/>
+                                    <field name="investigation_end"
+                                           invisible="state not in ('corrective_actions','closed')"/>
+                                </group>
+                            </group>
+
+                            <separator string="Immediate Cause"/>
+                            <field name="immediate_cause_desc" nolabel="0" widget="text"
+                                   placeholder="Describe the immediate, direct cause of the incident — the specific event or condition that directly resulted in the harm or loss…"/>
+
+                            <group string="ICAM Analysis — Contributing Factors">
+                                <div colspan="2" class="text-muted mb-2">
+                                    <small>
+                                        For each contributing factor identified, select the ICAM Category,
+                                        the specific Factor, and describe how it contributed to this incident.
+                                        Factors can be added, removed, or reconfigured in
+                                        <strong>Configuration &gt; ICAM Categories</strong>.
+                                    </small>
+                                </div>
+                                <field name="finding_ids" nolabel="1"
+                                       colspan="2"
+                                       context="{'default_incident_id': id}">
+                                    <list editable="bottom" string="ICAM Findings">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="icam_category_id"
+                                               options="{'no_create': True}"
+                                               style="min-width:200px"/>
+                                        <field name="icam_factor_id"
+                                               options="{'no_create': True}"
+                                               domain="[('category_id', '=', icam_category_id)]"
+                                               style="min-width:250px"/>
+                                        <field name="description" widget="text"
+                                               style="min-width:350px"/>
+                                        <field name="is_root_cause" optional="show"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <div invisible="state not in ('under_investigation','corrective_actions','closed')">
+                                <separator string="Conclusion"/>
+                                <field name="investigation_conclusion" nolabel="0" widget="text"
+                                       placeholder="Summarise the findings of the investigation and the overall conclusion…"/>
+                                <separator string="Recommendations"/>
+                                <field name="investigation_recommendations" nolabel="0" widget="text"
+                                       placeholder="List any broader recommendations arising from this investigation…"/>
+                            </div>
+                        </page>
+
+                        <!-- ╔══════════════════════════════════════════════╗
+                             ║  PAGE 12 — CORRECTIVE ACTIONS                ║
+                             ╚══════════════════════════════════════════════╝ -->
+                        <page string="Corrective Actions" name="corrective_actions"
+                              invisible="state not in ('under_investigation','corrective_actions','closed')">
+                            <group>
+                                <div class="text-muted mb-2" colspan="2">
+                                    <small>
+                                        Record all corrective actions identified during the investigation.
+                                        Assign each action to a responsible person with a due date and track
+                                        progress to completion.
+                                    </small>
+                                </div>
+                            </group>
+                            <div class="mb-3">
+                                <button string="✦ Get AI Recommendations"
+                                        name="action_ai_recommend_corrective_actions"
+                                        type="object"
+                                        class="btn-primary"
+                                        confirm="Claude will analyse this incident and suggest corrective actions based on the Hierarchy of Controls. Recommendations will be added to the list below for your review. Continue?"
+                                        invisible="state == 'closed'"/>
+                                <span class="ms-2 text-muted small"
+                                      invisible="not ai_recommendations_generated">
+                                    <i class="fa fa-check-circle text-success"/> AI recommendations have been generated for this incident.
+                                </span>
+                            </div>
+                            <field name="corrective_action_ids" nolabel="1"
+                                   context="{'default_incident_id': id}">
+                                <list editable="bottom" string="Corrective Actions"
+                                      decoration-danger="is_overdue"
+                                      decoration-success="state == 'done'">
+                                    <field name="priority" widget="priority" optional="show"/>
+                                    <field name="name" style="min-width:280px"/>
+                                    <field name="action_type" optional="show"/>
+                                    <field name="icam_finding_id"
+                                           optional="show"
+                                           domain="[('incident_id', '=', parent.id)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="responsible_id" options="{'no_create': True}"/>
+                                    <field name="due_date"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-warning="state == 'in_progress'"
+                                           decoration-danger="is_overdue"/>
+                                    <field name="completion_date" optional="show"/>
+                                    <field name="is_overdue" column_invisible="True"/>
+                                    <button name="action_start" string="Start"
+                                            type="object" class="btn-sm btn-secondary"
+                                            invisible="state != 'open'"/>
+                                    <button name="action_done" string="Done"
+                                            type="object" class="btn-sm btn-primary"
+                                            invisible="state == 'done'"/>
+                                </list>
+                            </field>
+                            <group class="mt-2">
+                                <field name="corrective_actions_complete" readonly="1"/>
+                            </group>
+                        </page>
+
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         INCIDENT REPORT — LIST VIEW
+         ══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_incident_report_list" model="ir.ui.view">
+        <field name="name">incident.report.list</field>
+        <field name="model">incident.report</field>
+        <field name="arch" type="xml">
+            <list string="Incidents" decoration-danger="severity == 'critical'"
+                  decoration-warning="severity == 'high'"
+                  default_order="date_occurred desc">
+                <field name="name"/>
+                <field name="is_confidential" optional="show" widget="boolean"
+                       string="Confidential"/>
+                <field name="incident_type_ids" widget="many2many_tags" options="{'no_open': True}"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity == 'critical'"
+                       decoration-warning="severity == 'high'"
+                       decoration-info="severity == 'medium'"/>
+                <field name="date_occurred"/>
+                <field name="location"/>
+                <field name="reporter_id" optional="show"/>
+                <field name="employee_id" optional="show"/>
+                <field name="responsible_manager_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'closed'"
+                       decoration-warning="state in ('submitted','assigned')"
+                       decoration-info="state in ('under_investigation','corrective_actions')"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         INCIDENT REPORT — KANBAN VIEW
+         ══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_incident_report_kanban" model="ir.ui.view">
+        <field name="name">incident.report.kanban</field>
+        <field name="model">incident.report</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column"
+                    group_delete="false" group_create="false">
+                <field name="name"/>
+                <field name="incident_type_ids" widget="many2many_tags" options="{'no_open': True}"/>
+                <field name="severity"/>
+                <field name="date_occurred"/>
+                <field name="reporter_id"/>
+                <field name="responsible_manager_id"/>
+                <field name="state"/>
+                <field name="near_miss"/>
+                <field name="is_confidential"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="d-flex justify-content-between mb-1">
+                                <strong><field name="name"/></strong>
+                                <div class="d-flex align-items-center gap-1">
+                                    <t t-if="record.is_confidential.raw_value">
+                                        <span class="badge text-bg-danger" title="Confidential">
+                                            <i class="fa fa-lock"/>
+                                        </span>
+                                    </t>
+                                    <field name="severity" widget="priority"/>
+                                </div>
+                            </div>
+                            <div class="text-muted small mb-1">
+                                <field name="incident_type_ids" widget="many2many_tags" options="{'no_open': True}"/>
+                                <t t-if="record.near_miss.raw_value">
+                                    <span class="badge bg-warning text-dark ms-1">Near Miss</span>
+                                </t>
+                            </div>
+                            <div class="small">
+                                <i class="fa fa-calendar-o me-1" title="Date"/>
+                                <field name="date_occurred" widget="datetime"/>
+                            </div>
+                            <div class="small text-muted">
+                                <i class="fa fa-map-marker me-1" title="Location"/>
+                                <field name="location"/>
+                            </div>
+                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                <div class="small text-muted">
+                                    <t t-if="record.responsible_manager_id.raw_value">
+                                        <i class="fa fa-user me-1" title="Manager"/>
+                                        <field name="responsible_manager_id"/>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="text-warning">
+                                            <i class="fa fa-exclamation-triangle me-1"/>Unassigned
+                                        </span>
+                                    </t>
+                                </div>
+                                <field name="reporter_id" widget="many2one_avatar_user"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         INCIDENT REPORT — GRAPH VIEW
+         ══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_incident_report_graph" model="ir.ui.view">
+        <field name="name">incident.report.graph</field>
+        <field name="model">incident.report</field>
+        <field name="arch" type="xml">
+            <graph string="Incidents" type="bar" stacked="1">
+                <field name="date_occurred" type="row" interval="month"/>
+                <field name="severity" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         INCIDENT REPORT — PIVOT VIEW
+         ══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_incident_report_pivot" model="ir.ui.view">
+        <field name="name">incident.report.pivot</field>
+        <field name="model">incident.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Incident Analysis">
+                <field name="department_id" type="row"/>
+                <field name="severity" type="col"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         INCIDENT REPORT — SEARCH VIEW
+         ══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_incident_report_search" model="ir.ui.view">
+        <field name="name">incident.report.search</field>
+        <field name="model">incident.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Incidents">
+                <field name="name" string="Reference"/>
+                <field name="location"/>
+                <field name="reporter_id"/>
+                <field name="responsible_manager_id"/>
+                <field name="employee_id"/>
+                <field name="description"/>
+                <separator/>
+                <filter string="My Incidents" name="my_incidents"
+                        domain="[('reporter_id', '=', uid)]"/>
+                <filter string="Assigned to Me" name="assigned_to_me"
+                        domain="[('responsible_manager_id', '=', uid)]"/>
+                <filter string="Near Miss" name="near_miss"
+                        domain="[('near_miss', '=', True)]"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Submitted" name="submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Assigned" name="assigned" domain="[('state', '=', 'assigned')]"/>
+                <filter string="Under Investigation" name="under_investigation"
+                        domain="[('state', '=', 'under_investigation')]"/>
+                <filter string="Corrective Actions" name="corrective_actions"
+                        domain="[('state', '=', 'corrective_actions')]"/>
+                <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter string="Critical" name="critical" domain="[('severity', '=', 'critical')]"/>
+                <filter string="High" name="high" domain="[('severity', '=', 'high')]"/>
+                <separator/>
+                <filter string="This Month" name="this_month"
+                        domain="[('date_occurred', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Year" name="this_year"
+                        domain="[('date_occurred', '&gt;=', (context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <group name="group_by">
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Incident Type" name="group_type"
+                            context="{'group_by': 'incident_type_ids'}"/>
+                    <filter string="Severity" name="group_severity"
+                            context="{'group_by': 'severity'}"/>
+                    <filter string="Responsible Manager" name="group_manager"
+                            context="{'group_by': 'responsible_manager_id'}"/>
+                    <filter string="Department" name="group_dept"
+                            context="{'group_by': 'department_id'}"/>
+                    <filter string="Month" name="group_month"
+                            context="{'group_by': 'date_occurred:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         ACTIONS
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- My Incidents — for all users -->
+    <record id="action_incident_report_my" model="ir.actions.act_window">
+        <field name="name">My Incidents</field>
+        <field name="res_model">incident.report</field>
+        <field name="view_mode">list,kanban,form,graph,pivot</field>
+        <field name="domain">[('reporter_id', '=', uid)]</field>
+        <field name="context">{'search_default_my_incidents': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No incidents reported yet</p>
+            <p>Click <b>New</b> to report a workplace incident.</p>
+        </field>
+    </record>
+
+    <!-- All Incidents — for managers -->
+    <record id="action_incident_report_all" model="ir.actions.act_window">
+        <field name="name">All Incidents</field>
+        <field name="res_model">incident.report</field>
+        <field name="view_mode">list,kanban,form,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No incidents on record</p>
+            <p>Incidents reported by employees will appear here.</p>
+        </field>
+    </record>
+
+    <!-- Pending Assignment — for managers -->
+    <record id="action_incident_report_pending" model="ir.actions.act_window">
+        <field name="name">Pending Assignment</field>
+        <field name="res_model">incident.report</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('state', '=', 'submitted')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No incidents awaiting assignment</p>
+        </field>
+    </record>
+
+    <!-- Open Investigations — for managers -->
+    <record id="action_incident_report_investigations" model="ir.actions.act_window">
+        <field name="name">Open Investigations</field>
+        <field name="res_model">incident.report</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('state', 'in', ('assigned', 'under_investigation', 'corrective_actions'))]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No open investigations</p>
+        </field>
+    </record>
+
+</odoo>

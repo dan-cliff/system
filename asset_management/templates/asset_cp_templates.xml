@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Base layout — shared by all control plane pages
+    ════════════════════════════════════════════════════════════════════════ -->
+    <template id="cp_base" name="Asset CP Base">
+        <html lang="en" t-att-data-cp-token="token"
+              t-att-data-location-tracking="'1' if asset and asset.eff_location_tracking else '0'">
+        <head>
+            <meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+            <meta name="theme-color" content="#0d6efd"/>
+            <meta name="mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+            <t t-if="asset">
+                <title t-out="asset.name + ' — Control Plane'"/>
+                <meta name="apple-mobile-web-app-title" t-att-content="asset.asset_number or asset.name"/>
+                <link rel="manifest" t-att-href="'/asset/cp/' + token + '/manifest.json'"/>
+            </t>
+            <t t-else="">
+                <title>Asset Control Plane</title>
+            </t>
+            <link rel="icon" type="image/png" sizes="32x32"
+                  href="/asset_management/static/src/img/favicon.png"/>
+            <link rel="apple-touch-icon" sizes="192x192"
+                  href="/asset_management/static/src/img/icon-192.png"/>
+            <link rel="stylesheet" t-att-href="'/asset_management/static/src/css/cp.css'"/>
+        </head>
+        <body>
+            <!-- Offline banner -->
+            <div class="cp-offline-banner">
+                &#x26A1; Offline — entries will sync automatically when you reconnect
+            </div>
+
+            <div class="cp-app">
+                <!-- Header -->
+                <div class="cp-header">
+                    <div class="cp-header-inner">
+                        <div class="cp-header-top">
+                            <t t-if="show_back">
+                                <a t-att-href="'/asset/cp/' + token" class="cp-back-btn" aria-label="Back">&#x2190;</a>
+                            </t>
+                            <img src="/asset_management/static/src/img/icon-192.png"
+                                 class="cp-header-logo" alt="Asset Management"/>
+                            <t t-if="asset">
+                                <div style="flex:1">
+                                    <div class="cp-asset-name" t-out="asset.name"/>
+                                    <div class="cp-asset-number" t-out="asset.asset_number"/>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="cp-asset-name" style="flex:1">Asset Control Plane</div>
+                            </t>
+                            <!-- Identity badge — populated by JS from localStorage -->
+                            <div class="cp-identity-badge" id="cp-identity-badge">
+                                <span class="cp-identity-badge-icon">&#x1F464;</span>
+                                <span class="cp-identity-badge-name" id="cp-badge-name"></span>
+                                <button type="button" class="cp-identity-badge-signout"
+                                        id="cp-badge-signout" title="Sign Out">&#x2715;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main body -->
+                <div class="cp-body">
+                    <!-- Install prompt -->
+                    <div class="cp-install-prompt">
+                        <p>Install this page as an app for quick offline access.</p>
+                        <button class="cp-install-btn">Install</button>
+                    </div>
+
+                    <!-- Page content -->
+                    <div t-att-class="'cp-content' + (' ' + content_class if content_class else '')">
+                        <t t-out="0"/>
+                    </div>
+                </div>
+
+                <!-- Pending sync badge -->
+                <div class="cp-queue-badge">&#x23F3; Pending sync&#x2026;</div>
+            </div>
+
+            <script t-att-src="'/asset_management/static/src/js/cp.js'"/>
+        </body>
+        </html>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Landing Page
+    ════════════════════════════════════════════════════════════════════════ -->
+    <template id="cp_landing" name="Asset CP Landing">
+        <t t-call="asset_management.cp_base">
+            <t t-set="show_back" t-value="False"/>
+            <t t-set="content_class" t-value="'cp-landing-content'"/>
+
+            <!-- Identity / Sign-In card -->
+            <div class="cp-card cp-card-full cp-signin-card" id="cp-signin-card">
+
+                <!-- ── Signed-in state (shown by JS) ── -->
+                <div class="cp-signin-active" id="cp-signin-active" style="display:none">
+                    <div class="cp-signin-active-row">
+                        <div class="cp-signin-photo-wrap">
+                            <img id="cp-signin-photo" class="cp-signin-photo" src="" alt="" style="display:none"/>
+                            <span id="cp-signin-avatar-placeholder" class="cp-signin-avatar-placeholder">&#x1F464;</span>
+                        </div>
+                        <div class="cp-signin-info">
+                            <div class="cp-card-title" style="margin-bottom:2px">Signed In As</div>
+                            <div class="cp-signin-name" id="cp-signin-name"></div>
+                        </div>
+                        <button type="button" class="cp-btn-ghost" id="cp-signout-btn">Sign Out</button>
+                    </div>
+                </div>
+
+                <!-- ── Sign-in form (shown by JS; visible by default) ── -->
+                <div id="cp-signin-form">
+                    <div class="cp-card-title">Identify Yourself</div>
+
+                    <!-- Mode tabs -->
+                    <div class="cp-signin-tabs">
+                        <button type="button" class="cp-signin-tab" data-tab="barcode">ID Card</button>
+                        <button type="button" class="cp-signin-tab active" data-tab="pin">PIN Code</button>
+                    </div>
+
+                    <!-- Barcode panel -->
+                    <div class="cp-signin-panel" id="cp-tab-barcode" style="display:none">
+                        <p class="text-muted" style="font-size:14px;margin-bottom:14px">
+                            Scan your employee ID card barcode or enter it manually.
+                        </p>
+                        <div class="cp-barcode-row">
+                            <input type="text" id="cp-barcode-input"
+                                   placeholder="Scan or type barcode&#x2026;"
+                                   autocomplete="off" autocorrect="off"
+                                   autocapitalize="off" spellcheck="false"
+                                   inputmode="text"/>
+                            <button type="button" id="cp-camera-scan-btn"
+                                    class="cp-scan-btn cp-camera-btn" title="Scan with camera">
+                                &#x1F4F7;
+                            </button>
+                            <button type="button" id="cp-barcode-submit" class="cp-scan-btn">Verify</button>
+                        </div>
+                        <div class="cp-barcode-error" id="cp-barcode-error"></div>
+                    </div>
+
+                    <!-- PIN panel -->
+                    <div class="cp-signin-panel" id="cp-tab-pin">
+                        <p class="text-muted" style="font-size:14px;margin-bottom:14px">
+                            Enter your employee PIN code.
+                        </p>
+                        <div class="cp-barcode-row">
+                            <input type="password" id="cp-pin-input"
+                                   placeholder="Enter PIN&#x2026;"
+                                   inputmode="numeric" pattern="[0-9]*"
+                                   autocomplete="off"/>
+                            <button type="button" id="cp-pin-submit" class="cp-scan-btn">Verify</button>
+                        </div>
+                        <div class="cp-barcode-error" id="cp-pin-error"></div>
+                    </div>
+
+                    <!-- Offline / manual fallback -->
+                    <div class="cp-manual-fallback" id="cp-manual-fallback" style="display:none">
+                        <label class="cp-fallback-label" for="cp-manual-name">Or enter your name manually:</label>
+                        <div class="cp-barcode-row">
+                            <input type="text" id="cp-manual-name" placeholder="Your name&#x2026;"
+                                   autocomplete="name"/>
+                            <button type="button" id="cp-manual-submit" class="cp-scan-btn">Use Name</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Tracking Notice -->
+            <t t-if="asset.eff_location_tracking">
+                <div class="cp-card cp-card-full cp-location-notice" id="cp-location-notice">
+                    <div class="cp-location-notice-inner">
+                        <div class="cp-location-icon">&#x1F4CD;</div>
+                        <div class="cp-location-text">
+                            <strong>Location Monitoring Active</strong>
+                            <p>Your device's GPS location is being monitored and recorded for this asset.</p>
+                        </div>
+                    </div>
+                    <div class="cp-location-status" id="cp-location-status">Waiting for GPS&#x2026;</div>
+                </div>
+            </t>
+
+            <!-- Latest Usage Reading -->
+            <t t-if="asset.eff_usage_tracking">
+                <div class="cp-card">
+                    <div class="cp-card-title">Latest Usage Reading</div>
+                    <t t-if="asset.latest_usage_date">
+                        <div class="cp-stat">
+                            <span class="cp-stat-value" t-out="'%.0f' % asset.latest_usage_reading"/>
+                            <span class="cp-stat-unit" t-out="asset.latest_usage_unit or ''"/>
+                        </div>
+                        <div class="cp-stat-date" t-out="asset.latest_usage_date"/>
+                    </t>
+                    <t t-else="">
+                        <p class="empty-state">No readings recorded yet.</p>
+                    </t>
+                </div>
+            </t>
+
+            <!-- Quick Actions (spans full grid width) -->
+            <div class="cp-card cp-card-full">
+                <div class="cp-card-title">Quick Actions</div>
+                <div class="cp-action-lock-hint" id="cp-action-lock-hint" style="display:none">
+                    &#x1F512; Please sign in above before logging an entry.
+                </div>
+                <div t-att-class="'cp-actions' + (' three' if asset.eff_maintenance else '')">
+                    <t t-if="asset.eff_usage_tracking">
+                        <a t-att-href="'/asset/cp/' + token + '/usage/new'" class="cp-action-btn primary">
+                            <span class="icon">&#x1F4CA;</span>
+                            <span>Log Usage</span>
+                        </a>
+                    </t>
+                    <a t-att-href="'/asset/cp/' + token + '/defect/new'" class="cp-action-btn">
+                        <span class="icon">&#x26A0;&#xFE0F;</span>
+                        <span>Report Defect</span>
+                    </a>
+                    <t t-if="asset.eff_maintenance">
+                        <a t-att-href="'/asset/cp/' + token + '/maintenance/new'" class="cp-action-btn">
+                            <span class="icon">&#x1F527;</span>
+                            <span>Log Maintenance</span>
+                        </a>
+                    </t>
+                </div>
+            </div>
+
+            <!-- Recent Defects -->
+            <t t-if="recent_defects">
+                <div class="cp-card">
+                    <div class="cp-card-title">Open Defects</div>
+                    <ul class="cp-list">
+                        <t t-foreach="recent_defects" t-as="d">
+                            <li>
+                                <div>
+                                    <div class="value" t-out="d.description[:60] + ('...' if len(d.description) > 60 else '')"/>
+                                    <div class="label" t-out="d.date"/>
+                                </div>
+                                <span class="badge" t-out="d.severity_id.name or ''"/>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+            </t>
+
+            <!-- Recent Maintenance -->
+            <t t-if="recent_maintenance">
+                <div class="cp-card">
+                    <div class="cp-card-title">Recent Maintenance</div>
+                    <ul class="cp-list">
+                        <t t-foreach="recent_maintenance" t-as="m">
+                            <li>
+                                <div>
+                                    <div class="value" t-out="m.description[:60] + ('...' if len(m.description) > 60 else '')"/>
+                                    <div class="label" t-out="m.date"/>
+                                </div>
+                                <span class="badge" t-out="m.maintenance_type_id.name or ''"/>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+            </t>
+
+            <!-- Recent Usage -->
+            <t t-if="recent_usage">
+                <div class="cp-card">
+                    <div class="cp-card-title">Usage History</div>
+                    <ul class="cp-list">
+                        <t t-foreach="recent_usage" t-as="u">
+                            <li>
+                                <div class="label" t-out="u.date"/>
+                                <div class="value">
+                                    <t t-out="'%.0f' % u.reading"/>
+                                    <span class="text-muted"> <t t-out="u.unit or ''"/></span>
+                                </div>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+            </t>
+
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Usage Reading Form
+    ════════════════════════════════════════════════════════════════════════ -->
+    <template id="cp_usage_form" name="Asset CP Usage Form">
+        <t t-call="asset_management.cp_base">
+            <t t-set="show_back" t-value="True"/>
+
+            <t t-if="success">
+                <div class="cp-alert success">
+                    &#x2705; Usage reading saved successfully!
+                </div>
+            </t>
+
+            <div class="cp-card">
+                <div class="cp-card-title">New Usage Reading</div>
+                <form id="cp-usage-form" class="cp-form"
+                      t-att-action="'/asset/cp/' + token + '/usage/new'"
+                      method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <div class="cp-form-group">
+                        <label for="f-date">Date</label>
+                        <input type="text" id="f-date" name="date"
+                               class="cp-date-input"
+                               t-att-value="today"
+                               placeholder="DD/MM/YYYY"
+                               inputmode="numeric" maxlength="10"
+                               autocomplete="off" required="required"/>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-reading">Reading *
+                            <t t-if="asset.usage_unit_id">
+                                <span class="cp-unit-hint" t-out="'(' + asset.usage_unit_id.name + ')'"/>
+                            </t>
+                        </label>
+                        <input type="number" id="f-reading" name="reading"
+                               placeholder="e.g. 1250" step="0.01" min="0" required="required"
+                               inputmode="decimal"/>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-recorded-by">Recorded By</label>
+                        <select id="f-recorded-by" name="user_id">
+                            <option value="">-- Select User --</option>
+                            <t t-foreach="users" t-as="u">
+                                <option t-att-value="u.id" t-out="u.name"/>
+                            </t>
+                        </select>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-notes">Notes</label>
+                        <textarea id="f-notes" name="notes"
+                                  placeholder="Optional notes..." rows="3"/>
+                    </div>
+
+                    <button type="submit" class="cp-submit-btn">Save Reading</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Defect Report Form
+    ════════════════════════════════════════════════════════════════════════ -->
+    <template id="cp_defect_form" name="Asset CP Defect Form">
+        <t t-call="asset_management.cp_base">
+            <t t-set="show_back" t-value="True"/>
+
+            <t t-if="success">
+                <div class="cp-alert success">
+                    &#x2705; Defect report submitted successfully!
+                </div>
+            </t>
+
+            <div class="cp-card">
+                <div class="cp-card-title">Report a Defect</div>
+                <form id="cp-defect-form" class="cp-form"
+                      t-att-action="'/asset/cp/' + token + '/defect/new'"
+                      method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <!-- Hidden severity input, updated by JS buttons (default = first severity) -->
+                    <input type="hidden" name="severity"
+                           t-att-value="severities[0].name if severities else ''"/>
+                    <!-- Fallback name for employees without an Odoo user account -->
+                    <input type="hidden" name="reporter_name" id="f-reporter-name-hidden"/>
+
+                    <div class="cp-form-group">
+                        <label for="f-date">Date</label>
+                        <input type="text" id="f-date" name="date"
+                               class="cp-date-input"
+                               t-att-value="today"
+                               placeholder="DD/MM/YYYY"
+                               inputmode="numeric" maxlength="10"
+                               autocomplete="off" required="required"/>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-reporter">Reported By</label>
+                        <select id="f-reporter" name="user_id">
+                            <option value="">-- Select User --</option>
+                            <t t-foreach="users" t-as="u">
+                                <option t-att-value="u.id" t-out="u.name"/>
+                            </t>
+                        </select>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label>Severity *</label>
+                        <div class="cp-severity-grid">
+                            <t t-foreach="severities" t-as="s">
+                                <button type="button"
+                                        t-attf-class="cp-sev-btn #{' selected' if s_index == 0 else ''}"
+                                        t-att-data-sev="s.name"
+                                        t-out="s.name"/>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-desc">Description *</label>
+                        <textarea id="f-desc" name="description"
+                                  placeholder="Describe the defect in detail..."
+                                  rows="4" required="required"/>
+                    </div>
+
+                    <button type="submit" class="cp-submit-btn">Report Defect</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Maintenance Log Form
+    ════════════════════════════════════════════════════════════════════════ -->
+    <template id="cp_maintenance_form" name="Asset CP Maintenance Form">
+        <t t-call="asset_management.cp_base">
+            <t t-set="show_back" t-value="True"/>
+
+            <t t-if="success">
+                <div class="cp-alert success">
+                    &#x2705; Maintenance log saved successfully!
+                </div>
+            </t>
+
+            <div class="cp-card">
+                <div class="cp-card-title">Log Maintenance</div>
+                <form id="cp-maintenance-form" class="cp-form"
+                      t-att-action="'/asset/cp/' + token + '/maintenance/new'"
+                      method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <!-- Fallback name for employees without an Odoo user account -->
+                    <input type="hidden" name="technician_name" id="f-tech-name-hidden"/>
+
+                    <div class="cp-form-group">
+                        <label for="f-date">Date *</label>
+                        <input type="text" id="f-date" name="date"
+                               class="cp-date-input"
+                               t-att-value="today"
+                               placeholder="DD/MM/YYYY"
+                               inputmode="numeric" maxlength="10"
+                               autocomplete="off" required="required"/>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-tech">Technician</label>
+                        <select id="f-tech" name="user_id">
+                            <option value="">-- Select Technician --</option>
+                            <t t-foreach="users" t-as="u">
+                                <option t-att-value="u.id" t-out="u.name"/>
+                            </t>
+                        </select>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-type">Maintenance Type *</label>
+                        <select id="f-type" name="maintenance_type" required="required">
+                            <option value="">-- Select Type --</option>
+                            <t t-foreach="maintenance_types" t-as="mt">
+                                <option t-att-value="mt.name" t-out="mt.name"/>
+                            </t>
+                        </select>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-desc">Work Performed *</label>
+                        <textarea id="f-desc" name="description"
+                                  placeholder="Describe the maintenance work performed..."
+                                  rows="4" required="required"/>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-parts">Parts / Materials Used</label>
+                        <textarea id="f-parts" name="parts_used"
+                                  placeholder="List any parts or materials used..."
+                                  rows="2"/>
+                    </div>
+
+                    <div class="cp-form-group">
+                        <label for="f-next">Next Due Date</label>
+                        <input type="text" id="f-next" name="next_due_date"
+                               class="cp-date-input"
+                               placeholder="DD/MM/YYYY"
+                               inputmode="numeric" maxlength="10"
+                               autocomplete="off"/>
+                    </div>
+
+                    <button type="submit" class="cp-submit-btn">Log Maintenance</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Error Page
+    ════════════════════════════════════════════════════════════════════════ -->
+    <template id="cp_error" name="Asset CP Error">
+        <t t-call="asset_management.cp_base">
+            <t t-set="show_back" t-value="False"/>
+            <div class="cp-card">
+                <div class="cp-card-title">Error</div>
+                <div class="cp-alert error" t-out="message"/>
+                <p class="text-muted mt-2">
+                    If this problem persists, please contact your administrator.
+                </p>
+            </div>
+        </t>
+    </template>
+
+</odoo>

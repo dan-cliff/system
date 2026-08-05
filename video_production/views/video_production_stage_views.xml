@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_video_production_stage_list" model="ir.ui.view">
+        <field name="name">video.production.stage.list</field>
+        <field name="model">video.production.stage</field>
+        <field name="arch" type="xml">
+            <list string="Production Stages" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="fold"/>
+                <field name="is_published"/>
+                <field name="color" widget="color_picker"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_video_production_stage_form" model="ir.ui.view">
+        <field name="name">video.production.stage.form</field>
+        <field name="model">video.production.stage</field>
+        <field name="arch" type="xml">
+            <form string="Production Stage">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="fold"/>
+                        <field name="is_published"/>
+                        <field name="color" widget="color_picker"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_video_production_stage" model="ir.actions.act_window">
+        <field name="name">Production Stages</field>
+        <field name="res_model">video.production.stage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

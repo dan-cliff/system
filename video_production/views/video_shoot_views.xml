@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Search ────────────────────────────────────────────────────── -->
+    <record id="view_video_shoot_search" model="ir.ui.view">
+        <field name="name">video.shoot.search</field>
+        <field name="model">video.shoot</field>
+        <field name="arch" type="xml">
+            <search string="Search Shoots">
+                <field name="name"/>
+                <field name="production_id"/>
+                <field name="location"/>
+                <filter string="Planned" name="planned" domain="[('state','=','planned')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
+                <filter string="Completed" name="completed" domain="[('state','=','completed')]"/>
+                <filter string="This Week" name="this_week"
+                        domain="[('date_start','&gt;=', (context_today() - relativedelta(weekday=0)).strftime('%Y-%m-%d')),
+                                 ('date_start','&lt;=', (context_today() + relativedelta(weekday=6)).strftime('%Y-%m-%d'))]"/>
+                <group name="group_by">
+                    <filter string="Production" name="group_production"
+                            context="{'group_by': 'production_id'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Month" name="group_month"
+                            context="{'group_by': 'date_start:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Calendar ──────────────────────────────────────────────────── -->
+    <record id="view_video_shoot_calendar" model="ir.ui.view">
+        <field name="name">video.shoot.calendar</field>
+        <field name="model">video.shoot</field>
+        <field name="arch" type="xml">
+            <calendar string="Shoot Calendar"
+                      date_start="date_start"
+                      date_stop="date_stop"
+                      color="state"
+                      quick_create="0"
+                      mode="month">
+                <field name="name"/>
+                <field name="location"/>
+                <field name="production_id"/>
+                <field name="state" filters="1"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ── List ──────────────────────────────────────────────────────── -->
+    <record id="view_video_shoot_list" model="ir.ui.view">
+        <field name="name">video.shoot.list</field>
+        <field name="model">video.shoot</field>
+        <field name="arch" type="xml">
+            <list string="Shoots" default_order="date_start">
+                <field name="name"/>
+                <field name="production_id"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_stop" options="{'numeric': True}"/>
+                <field name="duration_hours" string="Duration (h)" optional="show"/>
+                <field name="location"/>
+                <field name="state"/>
+                <field name="crew_count" string="Crew"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form ──────────────────────────────────────────────────────── -->
+    <record id="view_video_shoot_form" model="ir.ui.view">
+        <field name="name">video.shoot.form</field>
+        <field name="model">video.shoot</field>
+        <field name="arch" type="xml">
+            <form string="Shoot">
+                <header>
+                    <button name="action_confirm" type="object"
+                            string="Confirm" class="btn-primary"
+                            invisible="state != 'planned'"
+                            groups="video_production.group_video_production_manager"/>
+                    <button name="action_complete" type="object"
+                            string="Mark Completed" class="btn-success"
+                            invisible="state not in ('planned','confirmed')"
+                            groups="video_production.group_video_production_manager"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel" class="btn-danger"
+                            invisible="state in ('completed','cancelled')"/>
+                    <button name="action_reset" type="object"
+                            string="Reset to Planned"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="planned,confirmed,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Main Filming Day"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Shoot Details">
+                            <field name="production_id"/>
+                            <field name="date_start" widget="datetime" options="{'numeric': True}"/>
+                            <field name="date_stop" widget="datetime" options="{'numeric': True}"/>
+                            <field name="duration_hours" readonly="1"/>
+                        </group>
+                        <group string="Location">
+                            <field name="location"/>
+                            <field name="location_notes"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Crew" name="crew">
+                            <field name="crew_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="role"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Equipment" name="equipment">
+                            <field name="equipment_ids">
+                                <list editable="bottom">
+                                    <field name="equipment_type"/>
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                    <field name="serial_number"/>
+                                    <field name="checked_out"/>
+                                    <field name="checked_in"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Call Sheet" name="call_sheet">
+                            <field name="call_sheet" placeholder="Full call sheet details…"/>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="shoot_notes" placeholder="Shoot day notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Actions ───────────────────────────────────────────────────── -->
+    <record id="action_video_shoot" model="ir.actions.act_window">
+        <field name="name">Shoots</field>
+        <field name="res_model">video.shoot</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="context">{'search_default_planned': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No shoots scheduled yet!
+            </p>
+            <p>Plan your filming days, assign crew and equipment.</p>
+        </field>
+    </record>
+
+    <record id="action_video_shoot_list" model="ir.actions.act_window">
+        <field name="name">All Shoots</field>
+        <field name="res_model">video.shoot</field>
+        <field name="view_mode">list,calendar,form</field>
+    </record>
+
+</odoo>

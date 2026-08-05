@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root application menu — hidden from the top-level app bar.
+         The model and all data remain intact; only the menu entry is suppressed.
+         Remove active="0" below to restore the menu without any data loss. -->
+    <menuitem id="menu_product_costing_root"
+              name="Product Cost Analysis"
+              sequence="90"
+              active="0"/>
+
+    <!-- Cost Analyses list — child of the root; hidden while root is inactive -->
+    <menuitem
+        id="menu_product_cost_analyses"
+        name="Cost Analyses"
+        parent="menu_product_costing_root"
+        action="product_cost_analysis.action_product_cost_analysis"
+        sequence="10"
+        groups="base.group_user"/>
+
+</odoo>

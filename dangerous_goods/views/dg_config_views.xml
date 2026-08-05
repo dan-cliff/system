@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ CHEMICAL PIPELINE STAGES ═════════════════════════════ -->
+    <record id="view_dg_chemical_stage_list" model="ir.ui.view">
+        <field name="name">dg.chemical.stage.list</field>
+        <field name="model">dg.chemical.stage</field>
+        <field name="arch" type="xml">
+            <list string="Chemical Register Stages" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="name"/>
+                <field name="code" readonly="1"/>
+                <field name="fold"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_chemical_stage_form" model="ir.ui.view">
+        <field name="name">dg.chemical.stage.form</field>
+        <field name="model">dg.chemical.stage</field>
+        <field name="arch" type="xml">
+            <form string="Chemical Stage">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="fold"/>
+                        </group>
+                        <group>
+                            <field name="code" readonly="1"/>
+                            <field name="description"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_chemical_stage" model="ir.actions.act_window">
+        <field name="name">Chemical Register Stages</field>
+        <field name="res_model">dg.chemical.stage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ BUILDINGS / SITES ═════════════════════════════════════ -->
+    <record id="view_dg_building_list" model="ir.ui.view">
+        <field name="name">dg.building.list</field>
+        <field name="model">dg.building</field>
+        <field name="arch" type="xml">
+            <list string="Buildings / Sites" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="name"/>
+                <field name="address"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_building_form" model="ir.ui.view">
+        <field name="name">dg.building.form</field>
+        <field name="model">dg.building</field>
+        <field name="arch" type="xml">
+            <form string="Building / Site">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Address">
+                        <field name="address" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_building" model="ir.actions.act_window">
+        <field name="name">Buildings / Sites</field>
+        <field name="res_model">dg.building</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ STORAGE LOCATIONS ══════════════════════════════════════ -->
+    <record id="view_dg_storage_location_list" model="ir.ui.view">
+        <field name="name">dg.storage.location.list</field>
+        <field name="model">dg.storage.location</field>
+        <field name="arch" type="xml">
+            <list string="Storage Locations" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="name"/>
+                <field name="building"/>
+                <field name="description"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_storage_location_form" model="ir.ui.view">
+        <field name="name">dg.storage.location.form</field>
+        <field name="model">dg.storage.location</field>
+        <field name="arch" type="xml">
+            <form string="Storage Location">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="building"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_storage_location" model="ir.actions.act_window">
+        <field name="name">Storage Locations</field>
+        <field name="res_model">dg.storage.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ PPE TYPES ══════════════════════════════════════════════ -->
+    <record id="view_dg_ppe_type_list" model="ir.ui.view">
+        <field name="name">dg.ppe.type.list</field>
+        <field name="model">dg.ppe.type</field>
+        <field name="arch" type="xml">
+            <list string="PPE Types" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_ppe_type_form" model="ir.ui.view">
+        <field name="name">dg.ppe.type.form</field>
+        <field name="model">dg.ppe.type</field>
+        <field name="arch" type="xml">
+            <form string="PPE Type">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Description / Standard">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_ppe_type" model="ir.actions.act_window">
+        <field name="name">PPE Types</field>
+        <field name="res_model">dg.ppe.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ DG STORAGE CLASSES ═════════════════════════════════════ -->
+    <record id="view_dg_storage_class_list" model="ir.ui.view">
+        <field name="name">dg.storage.class.list</field>
+        <field name="model">dg.storage.class</field>
+        <field name="arch" type="xml">
+            <list string="DG Storage Classes" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_storage_class_form" model="ir.ui.view">
+        <field name="name">dg.storage.class.form</field>
+        <field name="model">dg.storage.class</field>
+        <field name="arch" type="xml">
+            <form string="DG Storage Class">
+                <sheet>
+                    <group>
+                        <field name="code"/>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_storage_class" model="ir.actions.act_window">
+        <field name="name">DG Storage Classes</field>
+        <field name="res_model">dg.storage.class</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ ADG TRANSPORT CLASSES ══════════════════════════════════ -->
+    <record id="view_dg_adg_class_list" model="ir.ui.view">
+        <field name="name">dg.adg.class.list</field>
+        <field name="model">dg.adg.class</field>
+        <field name="arch" type="xml">
+            <list string="ADG Transport Classes" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_adg_class_form" model="ir.ui.view">
+        <field name="name">dg.adg.class.form</field>
+        <field name="model">dg.adg.class</field>
+        <field name="arch" type="xml">
+            <form string="ADG Transport Class">
+                <sheet>
+                    <group>
+                        <field name="code"/>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_adg_class" model="ir.actions.act_window">
+        <field name="name">ADG Transport Classes</field>
+        <field name="res_model">dg.adg.class</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ ASBESTOS FORMS ═════════════════════════════════════════ -->
+    <record id="view_dg_asbestos_form_list" model="ir.ui.view">
+        <field name="name">dg.asbestos.form.list</field>
+        <field name="model">dg.asbestos.form</field>
+        <field name="arch" type="xml">
+            <list string="Asbestos Forms" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_asbestos_form_form" model="ir.ui.view">
+        <field name="name">dg.asbestos.form.form</field>
+        <field name="model">dg.asbestos.form</field>
+        <field name="arch" type="xml">
+            <form string="Asbestos Form / Material Type">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_asbestos_form" model="ir.actions.act_window">
+        <field name="name">Asbestos Forms / Material Types</field>
+        <field name="res_model">dg.asbestos.form</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ CONTROL MEASURES ═══════════════════════════════════════ -->
+    <record id="view_dg_control_measure_list" model="ir.ui.view">
+        <field name="name">dg.control.measure.list</field>
+        <field name="model">dg.control.measure</field>
+        <field name="arch" type="xml">
+            <list string="Control Measures" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_control_measure_form" model="ir.ui.view">
+        <field name="name">dg.control.measure.form</field>
+        <field name="model">dg.control.measure</field>
+        <field name="arch" type="xml">
+            <form string="Control Measure">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_control_measure" model="ir.actions.act_window">
+        <field name="name">Control Measures</field>
+        <field name="res_model">dg.control.measure</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ ASBESTOS REMOVALISTS ════════════════════════════════════ -->
+    <record id="view_dg_asbestos_remover_list" model="ir.ui.view">
+        <field name="name">dg.asbestos.remover.list</field>
+        <field name="model">dg.asbestos.remover</field>
+        <field name="arch" type="xml">
+            <list string="Asbestos Removalists">
+                <field name="id" string="ID" optional="show"/>
+                <field name="name"/>
+                <field name="licence_number"/>
+                <field name="licence_class" widget="badge"
+                       decoration-danger="licence_class == 'a'"
+                       decoration-warning="licence_class == 'b'"/>
+                <field name="licence_expiry"
+                       decoration-danger="licence_expiry and licence_expiry &lt; context_today()"/>
+                <field name="contact_name"/>
+                <field name="phone"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dg_asbestos_remover_form" model="ir.ui.view">
+        <field name="name">dg.asbestos.remover.form</field>
+        <field name="model">dg.asbestos.remover</field>
+        <field name="arch" type="xml">
+            <form string="Asbestos Removalist / Contractor">
+                <sheet>
+                    <group>
+                        <group string="Company Details">
+                            <field name="name"/>
+                            <field name="contact_name"/>
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Licence Details">
+                            <field name="licence_number"/>
+                            <field name="licence_class"/>
+                            <field name="licence_expiry"
+                                   decoration-danger="licence_expiry and licence_expiry &lt; context_today()"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dg_asbestos_remover" model="ir.actions.act_window">
+        <field name="name">Asbestos Removalists</field>
+        <field name="res_model">dg.asbestos.remover</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

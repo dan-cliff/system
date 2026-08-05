@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_injury_rtw_case_list" model="ir.ui.view">
+        <field name="name">injury.rtw.case.list</field>
+        <field name="model">injury.rtw.case</field>
+        <field name="arch" type="xml">
+            <list string="RTW Cases"
+                  decoration-muted="state == 'closed'"
+                  decoration-warning="state == 'on_hold'"
+                  decoration-success="state == 'active'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="incident_id" optional="show"/>
+                <field name="department_id" optional="show"/>
+                <field name="injury_date"/>
+                <field name="injury_type" optional="show"/>
+                <field name="case_manager_id" optional="show"/>
+                <field name="expected_rtw_date" optional="show"/>
+                <field name="days_open_label" string="Duration" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'on_hold'"
+                       decoration-success="state == 'active'"
+                       decoration-muted="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_injury_rtw_case_form" model="ir.ui.view">
+        <field name="name">injury.rtw.case.form</field>
+        <field name="model">injury.rtw.case</field>
+        <field name="arch" type="xml">
+            <form string="Return to Work Case">
+                <header>
+                    <button name="action_activate" string="Activate" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_hold" string="Place on Hold" type="object"
+                            class="btn-secondary" invisible="state not in ('active',)"/>
+                    <button name="action_close" string="Close Case" type="object"
+                            class="btn-primary" invisible="state not in ('active', 'on_hold')"/>
+                    <button name="action_reopen" string="Reopen" type="object"
+                            class="btn-secondary" invisible="state != 'closed'"/>
+                    <button name="action_open_report_wizard" string="Export PDF"
+                            type="object" class="btn-secondary"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,on_hold,closed"/>
+                </header>
+                <sheet>
+                    <!-- Smart Buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_case_notes" type="object"
+                                class="oe_stat_button" icon="fa-sticky-note">
+                            <field name="case_note_count" widget="statinfo" string="Case Notes"/>
+                        </button>
+                        <button name="action_view_appointments" type="object"
+                                class="oe_stat_button" icon="fa-stethoscope">
+                            <field name="appointment_count" widget="statinfo" string="Appointments"/>
+                        </button>
+                        <button name="action_view_meetings" type="object"
+                                class="oe_stat_button" icon="fa-comments">
+                            <field name="meeting_count" widget="statinfo" string="Meetings"/>
+                        </button>
+                        <button name="action_view_file_notes" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="file_note_count" widget="statinfo" string="File Notes"/>
+                        </button>
+                        <button name="action_view_costs" type="object"
+                                class="oe_stat_button" icon="fa-dollar">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_cost" widget="monetary" string="Total Cost"
+                                   options="{'currency_field': 'currency_id'}"/>
+                        </button>
+                        <button name="action_view_rtw_plans" type="object"
+                                class="oe_stat_button" icon="fa-road">
+                            <field name="rtw_plan_count" widget="statinfo" string="RTW Plans"/>
+                        </button>
+                        <button name="action_view_certificates" type="object"
+                                class="oe_stat_button" icon="fa-certificate">
+                            <field name="certificate_count" widget="statinfo" string="Certificates"/>
+                        </button>
+                        <button name="action_view_documents" type="object"
+                                class="oe_stat_button" icon="fa-paperclip"
+                                invisible="document_count == 0">
+                            <field name="document_count" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <group>
+                        <group string="Employee">
+                            <field name="incident_id" options="{'no_create': True}"
+                                   placeholder="Select to auto-fill fields…"
+                                   readonly="incident_id"/>
+                            <field name="employee_id" options="{'no_create': True}"/>
+                            <field name="job_title" readonly="1"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="case_manager_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Case">
+                            <field name="injury_date"/>
+                            <field name="injury_type"/>
+                            <field name="body_part_affected"/>
+                            <field name="open_date"/>
+                            <field name="days_open_label" string="Duration Open" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Insurance / Claim">
+                            <field name="insurer_id" options="{'no_create': True}"/>
+                            <field name="primary_doctor_id" options="{'no_create': True}"/>
+                            <field name="claim_number"/>
+                            <field name="claim_accepted"/>
+                            <field name="claim_accepted_date" invisible="not claim_accepted"/>
+                        </group>
+                        <group string="Return to Work">
+                            <field name="pre_injury_hours"/>
+                            <field name="expected_rtw_date"/>
+                            <field name="actual_rtw_date"/>
+                            <field name="close_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <separator string="Injury / Illness Description"/>
+                    <field name="injury_description" nolabel="0" widget="text"
+                           placeholder="Describe the nature of the injury or illness, mechanism of injury, and initial impact on work capacity…"/>
+
+                    <separator string="Pre-injury Duties / Role Description"/>
+                    <field name="pre_injury_duties" nolabel="0" widget="text"
+                           placeholder="Describe the employee's pre-injury duties and responsibilities…"/>
+
+
+                    <separator string="General Notes"/>
+                    <field name="notes" nolabel="0" widget="text"
+                           placeholder="Any additional general notes for this case…"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_injury_rtw_case_search" model="ir.ui.view">
+        <field name="name">injury.rtw.case.search</field>
+        <field name="model">injury.rtw.case</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="case_manager_id"/>
+                <field name="claim_number"/>
+                <filter name="active" string="Active" domain="[('state','=','active')]"/>
+                <filter name="on_hold" string="On Hold" domain="[('state','=','on_hold')]"/>
+                <filter name="closed" string="Closed" domain="[('state','=','closed')]"/>
+                <separator/>
+                <filter name="my_cases" string="My Cases" domain="[('case_manager_id','=',uid)]"/>
+                <group>
+                    <filter name="by_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="by_manager" string="Case Manager" context="{'group_by': 'case_manager_id'}"/>
+                    <filter name="by_department" string="Department" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_injury_rtw_case_all" model="ir.actions.act_window">
+        <field name="name">RTW Cases</field>
+        <field name="res_model">injury.rtw.case</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No RTW cases yet</p>
+            <p>Create a new case to start managing a return to work.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,115 @@
+/* ══════════════════════════════════════════════════════════════
+   Training Sessions Report
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Root layout ───────────────────────────────────────────────── */
+.lms-sess-root {
+    height: calc(100vh - 112px);
+    overflow: hidden;
+    background: var(--o-view-background-color, #fff);
+}
+
+/* ── Control bars ───────────────────────────────────────────────── */
+.lms-sess-select {
+    width: auto;
+    min-width: 140px;
+}
+
+.lms-sess-select-lg {
+    min-width: 200px;
+}
+
+.lms-sess-date-bar {
+    background: var(--o-view-background-color, #fff);
+    font-size: 0.875rem;
+}
+
+.lms-sess-date-label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.lms-sess-date-input {
+    width: 145px;
+}
+
+.lms-sess-divider {
+    display: block;
+    width: 1px;
+    height: 24px;
+    background: var(--o-border-color, #dee2e6);
+    margin: 0 2px;
+}
+
+/* ── Scroll wrapper ─────────────────────────────────────────────── */
+.lms-sess-scroll-wrap {
+    overflow: auto;
+    min-height: 0;
+}
+
+/* ── Table ──────────────────────────────────────────────────────── */
+.lms-sess-table {
+    width: 100%;
+    font-size: 0.82rem;
+}
+
+.lms-sess-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--o-list-group-header-color, #f8f9fa);
+    border-bottom: 2px solid #dee2e6 !important;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.lms-sess-row {
+    cursor: pointer;
+}
+
+.lms-sess-row:hover td {
+    background: rgba(0, 100, 255, 0.03) !important;
+}
+
+.lms-sess-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.lms-sess-link {
+    color: var(--o-action-color, #017e84);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.lms-sess-link:hover {
+    text-decoration: underline;
+}
+
+/* ── State badge ────────────────────────────────────────────────── */
+.lms-sess-state-badge {
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.lms-sess-draft       { background: #e9ecef; color: #495057; }
+.lms-sess-open        { background: #cfe2ff; color: #084298; }
+.lms-sess-full        { background: #ffe5d0; color: #7d3900; }
+.lms-sess-closed      { background: #f8d7da; color: #58151c; }
+.lms-sess-in-progress { background: #cfe2ff; color: #084298; }
+.lms-sess-completed   { background: #d1e7dd; color: #0a3622; }
+.lms-sess-cancelled   { background: #f8d7da; color: #842029; }
+
+/* ── Capacity indicators ────────────────────────────────────────── */
+.lms-sess-no-seats   { color: #dc3545; font-weight: 600; }
+.lms-sess-few-seats  { color: #fd7e14; font-weight: 500; }
+
+/* ── Loading / empty ────────────────────────────────────────────── */
+.lms-sess-loading,
+.lms-sess-empty {
+    min-height: 300px;
+}

@@ -1,0 +1,26 @@
+<odoo noupdate="1">
+    <record id="api_auth_endpoint_login" model="api.auth.endpoint">
+      <field name="name">Login API</field>
+      <field name="sequence">10</field>
+      <field name="route">login</field>
+      <field name="active">True</field>
+    </record>
+    <record id="api_auth_endpoint_register" model="api.auth.endpoint">
+      <field name="name">Register API</field>
+      <field name="sequence">20</field>
+      <field name="route">register</field>
+      <field name="active">True</field>
+    </record>
+    <record id="api_auth_endpoint_reset_password" model="api.auth.endpoint">
+      <field name="name">Reset Password API</field>
+      <field name="sequence">30</field>
+      <field name="route">reset_password</field>
+      <field name="active">True</field>
+    </record>
+    <record id="api_auth_endpoint_user_details" model="api.auth.endpoint">
+      <field name="name">User Details API</field>
+      <field name="sequence">40</field>
+      <field name="route">user_details</field>
+      <field name="active">True</field>
+    </record>
+</odoo>

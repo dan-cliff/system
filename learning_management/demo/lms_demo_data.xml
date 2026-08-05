@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         COURSE LIBRARY — Health & Safety
+    ============================================================ -->
+    <record id="demo_course_manual_handling" model="lms.course">
+        <field name="name">Manual Handling &amp; Safe Lifting</field>
+        <field name="code">HS-001</field>
+        <field name="category_id" ref="lms_category_safety"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">in_person</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">2.0</field>
+        <field name="validity_months">24</field>
+        <field name="description"><![CDATA[<p>Covers correct manual handling techniques, safe lifting postures, and how to assess and reduce the risk of musculoskeletal injuries in the workplace.</p>]]></field>
+    </record>
+
+    <record id="demo_course_fire_safety" model="lms.course">
+        <field name="name">Fire Safety &amp; Emergency Procedures</field>
+        <field name="code">HS-002</field>
+        <field name="category_id" ref="lms_category_safety"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">in_person</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">1.5</field>
+        <field name="validity_months">12</field>
+        <field name="description"><![CDATA[<p>Covers fire prevention, emergency evacuation procedures, use of fire extinguishers, and roles during a building emergency.</p>]]></field>
+    </record>
+
+    <record id="demo_course_first_aid" model="lms.course">
+        <field name="name">First Aid Certificate</field>
+        <field name="code">HS-003</field>
+        <field name="category_id" ref="lms_category_safety"/>
+        <field name="course_type">qualification</field>
+        <field name="delivery_mode">upload</field>
+        <field name="requires_upload">True</field>
+        <field name="is_mandatory">False</field>
+        <field name="validity_months">36</field>
+        <field name="description"><![CDATA[<p>Upload your current First Aid Certificate (HLTAID011 or equivalent). Must be current and from a registered training organisation.</p>]]></field>
+    </record>
+
+    <record id="demo_course_working_at_heights" model="lms.course">
+        <field name="name">Working at Heights</field>
+        <field name="code">HS-004</field>
+        <field name="category_id" ref="lms_category_safety"/>
+        <field name="course_type">licence</field>
+        <field name="delivery_mode">upload</field>
+        <field name="requires_upload">True</field>
+        <field name="is_mandatory">False</field>
+        <field name="validity_months">24</field>
+        <field name="description"><![CDATA[<p>Upload a current Working at Heights licence or training certificate. Required for any staff accessing elevated storage areas, rooftops, or using ladders above 2 metres.</p>]]></field>
+    </record>
+
+    <record id="demo_course_whs_induction" model="lms.course">
+        <field name="name">Workplace Health &amp; Safety Induction</field>
+        <field name="code">HS-005</field>
+        <field name="category_id" ref="lms_category_safety"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">1.0</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Read and acknowledge the Workplace Health &amp; Safety Policy and site-specific induction checklist. Mandatory for all new starters before commencing work.</p>]]></field>
+    </record>
+
+    <!-- ============================================================
+         COURSE LIBRARY — Compliance & Regulatory
+    ============================================================ -->
+    <record id="demo_course_privacy" model="lms.course">
+        <field name="name">Privacy &amp; Data Protection</field>
+        <field name="code">CR-001</field>
+        <field name="category_id" ref="lms_category_compliance"/>
+        <field name="course_type">elearning</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">0.5</field>
+        <field name="validity_months">12</field>
+        <field name="description"><![CDATA[<p>Covers obligations under the Australian Privacy Act, how we collect and store customer data, and what to do in the event of a data breach.</p>]]></field>
+    </record>
+
+    <record id="demo_course_equal_opportunity" model="lms.course">
+        <field name="name">Equal Opportunity &amp; Anti-Discrimination</field>
+        <field name="code">CR-002</field>
+        <field name="category_id" ref="lms_category_compliance"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">0.5</field>
+        <field name="validity_months">24</field>
+        <field name="description"><![CDATA[<p>Read and acknowledge your obligations under equal opportunity and anti-discrimination legislation, including protected attributes and complaint procedures.</p>]]></field>
+    </record>
+
+    <record id="demo_course_bullying_harassment" model="lms.course">
+        <field name="name">Workplace Bullying &amp; Harassment Prevention</field>
+        <field name="code">CR-003</field>
+        <field name="category_id" ref="lms_category_compliance"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">0.5</field>
+        <field name="validity_months">24</field>
+        <field name="description"><![CDATA[<p>Defines bullying and harassment in the workplace, provides examples of unacceptable behaviour, and outlines reporting and resolution procedures.</p>]]></field>
+    </record>
+
+    <record id="demo_course_code_of_conduct" model="lms.course">
+        <field name="name">Code of Conduct</field>
+        <field name="code">CR-004</field>
+        <field name="category_id" ref="lms_category_compliance"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">0.25</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Read and sign the company Code of Conduct, covering professional standards, conflicts of interest, social media use, and confidentiality.</p>]]></field>
+    </record>
+
+    <!-- ============================================================
+         COURSE LIBRARY — Technical / Operational
+    ============================================================ -->
+    <record id="demo_course_cash_handling" model="lms.course">
+        <field name="name">Cash Handling &amp; POS Procedures</field>
+        <field name="code">OP-001</field>
+        <field name="category_id" ref="lms_category_technical"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">in_person</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">1.0</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Covers correct cash handling procedures, point-of-sale system operation, till reconciliation, and handling discrepancies.</p>]]></field>
+    </record>
+
+    <record id="demo_course_customer_service" model="lms.course">
+        <field name="name">Customer Service Excellence</field>
+        <field name="code">OP-002</field>
+        <field name="category_id" ref="lms_category_technical"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">in_person</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">2.0</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Covers customer greeting standards, handling complaints, product knowledge presentation, and upselling techniques appropriate to a retail craft environment.</p>]]></field>
+    </record>
+
+    <record id="demo_course_forklift" model="lms.course">
+        <field name="name">Forklift Licence (LF)</field>
+        <field name="code">OP-003</field>
+        <field name="category_id" ref="lms_category_technical"/>
+        <field name="course_type">licence</field>
+        <field name="delivery_mode">upload</field>
+        <field name="requires_upload">True</field>
+        <field name="is_mandatory">False</field>
+        <field name="validity_months">60</field>
+        <field name="description"><![CDATA[<p>Upload a current High Risk Work Licence — Forklift (LF class). Required for staff operating the forklift in the warehouse or loading dock. Renewal must be completed before expiry.</p>]]></field>
+    </record>
+
+    <record id="demo_course_stock_management" model="lms.course">
+        <field name="name">Stock Management &amp; Inventory Procedures</field>
+        <field name="code">OP-004</field>
+        <field name="category_id" ref="lms_category_technical"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">in_person</field>
+        <field name="is_mandatory">False</field>
+        <field name="duration_hours">2.0</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Covers receiving and checking deliveries, stock labelling, inventory counts, and using the inventory management system.</p>]]></field>
+    </record>
+
+    <!-- ============================================================
+         COURSE LIBRARY — Leadership & Management
+    ============================================================ -->
+    <record id="demo_course_whs_managers" model="lms.course">
+        <field name="name">WHS for Managers &amp; Supervisors</field>
+        <field name="code">LM-001</field>
+        <field name="category_id" ref="lms_category_leadership"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">in_person</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">3.0</field>
+        <field name="validity_months">24</field>
+        <field name="description"><![CDATA[<p>Covers the specific WHS obligations of managers and supervisors, including risk assessment, incident investigation, and the duty of care owed to direct reports.</p>]]></field>
+    </record>
+
+    <record id="demo_course_managing_teams" model="lms.course">
+        <field name="name">Managing &amp; Mentoring Teams</field>
+        <field name="code">LM-002</field>
+        <field name="category_id" ref="lms_category_leadership"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">in_person</field>
+        <field name="is_mandatory">False</field>
+        <field name="duration_hours">4.0</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Develops skills in team leadership, delegation, performance coaching, and providing constructive feedback. Suitable for new and existing team leaders.</p>]]></field>
+    </record>
+
+    <record id="demo_course_performance_reviews" model="lms.course">
+        <field name="name">Performance Review &amp; Feedback Process</field>
+        <field name="code">LM-003</field>
+        <field name="category_id" ref="lms_category_leadership"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">False</field>
+        <field name="duration_hours">0.5</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Explains the company performance review cycle, how to set SMART goals, and guidance on writing meaningful performance feedback.</p>]]></field>
+    </record>
+
+    <!-- ============================================================
+         COURSE LIBRARY — Human Resources
+    ============================================================ -->
+    <record id="demo_course_employee_handbook" model="lms.course">
+        <field name="name">Employee Handbook &amp; Policies</field>
+        <field name="code">HR-001</field>
+        <field name="category_id" ref="lms_category_hr"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">0.5</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Read and acknowledge receipt of the Employee Handbook, covering leave entitlements, workplace policies, and general employment conditions.</p>]]></field>
+    </record>
+
+    <record id="demo_course_leave_rostering" model="lms.course">
+        <field name="name">Leave &amp; Rostering Procedures</field>
+        <field name="code">HR-002</field>
+        <field name="category_id" ref="lms_category_hr"/>
+        <field name="course_type">training</field>
+        <field name="delivery_mode">document</field>
+        <field name="is_mandatory">True</field>
+        <field name="duration_hours">0.25</field>
+        <field name="validity_months">0</field>
+        <field name="description"><![CDATA[<p>Explains how to submit leave requests, read the roster, swap shifts, and contact the right person when you are unable to attend work.</p>]]></field>
+    </record>
+
+    <!-- ============================================================
+         TRAINING PACKAGES
+    ============================================================ -->
+
+    <!-- Package 1: New Employee Onboarding -->
+    <record id="demo_package_onboarding" model="lms.course.group">
+        <field name="name">New Employee Onboarding</field>
+        <field name="code">PKG-OB</field>
+        <field name="color">10</field>
+        <field name="description"><![CDATA[<p>The complete induction package for all new starters. Covers everything an employee must complete before working independently on the shop floor.</p>]]></field>
+        <field name="course_ids" eval="[
+            Command.link(ref('demo_course_whs_induction')),
+            Command.link(ref('demo_course_manual_handling')),
+            Command.link(ref('demo_course_fire_safety')),
+            Command.link(ref('demo_course_code_of_conduct')),
+            Command.link(ref('demo_course_employee_handbook')),
+            Command.link(ref('demo_course_leave_rostering')),
+            Command.link(ref('demo_course_cash_handling')),
+            Command.link(ref('demo_course_customer_service')),
+        ]"/>
+    </record>
+
+    <!-- Package 2: Health & Safety Essentials -->
+    <record id="demo_package_health_safety" model="lms.course.group">
+        <field name="name">Health &amp; Safety Essentials</field>
+        <field name="code">PKG-HS</field>
+        <field name="color">1</field>
+        <field name="description"><![CDATA[<p>Annual health and safety refresher covering the core mandatory topics for all employees.</p>]]></field>
+        <field name="course_ids" eval="[
+            Command.link(ref('demo_course_manual_handling')),
+            Command.link(ref('demo_course_fire_safety')),
+            Command.link(ref('demo_course_whs_induction')),
+        ]"/>
+    </record>
+
+    <!-- Package 3: Compliance Fundamentals -->
+    <record id="demo_package_compliance" model="lms.course.group">
+        <field name="name">Compliance Fundamentals</field>
+        <field name="code">PKG-CF</field>
+        <field name="color">2</field>
+        <field name="description"><![CDATA[<p>Annual compliance refresh covering privacy, equal opportunity, and conduct standards. Required for all staff every 24 months.</p>]]></field>
+        <field name="course_ids" eval="[
+            Command.link(ref('demo_course_privacy')),
+            Command.link(ref('demo_course_equal_opportunity')),
+            Command.link(ref('demo_course_bullying_harassment')),
+            Command.link(ref('demo_course_code_of_conduct')),
+        ]"/>
+    </record>
+
+    <!-- Package 4: Management Induction -->
+    <record id="demo_package_management" model="lms.course.group">
+        <field name="name">Management Induction</field>
+        <field name="code">PKG-MGT</field>
+        <field name="color">4</field>
+        <field name="description"><![CDATA[<p>Assigned to employees stepping into a supervisory or management role for the first time.</p>]]></field>
+        <field name="course_ids" eval="[
+            Command.link(ref('demo_course_whs_managers')),
+            Command.link(ref('demo_course_managing_teams')),
+            Command.link(ref('demo_course_performance_reviews')),
+            Command.link(ref('demo_course_equal_opportunity')),
+            Command.link(ref('demo_course_bullying_harassment')),
+        ]"/>
+    </record>
+
+    <!-- Package 5: Warehouse & Stockroom -->
+    <record id="demo_package_warehouse" model="lms.course.group">
+        <field name="name">Warehouse &amp; Stockroom Operations</field>
+        <field name="code">PKG-WH</field>
+        <field name="color">3</field>
+        <field name="description"><![CDATA[<p>For employees working in receiving, stockroom, or warehouse areas. Includes manual handling, stock management, and relevant high-risk licences.</p>]]></field>
+        <field name="course_ids" eval="[
+            Command.link(ref('demo_course_manual_handling')),
+            Command.link(ref('demo_course_stock_management')),
+            Command.link(ref('demo_course_working_at_heights')),
+            Command.link(ref('demo_course_forklift')),
+        ]"/>
+    </record>
+
+</odoo>

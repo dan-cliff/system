@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_printer_files_wizard_form" model="ir.ui.view">
+        <field name="name">print.printer.file.wizard.form</field>
+        <field name="model">print.printer.file.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Cached Files">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="printer_id" readonly="1"/>
+                        </h1>
+                        <h4 class="text-muted">
+                            <field name="file_count"/> file(s) in /cache/
+                        </h4>
+                    </div>
+                    <field name="file_ids">
+                        <list editable="bottom" decoration-danger="selected">
+                            <field name="selected" string="Delete?"/>
+                            <field name="filename"/>
+                            <field name="size_kb" string="Size (KB)"/>
+                        </list>
+                    </field>
+                </sheet>
+                <footer>
+                    <button name="action_delete_selected" type="object"
+                            string="Delete Selected" class="btn-danger"
+                            confirm="Permanently delete the selected files from the printer?"/>
+                    <button name="action_refresh" type="object"
+                            string="Refresh" class="btn-secondary"/>
+                    <button name="action_select_all" type="object"
+                            string="Select All" class="btn-secondary"/>
+                    <button name="action_deselect_all" type="object"
+                            string="Deselect All" class="btn-secondary"/>
+                    <button special="cancel" string="Close" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

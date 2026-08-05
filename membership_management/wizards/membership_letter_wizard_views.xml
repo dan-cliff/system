@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="membership_letter_wizard_form_view" model="ir.ui.view">
+        <field name="name">membership.letter.wizard.form</field>
+        <field name="model">membership.letter.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate Letter">
+                <sheet>
+                    <group>
+                        <field name="membership_id" invisible="1"/>
+                        <field name="template_id"
+                               string="Letter Template"
+                               options="{'no_quick_create': True}"
+                               placeholder="Select a letter template…"/>
+                        <field name="output_format" string="Output Format"/>
+                    </group>
+                    <div class="alert alert-info" role="status"
+                         invisible="output_format != 'pdf'">
+                        PDF output requires LibreOffice to be installed on the server.
+                        If conversion fails, use Word Document (.docx) format instead.
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Generate"
+                            name="action_generate"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

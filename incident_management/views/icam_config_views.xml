@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── ICAM Category ──────────────────────────────────────────────────── -->
+
+    <record id="view_icam_category_list" model="ir.ui.view">
+        <field name="name">icam.category.list</field>
+        <field name="model">icam.category</field>
+        <field name="arch" type="xml">
+            <list string="ICAM Categories">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="factor_count" string="Factors"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_icam_category_form" model="ir.ui.view">
+        <field name="name">icam.category.form</field>
+        <field name="model">icam.category</field>
+        <field name="arch" type="xml">
+            <form string="ICAM Category">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Absent or Failed Defences"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="sequence"/>
+                            <field name="color" widget="color_picker"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Description / Investigator Guidance">
+                        <field name="description" nolabel="1"
+                               placeholder="Describe what this category covers and how investigators should use it…"/>
+                    </group>
+                    <notebook>
+                        <page string="Contributing Factors" name="factors">
+                            <field name="factor_ids" context="{'default_category_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="description" optional="show"/>
+                                    <field name="active" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_icam_category" model="ir.actions.act_window">
+        <field name="name">ICAM Categories</field>
+        <field name="res_model">icam.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No ICAM categories defined yet.
+            </p>
+            <p>Define the categories used in ICAM investigations (e.g. Absent or Failed Defences,
+               Individual/Team Actions, Task/Environmental Conditions, Organisational Factors).</p>
+        </field>
+    </record>
+
+    <!-- ── ICAM Factor ────────────────────────────────────────────────────── -->
+
+    <record id="view_icam_factor_list" model="ir.ui.view">
+        <field name="name">icam.factor.list</field>
+        <field name="model">icam.factor</field>
+        <field name="arch" type="xml">
+            <list string="ICAM Factors">
+                <field name="sequence" widget="handle"/>
+                <field name="category_id"/>
+                <field name="name"/>
+                <field name="description" optional="show"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_icam_factor_form" model="ir.ui.view">
+        <field name="name">icam.factor.form</field>
+        <field name="model">icam.factor</field>
+        <field name="arch" type="xml">
+            <form string="ICAM Factor">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Physical barriers / guards absent or failed"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="category_id" options="{'no_create': True}"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Description / Investigator Guidance">
+                        <field name="description" nolabel="1"
+                               placeholder="Explain what this factor covers to assist investigators…"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_icam_factor" model="ir.actions.act_window">
+        <field name="name">ICAM Factors</field>
+        <field name="res_model">icam.factor</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_category': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No ICAM factors defined yet.
+            </p>
+            <p>Define the contributing factors used within each ICAM category.</p>
+        </field>
+    </record>
+
+</odoo>

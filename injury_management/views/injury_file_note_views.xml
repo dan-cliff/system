@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_injury_file_note_list" model="ir.ui.view">
+        <field name="name">injury.file.note.list</field>
+        <field name="model">injury.file.note</field>
+        <field name="arch" type="xml">
+            <list string="File Notes" default_order="note_date desc">
+                <field name="case_id"/>
+                <field name="note_date"/>
+                <field name="category"/>
+                <field name="subject"/>
+                <field name="author_id"/>
+                <field name="document_reference" optional="show"/>
+                <field name="is_confidential" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_injury_file_note_form" model="ir.ui.view">
+        <field name="name">injury.file.note.form</field>
+        <field name="model">injury.file.note</field>
+        <field name="arch" type="xml">
+            <form string="File Note">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="case_id" options="{'no_create': True}"/>
+                            <field name="note_date"/>
+                            <field name="category"/>
+                            <field name="author_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="subject"/>
+                            <field name="document_reference"/>
+                            <field name="is_confidential"/>
+                        </group>
+                    </group>
+                    <separator string="Content / Description"/>
+                    <field name="content" nolabel="0" widget="text"
+                           placeholder="Enter the file note content…"/>
+                    <separator string="Attachments"/>
+                    <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_injury_file_note_all" model="ir.actions.act_window">
+        <field name="name">File Notes</field>
+        <field name="res_model">injury.file.note</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

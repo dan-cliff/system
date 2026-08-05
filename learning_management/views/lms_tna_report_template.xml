@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TNA PDF Report — Landscape A4 paperformat
+    ════════════════════════════════════════════════════════════ -->
+    <record id="paperformat_lms_tna_landscape" model="report.paperformat">
+        <field name="name">LMS TNA Landscape A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">18</field>
+        <field name="margin_bottom">14</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">3</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TNA PDF Report — ir.actions.report
+    ════════════════════════════════════════════════════════════ -->
+    <record id="action_lms_tna_pdf" model="ir.actions.report">
+        <field name="name">Training Needs Analysis</field>
+        <field name="model">lms.employee.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">learning_management.lms_tna_report_pdf</field>
+        <field name="report_file">learning_management.lms_tna_report_pdf</field>
+        <field name="paperformat_id" ref="paperformat_lms_tna_landscape"/>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TNA PDF Report — QWeb Template
+    ════════════════════════════════════════════════════════════ -->
+    <template id="lms_tna_report_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="emp_pages" t-as="page_emps">
+                <div class="article">
+
+                    <!-- ── Page header ─────────────────────────────────────── -->
+                    <table style="width:100%;margin-bottom:8px;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:80px;vertical-align:middle;">
+                                <t t-if="company.logo">
+                                    <img t-att-src="image_data_uri(company.logo)"
+                                         style="max-height:50px;max-width:75px;object-fit:contain;"/>
+                                </t>
+                            </td>
+                            <td style="vertical-align:middle;padding-left:12px;">
+                                <div style="font-size:14pt;font-weight:700;color:#212529;">
+                                    Training Needs Analysis
+                                </div>
+                                <div style="font-size:9pt;color:#6c757d;margin-top:2px;">
+                                    <t t-esc="company.name"/>
+                                </div>
+                            </td>
+                            <td style="vertical-align:middle;text-align:right;font-size:8pt;color:#6c757d;">
+                                Page <span class="page"/> of <span class="topage"/>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <hr style="border:none;border-top:1.5px solid #dee2e6;margin:0 0 8px 0;"/>
+
+                    <!-- ── Matrix table ────────────────────────────────────── -->
+                    <table style="width:100%;border-collapse:collapse;font-size:7.5pt;table-layout:fixed;">
+
+                        <!-- Employee header row -->
+                        <thead>
+                            <tr>
+                                <!-- Corner cell -->
+                                <th style="width:130px;min-width:130px;border:1px solid #dee2e6;
+                                           background:#f8f9fa;padding:4px 6px;
+                                           vertical-align:bottom;font-size:7pt;color:#6c757d;">
+                                    Course ↓ / Employee →
+                                </th>
+                                <t t-foreach="page_emps" t-as="emp">
+                                    <th t-att-title="emp['name']"
+                                        style="border:1px solid #dee2e6;background:#f8f9fa;
+                                               padding:0;vertical-align:bottom;
+                                               overflow:hidden;text-overflow:ellipsis;">
+                                        <!-- Rotated employee name -->
+                                        <div style="writing-mode:vertical-rl;
+                                                    transform:rotate(180deg);
+                                                    white-space:nowrap;
+                                                    overflow:hidden;
+                                                    text-overflow:ellipsis;
+                                                    max-height:90px;
+                                                    padding:6px 3px 4px;
+                                                    font-size:7pt;
+                                                    font-weight:600;
+                                                    color:#343a40;
+                                                    display:block;">
+                                            <t t-esc="emp['name']"/>
+                                        </div>
+                                    </th>
+                                </t>
+                            </tr>
+                        </thead>
+
+                        <!-- Course rows -->
+                        <tbody>
+                            <t t-foreach="courses" t-as="course">
+                                <tr>
+                                    <td t-att-title="course['name']"
+                                        style="border:1px solid #dee2e6;
+                                               padding:3px 6px;
+                                               white-space:nowrap;
+                                               overflow:hidden;
+                                               text-overflow:ellipsis;
+                                               background:#fff;">
+                                        <t t-if="course.get('code')">
+                                            <span style="font-size:6.5pt;color:#6c757d;font-family:monospace;">
+                                                <t t-esc="course['code']"/>
+                                            </span>
+                                            <span style="margin-left:3px;"/>
+                                        </t>
+                                        <span style="font-size:7pt;color:#212529;">
+                                            <t t-esc="course['name']"/>
+                                        </span>
+                                    </td>
+
+                                    <t t-foreach="page_emps" t-as="emp">
+                                        <t t-set="cell_key" t-value="'%s_%s' % (emp['id'], course['id'])"/>
+                                        <t t-set="cell"     t-value="cells.get(cell_key)"/>
+                                        <t t-set="cell_state" t-value="cell['state'] if cell else 'none'"/>
+                                        <t t-set="cell_style" t-value="state_styles.get(cell_state, '')"/>
+                                        <td t-att-style="'border:1px solid #dee2e6;text-align:center;vertical-align:middle;padding:2px;height:34px;' + cell_style">
+                                            <t t-if="cell">
+                                                <!-- State label abbreviation -->
+                                                <div style="font-size:6pt;font-weight:600;line-height:1.2;">
+                                                    <t t-esc="state_labels.get(cell['state'], cell['state'])"/>
+                                                </div>
+                                                <t t-if="cell.get('expiry_date')">
+                                                    <div style="font-size:5.5pt;margin-top:1px;opacity:0.85;">
+                                                        <t t-esc="cell['expiry_date'][8:10] + '/' + cell['expiry_date'][5:7] + '/' + cell['expiry_date'][:4]"/>
+                                                    </div>
+                                                </t>
+                                            </t>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <!-- ── Legend ──────────────────────────────────────────── -->
+                    <t t-if="emp_page_last">
+                        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;font-size:6.5pt;color:#495057;">
+                            <span style="font-weight:700;align-self:center;">Legend:</span>
+                            <t t-foreach="state_labels.items()" t-as="entry">
+                                <span style="display:inline-flex;align-items:center;gap:3px;">
+                                    <span t-att-style="'display:inline-block;width:10px;height:10px;border-radius:2px;border:1px solid rgba(0,0,0,.12);' + state_styles[entry[0]]"/>
+                                    <t t-esc="entry[1]"/>
+                                </span>
+                            </t>
+                            <span style="display:inline-flex;align-items:center;gap:3px;">
+                                <span style="display:inline-block;width:10px;height:10px;border-radius:2px;border:1px solid rgba(0,0,0,.12);background:#f8f9fa;"/>
+                                No Record
+                            </span>
+                        </div>
+                    </t>
+
+                </div>
+            </t>
+        </t>
+    </template>
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         EXPIRING REPORT — Portrait A4 paperformat
+    ════════════════════════════════════════════════════════════ -->
+    <record id="paperformat_lms_expiring_portrait" model="report.paperformat">
+        <field name="name">LMS Expiring Report A4 Portrait</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">18</field>
+        <field name="margin_bottom">14</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">3</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         EXPIRING REPORT — ir.actions.report
+    ════════════════════════════════════════════════════════════ -->
+    <record id="action_lms_expiring_pdf" model="ir.actions.report">
+        <field name="name">Training Records Expiring</field>
+        <field name="model">lms.employee.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">learning_management.lms_expiring_report_pdf</field>
+        <field name="report_file">learning_management.lms_expiring_report_pdf</field>
+        <field name="paperformat_id" ref="paperformat_lms_expiring_portrait"/>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         EXPIRING REPORT — QWeb Template
+    ════════════════════════════════════════════════════════════ -->
+    <template id="lms_expiring_report_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="pages" t-as="page">
+                <div class="article">
+
+                    <!-- ── Page header ─────────────────────────────────────── -->
+                    <table style="width:100%;margin-bottom:8px;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:80px;vertical-align:middle;">
+                                <t t-if="company.logo">
+                                    <img t-att-src="image_data_uri(company.logo)"
+                                         style="max-height:50px;max-width:75px;object-fit:contain;"/>
+                                </t>
+                            </td>
+                            <td style="vertical-align:middle;padding-left:12px;">
+                                <div style="font-size:14pt;font-weight:700;color:#212529;">
+                                    Training Records Expiring
+                                </div>
+                                <div style="font-size:9pt;color:#6c757d;margin-top:2px;">
+                                    <t t-esc="company.name"/>
+                                </div>
+                            </td>
+                            <td style="vertical-align:middle;text-align:right;font-size:8pt;color:#6c757d;">
+                                Page <span class="page"/> of <span class="topage"/>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <hr style="border:none;border-top:1.5px solid #dee2e6;margin:0 0 8px 0;"/>
+
+                    <!-- ── Data table ──────────────────────────────────────── -->
+                    <table style="width:100%;border-collapse:collapse;font-size:8pt;table-layout:auto;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:left;font-weight:600;">Employee</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:left;font-weight:600;">Department</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:left;font-weight:600;">Course</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:left;font-weight:600;">Type</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:left;font-weight:600;">Status</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:center;font-weight:600;">Started On</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:center;font-weight:600;">Completed On</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 6px;text-align:center;font-weight:600;">Expires On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="page" t-as="rec">
+                                <t t-set="row_bg" t-value="'background:#fff;' if rec_index % 2 == 0 else 'background:#f9f9f9;'"/>
+                                <tr t-att-style="row_bg">
+                                    <td style="border:1px solid #dee2e6;padding:3px 6px;"><t t-esc="rec['employee_name']"/></td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 6px;font-size:7pt;"><t t-esc="rec['department']"/></td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 6px;">
+                                        <t t-if="rec.get('course_code')">
+                                            <span style="font-family:monospace;font-size:6.5pt;color:#6c757d;">
+                                                <t t-esc="rec['course_code']"/>
+                                            </span>
+                                            <t t-out="' '"/>
+                                        </t>
+                                        <t t-esc="rec['course_name']"/>
+                                    </td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 6px;font-size:7pt;white-space:nowrap;">
+                                        <t t-esc="rec['course_type'].replace('_',' ').title() if rec['course_type'] else ''"/>
+                                    </td>
+                                    <td t-att-style="'border:1px solid #dee2e6;padding:3px 6px;white-space:nowrap;font-size:7pt;' + state_styles.get(rec['state'], '')">
+                                        <t t-esc="state_labels.get(rec['state'], rec['state'])"/>
+                                    </td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 6px;text-align:center;white-space:nowrap;">
+                                        <t t-if="rec.get('start_date')">
+                                            <t t-esc="rec['start_date'][8:10] + '/' + rec['start_date'][5:7] + '/' + rec['start_date'][:4]"/>
+                                        </t>
+                                    </td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 6px;text-align:center;white-space:nowrap;">
+                                        <t t-if="rec.get('completion_date')">
+                                            <t t-esc="rec['completion_date'][8:10] + '/' + rec['completion_date'][5:7] + '/' + rec['completion_date'][:4]"/>
+                                        </t>
+                                    </td>
+                                    <td t-att-style="'border:1px solid #dee2e6;padding:3px 6px;text-align:center;white-space:nowrap;' + (state_styles.get(rec['state'], '') if rec.get('expiry_date') else 'color:#adb5bd;')">
+                                        <t t-if="rec.get('expiry_date')">
+                                            <t t-esc="rec['expiry_date'][8:10] + '/' + rec['expiry_date'][5:7] + '/' + rec['expiry_date'][:4]"/>
+                                        </t>
+                                        <t t-else="">—</t>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                </div>
+            </t>
+        </t>
+    </template>
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         SESSIONS REPORT — ir.actions.report
+         (reuses the existing landscape A4 paperformat)
+    ════════════════════════════════════════════════════════════ -->
+    <record id="action_lms_sessions_pdf" model="ir.actions.report">
+        <field name="name">Training Sessions</field>
+        <field name="model">lms.course.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">learning_management.lms_sessions_report_pdf</field>
+        <field name="report_file">learning_management.lms_sessions_report_pdf</field>
+        <field name="paperformat_id" ref="paperformat_lms_tna_landscape"/>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SESSIONS REPORT — QWeb Template
+    ════════════════════════════════════════════════════════════ -->
+    <template id="lms_sessions_report_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="pages" t-as="page">
+                <div class="article">
+
+                    <!-- ── Page header ─────────────────────────────────────── -->
+                    <table style="width:100%;margin-bottom:8px;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:80px;vertical-align:middle;">
+                                <t t-if="company.logo">
+                                    <img t-att-src="image_data_uri(company.logo)"
+                                         style="max-height:50px;max-width:75px;object-fit:contain;"/>
+                                </t>
+                            </td>
+                            <td style="vertical-align:middle;padding-left:12px;">
+                                <div style="font-size:14pt;font-weight:700;color:#212529;">
+                                    Training Sessions
+                                </div>
+                                <div style="font-size:9pt;color:#6c757d;margin-top:2px;">
+                                    <t t-esc="company.name"/>
+                                </div>
+                            </td>
+                            <td style="vertical-align:middle;text-align:right;font-size:8pt;color:#6c757d;">
+                                Page <span class="page"/> of <span class="topage"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <hr style="border:none;border-top:1.5px solid #dee2e6;margin:0 0 8px 0;"/>
+
+                    <!-- ── Data table ──────────────────────────────────────── -->
+                    <table style="width:100%;border-collapse:collapse;font-size:7.5pt;table-layout:fixed;">
+                        <colgroup>
+                            <col style="width:16%"/>  <!-- Session Name -->
+                            <col style="width:13%"/>  <!-- Course -->
+                            <col style="width:10%"/>  <!-- Start -->
+                            <col style="width:10%"/>  <!-- End -->
+                            <col style="width:13%"/>  <!-- Location -->
+                            <col style="width:11%"/>  <!-- Instructor -->
+                            <col style="width:9%"/>   <!-- Status -->
+                            <col style="width:6%"/>   <!-- Max -->
+                            <col style="width:6%"/>   <!-- Enrolled -->
+                            <col style="width:6%"/>   <!-- Available -->
+                        </colgroup>
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:left;font-weight:600;">Session Name</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:left;font-weight:600;">Course</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:center;font-weight:600;">Start Date &amp; Time</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:center;font-weight:600;">End Date &amp; Time</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:left;font-weight:600;">Location / Venue</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:left;font-weight:600;">Instructor / Facilitator</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:center;font-weight:600;">Status</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:center;font-weight:600;">Max</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:center;font-weight:600;">Enrolled</th>
+                                <th style="border:1px solid #dee2e6;padding:4px 5px;text-align:center;font-weight:600;">Available</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="page" t-as="rec">
+                                <t t-set="row_bg" t-value="'background:#fff;' if rec_index % 2 == 0 else 'background:#f9f9f9;'"/>
+                                <tr t-att-style="row_bg">
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><t t-esc="rec['name']"/></td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><t t-esc="rec['course_name']"/></td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;text-align:center;white-space:nowrap;">
+                                        <t t-if="rec.get('date_start')">
+                                            <t t-esc="rec['date_start'][8:10] + '/' + rec['date_start'][5:7] + '/' + rec['date_start'][:4] + ' ' + rec['date_start'][11:16]"/>
+                                        </t>
+                                    </td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;text-align:center;white-space:nowrap;">
+                                        <t t-if="rec.get('date_end')">
+                                            <t t-esc="rec['date_end'][8:10] + '/' + rec['date_end'][5:7] + '/' + rec['date_end'][:4] + ' ' + rec['date_end'][11:16]"/>
+                                        </t>
+                                    </td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><t t-esc="rec['location']"/></td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><t t-esc="rec['instructor']"/></td>
+                                    <td t-att-style="'border:1px solid #dee2e6;padding:3px 5px;text-align:center;white-space:nowrap;font-size:7pt;' + state_styles.get(rec['state'], '')">
+                                        <t t-esc="state_labels.get(rec['state'], rec['state'])"/>
+                                    </td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;text-align:center;"><t t-esc="rec['max_capacity']"/></td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;text-align:center;"><t t-esc="rec['enrolled_count']"/></td>
+                                    <td style="border:1px solid #dee2e6;padding:3px 5px;text-align:center;"><t t-esc="rec['available_seats']"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

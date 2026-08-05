@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- noupdate="0" so sequences stay correct when the module is updated -->
+    <data noupdate="0">
+        <record id="type_injury" model="incident.type.tag">
+            <field name="name">Injury</field>
+            <field name="code">injury</field>
+            <field name="sequence">10</field>
+            <field name="color">1</field>
+        </record>
+        <!-- ── Alphabetical from here ── -->
+        <record id="type_buildings_grounds" model="incident.type.tag">
+            <field name="name">Buildings and Grounds</field>
+            <field name="code">buildings_grounds</field>
+            <field name="sequence">20</field>
+            <field name="color">6</field>
+        </record>
+        <record id="type_child_safeguarding" model="incident.type.tag">
+            <field name="name">Child Safeguarding</field>
+            <field name="code">child_safeguarding</field>
+            <field name="sequence">30</field>
+            <field name="color">1</field>
+        </record>
+        <record id="type_complaint" model="incident.type.tag">
+            <field name="name">Complaint</field>
+            <field name="code">complaint</field>
+            <field name="sequence">40</field>
+            <field name="color">3</field>
+        </record>
+        <record id="type_drug_alcohol" model="incident.type.tag">
+            <field name="name">Drug and Alcohol</field>
+            <field name="code">drug_alcohol</field>
+            <field name="sequence">50</field>
+            <field name="color">5</field>
+        </record>
+        <record id="type_environmental" model="incident.type.tag">
+            <field name="name">Environmental</field>
+            <field name="code">environmental</field>
+            <field name="sequence">60</field>
+            <field name="color">10</field>
+        </record>
+        <record id="type_illness" model="incident.type.tag">
+            <field name="name">Illness</field>
+            <field name="code">illness</field>
+            <field name="sequence">70</field>
+            <field name="color">3</field>
+        </record>
+        <record id="type_it" model="incident.type.tag">
+            <field name="name">Information Technology</field>
+            <field name="code">it</field>
+            <field name="sequence">80</field>
+            <field name="color">4</field>
+        </record>
+        <record id="type_plant_equipment" model="incident.type.tag">
+            <field name="name">Plant and Equipment</field>
+            <field name="code">plant_equipment</field>
+            <field name="sequence">90</field>
+            <field name="color">4</field>
+        </record>
+        <record id="type_psychosocial" model="incident.type.tag">
+            <field name="name">Psychosocial</field>
+            <field name="code">psychosocial</field>
+            <field name="sequence">100</field>
+            <field name="color">9</field>
+        </record>
+        <record id="type_security" model="incident.type.tag">
+            <field name="name">Security</field>
+            <field name="code">security</field>
+            <field name="sequence">110</field>
+            <field name="color">7</field>
+        </record>
+        <record id="type_theft" model="incident.type.tag">
+            <field name="name">Theft</field>
+            <field name="code">theft</field>
+            <field name="sequence">120</field>
+            <field name="color">8</field>
+        </record>
+        <record id="type_vehicle" model="incident.type.tag">
+            <field name="name">Vehicle</field>
+            <field name="code">vehicle</field>
+            <field name="sequence">130</field>
+            <field name="color">2</field>
+        </record>
+    </data>
+</odoo>

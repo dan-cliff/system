@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Soap Recipes smart button on product template form -->
+    <record id="view_product_template_soap_smartbutton" model="ir.ui.view">
+        <field name="name">product.template.soap.smartbutton</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="stock.product_template_form_view_procurement_button"/>
+        <field name="arch" type="xml">
+            <button name="action_open_documents" position="before">
+                <button class="oe_stat_button"
+                        name="action_view_soap_recipes"
+                        type="object"
+                        icon="fa-flask"
+                        invisible="soap_recipe_count == 0">
+                    <field string="Soap Recipes" name="soap_recipe_count" widget="statinfo"/>
+                </button>
+            </button>
+        </field>
+    </record>
+
+    <!-- Add "Chemistry" tab to the product template form view -->
+    <record id="view_product_template_soap_chemistry_form" model="ir.ui.view">
+        <field name="name">product.template.soap.chemistry.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Chemistry" name="soap_chemistry">
+
+                    <group>
+                        <field name="is_soap_ingredient"/>
+                    </group>
+
+                    <group string="Saponification Values"
+                           invisible="not is_soap_ingredient">
+                        <group>
+                            <field name="soap_naoh_sap"/>
+                        </group>
+                        <group>
+                            <field name="soap_koh_sap"/>
+                        </group>
+                    </group>
+
+                    <group string="Quality Indicators"
+                           invisible="not is_soap_ingredient">
+                        <group>
+                            <field name="soap_iodine"/>
+                        </group>
+                        <group>
+                            <field name="soap_ins"/>
+                        </group>
+                    </group>
+
+                    <group string="Fatty Acid Profile (%)"
+                           invisible="not is_soap_ingredient">
+                        <group string="Saturated">
+                            <field name="soap_fa_lauric"/>
+                            <field name="soap_fa_myristic"/>
+                            <field name="soap_fa_palmitic"/>
+                            <field name="soap_fa_stearic"/>
+                        </group>
+                        <group string="Unsaturated">
+                            <field name="soap_fa_ricinoleic"/>
+                            <field name="soap_fa_oleic"/>
+                            <field name="soap_fa_linoleic"/>
+                            <field name="soap_fa_linolenic"/>
+                        </group>
+                    </group>
+
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+</odoo>

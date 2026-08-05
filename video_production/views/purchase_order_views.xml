@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Purchase Order form: add Video Production field after Currency ── -->
+    <record id="view_purchase_order_form_video_production" model="ir.ui.view">
+        <field name="name">purchase.order.form.video_production</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert after both currency_id variants, before the invisible
+                 tax_calculation_rounding_method that closes the left group -->
+            <xpath expr="//field[@name='tax_calculation_rounding_method']" position="before">
+                <field name="video_production_id"
+                       string="Video Production"
+                       readonly="1"
+                       groups="base.group_user"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_print_job_assign_printer_wizard_form" model="ir.ui.view">
+        <field name="name">print.job.assign.printer.wizard.form</field>
+        <field name="model">print.job.assign.printer.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Printer">
+                <sheet>
+                    <group>
+                        <field name="job_id" readonly="1"/>
+                        <field name="job_title" readonly="1"
+                               invisible="not job_title"/>
+                    </group>
+                    <group string="Printer Selection">
+                        <field name="compatible_only"
+                               help="Show only printers that have all required filaments loaded"/>
+                        <field name="printer_id"
+                               domain="[('active','=',True), ('id','in',compatible_printer_ids)]"
+                               invisible="not compatible_only"/>
+                        <field name="printer_id"
+                               domain="[('active','=',True)]"
+                               invisible="compatible_only"/>
+                        <field name="compatible_printer_ids" widget="many2many_tags"
+                               readonly="1" string="Compatible Printers"
+                               invisible="not compatible_printer_ids"/>
+                    </group>
+                    <group string="Options">
+                        <field name="send_immediately"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_assign" type="object"
+                            string="Assign Printer" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

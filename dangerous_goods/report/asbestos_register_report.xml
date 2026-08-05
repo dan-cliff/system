@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ REPORT ACTION ══════════════════════════════════════════════ -->
+    <record id="action_report_asbestos_register" model="ir.actions.report">
+        <field name="name">Asbestos Register</field>
+        <field name="model">dg.asbestos</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dangerous_goods.report_asbestos_register_document</field>
+        <field name="report_file">dangerous_goods.report_asbestos_register_document</field>
+        <field name="print_report_name">'Asbestos Register - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_dg_asbestos"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══ MAIN DOCUMENT ══════════════════════════════════════════════ -->
+    <template id="report_asbestos_register_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-call="dangerous_goods.report_chemical_styles"/>
+                    <div class="page">
+
+                        <!-- HEADER -->
+                        <div class="dg-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="dg-title"><t t-esc="o.item_description"/></div>
+                                    <div class="dg-ref">
+                                        Ref: <t t-esc="o.name"/> |
+                                        <t t-esc="o.building_id.name if o.building_id else ''"/> —
+                                        <t t-esc="o.area_description"/>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <t t-if="o.asbestos_type == 'friable'">
+                                        <span class="badge-danger" style="font-size:11pt;">FRIABLE</span>
+                                    </t>
+                                    <t t-elif="o.asbestos_type == 'non_friable'">
+                                        <span class="badge-warning" style="font-size:11pt;">NON-FRIABLE</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="badge-muted" style="font-size:11pt;">TYPE UNKNOWN</span>
+                                    </t>
+                                    <br/>
+                                    <t t-if="o.risk_level == 'extreme'">
+                                        <span class="badge-danger">EXTREME RISK</span>
+                                    </t>
+                                    <t t-elif="o.risk_level == 'high'">
+                                        <span class="badge-danger">HIGH RISK</span>
+                                    </t>
+                                    <t t-elif="o.risk_level == 'medium'">
+                                        <span class="badge-warning">MEDIUM RISK</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="badge-success">LOW RISK</span>
+                                    </t>
+                                    <t t-if="o.inspection_overdue">
+                                        <br/><span class="badge-overdue">INSPECTION OVERDUE</span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 1: LOCATION -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">1. Location</div>
+                            <table class="dg-kv">
+                                <tr><th>Building / Site</th><td><t t-esc="o.building_id.name if o.building_id else 'Not specified'"/></td></tr>
+                                <tr t-if="o.floor_level"><th>Floor / Level</th><td><t t-esc="o.floor_level"/></td></tr>
+                                <tr><th>Area / Room</th><td><t t-esc="o.area_description"/></td></tr>
+                                <tr t-if="o.specific_location"><th>Specific Location</th><td><t t-esc="o.specific_location"/></td></tr>
+                                <tr t-if="o.gps_coordinates"><th>GPS Coordinates</th><td><t t-esc="o.gps_coordinates"/></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 2: ACM CLASSIFICATION -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">2. Asbestos Classification</div>
+                            <table class="dg-kv">
+                                <tr>
+                                    <th>Asbestos Type</th>
+                                    <td>
+                                        <t t-if="o.asbestos_type == 'friable'"><span class="badge-danger">FRIABLE</span></t>
+                                        <t t-elif="o.asbestos_type == 'non_friable'"><span class="badge-warning">NON-FRIABLE (BONDED)</span></t>
+                                        <t t-else=""><span class="badge-muted">UNKNOWN</span></t>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.asbestos_form_id"><th>Form / Material</th><td><t t-esc="o.asbestos_form_id.name"/></td></tr>
+                                <tr t-if="o.fibre_type"><th>Fibre Type</th><td><t t-esc="dict(o._fields['fibre_type'].selection).get(o.fibre_type)"/></td></tr>
+                                <tr>
+                                    <th>Confirmed by Sampling</th>
+                                    <td>
+                                        <t t-if="o.confirmed_by_sampling">
+                                            <span class="dg-yes">YES</span>
+                                            <t t-if="o.sample_date"> — <t t-esc="o.sample_date"/></t>
+                                            <t t-if="o.laboratory"> (<t t-esc="o.laboratory"/>)</t>
+                                        </t>
+                                        <t t-else=""><span class="dg-no">No — assumed / visual identification</span></t>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.quantity"><th>Estimated Quantity</th><td><t t-esc="o.quantity"/> <t t-esc="dict(o._fields['quantity_uom'].selection).get(o.quantity_uom)"/></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 3: CONDITION & RISK -->
+                        <div class="dg-section">
+                            <div class="dg-section-title red">3. Condition &amp; Risk Assessment</div>
+                            <table class="dg-kv">
+                                <tr>
+                                    <th>Condition</th>
+                                    <td><t t-esc="dict(o._fields['condition'].selection).get(o.condition)"/></td>
+                                </tr>
+                                <tr t-if="o.accessibility">
+                                    <th>Accessibility</th>
+                                    <td><t t-esc="dict(o._fields['accessibility'].selection).get(o.accessibility)"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Risk Level</th>
+                                    <td>
+                                        <t t-if="o.risk_level in ('high','extreme')"><span class="badge-danger"><t t-esc="dict(o._fields['risk_level'].selection).get(o.risk_level).upper()"/></span></t>
+                                        <t t-elif="o.risk_level == 'medium'"><span class="badge-warning">MEDIUM</span></t>
+                                        <t t-else=""><span class="badge-success">LOW</span></t>
+                                    </td>
+                                </tr>
+                            </table>
+                            <t t-if="o.risk_assessment_notes">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Risk Notes:</p>
+                                <div class="dg-text"><t t-esc="o.risk_assessment_notes"/></div>
+                            </t>
+                        </div>
+
+                        <!-- SECTION 4: CONTROL MEASURES -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">4. Control Measures</div>
+                            <t t-if="o.control_measure_ids">
+                                <div class="dg-tags" style="margin-bottom:6px;">
+                                    <t t-foreach="o.control_measure_ids" t-as="cm">
+                                        <span class="dg-tag"><t t-esc="cm.name"/></span>
+                                    </t>
+                                </div>
+                            </t>
+                            <table class="dg-kv">
+                                <tr>
+                                    <th>Warning Signage</th>
+                                    <td><t t-if="o.signage_present"><span class="dg-yes">In Place</span></t><t t-else=""><span class="dg-no">Not in place</span></t></td>
+                                </tr>
+                                <tr>
+                                    <th>Encapsulated</th>
+                                    <td>
+                                        <t t-if="o.encapsulated">
+                                            <span class="dg-yes">YES</span>
+                                            <t t-if="o.encapsulation_date"> — Date: <t t-esc="o.encapsulation_date"/></t>
+                                        </t>
+                                        <t t-else=""><span class="dg-no">No</span></t>
+                                    </td>
+                                </tr>
+                            </table>
+                            <t t-if="o.control_measure_notes">
+                                <div class="dg-text"><t t-esc="o.control_measure_notes"/></div>
+                            </t>
+                        </div>
+
+                        <!-- SECTION 5: INSPECTION HISTORY -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">5. Inspection History</div>
+                            <table class="dg-kv">
+                                <tr><th>Date First Identified</th><td><t t-esc="o.identified_date"/><t t-if="o.identified_by"> by <t t-esc="o.identified_by"/></t></td></tr>
+                                <tr><th>Last Inspection</th><td><t t-esc="o.last_inspection_date or 'Not recorded'"/></td></tr>
+                                <tr>
+                                    <th>Next Inspection Due</th>
+                                    <td>
+                                        <t t-esc="o.next_inspection_date or 'Not set'"/>
+                                        <t t-if="o.inspection_overdue"><span class="badge-overdue" style="margin-left:6px;">OVERDUE</span></t>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.inspection_frequency"><th>Frequency</th><td><t t-esc="dict(o._fields['inspection_frequency'].selection).get(o.inspection_frequency)"/></td></tr>
+                            </table>
+                            <t t-if="o.inspection_ids">
+                                <p style="font-weight:600; font-size:8pt; margin:4px 0 2px 0;">Inspection Records:</p>
+                                <table class="dg-table">
+                                    <tr>
+                                        <th style="width:14%">Date</th>
+                                        <th style="width:18%">Inspector</th>
+                                        <th style="width:18%">Condition Found</th>
+                                        <th>Findings</th>
+                                        <th style="width:12%">Action Reqd</th>
+                                    </tr>
+                                    <t t-foreach="o.inspection_ids" t-as="ins">
+                                        <tr>
+                                            <td><t t-esc="ins.inspection_date"/></td>
+                                            <td><t t-esc="ins.inspected_by"/></td>
+                                            <td><t t-esc="dict(ins._fields['condition_found'].selection).get(ins.condition_found)"/></td>
+                                            <td><t t-esc="ins.findings or ''"/></td>
+                                            <td><t t-if="ins.action_required"><span class="badge-danger">YES</span></t><t t-else="">No</t></td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </t>
+                        </div>
+
+                        <!-- SECTION 6: REMOVAL -->
+                        <t t-if="o.removal_required or o.removal_date_actual">
+                            <div class="dg-section">
+                                <div class="dg-section-title red">6. Removal Details</div>
+                                <table class="dg-kv">
+                                    <tr>
+                                        <th>Removal Required</th>
+                                        <td>
+                                            <t t-if="o.removal_required"><span class="dg-yes">YES</span></t>
+                                            <t t-else=""><span class="dg-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="o.removal_priority"><th>Priority</th><td><t t-esc="dict(o._fields['removal_priority'].selection).get(o.removal_priority)"/></td></tr>
+                                    <tr t-if="o.removal_date_planned"><th>Planned Removal Date</th><td><t t-esc="o.removal_date_planned"/></td></tr>
+                                    <tr t-if="o.removal_date_actual"><th>Actual Removal Date</th><td><t t-esc="o.removal_date_actual"/></td></tr>
+                                    <tr t-if="o.removal_remover_id">
+                                        <th>Licensed Removalist</th>
+                                        <td><t t-esc="o.removal_remover_id.name"/>
+                                            <t t-if="o.removal_licence_class"> — <t t-esc="o.removal_licence_class"/></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Clearance Certificate</th>
+                                        <td>
+                                            <t t-if="o.removal_clearance_cert">
+                                                <span class="dg-yes">OBTAINED</span>
+                                                <t t-if="o.removal_clearance_date"> — <t t-esc="o.removal_clearance_date"/></t>
+                                            </t>
+                                            <t t-else=""><span class="dg-no">Not obtained</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="o.removal_waste_disposal">
+                                    <p style="font-weight:600; font-size:8pt; margin:3px 0;">Waste Disposal:</p>
+                                    <div class="dg-text"><t t-esc="o.removal_waste_disposal"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- SECTION 7: WHS COMPLIANCE -->
+                        <div class="dg-section">
+                            <div class="dg-section-title green">7. WHS Compliance</div>
+                            <table class="dg-kv">
+                                <tr><th>Regulation Reference</th><td><t t-esc="o.whs_reg_reference"/></td></tr>
+                                <tr>
+                                    <th>Register Accessible to Workers</th>
+                                    <td><t t-if="o.register_accessible"><span class="dg-yes">YES</span></t><t t-else=""><span class="badge-danger">NOT CONFIRMED</span></t></td>
+                                </tr>
+                                <tr t-if="o.responsible_person_id"><th>Responsible Person</th><td><t t-esc="o.responsible_person_id.name"/></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- FOOTER -->
+                        <div class="dg-footer">
+                            Ref: <t t-esc="o.name"/> |
+                            Printed: <t t-esc="datetime.date.today()"/> |
+                            WHS Regulations 2017 Part 8.3 — Asbestos Register.
+                            This register must be kept at the workplace and be accessible to workers at all times (WHS Reg 425).
+                        </div>
+
+                    </div>
+                </t>
+                <t t-if="not o_last">
+                    <p style="page-break-after:always;"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

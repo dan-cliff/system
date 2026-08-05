@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_permission_profile_list" model="ir.ui.view">
+        <field name="name">permission.profile.list</field>
+        <field name="model">permission.profile</field>
+        <field name="arch" type="xml">
+            <list string="Profiles">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="description"/>
+<field name="user_count" string="Users"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_permission_profile_form" model="ir.ui.view">
+        <field name="name">permission.profile.form</field>
+        <field name="model">permission.profile</field>
+        <field name="arch" type="xml">
+            <form string="Permission Profile">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_users"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users">
+                            <field name="user_count" widget="statinfo" string="Users"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Profile Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="description" placeholder="Description"/>
+                    </group>
+                    <notebook>
+                        <page string="Roles" name="roles">
+                            <field name="role_ids">
+                                <list editable="bottom">
+                                    <field name="id" string="ID"/>
+                                    <field name="name" string="Role"/>
+                                    <field name="description" string="Description"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Effective Groups" name="effective_groups">
+                            <field name="effective_group_ids" readonly="1">
+                                <list>
+                                    <field name="id" string="ID"/>
+                                    <field name="full_name" string="Group"/>
+                                    <field name="privilege_id" string="Privilege"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Users" name="users">
+                            <field name="user_ids" readonly="1">
+                                <list>
+                                    <field name="id" string="ID"/>
+                                    <field name="name" string="Name"/>
+                                    <field name="login" string="Login"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_permission_profile_search" model="ir.ui.view">
+        <field name="name">permission.profile.search</field>
+        <field name="model">permission.profile</field>
+        <field name="arch" type="xml">
+            <search string="Search Profiles">
+                <field name="name" string="Name"/>
+                <field name="description" string="Description"/>
+            </search>
+        </field>
+    </record>
+</odoo>

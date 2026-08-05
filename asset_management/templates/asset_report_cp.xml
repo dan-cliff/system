@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Report Action
+    ════════════════════════════════════════════════════════════════════════ -->
+    <record id="action_report_asset_cp" model="ir.actions.report">
+        <field name="name">Asset Control Plane Card</field>
+        <field name="model">asset.asset</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">asset_management.report_asset_cp</field>
+        <field name="report_file">asset_management.report_asset_cp</field>
+        <field name="binding_model_id" ref="model_asset_asset"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Report Template
+    ════════════════════════════════════════════════════════════════════════ -->
+    <template id="report_asset_cp">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+
+                    <div class="page">
+                        <style>
+                            .acp-report {
+                                font-family: 'Helvetica Neue', Arial, sans-serif;
+                                color: #1e293b;
+                                max-width: 680px;
+                                margin: 0 auto;
+                            }
+
+                            /* Header strip */
+                            .acp-header {
+                                background: #0f172a;
+                                color: #fff;
+                                border-radius: 8px;
+                                padding: 24px 28px;
+                                margin-bottom: 28px;
+                                display: flex;
+                                align-items: flex-start;
+                                gap: 24px;
+                            }
+                            .acp-header-text { flex: 1; }
+                            .acp-asset-number {
+                                font-size: 12px;
+                                font-weight: 600;
+                                letter-spacing: .08em;
+                                text-transform: uppercase;
+                                color: #94a3b8;
+                                margin-bottom: 4px;
+                            }
+                            .acp-asset-name {
+                                font-size: 26px;
+                                font-weight: 700;
+                                line-height: 1.15;
+                                margin-bottom: 10px;
+                            }
+                            .acp-badge {
+                                display: inline-block;
+                                background: rgba(255,255,255,.12);
+                                border-radius: 4px;
+                                padding: 3px 10px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                letter-spacing: .04em;
+                                text-transform: uppercase;
+                            }
+
+                            /* Asset photo in header */
+                            .acp-asset-photo {
+                                width: 80px;
+                                height: 80px;
+                                border-radius: 8px;
+                                object-fit: cover;
+                                flex-shrink: 0;
+                                border: 2px solid rgba(255,255,255,.15);
+                            }
+
+                            /* Detail table */
+                            .acp-details {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin-bottom: 28px;
+                            }
+                            .acp-details td {
+                                padding: 10px 14px;
+                                font-size: 14px;
+                                border-bottom: 1px solid #e2e8f0;
+                                vertical-align: top;
+                            }
+                            .acp-details td:first-child {
+                                width: 160px;
+                                font-weight: 600;
+                                color: #64748b;
+                                white-space: nowrap;
+                            }
+                            .acp-details td:last-child {
+                                color: #1e293b;
+                                word-break: break-all;
+                            }
+                            .acp-details tr:last-child td { border-bottom: none; }
+
+                            /* QR section */
+                            .acp-qr-section {
+                                background: #f8fafc;
+                                border: 1px solid #e2e8f0;
+                                border-radius: 8px;
+                                padding: 24px;
+                                text-align: center;
+                            }
+                            .acp-qr-label {
+                                font-size: 11px;
+                                font-weight: 700;
+                                letter-spacing: .08em;
+                                text-transform: uppercase;
+                                color: #64748b;
+                                margin-bottom: 16px;
+                            }
+                            .acp-qr-img {
+                                width: 200px;
+                                height: 200px;
+                                display: block;
+                                margin: 0 auto 16px;
+                            }
+                            .acp-qr-url {
+                                font-size: 11px;
+                                color: #475569;
+                                word-break: break-all;
+                                font-family: monospace;
+                            }
+                            .acp-no-cp {
+                                color: #94a3b8;
+                                font-style: italic;
+                                font-size: 14px;
+                                text-align: center;
+                                padding: 20px;
+                            }
+
+                            /* Footer */
+                            .acp-footer {
+                                margin-top: 28px;
+                                border-top: 1px solid #e2e8f0;
+                                padding-top: 12px;
+                                font-size: 11px;
+                                color: #94a3b8;
+                                display: flex;
+                                justify-content: space-between;
+                            }
+                        </style>
+
+                        <div class="acp-report">
+
+                            <!-- ── Header ──────────────────────────────────── -->
+                            <div class="acp-header">
+                                <div class="acp-header-text">
+                                    <div class="acp-asset-number">
+                                        Asset #<t t-out="doc.asset_number or ''"/>
+                                    </div>
+                                    <div class="acp-asset-name" t-out="doc.name"/>
+                                    <t t-set="state_labels" t-value="{'active': 'Active', 'maintenance': 'Under Maintenance', 'inactive': 'Inactive', 'retired': 'Retired'}"/>
+                                    <span t-if="doc.state" class="acp-badge">
+                                        <t t-out="state_labels.get(doc.state, doc.state)"/>
+                                    </span>
+                                </div>
+                                <t t-if="doc.image">
+                                    <img class="acp-asset-photo"
+                                         t-att-src="image_data_uri(doc.image)"
+                                         alt="Asset photo"/>
+                                </t>
+                            </div>
+
+                            <!-- ── Asset Details ───────────────────────────── -->
+                            <table class="acp-details">
+                                <tr>
+                                    <td>Asset #</td>
+                                    <td t-out="doc.asset_number or '—'"/>
+                                </tr>
+                                <tr>
+                                    <td>Asset Name</td>
+                                    <td t-out="doc.name"/>
+                                </tr>
+                                <tr>
+                                    <td>Serial / VIN</td>
+                                    <td t-out="doc.serial_number or '—'"/>
+                                </tr>
+                                <t t-if="doc.registration_number">
+                                    <tr>
+                                        <td>Registration</td>
+                                        <td t-out="doc.registration_number"/>
+                                    </tr>
+                                </t>
+                                <t t-if="doc.asset_type_id">
+                                    <tr>
+                                        <td>Asset Type</td>
+                                        <td t-out="doc.asset_type_id.name"/>
+                                    </tr>
+                                </t>
+                                <t t-if="doc.location">
+                                    <tr>
+                                        <td>Location</td>
+                                        <td t-out="doc.location"/>
+                                    </tr>
+                                </t>
+                            </table>
+
+                            <!-- ── Control Plane section ───────────────────── -->
+                            <t t-if="doc.cp_url">
+                                <div class="acp-qr-section">
+                                    <div class="acp-qr-label">Control Plane (PWA)</div>
+
+                                    <t t-if="doc.cp_qr_code">
+                                        <img class="acp-qr-img"
+                                             t-att-src="image_data_uri(doc.cp_qr_code)"
+                                             alt="QR Code"/>
+                                    </t>
+
+                                    <div class="acp-qr-url" t-out="doc.cp_url"/>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="acp-no-cp">
+                                    No Control Plane configured for this asset.
+                                </div>
+                            </t>
+
+                            <!-- ── Footer ──────────────────────────────────── -->
+                            <div class="acp-footer">
+                                <span>
+                                    Printed <t t-out="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/>
+                                </span>
+                                <span t-out="doc.env.company.name"/>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

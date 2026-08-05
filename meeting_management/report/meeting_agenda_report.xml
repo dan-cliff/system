@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Report action ─────────────────────────────────────────────────── -->
+    <record id="report_meeting_agenda" model="ir.actions.report">
+        <field name="name">Meeting Agenda</field>
+        <field name="model">meeting.meeting</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meeting_management.report_meeting_agenda_template</field>
+        <field name="report_file">meeting_management.report_meeting_agenda_template</field>
+        <field name="print_report_name">'Agenda - %s' % (object.reference or object.name)</field>
+        <field name="binding_model_id" ref="model_meeting_meeting"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ── QWeb template ─────────────────────────────────────────────────── -->
+    <template id="report_meeting_agenda_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="meeting">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- ── Header ──────────────────────────────────── -->
+                        <div style="border-bottom: 3px solid #2c6fad; padding-bottom: 12px; margin-bottom: 20px;">
+                            <h1 style="color: #2c6fad; margin: 0; font-size: 24pt;">
+                                MEETING AGENDA
+                            </h1>
+                            <h2 style="margin: 4px 0 0 0; font-size: 16pt; color: #333;">
+                                <t t-esc="meeting.name"/>
+                            </h2>
+                        </div>
+
+                        <!-- ── Meeting details ─────────────────────────── -->
+                        <table style="width: 100%; margin-bottom: 20px; font-size: 10pt;" cellspacing="0">
+                            <tr>
+                                <td style="width: 25%; font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Reference:</td>
+                                <td style="width: 25%; padding: 4px 0;"><t t-esc="meeting.reference"/></td>
+                                <td style="width: 20%; font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Date:</td>
+                                <td style="padding: 4px 0;">
+                                    <t t-esc="meeting.date_start" t-options="{'widget': 'datetime', 'format': 'dd MMMM yyyy HH:mm'}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Location:</td>
+                                <td><t t-esc="meeting.location or 'TBC'"/></td>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">End Time:</td>
+                                <td>
+                                    <t t-if="meeting.date_end">
+                                        <t t-esc="meeting.date_end" t-options="{'widget': 'datetime', 'format': 'HH:mm'}"/>
+                                    </t>
+                                    <t t-else="">TBC</t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Chairperson:</td>
+                                <td><t t-esc="meeting.chairperson_id.name or ''"/></td>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Type:</td>
+                                <td>
+                                    <t t-if="meeting.meeting_type == 'in_person'">In Person</t>
+                                    <t t-elif="meeting.meeting_type == 'virtual'">Virtual / Online</t>
+                                    <t t-else="">Hybrid</t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Secretary:</td>
+                                <td><t t-esc="meeting.secretary_id.name or ''"/></td>
+                                <t t-if="meeting.teams_join_url">
+                                    <td style="font-weight: bold; padding: 4px 8px 4px 0; color: #555;">Teams Link:</td>
+                                    <td style="font-size: 8pt; word-break: break-all;">
+                                        <t t-esc="meeting.teams_join_url"/>
+                                    </td>
+                                </t>
+                            </tr>
+                        </table>
+
+                        <!-- ── Invitees ────────────────────────────────── -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #2c6fad; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                                ATTENDEES
+                            </h3>
+                            <table style="width: 100%; font-size: 10pt;" cellspacing="0">
+                                <tr>
+                                    <t t-set="col_idx" t-value="0"/>
+                                    <t t-foreach="meeting.invitee_ids" t-as="invitee">
+                                        <t t-if="col_idx % 3 == 0 and col_idx != 0">
+                                            <!-- close and open new row every 3 cols -->
+                                        </t>
+                                        <td style="padding: 3px 10px 3px 0; width: 33%;">
+                                            ☐ <t t-esc="invitee.name"/>
+                                            <t t-if="invitee.job_position">
+                                                <span style="color:#777; font-size:9pt;">
+                                                    (<t t-esc="invitee.job_position"/>)
+                                                </span>
+                                            </t>
+                                        </td>
+                                        <t t-set="col_idx" t-value="col_idx + 1"/>
+                                    </t>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- ── Agenda items ────────────────────────────── -->
+                        <div>
+                            <h3 style="color: #2c6fad; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                                AGENDA
+                            </h3>
+                            <table style="width: 100%; font-size: 10pt; border-collapse: collapse;" cellspacing="0">
+                                <thead>
+                                    <tr style="background-color: #2c6fad; color: white;">
+                                        <th style="padding: 6px 8px; text-align: left; width: 5%;">#</th>
+                                        <th style="padding: 6px 8px; text-align: left; width: 45%;">Topic</th>
+                                        <th style="padding: 6px 8px; text-align: left; width: 25%;">Presenter</th>
+                                        <th style="padding: 6px 8px; text-align: right; width: 10%;">Duration</th>
+                                        <th style="padding: 6px 8px; text-align: left; width: 15%;">Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="meeting.agenda_item_ids.sorted('sequence')" t-as="item">
+                                        <tr t-attf-style="background-color: {{ '#f0f6ff' if item_index % 2 == 0 else 'white' }};">
+                                            <td style="padding: 6px 8px; font-weight: bold; color: #2c6fad;">
+                                                <t t-esc="item_index + 1"/>
+                                            </td>
+                                            <td style="padding: 6px 8px;">
+                                                <strong><t t-esc="item.name"/></strong>
+                                                <t t-if="item.description">
+                                                    <div style="color: #666; font-size: 9pt; margin-top: 3px;">
+                                                        <t t-out="item.description"/>
+                                                    </div>
+                                                </t>
+                                            </td>
+                                            <td style="padding: 6px 8px; color: #444;">
+                                                <t t-esc="item.presenter_id.name or ''"/>
+                                            </td>
+                                            <td style="padding: 6px 8px; text-align: right;">
+                                                <t t-if="item.duration">
+                                                    <t t-esc="int(item.duration)"/> min
+                                                </t>
+                                            </td>
+                                            <td style="padding: 6px 8px; font-size: 9pt; color: #555;">
+                                                <t t-if="item.item_type == 'opening'">Opening</t>
+                                                <t t-elif="item.item_type == 'information'">Information</t>
+                                                <t t-elif="item.item_type == 'discussion'">Discussion</t>
+                                                <t t-elif="item.item_type == 'decision'">Decision</t>
+                                                <t t-elif="item.item_type == 'action'">Action Review</t>
+                                                <t t-elif="item.item_type == 'aob'">AOB</t>
+                                                <t t-elif="item.item_type == 'close'">Close</t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="not meeting.agenda_item_ids">
+                                        <tr>
+                                            <td colspan="5" style="padding: 12px 8px; text-align: center; color: #999; font-style: italic;">
+                                                No agenda items have been added yet.
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <t t-if="meeting.agenda_item_ids">
+                                    <tfoot>
+                                        <tr style="background-color: #e8f0fa; font-weight: bold;">
+                                            <td colspan="3" style="padding: 6px 8px; text-align: right;">Total Estimated Duration:</td>
+                                            <td style="padding: 6px 8px; text-align: right;">
+                                                <t t-esc="int(sum(meeting.agenda_item_ids.mapped('duration')))"/> min
+                                            </td>
+                                            <td/>
+                                        </tr>
+                                    </tfoot>
+                                </t>
+                            </table>
+                        </div>
+
+                        <!-- ── Next meeting (if scheduled) ─────────────── -->
+                        <t t-if="meeting.next_meeting_id">
+                            <div style="margin-top: 24px; padding: 12px; background-color: #f0fff0; border: 1px solid #90EE90; border-radius: 4px;">
+                                <strong>Next Meeting:</strong>
+                                <t t-esc="meeting.next_meeting_id.name"/> —
+                                <t t-esc="meeting.next_meeting_id.date_start"
+                                   t-options="{'widget': 'datetime', 'format': 'dd MMMM yyyy HH:mm'}"/>
+                                <t t-if="meeting.next_meeting_id.location">
+                                    at <t t-esc="meeting.next_meeting_id.location"/>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── Footer note ─────────────────────────────── -->
+                        <div style="margin-top: 30px; font-size: 8pt; color: #999; border-top: 1px solid #ddd; padding-top: 8px;">
+                            This agenda was generated on
+                            <t t-esc="context_timestamp(datetime.datetime.now())"
+                               t-options="{'widget': 'datetime', 'format': 'dd MMMM yyyy HH:mm'}"/>
+                            by <t t-esc="env.user.name"/>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

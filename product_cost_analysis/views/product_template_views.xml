@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Smart button on the Product Template form -->
+    <record id="view_product_template_form_cost_analysis_btn" model="ir.ui.view">
+        <field name="name">product.template.form.cost_analysis_btn</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button type="object"
+                        name="action_view_cost_analyses"
+                        class="oe_stat_button"
+                        icon="fa-calculator">
+                    <field name="cost_analysis_count"
+                           widget="statinfo"
+                           string="Cost Analyses"/>
+                </button>
+            </div>
+        </field>
+    </record>
+
+</odoo>

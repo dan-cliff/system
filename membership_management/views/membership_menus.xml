@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── App-level root menu ────────────────────────────────────────────── -->
+    <menuitem id="menu_membership_root"
+              name="Memberships"
+              web_icon="membership_management,static/description/icon.png"
+              sequence="50"/>
+
+    <!-- ── Top-level menus under app ─────────────────────────────────────── -->
+    <menuitem id="menu_membership_main"
+              name="Memberships"
+              parent="menu_membership_root"
+              sequence="10"
+              action="action_membership_list"/>
+
+    <!-- ── Configuration submenu ─────────────────────────────────────────── -->
+    <menuitem id="menu_membership_config"
+              name="Configuration"
+              parent="menu_membership_root"
+              sequence="90"/>
+
+    <menuitem id="menu_membership_status"
+              name="Membership Statuses"
+              parent="menu_membership_config"
+              sequence="10"
+              action="action_membership_status"/>
+
+    <menuitem id="menu_membership_letter_templates"
+              name="Letter Templates"
+              parent="menu_membership_config"
+              sequence="20"
+              action="action_membership_letter_templates"/>
+
+    <menuitem id="menu_membership_email_templates"
+              name="Email Templates"
+              parent="menu_membership_config"
+              sequence="30"
+              action="action_membership_email_templates"/>
+
+</odoo>

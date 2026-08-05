@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Extend the base product form to add Membership checkbox ────── -->
+    <record id="product_template_form_view_membership" model="ir.ui.view">
+        <field name="name">membership.product.template.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+
+            <!-- Add "Membership Product" checkbox after the sale_option span -->
+            <span name="sale_option" position="after">
+                <span class="d-inline-flex">
+                    <field name="is_membership"/>
+                    <label for="is_membership" string="Memberships"/>
+                </span>
+            </span>
+
+            <!-- Add Membership tab, visible only when is_membership is enabled -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Membership" name="membership" invisible="not is_membership">
+                    <div class="text-muted">
+                        This product is configured as a membership type.
+                        Memberships using this product can be managed under the
+                        <strong>Memberships</strong> app.
+                    </div>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ── Extend the product-only form view as well ─────────────────── -->
+    <record id="product_template_only_form_view_membership" model="ir.ui.view">
+        <field name="name">membership.product.template.only.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+
+            <!-- Mirror the Sales page visibility tweak for is_membership -->
+            <xpath expr="//page[@name='sales']" position="attributes">
+                <attribute name="invisible" separator="or" add="not is_membership and not sale_ok"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

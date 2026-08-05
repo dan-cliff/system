@@ -1,0 +1,1608 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Early iframe-mode detection — eliminates the navbar flash on /my/training.
+
+        web.assets_frontend_minimal is loaded with defer_load="True", so the
+        lms_scorm.js IIFE only runs after the browser's first paint.  By injecting
+        an identical, un-deferred inline <script> directly into <head> (via
+        web.layout) we ensure the lms-iframe-mode class is added synchronously
+        during head parsing — before the browser renders any body content —
+        so the portal navbar is never visible in the first place.
+
+        The URL guard means this no-ops instantly on every non-LMS page.
+    -->
+    <template id="lms_portal_early_iframe_detection"
+              inherit_id="web.layout"
+              name="LMS Portal — early iframe detection">
+        <xpath expr="//head/script[@id='web.layout.odooscript']" position="after">
+            <script type="text/javascript">
+            (function () {
+                var p = window.location.pathname;
+                if (p === '/my/training' || p.startsWith('/my/training/')) {
+                    try {
+                        if (window.self !== window.top) {
+                            document.documentElement.classList.add('lms-iframe-mode');
+                        }
+                    } catch (e) {
+                        document.documentElement.classList.add('lms-iframe-mode');
+                    }
+                }
+            })();
+            </script>
+        </xpath>
+    </template>
+
+    <!-- ─── Portal home entries ─── -->
+    <template id="portal_my_home_lms" inherit_id="portal.portal_my_home" name="LMS Portal Home">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">My Training</t>
+                <t t-set="url">/my/training</t>
+                <t t-set="placeholder_count">training_count</t>
+            </t>
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Training History</t>
+                <t t-set="url">/my/training/history</t>
+                <t t-set="placeholder_count">training_history_count</t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- ─── My Training Dashboard ─── -->
+    <template id="portal_my_training" name="My Training">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">My Training</t>
+            </t>
+
+            <div class="o_portal_wrap">
+                <div class="container mt-4">
+
+                    <!-- Page header with history link -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="mb-1">My Training</h3>
+                            <p class="text-muted mb-0">
+                                <t t-esc="employee.name"/>'s assigned training and eLearning
+                            </p>
+                        </div>
+                        <a href="/my/training/history" class="btn btn-outline-secondary">
+                            <i class="fa fa-history me-1"/>Training History
+                        </a>
+                    </div>
+
+                    <!-- Summary tiles -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 lms-stat-tile lms-tile-todo h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold mb-0" style="color:#e67e22;">
+                                        <t t-esc="counts.get('pending', 0)"/>
+                                    </h2>
+                                    <small class="text-muted">To Complete</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 lms-stat-tile lms-tile-inprogress h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold mb-0 text-info">
+                                        <t t-esc="counts.get('in_progress', 0)"/>
+                                    </h2>
+                                    <small class="text-muted">In Progress</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 lms-stat-tile lms-tile-complete h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold mb-0 text-success">
+                                        <t t-esc="counts.get('completed', 0)"/>
+                                    </h2>
+                                    <small class="text-muted">Completed</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 lms-stat-tile lms-tile-expired h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold mb-0 text-danger">
+                                        <t t-esc="counts.get('expired', 0)"/>
+                                    </h2>
+                                    <small class="text-muted">Expired</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter tabs -->
+                    <ul class="nav nav-tabs mb-4" id="trainingTabs">
+                        <li class="nav-item">
+                            <a t-attf-class="nav-link #{'' if filter != 'pending' else 'active'}"
+                               href="/my/training?filter=pending">
+                                <i class="fa fa-tasks me-1"/>My Assignments
+                                <t t-if="counts.get('pending', 0)">
+                                    <span class="badge bg-warning text-dark ms-1">
+                                        <t t-esc="counts.get('pending', 0)"/>
+                                    </span>
+                                </t>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a t-attf-class="nav-link #{'' if filter != 'all' else 'active'}"
+                               href="/my/training?filter=all">
+                                <i class="fa fa-list me-1"/>All
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a t-attf-class="nav-link #{'' if filter != 'completed' else 'active'}"
+                               href="/my/training?filter=completed">
+                                <i class="fa fa-check-circle me-1"/>Completed
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/my/training/sessions">
+                                <i class="fa fa-plus-circle me-1"/>Enrol in Session
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Training Records -->
+                    <t t-if="filter != 'open_sessions'">
+                        <t t-if="records">
+                            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                                <t t-foreach="records" t-as="record">
+                                    <div class="col">
+                                        <div t-attf-class="card h-100 lms-course-card lms-state-#{record.state}">
+                                            <!-- Card top: thumbnail or icon strip -->
+                                            <div t-attf-class="lms-card-header-strip lms-strip-#{record.course_type}">
+                                                <t t-if="record.course_id.image">
+                                                    <img t-attf-src="/web/image/lms.course/#{record.course_id.id}/image"
+                                                         class="lms-card-thumb" alt=""/>
+                                                </t>
+                                                <t t-else="">
+                                                    <div class="lms-card-icon">
+                                                        <i t-attf-class="fa #{
+                                                            'fa-play-circle' if record.course_id.delivery_mode in ('scorm', 'google_slides')
+                                                            else 'fa-upload' if record.course_id.delivery_mode == 'upload'
+                                                            else 'fa-file-text' if record.course_id.delivery_mode == 'document'
+                                                            else 'fa-users'
+                                                        } fa-2x"/>
+                                                    </div>
+                                                </t>
+                                                <span t-attf-class="badge lms-badge-#{record.state} lms-state-badge">
+                                                    <t t-esc="dict(record._fields['state']._description_selection(record.env)).get(record.state, record.state)"/>
+                                                </span>
+                                            </div>
+
+                                            <div class="card-body">
+                                                <h5 class="card-title mb-1">
+                                                    <t t-esc="record.course_id.name"/>
+                                                </h5>
+                                                <p class="text-muted small mb-2">
+                                                    <span class="badge bg-light text-dark border me-1">
+                                                        <t t-esc="dict(record._fields['course_type']._description_selection(record.env)).get(record.course_type, '')"/>
+                                                    </span>
+                                                    <span class="badge bg-light text-dark border">
+                                                        <t t-esc="dict(record._fields['delivery_mode']._description_selection(record.env)).get(record.delivery_mode, '')"/>
+                                                    </span>
+                                                </p>
+                                                <t t-if="record.assignment_id">
+                                                    <p class="small mb-1 text-muted">
+                                                        <i class="fa fa-book me-1"/>
+                                                        <t t-esc="record.assignment_id.course_group_id.name"/>
+                                                    </p>
+                                                </t>
+                                                <t t-if="record.expiry_date">
+                                                    <p class="small mb-0">
+                                                        <i class="fa fa-calendar me-1 text-muted"/>
+                                                        <t t-if="record.state == 'expired'">
+                                                            <span class="text-danger fw-semibold">Expired: <t t-esc="record.expiry_date"/></span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            Expires: <t t-esc="record.expiry_date"/>
+                                                        </t>
+                                                    </p>
+                                                </t>
+                                                <t t-if="record.start_date and record.state == 'in_progress'">
+                                                    <p class="small mb-0 text-muted">
+                                                        <i class="fa fa-clock-o me-1"/>Started: <t t-esc="record.start_date"/>
+                                                    </p>
+                                                </t>
+                                            </div>
+
+                                            <div class="card-footer bg-transparent pt-0">
+                                                <!-- Quick upload for pending_upload records -->
+                                                <t t-if="record.state == 'pending_upload'">
+                                                    <div class="lms-quick-upload mb-2">
+                                                        <form t-attf-action="/my/training/#{record.id}/upload"
+                                                              method="post" enctype="multipart/form-data"
+                                                              class="lms-inline-upload-form">
+                                                            <input type="hidden" name="csrf_token"
+                                                                   t-att-value="request.csrf_token()"/>
+                                                            <label t-attf-for="quick_upload_#{record.id}"
+                                                                   class="btn btn-warning btn-sm w-100 mb-1">
+                                                                <i class="fa fa-upload me-1"/>Upload Licence / Certificate
+                                                            </label>
+                                                            <input t-attf-id="quick_upload_#{record.id}"
+                                                                   type="file" name="upload_file"
+                                                                   accept=".pdf,.jpg,.jpeg,.png"
+                                                                   class="d-none lms-auto-submit-file"/>
+                                                        </form>
+                                                    </div>
+                                                </t>
+                                                <a t-attf-href="/my/training/#{record.id}"
+                                                   t-attf-class="btn btn-sm w-100 #{
+                                                       'btn-primary' if record.state in ('not_started', 'in_progress')
+                                                       else 'btn-outline-secondary' if record.state == 'pending_verification'
+                                                       else 'btn-outline-success' if record.state == 'completed'
+                                                       else 'btn-danger' if record.state == 'expired'
+                                                       else 'btn-secondary'
+                                                   }">
+                                                    <t t-if="record.state == 'not_started'">
+                                                        <i class="fa fa-play me-1"/>Start
+                                                    </t>
+                                                    <t t-elif="record.state == 'in_progress'">
+                                                        <i class="fa fa-arrow-right me-1"/>Continue
+                                                    </t>
+                                                    <t t-elif="record.state == 'pending_upload'">
+                                                        <i class="fa fa-eye me-1"/>View &amp; Upload
+                                                    </t>
+                                                    <t t-elif="record.state == 'pending_verification'">
+                                                        <i class="fa fa-clock-o me-1"/>Awaiting Verification
+                                                    </t>
+                                                    <t t-elif="record.state == 'completed'">
+                                                        <i class="fa fa-check me-1"/>View Certificate
+                                                    </t>
+                                                    <t t-elif="record.state == 'expired'">
+                                                        <i class="fa fa-refresh me-1"/>Renew
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-eye me-1"/>View
+                                                    </t>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="text-center py-5 text-muted lms-empty-state">
+                                <i class="fa fa-graduation-cap fa-4x mb-3 text-muted"/>
+                                <h5 class="mt-3">
+                                    <t t-if="filter == 'pending'">No training assigned</t>
+                                    <t t-elif="filter == 'completed'">No completed training yet</t>
+                                    <t t-else="">No training records found</t>
+                                </h5>
+                                <p class="text-muted">
+                                    <t t-if="filter == 'pending'">
+                                        You're all caught up! Check your
+                                        <a href="/my/training/history">training history</a>
+                                        or browse available sessions to enrol.
+                                    </t>
+                                </p>
+                            </div>
+                        </t>
+                    </t>
+
+                    <!-- Open Sessions for Self-Enrolment -->
+                    <t t-if="filter == 'open_sessions'">
+                        <t t-if="open_sessions">
+                            <div class="row row-cols-1 row-cols-md-2 g-3">
+                                <t t-foreach="open_sessions" t-as="session">
+                                    <div class="col">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h5 class="card-title"><t t-esc="session.name"/></h5>
+                                                <p class="text-muted small mb-2">
+                                                    <t t-esc="session.course_id.name"/>
+                                                </p>
+                                                <ul class="list-unstyled small">
+                                                    <li><i class="fa fa-calendar me-1 text-muted"/>
+                                                        <t t-esc="session.date_start"/>
+                                                    </li>
+                                                    <t t-if="session.location">
+                                                        <li><i class="fa fa-map-marker me-1 text-muted"/>
+                                                            <t t-esc="session.location"/>
+                                                        </li>
+                                                    </t>
+                                                    <li><i class="fa fa-users me-1 text-muted"/>
+                                                        <t t-esc="session.available_seats"/> seats available
+                                                    </li>
+                                                    <t t-if="session.requires_approval">
+                                                        <li class="text-warning">
+                                                            <i class="fa fa-info-circle me-1"/>
+                                                            Manager approval required
+                                                        </li>
+                                                    </t>
+                                                </ul>
+                                            </div>
+                                            <div class="card-footer bg-transparent">
+                                                <t t-if="session.id in enrolled_session_ids">
+                                                    <button class="btn btn-sm btn-secondary w-100" disabled="1">
+                                                        <i class="fa fa-check me-1"/>Already Enrolled
+                                                    </button>
+                                                </t>
+                                                <t t-else="">
+                                                    <form t-attf-action="/my/training/session/enroll/#{session.id}"
+                                                          method="post" class="d-inline w-100">
+                                                        <input type="hidden" name="csrf_token"
+                                                               t-att-value="request.csrf_token()"/>
+                                                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                                                            <t t-if="session.requires_approval">
+                                                                <i class="fa fa-paper-plane me-1"/>Request Enrolment
+                                                            </t>
+                                                            <t t-else="">
+                                                                <i class="fa fa-check me-1"/>Enrol Now
+                                                            </t>
+                                                        </button>
+                                                    </form>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa fa-calendar-check-o fa-4x mb-3"/>
+                                <h5 class="mt-3">No open sessions available</h5>
+                                <p>Check back soon for upcoming in-person training sessions.</p>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Training History ─── -->
+    <template id="portal_training_history" name="Training History">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+
+            <div class="o_portal_wrap">
+                <div class="container mt-4">
+
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/my/home">Home</a></li>
+                            <li class="breadcrumb-item"><a href="/my/training">My Training</a></li>
+                            <li class="breadcrumb-item active">Training History</li>
+                        </ol>
+                    </nav>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="mb-1">Training History</h3>
+                            <p class="text-muted mb-0">All completed learning for <t t-esc="employee.name"/></p>
+                        </div>
+                        <a href="/my/training" class="btn btn-outline-secondary">
+                            <i class="fa fa-tasks me-1"/>My Assignments
+                        </a>
+                    </div>
+
+                    <!-- Summary stats -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 bg-success bg-opacity-10 h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold text-success mb-0"><t t-esc="total"/></h2>
+                                    <small class="text-muted">Total Completed</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 bg-warning bg-opacity-10 h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold text-warning mb-0"><t t-esc="expiring_soon_count"/></h2>
+                                    <small class="text-muted">Expiring in 90 Days</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 bg-danger bg-opacity-10 h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold text-danger mb-0"><t t-esc="expired_count"/></h2>
+                                    <small class="text-muted">Expired</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center border-0 bg-primary bg-opacity-10 h-100">
+                                <div class="card-body py-3">
+                                    <h2 class="fw-bold text-primary mb-0">
+                                        <t t-esc="total - expired_count"/>
+                                    </h2>
+                                    <small class="text-muted">Current / Active</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter + sort bar -->
+                    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                        <div class="me-auto">
+                            <span class="text-muted small">Filter by type:</span>
+                            <a t-attf-class="btn btn-sm ms-1 #{'' if course_type else 'btn-primary'} #{'' if course_type else ''} btn-outline-secondary"
+                               href="/my/training/history">All</a>
+                            <a t-attf-class="btn btn-sm btn-outline-secondary ms-1 #{'btn-primary text-white' if course_type == 'elearning' else ''}"
+                               href="/my/training/history?course_type=elearning">eLearning</a>
+                            <a t-attf-class="btn btn-sm btn-outline-secondary ms-1 #{'btn-primary text-white' if course_type == 'training' else ''}"
+                               href="/my/training/history?course_type=training">Training</a>
+                            <a t-attf-class="btn btn-sm btn-outline-secondary ms-1 #{'btn-primary text-white' if course_type == 'licence' else ''}"
+                               href="/my/training/history?course_type=licence">Licences</a>
+                            <a t-attf-class="btn btn-sm btn-outline-secondary ms-1 #{'btn-primary text-white' if course_type == 'qualification' else ''}"
+                               href="/my/training/history?course_type=qualification">Qualifications</a>
+                        </div>
+                        <div>
+                            <span class="text-muted small">Sort:</span>
+                            <a t-attf-class="btn btn-sm ms-1 #{'btn-secondary' if sort == 'completion_date desc' else 'btn-outline-secondary'}"
+                               t-attf-href="/my/training/history?sort=completion_date+desc&amp;course_type=#{course_type}">
+                                Newest First
+                            </a>
+                            <a t-attf-class="btn btn-sm ms-1 #{'btn-secondary' if sort == 'expiry_date' else 'btn-outline-secondary'}"
+                               t-attf-href="/my/training/history?sort=expiry_date&amp;course_type=#{course_type}">
+                                Expiry Date
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Expiring soon alert -->
+                    <t t-if="expiring_soon">
+                        <div class="alert alert-warning d-flex align-items-start mb-3">
+                            <i class="fa fa-exclamation-triangle fa-lg me-3 mt-1 text-warning"/>
+                            <div>
+                                <strong>Action Required:</strong>
+                                <t t-esc="expiring_soon_count"/> qualification(s) or licence(s) expire within 90 days.
+                                Please arrange renewal.
+                                <ul class="mb-0 mt-1">
+                                    <t t-foreach="expiring_soon" t-as="er">
+                                        <li>
+                                            <strong><t t-esc="er.course_id.name"/></strong>
+                                            — expires <t t-esc="er.expiry_date"/>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- History table -->
+                    <t t-if="records">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle lms-history-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="min-width:200px;">Course</th>
+                                        <th>Type</th>
+                                        <th>Completed</th>
+                                        <th>Score</th>
+                                        <th>Expires</th>
+                                        <th>Status</th>
+                                        <th>Documents</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="records" t-as="record">
+                                        <tr t-attf-class="#{' table-danger' if record.state == 'expired' else ''}">
+                                            <td>
+                                                <strong><t t-esc="record.course_id.name"/></strong>
+                                                <t t-if="record.assignment_id">
+                                                    <br/>
+                                                    <small class="text-muted">
+                                                        <i class="fa fa-book me-1"/>
+                                                        <t t-esc="record.assignment_id.course_group_id.name"/>
+                                                    </small>
+                                                </t>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">
+                                                    <t t-esc="dict(record._fields['course_type']._description_selection(record.env)).get(record.course_type, '')"/>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <t t-if="record.completion_date">
+                                                    <t t-esc="record.completion_date"/>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                            <td>
+                                                <t t-if="record.score">
+                                                    <span t-attf-class="badge #{'bg-success' if record.passed else 'bg-danger'}">
+                                                        <t t-esc="'%.0f' % record.score"/>%
+                                                    </span>
+                                                </t>
+                                                <t t-elif="record.passed">
+                                                    <span class="badge bg-success">Pass</span>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                            <td>
+                                                <t t-if="record.expiry_date">
+                                                    <t t-esc="record.expiry_date"/>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="text-muted">No expiry</span>
+                                                </t>
+                                            </td>
+                                            <td>
+                                                <span t-attf-class="badge lms-badge-#{record.state}">
+                                                    <t t-esc="dict(record._fields['state']._description_selection(record.env)).get(record.state, record.state)"/>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <t t-if="record.attachment_ids">
+                                                    <t t-foreach="record.attachment_ids" t-as="att">
+                                                        <a t-attf-href="/web/content/#{att.id}?download=true"
+                                                           class="btn btn-xs btn-outline-secondary me-1 mb-1"
+                                                           t-att-title="att.name">
+                                                            <i class="fa fa-download"/>
+                                                            <span class="d-none d-lg-inline ms-1">
+                                                                <t t-esc="att.name"/>
+                                                            </span>
+                                                        </a>
+                                                    </t>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="text-muted small">—</span>
+                                                </t>
+                                            </td>
+                                            <td>
+                                                <a t-attf-href="/my/training/#{record.id}"
+                                                   class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fa fa-eye"/>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-history fa-4x mb-3"/>
+                            <h5 class="mt-3">No training history yet</h5>
+                            <p>Once you complete training, it will appear here.</p>
+                            <a href="/my/training" class="btn btn-primary mt-2">
+                                <i class="fa fa-tasks me-1"/>View My Assignments
+                            </a>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Individual Training Record Detail / Player ─── -->
+    <template id="portal_training_record" name="Training Record">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+
+            <div class="o_portal_wrap">
+                <div class="container-fluid mt-4 px-3 px-md-4">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/my/home">Home</a></li>
+                            <li class="breadcrumb-item"><a href="/my/training">My Training</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                <t t-esc="record.course_id.name"/>
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <div class="row">
+                        <!-- Main content area -->
+                        <div class="col-lg-8">
+                            <div class="card mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center py-3">
+                                    <h4 class="mb-0"><t t-esc="record.course_id.name"/></h4>
+                                    <span t-attf-class="badge lms-badge-#{record.state} fs-6">
+                                        <t t-esc="dict(record._fields['state']._description_selection(record.env)).get(record.state, record.state)"/>
+                                    </span>
+                                </div>
+                                <div class="card-body">
+
+                                    <!-- Course description -->
+                                    <t t-if="record.course_id.description">
+                                        <div class="mb-4" t-raw="record.course_id.description"/>
+                                        <hr/>
+                                    </t>
+
+                                    <!-- ═══ SCORM PLAYER ═══ -->
+                                    <t t-if="record.course_id.delivery_mode == 'scorm' and record.course_id.scorm_package_id">
+                                        <div class="lms-player-header d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">
+                                                <i class="fa fa-play-circle text-primary me-2"/>
+                                                Interactive eLearning Content
+                                            </h6>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button id="lms-scorm-fullscreen-btn"
+                                                        class="btn btn-outline-secondary"
+                                                        onclick="document.getElementById('lms-scorm-frame').requestFullscreen ? document.getElementById('lms-scorm-frame').requestFullscreen() : null;">
+                                                    <i class="fa fa-expand me-1"/>Fullscreen
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="lms-scorm-wrapper border rounded mb-3">
+                                            <div id="lms-scorm-loading" class="text-center p-5">
+                                                <div class="spinner-border text-primary" role="status"/>
+                                                <p class="mt-3 text-muted">Loading training content…</p>
+                                            </div>
+                                            <iframe id="lms-scorm-frame"
+                                                    t-attf-src="/lms/scorm/#{record.id}/play"
+                                                    t-attf-data-record-id="#{record.id}"
+                                                    style="width:100%;height:620px;border:none;display:none;"
+                                                    allowfullscreen="1"
+                                                    onload="document.getElementById('lms-scorm-loading').style.display='none';this.style.display='block';"
+                                            />
+                                        </div>
+                                        <div class="alert alert-info small d-flex align-items-center">
+                                            <i class="fa fa-info-circle me-2 fa-lg"/>
+                                            <span>
+                                                Your progress is saved automatically.
+                                                Use the <strong>Fullscreen</strong> button for the best experience.
+                                                Do not close the page until the content has finished and your progress has been saved.
+                                            </span>
+                                        </div>
+                                    </t>
+
+                                    <!-- ═══ GOOGLE SLIDES / PRESENTATION (interactive slides) ═══ -->
+                                    <t t-if="record.course_id.delivery_mode == 'google_slides' and record.course_id.google_slides_url">
+
+                                        <!-- Player header row -->
+                                        <div class="lms-player-header d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">
+                                                <i class="fa fa-desktop text-primary me-2"/>
+                                                Interactive Slides
+                                                <t t-if="record.course_id.slide_count > 0">
+                                                    <span class="text-muted fw-normal small ms-1">
+                                                        — <t t-esc="record.course_id.slide_count"/> slides
+                                                    </span>
+                                                </t>
+                                            </h6>
+                                            <button class="btn btn-outline-secondary btn-sm"
+                                                    id="lms-slides-fullscreen-btn">
+                                                <i class="fa fa-expand me-1"/>Fullscreen
+                                            </button>
+                                        </div>
+
+                                        <!-- Slide-by-slide tracker (only when slide_count is set) -->
+                                        <t t-if="record.course_id.slide_count > 0 and record.state not in ('completed', 'expired')">
+                                            <div id="lms-slide-tracker"
+                                                 t-att-data-record-id="record.id"
+                                                 t-att-data-slide-count="record.course_id.slide_count"
+                                                 t-att-data-max-page="record.slides_max_page"
+                                                 t-att-data-base-url="record.course_id.google_slides_url">
+
+                                                <!-- Progress bar -->
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <span id="lms-slide-label" class="small text-muted text-nowrap">
+                                                        Slide 1 of <t t-esc="record.course_id.slide_count"/>
+                                                    </span>
+                                                    <div class="progress flex-grow-1" style="height:6px;">
+                                                        <div id="lms-slide-bar"
+                                                             class="progress-bar bg-primary"
+                                                             style="width:0%;transition:width 0.3s;"/>
+                                                    </div>
+                                                    <span id="lms-slide-pct" class="small text-muted text-nowrap">0%</span>
+                                                </div>
+
+                                                <!-- Iframe -->
+                                                <div class="lms-slides-wrapper border rounded mb-2 position-relative"
+                                                     id="lms-slides-container">
+                                                    <iframe id="lms-slides-frame"
+                                                            t-att-src="record.course_id.google_slides_url"
+                                                            style="width:100%;height:560px;border:none;"
+                                                            allowfullscreen="1"
+                                                            frameborder="0"
+                                                            allow="autoplay"/>
+                                                </div>
+
+                                                <!-- Navigation controls -->
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <button id="lms-slide-prev"
+                                                            class="btn btn-outline-secondary"
+                                                            disabled="disabled">
+                                                        <i class="fa fa-chevron-left me-1"/>Previous slide
+                                                    </button>
+                                                    <span id="lms-slide-counter" class="fw-semibold text-muted small">
+                                                        Slide 1 / <t t-esc="record.course_id.slide_count"/>
+                                                    </span>
+                                                    <button id="lms-slide-next"
+                                                            class="btn btn-primary">
+                                                        Next slide<i class="fa fa-chevron-right ms-1"/>
+                                                    </button>
+                                                </div>
+
+                                            </div><!-- /lms-slide-tracker -->
+                                        </t>
+
+                                        <!-- Normal iframe (no tracking, or already completed) -->
+                                        <t t-if="record.course_id.slide_count == 0 or record.state in ('completed', 'expired')">
+                                            <div class="lms-slides-wrapper border rounded mb-3 position-relative"
+                                                 id="lms-slides-container">
+                                                <iframe id="lms-slides-frame"
+                                                        t-att-src="record.course_id.google_slides_url"
+                                                        style="width:100%;height:560px;border:none;"
+                                                        allowfullscreen="1"
+                                                        frameborder="0"
+                                                        allow="autoplay"/>
+                                            </div>
+                                            <div class="alert alert-light border small d-flex align-items-start mb-3">
+                                                <i class="fa fa-lightbulb-o me-2 fa-lg text-warning mt-1"/>
+                                                <span>
+                                                    Use the <strong>arrow keys</strong> or click inside the slides to navigate.
+                                                    Press <kbd>F</kbd> or the <strong>Fullscreen</strong> button for an immersive view.
+                                                </span>
+                                            </div>
+                                        </t>
+
+                                        <!-- Completion form -->
+                                        <t t-if="record.state not in ('completed', 'expired')">
+                                            <t t-set="all_slides_viewed"
+                                               t-value="record.course_id.slide_count == 0 or record.slides_max_page >= record.course_id.slide_count"/>
+                                            <form t-attf-action="/my/training/#{record.id}/complete"
+                                                  method="post"
+                                                  id="lms-complete-form"
+                                                  class="lms-complete-form border rounded p-3 bg-light">
+                                                <input type="hidden" name="csrf_token"
+                                                       t-att-value="request.csrf_token()"/>
+                                                <input type="hidden" name="confirm" value="1"/>
+                                                <h6 class="mb-2">
+                                                    <i class="fa fa-check-square-o me-1"/>Mark as Complete
+                                                </h6>
+                                                <t t-if="record.course_id.slide_count > 0 and not all_slides_viewed">
+                                                    <div id="lms-slides-incomplete-msg"
+                                                         class="alert alert-warning small d-flex align-items-center mb-3">
+                                                        <i class="fa fa-lock me-2 fa-lg"/>
+                                                        <span>
+                                                            You must view <strong>all
+                                                            <t t-esc="record.course_id.slide_count"/> slides</strong>
+                                                            before marking this training complete.
+                                                            <t t-if="record.slides_max_page > 0">
+                                                                You've reached slide
+                                                                <strong><t t-esc="record.slides_max_page"/></strong>
+                                                                so far.
+                                                            </t>
+                                                        </span>
+                                                    </div>
+                                                </t>
+                                                <button type="submit"
+                                                        id="lms-complete-btn"
+                                                        t-att-disabled="None if all_slides_viewed else 'disabled'"
+                                                        t-attf-class="btn #{'btn-success' if all_slides_viewed else 'btn-secondary disabled'}">
+                                                    <i class="fa fa-check me-1"/>Mark as Complete
+                                                </button>
+                                                <t t-if="record.course_id.slide_count > 0 and not all_slides_viewed">
+                                                    <span id="lms-unlock-hint" class="text-muted small ms-2">
+                                                        Unlocks after slide <t t-esc="record.course_id.slide_count"/>
+                                                    </span>
+                                                </t>
+                                            </form>
+                                        </t>
+                                    </t>
+
+                                    <!-- ═══ DOCUMENT / READING ═══ -->
+                                    <t t-if="record.course_id.delivery_mode == 'document'">
+                                        <h6><i class="fa fa-file-text me-1"/>Documents to Review</h6>
+                                        <t t-if="record.course_id.document_ids">
+                                            <ul class="list-group mb-3">
+                                                <t t-foreach="record.course_id.document_ids" t-as="doc">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span><i class="fa fa-file me-2"/><t t-esc="doc.name"/></span>
+                                                        <a t-attf-href="/web/content/#{doc.id}?download=true"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="fa fa-download me-1"/>Download
+                                                        </a>
+                                                    </li>
+                                                </t>
+                                            </ul>
+                                        </t>
+                                    </t>
+
+                                    <!-- ═══ EMPLOYEE UPLOAD (Licence / Qualification / Certificate) ═══ -->
+                                    <t t-if="record.course_id.delivery_mode == 'upload' or record.course_id.requires_upload">
+                                        <div class="lms-upload-section">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="lms-upload-icon-wrap me-3">
+                                                    <i class="fa fa-certificate fa-2x text-warning"/>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">Upload Your Licence / Certificate</h6>
+                                                    <p class="text-muted small mb-0">
+                                                        Upload proof of completion, licence, or certificate for verification.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Existing uploads -->
+                                            <t t-if="record.attachment_ids">
+                                                <h6 class="mt-2 mb-2">
+                                                    <i class="fa fa-paperclip me-1"/>Uploaded Documents
+                                                    <span class="badge bg-secondary ms-1">
+                                                        <t t-esc="len(record.attachment_ids)"/>
+                                                    </span>
+                                                </h6>
+                                                <ul class="list-group mb-3">
+                                                    <t t-foreach="record.attachment_ids" t-as="att">
+                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                            <span>
+                                                                <i class="fa fa-file-pdf-o me-2 text-danger"/>
+                                                                <t t-esc="att.name"/>
+                                                            </span>
+                                                            <a t-attf-href="/web/content/#{att.id}?download=true"
+                                                               class="btn btn-sm btn-outline-secondary">
+                                                                <i class="fa fa-download me-1"/>Download
+                                                            </a>
+                                                        </li>
+                                                    </t>
+                                                </ul>
+                                            </t>
+
+                                            <!-- Upload feedback banners -->
+                                            <t t-if="upload_ok">
+                                                <div class="alert alert-success d-flex align-items-center mb-3">
+                                                    <i class="fa fa-check-circle fa-lg me-2"/>
+                                                    <span>
+                                                        <strong>Document uploaded successfully.</strong>
+                                                        Your document is now awaiting verification by your training manager.
+                                                    </span>
+                                                </div>
+                                            </t>
+                                            <t t-if="upload_error">
+                                                <div class="alert alert-danger d-flex align-items-center mb-3">
+                                                    <i class="fa fa-exclamation-circle fa-lg me-2"/>
+                                                    <span><t t-esc="upload_error"/></span>
+                                                </div>
+                                            </t>
+
+                                            <!-- Upload form -->
+                                            <t t-if="record.state not in ('completed', 'pending_verification')">
+                                                <form t-attf-action="/my/training/#{record.id}/upload"
+                                                      method="post" enctype="multipart/form-data"
+                                                      id="lms-upload-form">
+                                                    <input type="hidden" name="csrf_token"
+                                                           t-att-value="request.csrf_token()"/>
+                                                    <div class="lms-dropzone mb-3" id="lms-dropzone">
+                                                        <i class="fa fa-cloud-upload fa-3x text-muted mb-2"/>
+                                                        <p class="mb-1"><strong>Drag &amp; drop</strong> your file here, or</p>
+                                                        <label for="upload_file" class="btn btn-outline-primary btn-sm">
+                                                            <i class="fa fa-folder-open me-1"/>Browse Files
+                                                        </label>
+                                                        <!-- required ensures the browser blocks submission with no file selected;
+                                                             the button is no longer disabled so there is no dependency on JS. -->
+                                                        <input class="d-none" type="file"
+                                                               name="upload_file" id="upload_file"
+                                                               accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx"
+                                                               required="required"/>
+                                                        <p class="text-muted small mt-2 mb-0">
+                                                            PDF, JPG, PNG, DOC accepted
+                                                        </p>
+                                                        <div id="lms-file-selected" class="mt-2 d-none">
+                                                            <span class="badge bg-primary" id="lms-file-name"/>
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary" id="lms-upload-btn">
+                                                        <i class="fa fa-upload me-1"/>Upload Document
+                                                    </button>
+                                                </form>
+                                            </t>
+                                            <t t-elif="record.state == 'pending_verification'">
+                                                <div class="alert alert-info d-flex align-items-center">
+                                                    <i class="fa fa-clock-o fa-lg me-3"/>
+                                                    <div>
+                                                        <strong>Awaiting Verification</strong><br/>
+                                                        Your document has been uploaded and is pending review
+                                                        by your training manager.
+                                                    </div>
+                                                </div>
+                                                <!-- Allow additional uploads even while pending -->
+                                                <form t-attf-action="/my/training/#{record.id}/upload"
+                                                      method="post" enctype="multipart/form-data">
+                                                    <input type="hidden" name="csrf_token"
+                                                           t-att-value="request.csrf_token()"/>
+                                                    <div class="input-group mt-2">
+                                                        <input type="file" class="form-control form-control-sm"
+                                                               name="upload_file"
+                                                               accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx"/>
+                                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                            <i class="fa fa-plus me-1"/>Add Another Document
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </t>
+                                        </div>
+                                    </t>
+
+                                    <!-- ═══ IN PERSON ═══ -->
+                                    <t t-if="record.course_id.delivery_mode == 'in_person'">
+                                        <t t-if="record.session_enrollment_id">
+                                            <div class="alert alert-info">
+                                                <h6><i class="fa fa-calendar me-1"/>Session Details</h6>
+                                                <p class="mb-1">
+                                                    <strong><t t-esc="record.session_enrollment_id.session_id.name"/></strong>
+                                                </p>
+                                                <p class="mb-1">
+                                                    <i class="fa fa-clock-o me-1"/>
+                                                    Date: <t t-esc="record.session_enrollment_id.session_id.date_start"/>
+                                                </p>
+                                                <t t-if="record.session_enrollment_id.session_id.location">
+                                                    <p class="mb-0">
+                                                        <i class="fa fa-map-marker me-1"/>
+                                                        Location: <t t-esc="record.session_enrollment_id.session_id.location"/>
+                                                    </p>
+                                                </t>
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <div class="alert alert-warning">
+                                                <i class="fa fa-info-circle me-1"/>
+                                                This is an in-person training course.
+                                                <a href="/my/training/sessions" class="alert-link">
+                                                    Browse available sessions
+                                                </a>
+                                                to enrol.
+                                            </div>
+                                        </t>
+                                    </t>
+
+                                    <!-- ═══ ASSESSMENT ═══ -->
+                                    <t t-if="record.course_id.assessment_template_id">
+                                        <hr class="my-4"/>
+                                        <div id="lms-assessment-section">
+                                            <h6 class="mb-3">
+                                                <i class="fa fa-pencil-square-o me-2 text-primary"/>
+                                                Assessment: <t t-esc="record.course_id.assessment_template_id.name"/>
+                                                <t t-if="record.course_id.requires_assessment">
+                                                    <span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">Required for Completion</span>
+                                                </t>
+                                            </h6>
+
+                                            <!-- Already passed -->
+                                            <t t-if="assessment and assessment.state == 'passed'">
+                                                <div class="alert alert-success d-flex align-items-center">
+                                                    <i class="fa fa-check-circle fa-2x me-3 text-success"/>
+                                                    <div>
+                                                        <strong>Assessment Passed!</strong>
+                                                        <t t-if="assessment.score">
+                                                            <span class="ms-2">
+                                                                Score: <strong><t t-esc="'%.0f' % assessment.score"/>%</strong>
+                                                            </span>
+                                                        </t>
+                                                        <t t-if="assessment.submit_date">
+                                                            <br/><small class="text-muted">Completed on <t t-esc="assessment.submit_date"/></small>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                            </t>
+
+                                            <!-- Failed — show score and retry (electronic only) -->
+                                            <t t-elif="assessment and assessment.state == 'failed'">
+                                                <div class="alert alert-danger d-flex align-items-center mb-3">
+                                                    <i class="fa fa-times-circle fa-2x me-3"/>
+                                                    <div>
+                                                        <strong>Assessment Not Passed</strong>
+                                                        <t t-if="assessment.score">
+                                                            <span class="ms-2">
+                                                                Score: <t t-esc="'%.0f' % assessment.score"/>%
+                                                                (passing: <t t-esc="record.course_id.assessment_template_id.passing_score"/>%)
+                                                            </span>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                                <t t-if="record.course_id.assessment_template_id.delivery_type == 'electronic'">
+                                                    <form t-attf-action="/my/training/#{record.id}/assessment/retry" method="post">
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                            <i class="fa fa-refresh me-1"/>Retry Assessment
+                                                        </button>
+                                                    </form>
+                                                </t>
+                                            </t>
+
+                                            <!-- Submitted — awaiting manual review -->
+                                            <t t-elif="assessment and assessment.state == 'submitted'">
+                                                <div class="alert alert-info d-flex align-items-center">
+                                                    <i class="fa fa-clock-o fa-2x me-3"/>
+                                                    <div>
+                                                        <strong>Assessment Submitted</strong><br/>
+                                                        <small>Your answers are awaiting review by your training manager.</small>
+                                                    </div>
+                                                </div>
+                                            </t>
+
+                                            <!-- Assessor checklist — read-only list for the employee -->
+                                            <t t-elif="record.course_id.assessment_template_id.delivery_type == 'assessor_checklist'">
+                                                <div class="alert alert-light border d-flex align-items-start">
+                                                    <i class="fa fa-clipboard fa-lg me-3 text-muted mt-1"/>
+                                                    <div class="w-100">
+                                                        <strong>Assessor Checklist</strong><br/>
+                                                        <small class="text-muted">
+                                                            This assessment is completed by your assessor while observing you.
+                                                            The following items will be evaluated:
+                                                        </small>
+                                                        <ul class="mt-2 mb-0 small list-unstyled">
+                                                            <t t-foreach="record.course_id.assessment_template_id.question_ids" t-as="q">
+                                                                <li class="py-1 border-bottom">
+                                                                    <i class="fa fa-square-o me-2 text-muted"/>
+                                                                    <t t-esc="q.question_text"/>
+                                                                </li>
+                                                            </t>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </t>
+
+                                            <!-- Electronic: in progress — show the question form -->
+                                            <t t-elif="assessment and assessment.state == 'in_progress'">
+                                                <form t-attf-action="/my/training/#{record.id}/assessment/submit" method="post">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <t t-foreach="assessment.answer_ids" t-as="answer">
+                                                        <div class="card mb-3 shadow-sm">
+                                                            <div class="card-body">
+                                                                <p class="fw-semibold mb-3">
+                                                                    <span class="badge bg-secondary me-2"><t t-esc="answer_index + 1"/></span>
+                                                                    <t t-esc="answer.question_text"/>
+                                                                </p>
+
+                                                                <!-- Multiple choice -->
+                                                                <t t-if="answer.question_type == 'multiple_choice'">
+                                                                    <t t-foreach="answer.question_id.option_ids" t-as="opt">
+                                                                        <div class="form-check mb-1">
+                                                                            <input class="form-check-input" type="radio"
+                                                                                   t-attf-name="answer_#{answer.id}_option"
+                                                                                   t-attf-id="opt_#{opt.id}"
+                                                                                   t-att-value="opt.id"
+                                                                                   t-att-checked="(answer.selected_option_id and answer.selected_option_id.id == opt.id) and 'checked'"/>
+                                                                            <label class="form-check-label" t-attf-for="opt_#{opt.id}">
+                                                                                <t t-esc="opt.text"/>
+                                                                            </label>
+                                                                        </div>
+                                                                    </t>
+                                                                </t>
+
+                                                                <!-- True / False -->
+                                                                <t t-if="answer.question_type == 'true_false'">
+                                                                    <div class="form-check mb-1">
+                                                                        <input class="form-check-input" type="radio"
+                                                                               t-attf-name="answer_#{answer.id}_bool"
+                                                                               t-attf-id="bool_true_#{answer.id}"
+                                                                               value="true"
+                                                                               t-att-checked="answer.bool_answer == 'true' and 'checked'"/>
+                                                                        <label class="form-check-label" t-attf-for="bool_true_#{answer.id}">True</label>
+                                                                    </div>
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="radio"
+                                                                               t-attf-name="answer_#{answer.id}_bool"
+                                                                               t-attf-id="bool_false_#{answer.id}"
+                                                                               value="false"
+                                                                               t-att-checked="answer.bool_answer == 'false' and 'checked'"/>
+                                                                        <label class="form-check-label" t-attf-for="bool_false_#{answer.id}">False</label>
+                                                                    </div>
+                                                                </t>
+
+                                                                <!-- Short text -->
+                                                                <t t-if="answer.question_type == 'short_text'">
+                                                                    <textarea class="form-control form-control-sm"
+                                                                              t-attf-name="answer_#{answer.id}_text"
+                                                                              rows="3"
+                                                                              placeholder="Enter your answer…"><t t-esc="answer.text_answer or ''"/></textarea>
+                                                                </t>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+
+                                                    <div class="d-flex align-items-center gap-3 mt-2">
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <i class="fa fa-paper-plane me-1"/>Submit Assessment
+                                                        </button>
+                                                        <small class="text-muted">
+                                                            Passing score: <t t-esc="record.course_id.assessment_template_id.passing_score"/>%
+                                                        </small>
+                                                    </div>
+                                                </form>
+                                            </t>
+
+                                            <!-- Not started yet — show intro and Start button -->
+                                            <t t-else="">
+                                                <div class="alert alert-light border">
+                                                    <p class="mb-2">
+                                                        <i class="fa fa-info-circle me-1 text-info"/>
+                                                        <t t-if="record.course_id.assessment_template_id.delivery_type == 'electronic'">
+                                                            Complete this assessment to finish the course.
+                                                            It contains
+                                                            <strong><t t-esc="record.course_id.assessment_template_id.question_count"/> question(s)</strong>
+                                                            with a passing score of
+                                                            <strong><t t-esc="record.course_id.assessment_template_id.passing_score"/>%</strong>.
+                                                        </t>
+                                                        <t t-else="">
+                                                            This course includes an assessor checklist that will be completed by your assessor.
+                                                        </t>
+                                                    </p>
+                                                    <t t-if="record.course_id.assessment_template_id.delivery_type == 'electronic'">
+                                                        <form t-attf-action="/my/training/#{record.id}/assessment/start" method="post">
+                                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                                <i class="fa fa-play me-1"/>Start Assessment
+                                                            </button>
+                                                        </form>
+                                                    </t>
+                                                </div>
+                                            </t>
+
+                                        </div><!-- /lms-assessment-section -->
+                                    </t>
+
+                                    <!-- ═══ DOCUMENT COMPLETION (moved here so it sits after the assessment) ═══ -->
+                                    <t t-if="record.course_id.delivery_mode == 'document' and record.state not in ('completed',)">
+                                        <t t-set="assessment_ok"
+                                           t-value="not record.course_id.requires_assessment or (assessment and assessment.state == 'passed')"/>
+                                        <hr class="my-4"/>
+                                        <t t-if="not assessment_ok">
+                                            <div class="alert alert-warning d-flex align-items-center">
+                                                <i class="fa fa-lock fa-lg me-3"/>
+                                                <span>
+                                                    You must <strong>pass the assessment</strong> above
+                                                    before you can mark this course complete.
+                                                </span>
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <form t-attf-action="/my/training/#{record.id}/complete" method="post"
+                                                  class="lms-complete-form border rounded p-3 bg-light">
+                                                <input type="hidden" name="csrf_token"
+                                                       t-att-value="request.csrf_token()"/>
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox"
+                                                           name="confirm" id="confirmComplete" required="1"/>
+                                                    <label class="form-check-label" for="confirmComplete">
+                                                        I confirm I have read and understood all documents.
+                                                    </label>
+                                                </div>
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fa fa-check me-1"/>Mark as Complete
+                                                </button>
+                                            </form>
+                                        </t>
+                                    </t>
+
+                                    <!-- Completion success banner -->
+                                    <t t-if="record.state == 'completed'">
+                                        <div class="alert alert-success d-flex align-items-center mt-3">
+                                            <i class="fa fa-check-circle fa-2x me-3 text-success"/>
+                                            <div>
+                                                <strong>Training Completed!</strong>
+                                                <t t-if="record.completion_date">
+                                                    <span class="ms-1">Completed on <t t-esc="record.completion_date"/></span>
+                                                </t>
+                                                <t t-if="record.expiry_date">
+                                                    <br/><span class="small">Expires: <t t-esc="record.expiry_date"/></span>
+                                                </t>
+                                                <t t-if="record.verified_by">
+                                                    <br/>
+                                                    <span class="small">
+                                                        Verified by <t t-esc="record.verified_by.name"/>
+                                                        <t t-if="record.verified_date"> on <t t-esc="record.verified_date"/></t>
+                                                    </span>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar -->
+                        <div class="col-lg-4">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <strong><i class="fa fa-info-circle me-1"/>Course Details</strong>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Type</span>
+                                        <span class="badge bg-light text-dark border">
+                                            <t t-esc="dict(record._fields['course_type']._description_selection(record.env)).get(record.course_type, '')"/>
+                                        </span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Delivery</span>
+                                        <span>
+                                            <t t-esc="dict(record._fields['delivery_mode']._description_selection(record.env)).get(record.delivery_mode, '')"/>
+                                        </span>
+                                    </li>
+                                    <t t-if="record.course_id.duration_hours">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Duration</span>
+                                            <span><t t-esc="'%.1f' % record.course_id.duration_hours"/> hrs</span>
+                                        </li>
+                                    </t>
+                                    <t t-if="record.course_id.validity_months">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Valid For</span>
+                                            <span><t t-esc="record.course_id.validity_months"/> months</span>
+                                        </li>
+                                    </t>
+                                    <t t-if="record.score">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Score</span>
+                                            <span t-attf-class="badge #{'bg-success' if record.passed else 'bg-danger'}">
+                                                <t t-esc="'%.0f' % record.score"/>%
+                                            </span>
+                                        </li>
+                                    </t>
+                                    <t t-if="record.start_date">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Started</span>
+                                            <span><t t-esc="record.start_date"/></span>
+                                        </li>
+                                    </t>
+                                    <t t-if="record.completion_date">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Completed</span>
+                                            <span><t t-esc="record.completion_date"/></span>
+                                        </li>
+                                    </t>
+                                    <t t-if="record.expiry_date">
+                                        <li t-attf-class="list-group-item d-flex justify-content-between align-items-center #{'text-danger' if record.state == 'expired' else ''}">
+                                            <span class="text-muted">Expires</span>
+                                            <span><t t-esc="record.expiry_date"/></span>
+                                        </li>
+                                    </t>
+                                    <t t-if="record.assignment_id">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Package</span>
+                                            <span><t t-esc="record.assignment_id.course_group_id.name"/></span>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+
+                            <!-- Navigation -->
+                            <div class="d-grid gap-2">
+                                <a href="/my/training" class="btn btn-outline-secondary">
+                                    <i class="fa fa-arrow-left me-1"/>Back to My Training
+                                </a>
+                                <a href="/my/training/history" class="btn btn-outline-secondary">
+                                    <i class="fa fa-history me-1"/>Training History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── SCORM Player Page (standalone, inside iframe) ─── -->
+    <template id="portal_scorm_wrapper" name="SCORM Player Wrapper">
+        <html>
+        <head>
+            <meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+            <title>Training Content</title>
+            <style>
+                html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #1a1a1a; }
+                #scorm-content-frame { width: 100%; height: 100vh; border: none; background: #fff; }
+                .scorm-loading { position: fixed; inset: 0; display: flex; align-items: center;
+                                 justify-content: center; background: #1a1a1a; color: #fff;
+                                 font-family: sans-serif; flex-direction: column; gap: 1rem; z-index: 999; }
+                .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2);
+                           border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+            </style>
+        </head>
+        <body>
+            <!-- Config passed to JS via data attributes (QWeb t-attf-# only works on attributes,
+                 not script text content — using data-* avoids a SyntaxError that would prevent
+                 window.API from being defined and cause "unable to acquire LMS API"). -->
+            <div id="scorm-config"
+                 t-att-data-record-id="record_id"
+                 t-att-data-passing-score="passing_score"
+                 style="display:none;"/>
+
+            <div class="scorm-loading" id="scorm-loading">
+                <div class="spinner"></div>
+                <span>Loading training content…</span>
+            </div>
+
+            <iframe id="scorm-content-frame"
+                    t-att-src="launch_url"
+                    allowfullscreen="allowfullscreen"
+                    style="display:none;"
+            />
+
+            <script type="text/javascript">
+            (function () {
+                'use strict';
+
+                // Read config from data attributes (safe regardless of QWeb rendering mode)
+                var cfg = document.getElementById('scorm-config');
+                var RECORD_ID    = parseInt(cfg.dataset.recordId, 10);
+                var PASSING_SCORE = parseFloat(cfg.dataset.passingScore) || 80;
+
+                var cmiData = {};
+                var scormInitialized = false;
+                var scormFinished    = false;
+
+                function postProgress(data) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/lms/scorm/' + RECORD_ID + '/commit', true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(JSON.stringify(data));
+                }
+
+                // ── SCORM 1.2 API ──────────────────────────────────────────────
+                var API = {
+                    LMSInitialize: function (s) {
+                        scormInitialized = true;
+                        postProgress({ action: 'initialize', cmi: cmiData });
+                        return 'true';
+                    },
+                    LMSFinish: function (s) {
+                        scormFinished = true;
+                        postProgress({ action: 'finish', cmi: cmiData });
+                        return 'true';
+                    },
+                    LMSGetValue: function (key) {
+                        return cmiData[key] !== undefined ? String(cmiData[key]) : '';
+                    },
+                    LMSSetValue: function (key, value) {
+                        cmiData[key] = value;
+                        if (key === 'cmi.core.lesson_status' ||
+                                key === 'cmi.completion_status' ||
+                                key === 'cmi.score.raw') {
+                            postProgress({ action: 'set', key: key, value: value, cmi: cmiData });
+                        }
+                        return 'true';
+                    },
+                    LMSCommit: function (s) {
+                        postProgress({ action: 'commit', cmi: cmiData });
+                        return 'true';
+                    },
+                    LMSGetLastError:   function () { return '0'; },
+                    LMSGetErrorString: function (e) { return ''; },
+                    LMSGetDiagnostic:  function (e) { return ''; }
+                };
+
+                // ── SCORM 2004 API ─────────────────────────────────────────────
+                var API_1484_11 = {
+                    Initialize:     function (s) { return API.LMSInitialize(s); },
+                    Terminate:      function (s) { return API.LMSFinish(s); },
+                    GetValue:       function (k) { return API.LMSGetValue(k); },
+                    SetValue:       function (k, v) { return API.LMSSetValue(k, v); },
+                    Commit:         function (s) { return API.LMSCommit(s); },
+                    GetLastError:   function () { return '0'; },
+                    GetErrorString: function (e) { return ''; },
+                    GetDiagnostic:  function (e) { return ''; }
+                };
+
+                // Expose on this wrapper window so standard parent-chain lookup works
+                window.API        = API;
+                window.API_1484_11 = API_1484_11;
+
+                // ── Wire up content frame ──────────────────────────────────────
+                var frame = document.getElementById('scorm-content-frame');
+                frame.addEventListener('load', function () {
+                    document.getElementById('scorm-loading').style.display = 'none';
+                    frame.style.display = 'block';
+
+                    // Also inject API directly onto the content window.
+                    // Belt-and-suspenders: covers SCORM packages that look for
+                    // window.API on their own window rather than walking parent chain.
+                    try {
+                        frame.contentWindow.API        = API;
+                        frame.contentWindow.API_1484_11 = API_1484_11;
+                    } catch (e) { /* cross-origin guard — should never fire */ }
+                });
+
+                window.addEventListener('beforeunload', function () {
+                    if (scormInitialized &amp;&amp; !scormFinished) {
+                        postProgress({ action: 'unload', cmi: cmiData });
+                    }
+                });
+            })();
+            </script>
+        </body>
+        </html>
+    </template>
+
+    <!-- ─── Open Sessions (dedicated enrolment page) ─── -->
+    <template id="portal_open_sessions" name="Available Sessions">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+
+            <div class="o_portal_wrap">
+                <div class="container mt-4">
+
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/my/home">Home</a></li>
+                            <li class="breadcrumb-item"><a href="/my/training">My Training</a></li>
+                            <li class="breadcrumb-item active">Available Sessions</li>
+                        </ol>
+                    </nav>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="mb-1">Available Sessions</h3>
+                            <p class="text-muted mb-0">
+                                Open in-person training sessions available for self-enrolment
+                            </p>
+                        </div>
+                        <a href="/my/training" class="btn btn-outline-secondary">
+                            <i class="fa fa-tasks me-1"/>My Training
+                        </a>
+                    </div>
+
+                    <!-- Course filter bar -->
+                    <t t-if="available_courses">
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+                            <span class="text-muted small me-1">Filter by course:</span>
+                            <a t-attf-class="btn btn-sm #{'btn-primary' if not selected_course_id else 'btn-outline-secondary'}"
+                               href="/my/training/sessions">All Courses</a>
+                            <t t-foreach="available_courses" t-as="c">
+                                <a t-attf-class="btn btn-sm #{'btn-primary' if selected_course_id == c.id else 'btn-outline-secondary'}"
+                                   t-attf-href="/my/training/sessions?course_id=#{c.id}">
+                                    <t t-esc="c.name"/>
+                                </a>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- Session cards -->
+                    <t t-if="open_sessions">
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                            <t t-foreach="open_sessions" t-as="session">
+                                <div class="col">
+                                    <div class="card h-100 shadow-sm lms-session-card">
+                                        <!-- Card header strip -->
+                                        <div class="card-header lms-strip-training py-2 px-3 d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary text-white">
+                                                <i class="fa fa-calendar me-1"/>In-Person
+                                            </span>
+                                            <t t-if="session.requires_approval">
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fa fa-shield me-1"/>Approval Required
+                                                </span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="badge bg-success text-white">
+                                                    <i class="fa fa-bolt me-1"/>Instant Enrolment
+                                                </span>
+                                            </t>
+                                        </div>
+
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-1">
+                                                <t t-esc="session.name"/>
+                                            </h5>
+                                            <p class="text-muted small mb-3">
+                                                <i class="fa fa-book me-1"/>
+                                                <t t-esc="session.course_id.name"/>
+                                            </p>
+
+                                            <ul class="list-unstyled mb-0">
+                                                <li class="mb-2">
+                                                    <i class="fa fa-calendar-o me-2 text-muted" style="width:14px;"/>
+                                                    <strong>Date:</strong>
+                                                    <t t-esc="session.date_start"/>
+                                                </li>
+                                                <t t-if="session.date_end">
+                                                    <li class="mb-2">
+                                                        <i class="fa fa-calendar-check-o me-2 text-muted" style="width:14px;"/>
+                                                        <strong>End:</strong>
+                                                        <t t-esc="session.date_end"/>
+                                                    </li>
+                                                </t>
+                                                <t t-if="session.location">
+                                                    <li class="mb-2">
+                                                        <i class="fa fa-map-marker me-2 text-muted" style="width:14px;"/>
+                                                        <strong>Location:</strong>
+                                                        <t t-esc="session.location"/>
+                                                    </li>
+                                                </t>
+                                                <li class="mb-2">
+                                                    <i class="fa fa-users me-2 text-muted" style="width:14px;"/>
+                                                    <strong>Seats:</strong>
+                                                    <span t-attf-class="#{' text-danger fw-semibold' if session.available_seats &lt;= 3 else ''}">
+                                                        <t t-esc="session.available_seats"/> available
+                                                    </span>
+                                                </li>
+                                                <t t-if="session.course_id.duration_hours">
+                                                    <li class="mb-2">
+                                                        <i class="fa fa-clock-o me-2 text-muted" style="width:14px;"/>
+                                                        <strong>Duration:</strong>
+                                                        <t t-esc="'%.1f' % session.course_id.duration_hours"/> hrs
+                                                    </li>
+                                                </t>
+                                            </ul>
+                                        </div>
+
+                                        <div class="card-footer bg-transparent">
+                                            <t t-if="session.id in enrolled_session_ids">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <button class="btn btn-sm btn-secondary flex-grow-1" disabled="1">
+                                                        <i class="fa fa-check me-1"/>Already Enrolled
+                                                    </button>
+                                                    <a href="/my/training?filter=sessions"
+                                                       class="btn btn-sm btn-outline-secondary"
+                                                       title="View my sessions">
+                                                        <i class="fa fa-calendar"/>
+                                                    </a>
+                                                </div>
+                                            </t>
+                                            <t t-else="">
+                                                <form t-attf-action="/my/training/session/enroll/#{session.id}"
+                                                      method="post">
+                                                    <input type="hidden" name="csrf_token"
+                                                           t-att-value="request.csrf_token()"/>
+                                                    <button type="submit"
+                                                            t-attf-class="btn btn-sm w-100 #{'btn-warning' if session.requires_approval else 'btn-primary'}">
+                                                        <t t-if="session.requires_approval">
+                                                            <i class="fa fa-paper-plane me-1"/>Request Enrolment
+                                                        </t>
+                                                        <t t-else="">
+                                                            <i class="fa fa-check me-1"/>Enrol Now
+                                                        </t>
+                                                    </button>
+                                                </form>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-calendar-times-o fa-4x mb-3"/>
+                            <h5 class="mt-3">No sessions available right now</h5>
+                            <p>
+                                There are no open in-person sessions at the moment.
+                                Check back soon or speak with your training manager.
+                            </p>
+                            <a href="/my/training" class="btn btn-outline-primary mt-2">
+                                <i class="fa fa-tasks me-1"/>Back to My Training
+                            </a>
+                        </div>
+                    </t>
+
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Flash message ─── -->
+    <template id="portal_lms_flash" name="LMS Flash Message">
+        <t t-call="portal.portal_layout">
+            <div class="o_portal_wrap">
+                <div class="container mt-5">
+                    <div t-attf-class="alert alert-#{msg_type or 'info'} text-center py-4">
+                        <i t-attf-class="fa fa-#{
+                            'check-circle' if msg_type == 'success'
+                            else 'exclamation-triangle' if msg_type in ('warning', 'danger')
+                            else 'info-circle'
+                        } fa-3x mb-3 d-block"/>
+                        <h4><t t-esc="msg_title"/></h4>
+                        <p class="mb-3"><t t-esc="msg_body"/></p>
+                        <a href="/my/training" class="btn btn-primary">
+                            <i class="fa fa-arrow-left me-1"/>Back to My Training
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

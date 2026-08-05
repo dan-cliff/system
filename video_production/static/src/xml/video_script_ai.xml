@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="video_production.VideoScriptAIController"
+       t-inherit="web.FormView"
+       t-inherit-mode="primary">
+
+        <!-- Inject the loading overlay inside the form container -->
+        <xpath expr="//div[hasclass('o_form_view_container')]" position="inside">
+            <div t-if="aiState.isGenerating" class="vp_ai_generating_overlay">
+                <div class="vp_ai_generating_inner">
+                    <i class="fa fa-magic fa-2x vp_ai_magic_icon mb-3"/>
+                    <p class="fw-semibold mb-3">AI is generating your script draft…</p>
+                    <div class="progress vp_ai_progress_bar">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated w-100"
+                             role="progressbar"
+                             aria-label="Generating script draft"/>
+                    </div>
+                    <p class="text-muted small mt-2">
+                        Writing outline, full script, and director notes.<br/>
+                        This may take a moment — please don't close the page.
+                    </p>
+                </div>
+            </div>
+        </xpath>
+
+    </t>
+
+</templates>

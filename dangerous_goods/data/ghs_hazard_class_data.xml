@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ══ PHYSICAL HAZARDS ══════════════════════════════════════════ -->
+
+        <record id="ghsclass_explosives" model="ghs.hazard.class">
+            <field name="code">EXPL</field>
+            <field name="name">Explosives</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Unstable explosives and Divisions 1.1 through 1.6.</field>
+            <field name="sequence">10</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs01')), (4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_flammable_gases" model="ghs.hazard.class">
+            <field name="code">FG</field>
+            <field name="name">Flammable Gases</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Gases which have a flammable range with air at 20°C and a standard pressure of 101.3 kPa. Categories 1 and 2 (including chemically unstable gases).</field>
+            <field name="sequence">20</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_aerosols" model="ghs.hazard.class">
+            <field name="code">AER</field>
+            <field name="name">Aerosols</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Any non-refillable receptacle containing a gas compressed, liquefied or dissolved under pressure. Categories 1, 2 and 3.</field>
+            <field name="sequence">30</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_oxidising_gases" model="ghs.hazard.class">
+            <field name="code">OG</field>
+            <field name="name">Oxidising Gases</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Gases which may cause or contribute to the combustion of other material more than air does. Category 1.</field>
+            <field name="sequence">40</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs03'))]"/>
+        </record>
+
+        <record id="ghsclass_gases_under_pressure" model="ghs.hazard.class">
+            <field name="code">GUP</field>
+            <field name="name">Gases Under Pressure</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Compressed gases, liquefied gases, refrigerated liquefied gases, dissolved gases. May explode if heated.</field>
+            <field name="sequence">50</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs04'))]"/>
+        </record>
+
+        <record id="ghsclass_flammable_liquids" model="ghs.hazard.class">
+            <field name="code">FL</field>
+            <field name="name">Flammable Liquids</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Liquids with a flash point not more than 93°C. Categories 1, 2, 3 and 4.</field>
+            <field name="sequence">60</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_flammable_solids" model="ghs.hazard.class">
+            <field name="code">FS</field>
+            <field name="name">Flammable Solids</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Solids which are readily combustible or may cause or contribute to fire through friction. Categories 1 and 2.</field>
+            <field name="sequence">70</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_self_reactive" model="ghs.hazard.class">
+            <field name="code">SR</field>
+            <field name="name">Self-Reactive Substances and Mixtures</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Thermally unstable substances liable to undergo strongly exothermic decomposition. Types A through G.</field>
+            <field name="sequence">80</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs01')), (4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_pyrophoric_liquids" model="ghs.hazard.class">
+            <field name="code">PL</field>
+            <field name="name">Pyrophoric Liquids</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Liquids which ignite spontaneously in air within 5 minutes. Category 1.</field>
+            <field name="sequence">90</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_pyrophoric_solids" model="ghs.hazard.class">
+            <field name="code">PS</field>
+            <field name="name">Pyrophoric Solids</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Solids which ignite spontaneously in air within 5 minutes. Category 1.</field>
+            <field name="sequence">100</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_self_heating" model="ghs.hazard.class">
+            <field name="code">SH</field>
+            <field name="name">Self-Heating Substances and Mixtures</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Substances liable to self-heating leading to spontaneous ignition. Categories 1 and 2.</field>
+            <field name="sequence">110</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_water_reactive" model="ghs.hazard.class">
+            <field name="code">WR</field>
+            <field name="name">Substances which in Contact with Water Emit Flammable Gases</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Solid or liquid substances which react with water to emit flammable gases. Categories 1, 2 and 3.</field>
+            <field name="sequence">120</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_oxidising_liquids" model="ghs.hazard.class">
+            <field name="code">OL</field>
+            <field name="name">Oxidising Liquids</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Liquids which may cause or contribute to the combustion of other material. Categories 1, 2 and 3.</field>
+            <field name="sequence">130</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs03'))]"/>
+        </record>
+
+        <record id="ghsclass_oxidising_solids" model="ghs.hazard.class">
+            <field name="code">OS</field>
+            <field name="name">Oxidising Solids</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Solids which may cause or contribute to the combustion of other material. Categories 1, 2 and 3.</field>
+            <field name="sequence">140</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs03'))]"/>
+        </record>
+
+        <record id="ghsclass_organic_peroxides" model="ghs.hazard.class">
+            <field name="code">OP</field>
+            <field name="name">Organic Peroxides</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Organic liquids or solids containing the bivalent -O-O- structure. Types A through G.</field>
+            <field name="sequence">150</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs01')), (4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <record id="ghsclass_corrosive_metals" model="ghs.hazard.class">
+            <field name="code">CM</field>
+            <field name="name">Corrosive to Metals</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Substances which by chemical action cause damage to or destruction of metals. Category 1.</field>
+            <field name="sequence">160</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs05'))]"/>
+        </record>
+
+        <record id="ghsclass_desensitised_explosives" model="ghs.hazard.class">
+            <field name="code">DE</field>
+            <field name="name">Desensitised Explosives</field>
+            <field name="hazard_type">physical</field>
+            <field name="description">Solid or liquid explosive substances phlegmatised to suppress explosive properties. Categories 1–4. (GHS Rev 8)</field>
+            <field name="sequence">170</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs01')), (4, ref('ghs_pictogram_ghs02'))]"/>
+        </record>
+
+        <!-- ══ HEALTH HAZARDS ════════════════════════════════════════════ -->
+
+        <record id="ghsclass_acute_toxicity" model="ghs.hazard.class">
+            <field name="code">AT</field>
+            <field name="name">Acute Toxicity</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Harmful effects following a single oral, dermal or inhalation exposure. Categories 1 (fatal) through 5 (may be harmful).</field>
+            <field name="sequence">210</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs06')), (4, ref('ghs_pictogram_ghs07'))]"/>
+        </record>
+
+        <record id="ghsclass_skin_corrosion" model="ghs.hazard.class">
+            <field name="code">SC</field>
+            <field name="name">Skin Corrosion / Irritation</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Skin corrosion (Categories 1A, 1B, 1C) and skin irritation (Category 2).</field>
+            <field name="sequence">220</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs05')), (4, ref('ghs_pictogram_ghs07'))]"/>
+        </record>
+
+        <record id="ghsclass_eye_damage" model="ghs.hazard.class">
+            <field name="code">ED</field>
+            <field name="name">Serious Eye Damage / Eye Irritation</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Serious eye damage (Category 1) and eye irritation (Categories 2A and 2B).</field>
+            <field name="sequence">230</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs05')), (4, ref('ghs_pictogram_ghs07'))]"/>
+        </record>
+
+        <record id="ghsclass_sensitisation" model="ghs.hazard.class">
+            <field name="code">SEN</field>
+            <field name="name">Respiratory or Skin Sensitisation</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Respiratory sensitisation (Category 1) causing asthma or other hypersensitivity. Skin sensitisation (Categories 1A and 1B).</field>
+            <field name="sequence">240</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs07')), (4, ref('ghs_pictogram_ghs08'))]"/>
+        </record>
+
+        <record id="ghsclass_mutagenicity" model="ghs.hazard.class">
+            <field name="code">MUT</field>
+            <field name="name">Germ Cell Mutagenicity</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Substances which may cause heritable mutations in germ cells. Categories 1A, 1B and 2.</field>
+            <field name="sequence">250</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs08'))]"/>
+        </record>
+
+        <record id="ghsclass_carcinogenicity" model="ghs.hazard.class">
+            <field name="code">CARC</field>
+            <field name="name">Carcinogenicity</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Substances which may cause cancer. Categories 1A, 1B and 2.</field>
+            <field name="sequence">260</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs08'))]"/>
+        </record>
+
+        <record id="ghsclass_reproductive_toxicity" model="ghs.hazard.class">
+            <field name="code">REPR</field>
+            <field name="name">Reproductive Toxicity</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Adverse effects on sexual function, fertility or development. Categories 1A, 1B and 2. Also includes effects on or via lactation.</field>
+            <field name="sequence">270</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs08'))]"/>
+        </record>
+
+        <record id="ghsclass_stot_se" model="ghs.hazard.class">
+            <field name="code">STOT-SE</field>
+            <field name="name">Specific Target Organ Toxicity — Single Exposure</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Specific, non-lethal target organ toxicity following a single exposure. Categories 1, 2 and 3.</field>
+            <field name="sequence">280</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs07')), (4, ref('ghs_pictogram_ghs08'))]"/>
+        </record>
+
+        <record id="ghsclass_stot_re" model="ghs.hazard.class">
+            <field name="code">STOT-RE</field>
+            <field name="name">Specific Target Organ Toxicity — Repeated Exposure</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Specific, non-lethal target organ toxicity following repeated or prolonged exposure. Categories 1 and 2.</field>
+            <field name="sequence">290</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs08'))]"/>
+        </record>
+
+        <record id="ghsclass_aspiration" model="ghs.hazard.class">
+            <field name="code">ASP</field>
+            <field name="name">Aspiration Hazard</field>
+            <field name="hazard_type">health</field>
+            <field name="description">Aspiration into the lungs may cause chemical pneumonia or pulmonary injury. Categories 1 and 2.</field>
+            <field name="sequence">300</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs08'))]"/>
+        </record>
+
+        <!-- ══ ENVIRONMENTAL HAZARDS ═════════════════════════════════════ -->
+
+        <record id="ghsclass_aquatic" model="ghs.hazard.class">
+            <field name="code">AQU</field>
+            <field name="name">Hazardous to the Aquatic Environment</field>
+            <field name="hazard_type">environmental</field>
+            <field name="description">Acute aquatic hazard (Categories 1, 2, 3) and chronic aquatic hazard (Categories 1, 2, 3, 4).</field>
+            <field name="sequence">410</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs09'))]"/>
+        </record>
+
+        <record id="ghsclass_ozone" model="ghs.hazard.class">
+            <field name="code">OZO</field>
+            <field name="name">Hazardous to the Ozone Layer</field>
+            <field name="hazard_type">environmental</field>
+            <field name="description">Substances known or presumed to harm the ozone layer. Category 1. (GHS Rev 8)</field>
+            <field name="sequence">420</field>
+            <field name="pictogram_ids" eval="[(4, ref('ghs_pictogram_ghs07'))]"/>
+        </record>
+
+    </data>
+</odoo>

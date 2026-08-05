@@ -1,0 +1,40 @@
+.vp_ai_generating_overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.92);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    backdrop-filter: blur(2px);
+
+    .vp_ai_generating_inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .vp_ai_magic_icon {
+        color: var(--bs-primary);
+        animation: vp_ai_pulse 1.4s ease-in-out infinite;
+    }
+
+    .vp_ai_progress_bar {
+        width: 280px;
+        height: 8px;
+        border-radius: 4px;
+    }
+}
+
+@keyframes vp_ai_pulse {
+    0%, 100% { opacity: 1;   transform: scale(1);    }
+    50%       { opacity: 0.6; transform: scale(1.15); }
+}
+
+// Ensure the form container is a positioning context for the overlay
+.o_form_view_container {
+    position: relative;
+}

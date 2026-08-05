@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Filament List ────────────────────────────────────────────────── -->
+    <record id="view_print_filament_list" model="ir.ui.view">
+        <field name="name">print.filament.list</field>
+        <field name="model">print.filament</field>
+        <field name="arch" type="xml">
+            <list string="Filaments">
+                <field name="name"/>
+                <field name="material"/>
+                <field name="brand" optional="show"/>
+                <field name="color_name" optional="show"/>
+                <field name="color_hex" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Filament Form ────────────────────────────────────────────────── -->
+    <record id="view_print_filament_form" model="ir.ui.view">
+        <field name="name">print.filament.form</field>
+        <field name="model">print.filament</field>
+        <field name="arch" type="xml">
+            <form string="Filament">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Bambu PLA Basic – Bambu Green"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Type">
+                            <field name="material"/>
+                            <field name="brand"/>
+                        </group>
+                        <group string="Colour">
+                            <field name="color_name"/>
+                            <field name="color_hex" placeholder="#RRGGBB"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="description" nolabel="1"
+                               placeholder="Additional notes about this filament…"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Filament Search ──────────────────────────────────────────────── -->
+    <record id="view_print_filament_search" model="ir.ui.view">
+        <field name="name">print.filament.search</field>
+        <field name="model">print.filament</field>
+        <field name="arch" type="xml">
+            <search string="Filaments">
+                <field name="name"/>
+                <field name="brand"/>
+                <field name="color_name"/>
+                <filter string="PLA" name="pla" domain="[('material','=','pla')]"/>
+                <filter string="PETG" name="petg" domain="[('material','=','petg')]"/>
+                <filter string="ABS/ASA" name="abs_asa" domain="[('material','in',['abs','asa'])]"/>
+                <filter string="Archived" name="archived" domain="[('active','=',False)]"/>
+                <separator/>
+                <filter string="Group by Material" name="group_material"
+                        context="{'group_by':'material'}"/>
+                <filter string="Group by Brand" name="group_brand"
+                        context="{'group_by':'brand'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Filament Action ──────────────────────────────────────────────── -->
+    <record id="action_print_filament" model="ir.actions.act_window">
+        <field name="name">Filament Catalogue</field>
+        <field name="res_model">print.filament</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_print_filament_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first filament type</p>
+            <p>Build a catalogue of filament types to track what's loaded in each printer.</p>
+        </field>
+    </record>
+
+</odoo>

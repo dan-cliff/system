@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ════════════════════════════════════════════════════════════
+         Training Record PDF — Paper Format (Portrait A4)
+    ════════════════════════════════════════════════════════════ -->
+    <record id="paperformat_lms_training_record" model="report.paperformat">
+        <field name="name">LMS Training Record A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">16</field>
+        <field name="margin_left">14</field>
+        <field name="margin_right">14</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">3</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         Training Record PDF — ir.actions.report
+    ════════════════════════════════════════════════════════════ -->
+    <record id="action_lms_training_record_pdf" model="ir.actions.report">
+        <field name="name">Training Record</field>
+        <field name="model">lms.employee.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">learning_management.lms_training_record_report_pdf</field>
+        <field name="report_file">learning_management.lms_training_record_report_pdf</field>
+        <field name="paperformat_id" ref="paperformat_lms_training_record"/>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         Training Record PDF — QWeb Template
+    ════════════════════════════════════════════════════════════ -->
+    <template id="lms_training_record_report_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="record">
+                <div class="article">
+
+                    <!-- ── Page header ──────────────────────────────────────── -->
+                    <table style="width:100%;margin-bottom:16px;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:80px;vertical-align:middle;">
+                                <t t-if="record.employee_id.company_id.logo">
+                                    <img t-att-src="image_data_uri(record.employee_id.company_id.logo)"
+                                         style="max-height:52px;max-width:76px;object-fit:contain;"/>
+                                </t>
+                            </td>
+                            <td style="vertical-align:middle;padding-left:14px;">
+                                <div style="font-size:15pt;font-weight:700;color:#212529;">
+                                    Training Record
+                                </div>
+                                <div style="font-size:9pt;color:#6c757d;margin-top:2px;">
+                                    <t t-esc="record.employee_id.company_id.name"/>
+                                </div>
+                            </td>
+                            <td style="vertical-align:middle;text-align:right;font-size:8pt;color:#6c757d;">
+                                <div>Record #<t t-esc="record.id"/></div>
+                                <div style="margin-top:2px;">Page <span class="page"/> of <span class="topage"/></div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <hr style="border:none;border-top:2px solid #212529;margin:0 0 14px 0;"/>
+
+                    <!-- ── Employee &amp; Course ──────────────────────────────── -->
+                    <table style="width:100%;margin-bottom:14px;border-collapse:collapse;">
+                        <tr>
+                            <!-- Left column -->
+                            <td style="width:50%;vertical-align:top;padding-right:10px;">
+                                <div style="font-size:8pt;font-weight:700;text-transform:uppercase;
+                                            letter-spacing:0.05em;color:#6c757d;margin-bottom:6px;">
+                                    Employee
+                                </div>
+                                <div style="font-size:13pt;font-weight:700;color:#212529;margin-bottom:3px;">
+                                    <t t-esc="record.employee_id.name"/>
+                                </div>
+                                <t t-if="record.employee_id.job_id">
+                                    <div style="font-size:9pt;color:#495057;">
+                                        <t t-esc="record.employee_id.job_id.name"/>
+                                    </div>
+                                </t>
+                                <t t-if="record.employee_id.department_id">
+                                    <div style="font-size:9pt;color:#495057;">
+                                        <t t-esc="record.employee_id.department_id.name"/>
+                                    </div>
+                                </t>
+                            </td>
+                            <!-- Right column -->
+                            <td style="width:50%;vertical-align:top;padding-left:10px;
+                                       border-left:1px solid #dee2e6;">
+                                <div style="font-size:8pt;font-weight:700;text-transform:uppercase;
+                                            letter-spacing:0.05em;color:#6c757d;margin-bottom:6px;">
+                                    Course
+                                </div>
+                                <div style="font-size:13pt;font-weight:700;color:#212529;margin-bottom:3px;">
+                                    <t t-esc="record.course_id.name"/>
+                                </div>
+                                <t t-if="record.course_id.code">
+                                    <div style="font-size:9pt;color:#495057;">
+                                        Code: <t t-esc="record.course_id.code"/>
+                                    </div>
+                                </t>
+                                <div style="font-size:9pt;color:#495057;">
+                                    Type: <t t-esc="record.course_id.course_type"/>
+                                    · Delivery: <t t-esc="record.course_id.delivery_mode"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- ── Record Details ────────────────────────────────────── -->
+                    <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;
+                                padding:10px 12px;margin-bottom:14px;">
+                        <div style="font-size:8pt;font-weight:700;text-transform:uppercase;
+                                    letter-spacing:0.05em;color:#6c757d;margin-bottom:8px;">
+                            Record Details
+                        </div>
+                        <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                            <tr>
+                                <td style="width:25%;color:#6c757d;padding:3px 0;">Status</td>
+                                <td style="width:25%;font-weight:600;color:#212529;padding:3px 0;">
+                                    <t t-esc="dict(record.fields_get(['state'])['state']['selection'])[record.state]"/>
+                                </td>
+                                <td style="width:25%;color:#6c757d;padding:3px 0;">Started On</td>
+                                <td style="width:25%;font-weight:600;color:#212529;padding:3px 0;">
+                                    <t t-if="record.start_date">
+                                        <t t-esc="record.start_date" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </t>
+                                    <t t-else="">—</t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="color:#6c757d;padding:3px 0;">Passed</td>
+                                <td style="font-weight:600;padding:3px 0;">
+                                    <t t-if="record.passed">
+                                        <span style="color:#198754;">Yes</span>
+                                    </t>
+                                    <t t-elif="record.state in ('completed', 'failed')">
+                                        <span style="color:#dc3545;">No</span>
+                                    </t>
+                                    <t t-else="">—</t>
+                                </td>
+                                <td style="color:#6c757d;padding:3px 0;">Completed On</td>
+                                <td style="font-weight:600;color:#212529;padding:3px 0;">
+                                    <t t-if="record.completion_date">
+                                        <t t-esc="record.completion_date" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </t>
+                                    <t t-else="">—</t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="color:#6c757d;padding:3px 0;">Score</td>
+                                <td style="font-weight:600;color:#212529;padding:3px 0;">
+                                    <t t-if="record.score">
+                                        <t t-esc="round(record.score, 1)"/>%
+                                    </t>
+                                    <t t-else="">—</t>
+                                </td>
+                                <td style="color:#6c757d;padding:3px 0;">Expires On</td>
+                                <td style="font-weight:600;padding:3px 0;">
+                                    <t t-if="record.expiry_date">
+                                        <t t-esc="record.expiry_date" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </t>
+                                    <t t-else="">No Expiry</t>
+                                </td>
+                            </tr>
+                            <t t-if="record.verified_by">
+                                <tr>
+                                    <td style="color:#6c757d;padding:3px 0;">Verified By</td>
+                                    <td style="font-weight:600;color:#212529;padding:3px 0;">
+                                        <t t-esc="record.verified_by.name"/>
+                                    </td>
+                                    <td style="color:#6c757d;padding:3px 0;">Verified On</td>
+                                    <td style="font-weight:600;color:#212529;padding:3px 0;">
+                                        <t t-esc="record.verified_date" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <t t-if="record.assignment_id">
+                                <tr>
+                                    <td style="color:#6c757d;padding:3px 0;">Package</td>
+                                    <td colspan="3" style="font-weight:600;color:#212529;padding:3px 0;">
+                                        <t t-esc="record.assignment_id.course_group_id.name"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </table>
+                    </div>
+
+                    <!-- ── Notes ────────────────────────────────────────────── -->
+                    <t t-if="record.notes">
+                        <div style="margin-bottom:14px;">
+                            <div style="font-size:8pt;font-weight:700;text-transform:uppercase;
+                                        letter-spacing:0.05em;color:#6c757d;margin-bottom:4px;">
+                                Notes
+                            </div>
+                            <div style="font-size:9pt;color:#212529;padding:8px 10px;
+                                        border-left:3px solid #dee2e6;">
+                                <t t-esc="record.notes"/>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- ── Supporting Documents ──────────────────────────────── -->
+                    <t t-if="record.attachment_ids">
+                        <div style="margin-bottom:14px;">
+                            <div style="font-size:8pt;font-weight:700;text-transform:uppercase;
+                                        letter-spacing:0.05em;color:#6c757d;margin-bottom:6px;">
+                                Supporting Documents
+                                (<t t-esc="len(record.attachment_ids)"/>)
+                            </div>
+                            <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                <t t-foreach="record.attachment_ids" t-as="att">
+                                    <tr>
+                                        <td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;">
+                                            <t t-esc="att_index + 1"/>.&#160;<t t-esc="att.name"/>
+                                        </td>
+                                        <td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;
+                                                   text-align:right;color:#6c757d;">
+                                            <t t-esc="att.mimetype"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </table>
+                        </div>
+                    </t>
+
+                    <!-- ── Assessments ───────────────────────────────────────── -->
+                    <t t-if="record.assessment_ids">
+                        <div style="font-size:8pt;font-weight:700;text-transform:uppercase;
+                                    letter-spacing:0.05em;color:#6c757d;margin-bottom:8px;">
+                            Assessments (<t t-esc="len(record.assessment_ids)"/>)
+                        </div>
+
+                        <t t-foreach="record.assessment_ids" t-as="assessment">
+                            <!-- Assessment block -->
+                            <div style="border:1px solid #dee2e6;border-radius:4px;
+                                        margin-bottom:14px;overflow:hidden;">
+
+                                <!-- Assessment header bar -->
+                                <div t-attf-style="padding:8px 12px;font-size:9.5pt;font-weight:700;
+                                                   color:#fff;background:#{
+                                                       '#198754' if assessment.state == 'passed'
+                                                       else '#dc3545' if assessment.state == 'failed'
+                                                       else '#fd7e14' if assessment.state in ('in_progress', 'submitted')
+                                                       else '#6c757d'
+                                                   };">
+                                    <table style="width:100%;border-collapse:collapse;">
+                                        <tr>
+                                            <td>
+                                                <t t-esc="assessment.template_id.name"/>
+                                                &#160;
+                                                <span style="font-weight:400;font-size:8.5pt;opacity:0.85;">
+                                                    (<t t-esc="dict(assessment.fields_get(['delivery_type'])['delivery_type']['selection'])[assessment.delivery_type]"/>)
+                                                </span>
+                                            </td>
+                                            <td style="text-align:right;font-size:8.5pt;font-weight:400;">
+                                                <t t-esc="dict(assessment.fields_get(['state'])['state']['selection'])[assessment.state]"/>
+                                                <t t-if="assessment.score">
+                                                    &#160;·&#160;Score: <t t-esc="round(assessment.score, 1)"/>%
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                                <!-- Assessment meta row -->
+                                <div style="padding:8px 12px;border-bottom:1px solid #dee2e6;
+                                            font-size:8.5pt;color:#495057;background:#fff;">
+                                    <table style="width:100%;border-collapse:collapse;">
+                                        <tr>
+                                            <t t-if="assessment.assessor_id">
+                                                <td style="width:33%;padding:2px 0;">
+                                                    Assessor: <strong><t t-esc="assessment.assessor_id.name"/></strong>
+                                                </td>
+                                            </t>
+                                            <t t-if="assessment.start_date">
+                                                <td style="width:33%;padding:2px 0;">
+                                                    Started:
+                                                    <strong>
+                                                        <t t-esc="assessment.start_date" t-options='{"widget": "datetime", "format": "dd/MM/yyyy HH:mm"}'/>
+                                                    </strong>
+                                                </td>
+                                            </t>
+                                            <t t-if="assessment.submit_date">
+                                                <td style="width:33%;padding:2px 0;">
+                                                    Submitted:
+                                                    <strong>
+                                                        <t t-esc="assessment.submit_date" t-options='{"widget": "datetime", "format": "dd/MM/yyyy HH:mm"}'/>
+                                                    </strong>
+                                                </td>
+                                            </t>
+                                            <t t-if="assessment.passed">
+                                                <td style="width:33%;padding:2px 0;color:#198754;font-weight:700;">
+                                                    ✓ Passed
+                                                </td>
+                                            </t>
+                                            <t t-elif="assessment.state == 'failed'">
+                                                <td style="width:33%;padding:2px 0;color:#dc3545;font-weight:700;">
+                                                    ✗ Failed
+                                                </td>
+                                            </t>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                                <!-- Answer table -->
+                                <t t-if="assessment.answer_ids">
+                                    <table style="width:100%;border-collapse:collapse;font-size:8.5pt;">
+                                        <!-- Column headers -->
+                                        <thead>
+                                            <tr style="background:#f8f9fa;">
+                                                <th style="width:4%;padding:5px 8px;text-align:center;
+                                                           border-bottom:1px solid #dee2e6;color:#6c757d;
+                                                           font-weight:600;">#</th>
+                                                <th style="width:38%;padding:5px 8px;
+                                                           border-bottom:1px solid #dee2e6;color:#6c757d;
+                                                           font-weight:600;">Question / Item</th>
+                                                <th style="width:12%;padding:5px 8px;text-align:center;
+                                                           border-bottom:1px solid #dee2e6;color:#6c757d;
+                                                           font-weight:600;">Type</th>
+                                                <th style="width:30%;padding:5px 8px;
+                                                           border-bottom:1px solid #dee2e6;color:#6c757d;
+                                                           font-weight:600;">Answer Given</th>
+                                                <th style="width:10%;padding:5px 8px;text-align:center;
+                                                           border-bottom:1px solid #dee2e6;color:#6c757d;
+                                                           font-weight:600;">Marks</th>
+                                                <th style="width:6%;padding:5px 8px;text-align:center;
+                                                           border-bottom:1px solid #dee2e6;color:#6c757d;
+                                                           font-weight:600;">Result</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="assessment.answer_ids" t-as="answer">
+                                                <tr t-attf-style="background:#{
+                                                        '#f0fdf4' if answer.is_correct
+                                                        else '#fff5f5' if answer.question_type in ('multiple_choice', 'true_false')
+                                                        else '#fff'
+                                                    };border-bottom:1px solid #f0f0f0;">
+                                                    <!-- # -->
+                                                    <td style="padding:5px 8px;text-align:center;
+                                                               color:#6c757d;vertical-align:top;">
+                                                        <t t-esc="answer_index + 1"/>
+                                                    </td>
+                                                    <!-- Question text -->
+                                                    <td style="padding:5px 8px;vertical-align:top;
+                                                               color:#212529;">
+                                                        <t t-esc="answer.question_text"/>
+                                                    </td>
+                                                    <!-- Type -->
+                                                    <td style="padding:5px 8px;text-align:center;
+                                                               vertical-align:top;color:#6c757d;">
+                                                        <t t-if="answer.question_type == 'multiple_choice'">MC</t>
+                                                        <t t-elif="answer.question_type == 'true_false'">T/F</t>
+                                                        <t t-elif="answer.question_type == 'short_text'">Text</t>
+                                                        <t t-elif="answer.question_type == 'checklist_item'">Check</t>
+                                                    </td>
+                                                    <!-- Answer given -->
+                                                    <td style="padding:5px 8px;vertical-align:top;
+                                                               color:#212529;">
+                                                        <t t-if="answer.question_type == 'multiple_choice'">
+                                                            <t t-if="answer.selected_option_id">
+                                                                <t t-esc="answer.selected_option_id.text"/>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span style="color:#adb5bd;font-style:italic;">No answer</span>
+                                                            </t>
+                                                        </t>
+                                                        <t t-elif="answer.question_type == 'true_false'">
+                                                            <t t-if="answer.bool_answer">
+                                                                <t t-esc="'True' if answer.bool_answer == 'true' else 'False'"/>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span style="color:#adb5bd;font-style:italic;">No answer</span>
+                                                            </t>
+                                                        </t>
+                                                        <t t-elif="answer.question_type == 'short_text'">
+                                                            <t t-if="answer.text_answer">
+                                                                <t t-esc="answer.text_answer"/>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span style="color:#adb5bd;font-style:italic;">No answer</span>
+                                                            </t>
+                                                        </t>
+                                                        <t t-elif="answer.question_type == 'checklist_item'">
+                                                            <t t-if="answer.is_checked">
+                                                                <span style="color:#198754;font-weight:600;">✓ Confirmed</span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span style="color:#adb5bd;">Not confirmed</span>
+                                                            </t>
+                                                        </t>
+                                                    </td>
+                                                    <!-- Marks -->
+                                                    <td style="padding:5px 8px;text-align:center;
+                                                               vertical-align:top;color:#6c757d;">
+                                                        <t t-if="answer.question_type not in ('short_text', 'checklist_item')">
+                                                            <t t-esc="answer.question_id.marks"/>
+                                                        </t>
+                                                        <t t-else="">—</t>
+                                                    </td>
+                                                    <!-- Result -->
+                                                    <td style="padding:5px 8px;text-align:center;
+                                                               vertical-align:top;font-weight:700;">
+                                                        <t t-if="answer.question_type == 'multiple_choice' or answer.question_type == 'true_false'">
+                                                            <t t-if="answer.is_correct">
+                                                                <span style="color:#198754;">✓</span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span style="color:#dc3545;">✗</span>
+                                                            </t>
+                                                        </t>
+                                                        <t t-elif="answer.question_type == 'checklist_item'">
+                                                            <t t-if="answer.is_checked">
+                                                                <span style="color:#198754;">✓</span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span style="color:#dc3545;">✗</span>
+                                                            </t>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span style="color:#adb5bd;font-size:8pt;">Manual</span>
+                                                        </t>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                        <!-- Score footer row (for electronic assessments with scoring) -->
+                                        <t t-if="assessment.score">
+                                            <tfoot>
+                                                <tr style="background:#f8f9fa;">
+                                                    <td colspan="4" style="padding:5px 8px;text-align:right;
+                                                                           font-weight:600;color:#212529;
+                                                                           border-top:2px solid #dee2e6;">
+                                                        Assessment Score
+                                                    </td>
+                                                    <td colspan="2"
+                                                        t-attf-style="padding:5px 8px;text-align:center;
+                                                                       font-weight:700;font-size:10pt;
+                                                                       border-top:2px solid #dee2e6;
+                                                                       color:#{'198754' if assessment.passed else 'dc3545'};">
+                                                        <t t-esc="round(assessment.score, 1)"/>%
+                                                        &#160;
+                                                        <span style="font-size:8pt;font-weight:400;">
+                                                            (pass mark: <t t-esc="assessment.template_id.passing_score"/>%)
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </t>
+                                    </table>
+                                </t>
+
+                                <!-- No answers yet -->
+                                <t t-if="not assessment.answer_ids">
+                                    <div style="padding:10px 12px;font-size:8.5pt;color:#adb5bd;
+                                                font-style:italic;">
+                                        No answers recorded for this assessment.
+                                    </div>
+                                </t>
+
+                                <!-- Assessor notes -->
+                                <t t-if="assessment.notes">
+                                    <div style="padding:8px 12px;border-top:1px solid #dee2e6;
+                                                background:#fffdf0;font-size:8.5pt;">
+                                        <span style="font-weight:600;color:#6c757d;">Assessor Notes:</span>&#160;
+                                        <span style="color:#212529;">
+                                            <t t-esc="assessment.notes"/>
+                                        </span>
+                                    </div>
+                                </t>
+
+                            </div><!-- /assessment block -->
+                        </t><!-- /t-foreach assessment -->
+                    </t><!-- /t-if assessment_ids -->
+
+                    <!-- ── No assessments message ────────────────────────────── -->
+                    <t t-if="not record.assessment_ids">
+                        <div style="padding:10px 12px;border:1px dashed #dee2e6;border-radius:4px;
+                                    font-size:8.5pt;color:#adb5bd;text-align:center;margin-bottom:14px;">
+                            No assessments linked to this training record.
+                        </div>
+                    </t>
+
+                    <!-- ── Footer rule ───────────────────────────────────────── -->
+                    <hr style="border:none;border-top:1px solid #dee2e6;margin:8px 0 4px 0;"/>
+                    <div style="font-size:7.5pt;color:#adb5bd;text-align:center;">
+                        Printed: <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/>
+                        &#160;·&#160; <t t-esc="record.employee_id.company_id.name"/>
+                    </div>
+
+                </div><!-- /article -->
+            </t><!-- /t-foreach docs -->
+        </t>
+    </template>
+
+</odoo>

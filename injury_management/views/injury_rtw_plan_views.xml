@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_injury_rtw_plan_list" model="ir.ui.view">
+        <field name="name">injury.rtw.plan.list</field>
+        <field name="model">injury.rtw.plan</field>
+        <field name="arch" type="xml">
+            <list string="RTW Plans" default_order="plan_date desc">
+                <field name="case_id"/>
+                <field name="version"/>
+                <field name="plan_date"/>
+                <field name="start_date"/>
+                <field name="end_date" optional="show"/>
+                <field name="approved_by_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-muted="state in ('completed', 'cancelled')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_injury_rtw_plan_form" model="ir.ui.view">
+        <field name="name">injury.rtw.plan.form</field>
+        <field name="model">injury.rtw.plan</field>
+        <field name="arch" type="xml">
+            <form string="Return to Work Plan">
+                <header>
+                    <button name="action_activate" string="Activate" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_complete" string="Mark Complete" type="object"
+                            class="btn-primary" invisible="state != 'active'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            class="btn-secondary" invisible="state in ('completed', 'cancelled')"/>
+                    <button name="%(injury_management.action_report_injury_rtw_plan)d"
+                            string="Print Plan" type="action" class="btn-secondary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,completed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="case_id" options="{'no_create': True}"/>
+                            <field name="version"/>
+                            <field name="plan_date"/>
+                            <field name="treating_doctor"/>
+                        </group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="approved_by_id" options="{'no_create': True}"/>
+                            <field name="approval_date"/>
+                        </group>
+                    </group>
+
+                    <separator string="Goals / Objectives"/>
+                    <field name="goals" nolabel="0" widget="text"
+                           placeholder="Describe the goals and objectives of this return to work plan…"/>
+
+                    <separator string="Plan Phases"/>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="phase_label"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="daily_hours"/>
+                            <field name="days_per_week"/>
+                            <field name="duties"/>
+                            <field name="restrictions"/>
+                            <field name="notes" optional="show"/>
+                        </list>
+                    </field>
+
+                    <separator string="Additional Notes"/>
+                    <field name="notes" nolabel="0" widget="text"
+                           placeholder="Any additional notes for this RTW plan…"/>
+                    <separator string="Attachments"/>
+                    <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_injury_rtw_plan_all" model="ir.actions.act_window">
+        <field name="name">RTW Plans</field>
+        <field name="res_model">injury.rtw.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

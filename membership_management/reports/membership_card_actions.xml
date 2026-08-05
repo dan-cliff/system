@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Custom paper format: CR80 card (85.6mm × 54mm) ──────────────── -->
+    <record id="paperformat_membership_card" model="report.paperformat">
+        <field name="name">Membership Card — CR80 (86mm × 54mm)</field>
+        <field name="default">False</field>
+        <field name="format">custom</field>
+        <field name="page_width">86</field>
+        <field name="page_height">54</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="header_line">False</field>
+        <field name="header_spacing">3</field>
+        <field name="dpi">96</field>
+        <field name="disable_shrinking">True</field>
+    </record>
+
+    <!-- ── Membership Card Report Action ────────────────────────────────── -->
+    <record id="action_report_membership_card" model="ir.actions.report">
+        <field name="name">Membership Card</field>
+        <field name="model">membership.membership</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">membership_management.membership_card_template</field>
+        <field name="report_file">membership_management.membership_card_template</field>
+        <field name="print_report_name">'Membership Card - ' + object.name</field>
+        <field name="paperformat_id" ref="paperformat_membership_card"/>
+    </record>
+
+</odoo>

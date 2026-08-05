@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         PLATFORM
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_video_platform_list" model="ir.ui.view">
+        <field name="name">video.platform.list</field>
+        <field name="model">video.platform</field>
+        <field name="arch" type="xml">
+            <list string="Platforms" >
+                <field name="id" readonly="1" optional="show"/>
+                <field name="name"/>
+                <field name="reference_id"/>
+                <field name="channel_count" string="Channels"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_video_platform_form" model="ir.ui.view">
+        <field name="name">video.platform.form</field>
+        <field name="model">video.platform</field>
+        <field name="arch" type="xml">
+            <form string="Platform">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. YouTube"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="reference_id" placeholder="e.g. youtube"/>
+                        <field name="description" placeholder="Platform description…"/>
+                    </group>
+                    <notebook>
+                        <page string="Channels" name="channels">
+                            <field name="channel_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="reference_id"/>
+                                    <field name="playlist_count" string="Playlists"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_video_platform" model="ir.actions.act_window">
+        <field name="name">Platforms</field>
+        <field name="res_model">video.platform</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         PLATFORM CHANNEL
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_video_platform_channel_list" model="ir.ui.view">
+        <field name="name">video.platform.channel.list</field>
+        <field name="model">video.platform.channel</field>
+        <field name="arch" type="xml">
+            <list string="Channels" >
+                <field name="id" readonly="1" optional="show"/>
+                <field name="platform_id"/>
+                <field name="name"/>
+                <field name="reference_id"/>
+                <field name="playlist_count" string="Playlists"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_video_platform_channel_form" model="ir.ui.view">
+        <field name="name">video.platform.channel.form</field>
+        <field name="model">video.platform.channel</field>
+        <field name="arch" type="xml">
+            <form string="Platform Channel">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Cliff's Country Crafts"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="platform_id"/>
+                        <field name="reference_id" placeholder="e.g. UCxxxxxxxxxxxxxxxx"/>
+                        <field name="description" placeholder="Channel description…"/>
+                    </group>
+                    <notebook>
+                        <page string="Playlists" name="playlists">
+                            <field name="playlist_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="reference_id"/>
+                                    <field name="platform_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_video_platform_channel" model="ir.actions.act_window">
+        <field name="name">Channels</field>
+        <field name="res_model">video.platform.channel</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         PLATFORM CHANNEL PLAYLIST
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_video_platform_playlist_list" model="ir.ui.view">
+        <field name="name">video.platform.playlist.list</field>
+        <field name="model">video.platform.playlist</field>
+        <field name="arch" type="xml">
+            <list string="Playlists" >
+                <field name="id" readonly="1" optional="show"/>
+                <field name="platform_id"/>
+                <field name="channel_id"/>
+                <field name="name"/>
+                <field name="reference_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_video_platform_playlist_form" model="ir.ui.view">
+        <field name="name">video.platform.playlist.form</field>
+        <field name="model">video.platform.playlist</field>
+        <field name="arch" type="xml">
+            <form string="Platform Playlist">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Woodworking Tips"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="platform_id"/>
+                        <field name="channel_id"
+                               domain="[('platform_id', '=', platform_id)]"
+                               options="{'no_create': True}"/>
+                        <field name="reference_id" placeholder="e.g. PLxxxxxxxxxxxxxxxx"/>
+                        <field name="description" placeholder="Playlist description…"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_video_platform_playlist" model="ir.actions.act_window">
+        <field name="name">Playlists</field>
+        <field name="res_model">video.platform.playlist</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

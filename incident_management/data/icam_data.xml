@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ══════════════════════════════════════════════════════════════
+             ICAM CATEGORIES  (the four pillars of the ICAM methodology)
+             ══════════════════════════════════════════════════════════════ -->
+
+        <record id="icam_cat_afd" model="icam.category">
+            <field name="name">Absent or Failed Defences</field>
+            <field name="code">AFD</field>
+            <field name="sequence">10</field>
+            <field name="color">1</field>
+            <field name="description">Identify physical, procedural, or administrative barriers that were absent, inadequate, or failed to prevent the incident from occurring.</field>
+        </record>
+
+        <record id="icam_cat_ita" model="icam.category">
+            <field name="name">Individual / Team Actions</field>
+            <field name="code">ITA</field>
+            <field name="sequence">20</field>
+            <field name="color">3</field>
+            <field name="description">Identify actions (or inactions) by individuals or teams that directly contributed to the incident. These are the things people did or failed to do.</field>
+        </record>
+
+        <record id="icam_cat_tec" model="icam.category">
+            <field name="name">Task / Environmental Conditions</field>
+            <field name="code">TEC</field>
+            <field name="sequence">30</field>
+            <field name="color">2</field>
+            <field name="description">Identify conditions related to the task, equipment, or work environment that influenced the individual or team actions contributing to the incident.</field>
+        </record>
+
+        <record id="icam_cat_of" model="icam.category">
+            <field name="name">Organisational Factors</field>
+            <field name="code">OF</field>
+            <field name="sequence">40</field>
+            <field name="color">4</field>
+            <field name="description">Identify systemic, management system, or organisational influences that created or allowed the conditions and actions that led to the incident.</field>
+        </record>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             ICAM FACTORS — Absent or Failed Defences (AFD)
+             ══════════════════════════════════════════════════════════════ -->
+
+        <record id="icam_factor_afd_physical" model="icam.factor">
+            <field name="category_id" ref="icam_cat_afd"/>
+            <field name="name">Physical barriers / guards absent or failed</field>
+            <field name="sequence">10</field>
+            <field name="description">Physical guards, barriers, interlocks or containment systems were not in place or did not function as intended.</field>
+        </record>
+
+        <record id="icam_factor_afd_warning" model="icam.factor">
+            <field name="category_id" ref="icam_cat_afd"/>
+            <field name="name">Warning or alarm systems absent or failed</field>
+            <field name="sequence">20</field>
+            <field name="description">Warning devices, alarms, signals, or indicator systems were absent, not functioning, or not perceived by those involved.</field>
+        </record>
+
+        <record id="icam_factor_afd_admin" model="icam.factor">
+            <field name="category_id" ref="icam_cat_afd"/>
+            <field name="name">Administrative / procedural controls absent or failed</field>
+            <field name="sequence">30</field>
+            <field name="description">Policies, procedures, permits, or administrative safeguards were not in place, were inadequate, or were not applied.</field>
+        </record>
+
+        <record id="icam_factor_afd_training" model="icam.factor">
+            <field name="category_id" ref="icam_cat_afd"/>
+            <field name="name">Training / competency assurance absent or failed</field>
+            <field name="sequence">40</field>
+            <field name="description">Training, competency assessment, or authorisation processes were not in place or did not ensure the required level of competency.</field>
+        </record>
+
+        <record id="icam_factor_afd_ppe" model="icam.factor">
+            <field name="category_id" ref="icam_cat_afd"/>
+            <field name="name">Personal Protective Equipment (PPE) absent or failed</field>
+            <field name="sequence">50</field>
+            <field name="description">Required PPE was not available, not worn, inadequate for the hazard, or failed to provide the expected protection.</field>
+        </record>
+
+        <record id="icam_factor_afd_emergency" model="icam.factor">
+            <field name="category_id" ref="icam_cat_afd"/>
+            <field name="name">Emergency response / recovery absent or failed</field>
+            <field name="sequence">60</field>
+            <field name="description">Emergency response plans, resources, or capabilities were insufficient to prevent or limit the severity of the incident.</field>
+        </record>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             ICAM FACTORS — Individual / Team Actions (ITA)
+             ══════════════════════════════════════════════════════════════ -->
+
+        <record id="icam_factor_ita_proc_not_followed" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Procedure / instruction not followed</field>
+            <field name="sequence">10</field>
+            <field name="description">An established procedure, work instruction, or safe work method statement existed but was not followed by the individual or team.</field>
+        </record>
+
+        <record id="icam_factor_ita_wrong_proc" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Incorrect procedure applied</field>
+            <field name="sequence">20</field>
+            <field name="description">The wrong procedure or method was applied to the task, either through error or misidentification of the applicable document.</field>
+        </record>
+
+        <record id="icam_factor_ita_no_proc" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">No procedure / instruction available</field>
+            <field name="sequence">30</field>
+            <field name="description">No procedure, work instruction, or guidance existed for the task being undertaken at the time of the incident.</field>
+        </record>
+
+        <record id="icam_factor_ita_comms" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Communication failure between individuals</field>
+            <field name="sequence">40</field>
+            <field name="description">Inadequate, incorrect, or absent communication between individuals or teams contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_ita_fatigue" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Fatigue / fitness for work</field>
+            <field name="sequence">50</field>
+            <field name="description">Fatigue, illness, or impairment affected the individual's ability to perform the task safely.</field>
+        </record>
+
+        <record id="icam_factor_ita_complacency" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Complacency / normalisation of deviance</field>
+            <field name="sequence">60</field>
+            <field name="description">Over-familiarity with the task led to risk-taking or shortcuts that had become accepted practice despite not being compliant with safe work requirements.</field>
+        </record>
+
+        <record id="icam_factor_ita_situational" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Poor situational awareness</field>
+            <field name="sequence">70</field>
+            <field name="description">The individual or team did not adequately perceive, comprehend, or anticipate the hazard or changing conditions.</field>
+        </record>
+
+        <record id="icam_factor_ita_decision" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Error in decision making</field>
+            <field name="sequence">80</field>
+            <field name="description">An incorrect decision was made in relation to the task, hazard, or risk, leading to or contributing to the incident.</field>
+        </record>
+
+        <record id="icam_factor_ita_wrong_tool" model="icam.factor">
+            <field name="category_id" ref="icam_cat_ita"/>
+            <field name="name">Incorrect tool / equipment selected or used</field>
+            <field name="sequence">90</field>
+            <field name="description">The wrong tool, equipment, or method was selected or used for the task.</field>
+        </record>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             ICAM FACTORS — Task / Environmental Conditions (TEC)
+             ══════════════════════════════════════════════════════════════ -->
+
+        <record id="icam_factor_tec_time_pressure" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Time pressure / excessive workload</field>
+            <field name="sequence">10</field>
+            <field name="description">Pressure to complete the task quickly or an excessive workload influenced the actions taken.</field>
+        </record>
+
+        <record id="icam_factor_tec_environment" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Environmental conditions (heat, cold, noise, lighting, etc.)</field>
+            <field name="sequence">20</field>
+            <field name="description">Physical environmental factors such as extreme temperature, poor lighting, excessive noise, or adverse weather contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_tec_housekeeping" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Housekeeping / workplace layout</field>
+            <field name="sequence">30</field>
+            <field name="description">Poor housekeeping, congestion, or inadequate workplace layout contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_tec_equipment_condition" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Equipment / plant condition</field>
+            <field name="sequence">40</field>
+            <field name="description">The condition of equipment, plant, or tools (e.g. wear, damage, inadequate maintenance) contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_tec_distractions" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Distractions / interruptions</field>
+            <field name="sequence">50</field>
+            <field name="description">Distractions or interruptions during the task affected the individual's ability to perform it safely.</field>
+        </record>
+
+        <record id="icam_factor_tec_ergonomics" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Ergonomics / posture / physical demands</field>
+            <field name="sequence">60</field>
+            <field name="description">Ergonomic factors, awkward posture, repetitive movements, or physical demands of the task contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_tec_unfamiliar" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Unfamiliar task or non-routine situation</field>
+            <field name="sequence">70</field>
+            <field name="description">The task was unfamiliar, infrequent, or the situation was unusual, reducing the individual's ability to manage the associated risks.</field>
+        </record>
+
+        <record id="icam_factor_tec_supervision" model="icam.factor">
+            <field name="category_id" ref="icam_cat_tec"/>
+            <field name="name">Inadequate supervision of task</field>
+            <field name="sequence">80</field>
+            <field name="description">The level of supervision provided was insufficient given the nature and risk of the task.</field>
+        </record>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             ICAM FACTORS — Organisational Factors (OF)
+             ══════════════════════════════════════════════════════════════ -->
+
+        <record id="icam_factor_of_risk_mgmt" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Risk management / hazard identification process</field>
+            <field name="sequence">10</field>
+            <field name="description">The organisation's risk assessment, hazard identification, or risk control processes were absent, inadequate, or not applied.</field>
+        </record>
+
+        <record id="icam_factor_of_mgmt_systems" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Management systems / procedures inadequate</field>
+            <field name="sequence">20</field>
+            <field name="description">The organisation's management system, policies, or documented procedures were inadequate or not effectively implemented.</field>
+        </record>
+
+        <record id="icam_factor_of_leadership" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Leadership and safety culture</field>
+            <field name="sequence">30</field>
+            <field name="description">Leadership behaviours, organisational culture, or safety climate influenced the conditions or actions that led to the incident.</field>
+        </record>
+
+        <record id="icam_factor_of_contractors" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Contractor / subcontractor management</field>
+            <field name="sequence">40</field>
+            <field name="description">Inadequate management, selection, induction, or oversight of contractors or subcontractors contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_of_change_mgmt" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Change management process</field>
+            <field name="sequence">50</field>
+            <field name="description">Changes to plant, equipment, procedures, personnel, or work scope were not adequately assessed or communicated through a management of change process.</field>
+        </record>
+
+        <record id="icam_factor_of_resources" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Resource allocation / planning</field>
+            <field name="sequence">60</field>
+            <field name="description">Inadequate allocation of resources (people, time, equipment, budget) to safely complete the work contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_of_comms_systems" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Organisational communication systems</field>
+            <field name="sequence">70</field>
+            <field name="description">Systemic failures in how safety-critical information is communicated across the organisation contributed to the incident.</field>
+        </record>
+
+        <record id="icam_factor_of_training_systems" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Training and competency management systems</field>
+            <field name="sequence">80</field>
+            <field name="description">The organisation's systems for identifying training needs, delivering training, and assessing competency were inadequate.</field>
+        </record>
+
+        <record id="icam_factor_of_fatigue_mgmt" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Fatigue risk management</field>
+            <field name="sequence">90</field>
+            <field name="description">Rosters, shift arrangements, or fatigue management systems did not adequately manage the risk of worker fatigue.</field>
+        </record>
+
+        <record id="icam_factor_of_procurement" model="icam.factor">
+            <field name="category_id" ref="icam_cat_of"/>
+            <field name="name">Procurement / maintenance management systems</field>
+            <field name="sequence">100</field>
+            <field name="description">Systems for procuring fit-for-purpose equipment or maintaining it in a safe condition were inadequate.</field>
+        </record>
+
+    </data>
+</odoo>

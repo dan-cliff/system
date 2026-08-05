@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Asset Defect Severity: List ───────────────────────────────────── -->
+    <record id="view_asset_defect_severity_list" model="ir.ui.view">
+        <field name="name">asset.defect.severity.list</field>
+        <field name="model">asset.defect.severity</field>
+        <field name="arch" type="xml">
+            <list string="Defect Severities" editable="bottom">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Asset Defect Severity: Form ───────────────────────────────────── -->
+    <record id="view_asset_defect_severity_form" model="ir.ui.view">
+        <field name="name">asset.defect.severity.form</field>
+        <field name="model">asset.defect.severity</field>
+        <field name="arch" type="xml">
+            <form string="Defect Severity">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Severity Name…"/></h1>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Asset Defect Severity: Search ─────────────────────────────────── -->
+    <record id="view_asset_defect_severity_search" model="ir.ui.view">
+        <field name="name">asset.defect.severity.search</field>
+        <field name="model">asset.defect.severity</field>
+        <field name="arch" type="xml">
+            <search string="Defect Severities">
+                <field name="name"/>
+                <filter name="inactive" string="Archived" domain="[('active','=',False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Asset Defect Severity: Action ─────────────────────────────────── -->
+    <record id="action_asset_defect_severity" model="ir.actions.act_window">
+        <field name="name">Defect Severities</field>
+        <field name="res_model">asset.defect.severity</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_defect_severity_search"/>
+    </record>
+
+</odoo>

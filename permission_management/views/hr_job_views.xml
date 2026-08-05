@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit hr.job form view to add default permission profile -->
+    <record id="view_hr_job_form_permission" model="ir.ui.view">
+        <field name="name">hr.job.form.permission.profile</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr.view_hr_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Permission Management">
+                    <field name="default_permission_profile_id"
+                           options='{"no_create": true, "no_quick_create": true}'/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit hr.job list view to add default permission profile column -->
+    <record id="view_hr_job_list_permission" model="ir.ui.view">
+        <field name="name">hr.job.list.permission.profile</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr.view_hr_job_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='name']" position="after">
+                <field name="default_permission_profile_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

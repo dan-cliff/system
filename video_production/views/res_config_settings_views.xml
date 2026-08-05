@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_video_production_config_settings" model="ir.ui.view">
+        <field name="name">res.config.settings.video.production</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Video Production"
+                     string="Video Production"
+                     name="video_production"
+                     logo="/video_production/static/description/icon.png"
+                     groups="video_production.group_video_production_manager">
+
+                    <block title="AI Content Generation" name="vp_ai_block">
+                        <field name="vp_gemini_from_ai_settings" invisible="1"/>
+                        <setting string="Google Gemini API Key"
+                                 help="Used by the 'Generate AI Ideas' feature on the Content Ideas list and kanban views.">
+                            <div class="text-muted small mt4"
+                                 invisible="not vp_gemini_from_ai_settings">
+                                Google Gemini key is sourced from the AI app settings
+                                (General Settings &#8594; AI).
+                            </div>
+                            <field name="vp_gemini_api_key"
+                                   password="True"
+                                   placeholder="AIza…"
+                                   invisible="vp_gemini_from_ai_settings"/>
+                            <div class="text-muted small mt4"
+                                 invisible="vp_gemini_from_ai_settings">
+                                Get a free API key from
+                                <a href="https://aistudio.google.com/apikey" target="_blank">
+                                    Google AI Studio
+                                </a>.
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="Integrations" name="vp_integrations_block">
+
+                        <!-- Project Integration -->
+                        <setting string="Projects"
+                                 help="Show project reference fields on Video Productions and link productions to Project tasks. Installs the Project module if not already installed.">
+                            <field name="vp_use_project"/>
+                        </setting>
+
+                        <!-- Timesheets Integration -->
+                        <setting string="Timesheets"
+                                 help="Track time spent on productions, shoots, and editing. Installs the Timesheets module if not already installed.">
+                            <field name="vp_use_timesheets"/>
+                        </setting>
+
+                        <!-- To-Do Integration -->
+                        <setting string="To-Do Tasks"
+                                 help="Create quick To-Do tasks directly from video productions.">
+                            <field name="vp_use_todo"/>
+                        </setting>
+
+                        <!-- CRM Integration -->
+                        <setting string="CRM Opportunities"
+                                 help="Link video productions to CRM leads and opportunities. Installs the CRM module if not already installed.">
+                            <field name="vp_use_crm"/>
+                        </setting>
+
+                        <!-- Sales Integration -->
+                        <setting string="Sales Orders"
+                                 help="Link video productions to sales orders for client work.">
+                            <field name="vp_use_sales"/>
+                        </setting>
+
+                        <!-- Purchase Ordering Integration -->
+                        <setting string="Purchase Ordering"
+                                 help="Show a Purchase Orders smart button on Video Productions and link productions to purchase orders.">
+                            <field name="vp_use_purchase"/>
+                        </setting>
+
+                        <!-- Expenses Integration -->
+                        <setting string="Expenses"
+                                 help="Track shoot costs, equipment hire, and other production expenses. Installs the Expenses module if not already installed.">
+                            <field name="vp_use_expenses"/>
+                        </setting>
+
+                        <!-- Equipment / Maintenance Integration -->
+                        <setting string="Equipment Management"
+                                 help="Track camera and audio equipment for shoots using the Maintenance module. Installs the Maintenance module if not already installed.">
+                            <field name="vp_use_maintenance"/>
+                        </setting>
+
+                        <!-- Social Marketing Integration -->
+                        <setting string="Social Marketing"
+                                 help="Schedule YouTube publishing and social media posts from video metadata. Installs the Social Marketing module if not already installed.">
+                            <field name="vp_use_social"/>
+                            <div class="content-group" invisible="not vp_use_social">
+                                <div class="text-muted small mt4">
+                                    Once installed, you can create and schedule social posts
+                                    from any video's Metadata page.
+                                </div>
+                            </div>
+                        </setting>
+
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Standalone settings action for the Configuration menu -->
+    <record id="action_video_production_config_settings" model="ir.actions.act_window">
+        <field name="name">Video Production Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'video_production'}</field>
+    </record>
+
+</odoo>

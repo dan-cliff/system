@@ -1,0 +1,248 @@
+/* ══════════════════════════════════════════════════════════════
+   Training Needs Analysis — Matrix View
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Root layout ───────────────────────────────────────────────── */
+.lms-tna-root {
+    height: calc(100vh - 112px); /* full height below navbar + breadcrumb */
+    overflow: hidden;
+    background: var(--o-view-background-color, #fff);
+}
+
+/* ── Control bars ───────────────────────────────────────────────── */
+.lms-tna-filter-select {
+    width: auto;
+    min-width: 140px;
+}
+
+.lms-tna-course-select {
+    min-width: 200px;
+}
+
+.lms-tna-date-bar {
+    background: var(--o-view-background-color, #fff);
+    font-size: 0.875rem;
+}
+
+.lms-tna-date-label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.lms-tna-date-input {
+    width: 140px;
+}
+
+.lms-tna-date-divider {
+    display: block;
+    width: 1px;
+    height: 24px;
+    background: var(--o-border-color, #dee2e6);
+    margin: 0 4px;
+}
+
+/* ── Scroll wrapper ─────────────────────────────────────────────── */
+.lms-tna-scroll-wrap {
+    overflow: auto;
+    min-height: 0;     /* required for flex child to shrink */
+}
+
+/* ── Table base ─────────────────────────────────────────────────── */
+.lms-tna-table {
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.lms-tna-table th,
+.lms-tna-table td {
+    border: 1px solid var(--o-border-color, #dee2e6);
+}
+
+/* ── Corner cell ────────────────────────────────────────────────── */
+.lms-tna-corner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    background: var(--o-view-background-color, #fff);
+    min-width: 220px;
+    width: 220px;
+    padding: 8px 12px;
+    vertical-align: bottom;
+}
+
+.lms-tna-axis-label {
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+/* ── Employee header columns ─────────────────────────────────────── */
+.lms-tna-emp-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--o-view-background-color, #fff);
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+    padding: 0;
+    vertical-align: bottom;
+    cursor: pointer;
+}
+
+.lms-tna-emp-header:hover {
+    background: var(--o-list-group-header-color, #f8f9fa);
+}
+
+/* Employee name — rotated vertically, bottom-to-top */
+.lms-tna-emp-label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 160px;
+    padding: 10px 4px 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--o-main-text-color, #333);
+    display: block;
+}
+
+/* ── Course name column (sticky left) ────────────────────────────── */
+.lms-tna-course-cell {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background: var(--o-view-background-color, #fff);
+    min-width: 220px;
+    width: 220px;
+    max-width: 220px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lms-tna-course-cell:hover {
+    background: var(--o-list-group-header-color, #f8f9fa);
+    color: var(--o-action-color, #017e84);
+    text-decoration: underline;
+}
+
+.lms-tna-course-code {
+    font-size: 0.72rem;
+    font-family: monospace;
+}
+
+.lms-tna-course-name {
+    font-size: 0.82rem;
+}
+
+/* ── Data cells ─────────────────────────────────────────────────── */
+.lms-tna-cell {
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+    height: 48px;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: filter 0.1s ease;
+    padding: 4px 2px;
+    line-height: 1.2;
+}
+
+.lms-tna-cell:hover {
+    filter: brightness(0.88);
+}
+
+.lms-tna-cell .fa {
+    font-size: 0.9rem;
+    display: block;
+}
+
+.lms-tna-cell-date {
+    font-size: 0.65rem;
+    margin-top: 2px;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+
+/* ── State colours ───────────────────────────────────────────────── */
+
+/* No record — white, no cursor */
+.lms-tna-state-none {
+    background: #f8f9fa;
+    cursor: default;
+}
+.lms-tna-state-none:hover {
+    filter: none;
+}
+
+/* Not started — very light grey */
+.lms-tna-state-not_started {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+/* In progress — blue */
+.lms-tna-state-in_progress {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+/* Pending upload — amber */
+.lms-tna-state-pending_upload {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+/* Pending verification — amber (slightly different) */
+.lms-tna-state-pending_verification {
+    background: #ffe69c;
+    color: #664d03;
+}
+
+/* Completed — green */
+.lms-tna-state-completed {
+    background: #d1e7dd;
+    color: #0a3622;
+}
+
+/* Failed — red */
+.lms-tna-state-failed {
+    background: #f8d7da;
+    color: #58151c;
+}
+
+/* Expired — dark orange/red */
+.lms-tna-state-expired {
+    background: #f5c6cb;
+    color: #842029;
+}
+
+/* Lapsed — muted purple/grey (competency no longer maintained) */
+.lms-tna-state-lapsed {
+    background: #e2d9f3;
+    color: #432874;
+}
+
+/* ── Legend ─────────────────────────────────────────────────────── */
+.lms-tna-legend-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 0.65rem;
+}
+
+/* ── Loading / empty ────────────────────────────────────────────── */
+.lms-tna-loading,
+.lms-tna-empty {
+    min-height: 300px;
+}

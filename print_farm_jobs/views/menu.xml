@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Top-level App Menu ───────────────────────────────────────────── -->
+    <menuitem id="menu_print_farm_root"
+              name="Print Farm"
+              web_icon="print_farm_jobs,static/description/icon.png"
+              sequence="80"/>
+
+    <!-- ─── Jobs ─────────────────────────────────────────────────────────── -->
+    <menuitem id="menu_print_farm_jobs"
+              name="Jobs"
+              parent="menu_print_farm_root"
+              sequence="10"/>
+
+    <menuitem id="menu_print_job_list"
+              name="Print Jobs"
+              parent="menu_print_farm_jobs"
+              action="action_print_job"
+              sequence="10"/>
+
+    <!-- ─── Printers ─────────────────────────────────────────────────────── -->
+    <menuitem id="menu_print_farm_printers"
+              name="Printers"
+              parent="menu_print_farm_root"
+              sequence="20"/>
+
+    <menuitem id="menu_print_printer_list"
+              name="Printers"
+              parent="menu_print_farm_printers"
+              action="action_print_printer"
+              sequence="10"/>
+
+    <!-- ─── Inventory ─────────────────────────────────────────────────────── -->
+    <menuitem id="menu_print_farm_inventory"
+              name="Inventory"
+              parent="menu_print_farm_root"
+              sequence="30"/>
+
+    <menuitem id="menu_print_spool_list"
+              name="Spools"
+              parent="menu_print_farm_inventory"
+              action="action_print_filament_spool"
+              sequence="10"/>
+
+    <menuitem id="menu_print_restock_list"
+              name="Restock Orders"
+              parent="menu_print_farm_inventory"
+              action="action_print_restock_order"
+              sequence="20"/>
+
+    <!-- ─── Settings (Administrator only) ───────────────────────────────── -->
+    <menuitem id="menu_print_farm_settings"
+              name="Settings"
+              parent="menu_print_farm_root"
+              groups="print_farm_jobs.group_print_farm_administrator"
+              sequence="90"/>
+
+    <menuitem id="menu_print_filament_list"
+              name="Filament Catalogue"
+              parent="menu_print_farm_settings"
+              action="action_print_filament"
+              groups="print_farm_jobs.group_print_farm_administrator"
+              sequence="10"/>
+
+</odoo>

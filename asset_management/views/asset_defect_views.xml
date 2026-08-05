@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_asset_defect_list" model="ir.ui.view">
+        <field name="name">asset.defect.list</field>
+        <field name="model">asset.defect</field>
+        <field name="arch" type="xml">
+            <list string="Defect Reports" default_order="date desc">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="date" options='{"numeric": true}'/>
+                <field name="date_due" options='{"numeric": true}' optional="show"/>
+                <field name="asset_id"/>
+                <field name="reported_by"/>
+                <field name="description"/>
+                <field name="severity_id" widget="badge"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'open'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'resolved'"/>
+                <field name="source" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_defect_form" model="ir.ui.view">
+        <field name="name">asset.defect.form</field>
+        <field name="model">asset.defect</field>
+        <field name="arch" type="xml">
+            <form string="Defect Report">
+                <header>
+                    <button name="action_in_progress" type="object"
+                            string="Mark In Progress"
+                            invisible="state != 'open'"
+                            class="btn-primary"/>
+                    <button name="action_resolve" type="object"
+                            string="Mark Resolved"
+                            invisible="state == 'resolved'"
+                            class="btn-success"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,in_progress,resolved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="asset_id"/>
+                            <field name="date" options='{"numeric": true}'/>
+                            <field name="date_due" options='{"numeric": true}'/>
+                            <field name="reported_by"/>
+                            <field name="reported_by_name" invisible="reported_by"/>
+                        </group>
+                        <group>
+                            <field name="severity_id"/>
+                            <field name="source" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Describe the defect…"/>
+                    <group string="Resolution" invisible="state != 'resolved'">
+                        <field name="resolved_date" options='{"numeric": true}'/>
+                        <field name="resolution_notes"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_defect_search" model="ir.ui.view">
+        <field name="name">asset.defect.search</field>
+        <field name="model">asset.defect</field>
+        <field name="arch" type="xml">
+            <search string="Defect Reports">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="severity_id"/>
+                <separator/>
+                <filter name="open" string="Open" domain="[('state','=','open')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state','=','in_progress')]"/>
+                <filter name="resolved" string="Resolved" domain="[('state','=','resolved')]"/>
+                <separator/>
+                <filter name="from_pwa" string="From Control Plane" domain="[('source','=','control_plane')]"/>
+                <group name="group_by">
+                    <filter name="group_asset" string="Asset" context="{'group_by': 'asset_id'}"/>
+                    <filter name="group_severity" string="Severity" context="{'group_by': 'severity_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_defect" model="ir.actions.act_window">
+        <field name="name">Defect Reports</field>
+        <field name="res_model">asset.defect</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_defect_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+
+</odoo>

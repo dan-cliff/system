@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- wf.step.connection — Form View                                    -->
+    <!-- Opened as a dialog from the canvas connection panel so the        -->
+    <!-- graphical domain builder can be used.                             -->
+    <!-- ================================================================ -->
+    <record id="view_wf_step_connection_form" model="ir.ui.view">
+        <field name="name">wf.step.connection.form</field>
+        <field name="model">wf.step.connection</field>
+        <field name="arch" type="xml">
+            <form string="Connection Condition">
+
+                <!-- Invisible helper — read by the domain widget to know
+                     which model fields to offer in its graphical builder -->
+                <field name="workflow_model_name" invisible="1"/>
+
+                <group>
+                    <group string="Connection">
+                        <field name="from_step_id"
+                               readonly="1"
+                               options="{'no_open': True}"/>
+                        <field name="to_step_id"
+                               readonly="1"
+                               options="{'no_open': True}"/>
+                        <field name="label" placeholder="Optional label…"/>
+                        <field name="sequence"/>
+                    </group>
+                    <group string="Condition">
+                        <field name="condition_type"/>
+                    </group>
+                </group>
+
+                <!-- Domain builder — graphical filter for the trigger record -->
+                <group string="Domain Filter"
+                       invisible="condition_type != 'domain'">
+                    <div class="text-muted mb-2" colspan="2">
+                        <small>
+                            This connection is followed only when the trigger record
+                            matches the filter below.
+                            Use the <strong>Add a condition</strong> button to build
+                            the filter graphically — no manual expression needed.
+                        </small>
+                    </div>
+                    <field name="condition_domain"
+                           widget="domain"
+                           options="{'model': 'workflow_model_name'}"
+                           nolabel="1"
+                           colspan="2"/>
+                </group>
+
+                <!-- Python expression editor (ace) -->
+                <group string="Python Expression"
+                       invisible="condition_type != 'expression'">
+                    <div class="text-muted mb-2" colspan="2">
+                        <small>
+                            A Python expression that must return <code>True</code>
+                            for this connection to be followed.<br/>
+                            Available variables:
+                            <code>record</code>, <code>env</code>,
+                            <code>user</code>, <code>variables</code>,
+                            <code>old_values</code>
+                        </small>
+                    </div>
+                    <field name="condition_expression"
+                           widget="ace"
+                           options="{'mode': 'python'}"
+                           nolabel="1"
+                           colspan="2"/>
+                </group>
+
+            </form>
+        </field>
+    </record>
+
+</odoo>

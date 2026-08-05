@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- wf.manual.run.wizard — Form View                                 -->
+    <!-- ================================================================ -->
+    <record id="view_wf_manual_run_wizard_form" model="ir.ui.view">
+        <field name="name">wf.manual.run.wizard.form</field>
+        <field name="model">wf.manual.run.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Test Workflow">
+                <group>
+                    <field name="workflow_id" readonly="1"/>
+                    <field name="model_name" readonly="1" string="Model"/>
+                </group>
+
+                <group string="Test Record">
+                    <field name="use_domain" widget="boolean_toggle"
+                           string="Use domain filter instead"/>
+
+                    <!-- Single-record mode -->
+                    <field name="record_id"
+                           invisible="use_domain"
+                           placeholder="Enter a record ID…"/>
+                    <field name="record_display_name"
+                           readonly="1"
+                           invisible="use_domain or not record_id"
+                           string="Found Record"/>
+
+                    <!-- Domain mode -->
+                    <field name="domain"
+                           widget="domain"
+                           options="{'model': 'model_name'}"
+                           invisible="not use_domain"
+                           nolabel="1"
+                           colspan="2"/>
+                    <field name="record_count"
+                           readonly="1"
+                           invisible="not use_domain"
+                           string="Records matched"/>
+                </group>
+
+                <div class="alert alert-info" role="alert">
+                    <i class="fa fa-info-circle me-1"/>
+                    This is a test run. Steps execute normally and results are recorded
+                    in the <strong>Runs</strong> log. Any side-effects (emails, record
+                    changes, etc.) will apply to real data.
+                </div>
+
+                <footer>
+                    <button name="action_run"
+                            type="object"
+                            string="Run Test"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.manual.run.wizard — Window Action                             -->
+    <!-- ================================================================ -->
+    <record id="action_wf_manual_run_wizard" model="ir.actions.act_window">
+        <field name="name">Run Workflow Manually</field>
+        <field name="res_model">wf.manual.run.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

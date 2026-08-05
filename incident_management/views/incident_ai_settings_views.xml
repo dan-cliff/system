@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_incident_ai_settings_form" model="ir.ui.view">
+        <field name="name">incident.ai.settings.form</field>
+        <field name="model">incident.ai.settings</field>
+        <field name="arch" type="xml">
+            <form string="AI Settings">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>AI Corrective Action Settings</h1>
+                    </div>
+                    <field name="openai_from_ai_settings" invisible="1"/>
+                    <field name="google_from_ai_settings" invisible="1"/>
+                    <group>
+                        <group string="ChatGPT (OpenAI) API">
+                            <div class="text-muted small mt-2"
+                                 invisible="not openai_from_ai_settings">
+                                This key is configured in the AI app settings and takes
+                                precedence over any key entered here.
+                            </div>
+                            <field name="openai_api_key"
+                                   password="True"
+                                   placeholder="sk-…"
+                                   help="Your OpenAI API key. Obtain one from https://platform.openai.com/api-keys"
+                                   invisible="openai_from_ai_settings"/>
+                        </group>
+                        <group string="Google Gemini API">
+                            <div class="text-muted small mt-2"
+                                 invisible="not google_from_ai_settings">
+                                This key is configured in the AI app settings and takes
+                                precedence over any key entered here.
+                            </div>
+                            <field name="google_api_key"
+                                   password="True"
+                                   placeholder="AIza…"
+                                   help="Your Google Gemini API key. Obtain one from https://aistudio.google.com/apikey"
+                                   invisible="google_from_ai_settings"/>
+                        </group>
+                    </group>
+                    <div class="text-muted small mt-2">
+                        <i class="fa fa-info-circle"/> The AI provider is selected automatically:
+                        ChatGPT (OpenAI) is used if a key is available, otherwise Google Gemini
+                        is tried. Keys from the AI app settings (General Settings &#8594; AI)
+                        take precedence over keys entered here.
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Save" type="object"
+                            name="action_save" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_incident_ai_settings" model="ir.actions.act_window">
+        <field name="name">AI Settings</field>
+        <field name="res_model">incident.ai.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

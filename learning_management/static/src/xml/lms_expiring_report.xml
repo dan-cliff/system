@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="learning_management.LmsExpiringReport">
+        <div class="lms-exp-root d-flex flex-column">
+
+            <!-- ══ Row 1: primary filters ════════════════════════════════════ -->
+            <div class="lms-exp-controls d-flex align-items-center flex-wrap gap-2 px-3 py-2 border-bottom bg-view flex-shrink-0">
+
+                <span class="fw-semibold me-1">
+                    <i class="fa fa-calendar-times-o me-2 text-muted"/>Training Records Expiring
+                </span>
+
+                <select class="form-select form-select-sm lms-exp-filter-select"
+                        t-on-change="onCourseTypeChange">
+                    <t t-foreach="courseTypes" t-as="ct" t-key="ct.value">
+                        <option t-att-value="ct.value"
+                                t-att-selected="state.courseTypeFilter === ct.value"
+                                t-esc="ct.label"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-exp-filter-select"
+                        t-on-change="onStatusChange">
+                    <t t-foreach="statusOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.statusFilter === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-exp-filter-select lms-exp-course-select"
+                        t-on-change="onCourseChange">
+                    <option value="">All Courses</option>
+                    <t t-foreach="state.allCourses" t-as="c" t-key="c.id">
+                        <option t-att-value="c.id"
+                                t-att-selected="state.courseFilter == c.id"
+                                t-esc="c.name"/>
+                    </t>
+                </select>
+
+                <span class="lms-exp-date-divider"/>
+
+                <select class="form-select form-select-sm lms-exp-filter-select lms-exp-course-select"
+                        t-on-change="onEmployeeChange">
+                    <option value="">All Employees</option>
+                    <t t-foreach="state.allEmployees" t-as="emp" t-key="emp.id">
+                        <option t-att-value="emp.id"
+                                t-att-selected="state.employeeFilter == emp.id"
+                                t-esc="emp.name"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-exp-filter-select lms-exp-course-select"
+                        t-on-change="onDepartmentChange">
+                    <option value="">All Departments</option>
+                    <t t-foreach="state.allDepartments" t-as="dept" t-key="dept.id">
+                        <option t-att-value="dept.id"
+                                t-att-selected="state.departmentFilter == dept.id"
+                                t-esc="dept.name"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-exp-filter-select lms-exp-course-select"
+                        t-on-change="onCompanyChange">
+                    <option value="">All Companies</option>
+                    <t t-foreach="state.allCompanies" t-as="co" t-key="co.id">
+                        <option t-att-value="co.id"
+                                t-att-selected="state.companyFilter == co.id"
+                                t-esc="co.name"/>
+                    </t>
+                </select>
+
+                <span class="lms-exp-date-divider"/>
+
+                <!-- Export PDF button -->
+                <button class="btn btn-sm btn-outline-secondary ms-1"
+                        t-on-click="() => this.exportPdf()"
+                        t-att-disabled="state.loading"
+                        title="Export current view to PDF (portrait A4)">
+                    <i class="fa fa-file-pdf-o me-1"/>Export PDF
+                </button>
+
+                <!-- Export Excel button -->
+                <button class="btn btn-sm btn-outline-success ms-1"
+                        t-on-click="() => this.exportExcel()"
+                        t-att-disabled="state.loading"
+                        title="Export current view to Excel">
+                    <i class="fa fa-file-excel-o me-1"/>Export Excel
+                </button>
+
+                <!-- Summary pills -->
+                <t t-if="!state.loading">
+                    <span class="ms-auto d-flex align-items-center gap-2 text-muted small lms-exp-pills">
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+                            <t t-esc="stats.total"/> total
+                        </span>
+                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">
+                            <t t-esc="stats.expired"/> expired
+                        </span>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                            <t t-esc="stats.soon"/> expiring soon
+                        </span>
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                            <t t-esc="stats.valid"/> valid
+                        </span>
+                    </span>
+                </t>
+            </div>
+
+            <!-- ══ Row 2: date filters ════════════════════════════════════════ -->
+            <div class="lms-exp-date-bar d-flex align-items-center flex-wrap gap-2 px-3 py-2 border-bottom bg-view flex-shrink-0">
+
+                <!-- Completed On -->
+                <span class="text-muted small lms-exp-date-label">Completed:</span>
+                <select class="form-select form-select-sm lms-exp-filter-select"
+                        t-on-change="onCompletedOptionChange">
+                    <t t-foreach="completedOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.completedOption === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+                <t t-if="state.completedOption === 'custom'">
+                    <input type="date" class="form-control form-control-sm lms-exp-date-input"
+                           t-att-value="state.completedFrom"
+                           t-on-change="onCompletedFromChange"
+                           placeholder="From"/>
+                    <span class="text-muted small">–</span>
+                    <input type="date" class="form-control form-control-sm lms-exp-date-input"
+                           t-att-value="state.completedTo"
+                           t-on-change="onCompletedToChange"
+                           placeholder="To"/>
+                </t>
+
+                <span class="lms-exp-date-divider"/>
+
+                <!-- Expires On -->
+                <span class="text-muted small lms-exp-date-label">Expires:</span>
+                <select class="form-select form-select-sm lms-exp-filter-select"
+                        t-on-change="onExpiresOptionChange">
+                    <t t-foreach="expiresOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.expiresOption === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+                <t t-if="state.expiresOption === 'custom'">
+                    <input type="date" class="form-control form-control-sm lms-exp-date-input"
+                           t-att-value="state.expiresFrom"
+                           t-on-change="onExpiresFromChange"
+                           placeholder="From"/>
+                    <span class="text-muted small">–</span>
+                    <input type="date" class="form-control form-control-sm lms-exp-date-input"
+                           t-att-value="state.expiresTo"
+                           t-on-change="onExpiresToChange"
+                           placeholder="To"/>
+                </t>
+
+            </div>
+
+            <!-- ══ Loading ═══════════════════════════════════════════════════ -->
+            <div t-if="state.loading"
+                 class="lms-exp-loading d-flex justify-content-center align-items-center flex-grow-1">
+                <div class="text-center text-muted">
+                    <i class="fa fa-spinner fa-spin fa-2x d-block mb-3"/>
+                    Loading records…
+                </div>
+            </div>
+
+            <!-- ══ Empty state ═══════════════════════════════════════════════ -->
+            <div t-elif="!state.records.length"
+                 class="lms-exp-empty d-flex justify-content-center align-items-center flex-grow-1">
+                <div class="text-center text-muted p-5">
+                    <i class="fa fa-calendar-times-o fa-3x d-block mb-3 opacity-25"/>
+                    <p class="mb-0">No training records match the current filters.</p>
+                </div>
+            </div>
+
+            <!-- ══ Table ═════════════════════════════════════════════════════ -->
+            <div t-else="" class="lms-exp-scroll-wrap flex-grow-1">
+                <table class="lms-exp-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Course</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Started On</th>
+                            <th>Completed On</th>
+                            <th>Expires On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="state.records" t-as="rec" t-key="rec.id">
+                            <tr class="lms-exp-row" t-on-click="() => this.openRecord(rec)">
+                                <td>
+                                    <span class="lms-exp-link"
+                                          t-on-click="(ev) => this.openEmployee(ev, rec)"
+                                          t-esc="rec.employee_name"/>
+                                </td>
+                                <td t-esc="rec.department"/>
+                                <td>
+                                    <span class="lms-exp-link"
+                                          t-on-click="(ev) => this.openCourse(ev, rec)"
+                                          t-esc="rec.course_name"/>
+                                </td>
+                                <td>
+                                    <t t-esc="this.formatCourseType(rec.course_type)"/>
+                                </td>
+                                <td>
+                                    <t t-set="cfg" t-value="stateConfig[rec.state]"/>
+                                    <t t-if="cfg">
+                                        <i t-att-class="'fa ' + cfg.icon + ' me-1'"/>
+                                        <t t-esc="cfg.label"/>
+                                    </t>
+                                    <t t-else="" t-esc="rec.state"/>
+                                </td>
+                                <td t-esc="this.formatDate(rec.start_date)"/>
+                                <td t-esc="this.formatDate(rec.completion_date)"/>
+                                <td t-att-class="this.expiryClass(rec.expiry_date)">
+                                    <t t-if="rec.expiry_date" t-esc="this.formatDate(rec.expiry_date)"/>
+                                    <t t-else=""><span class="lms-exp-no-date">—</span></t>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Soap Recipes under Manufacturing > Products ───────────────────────── -->
+    <menuitem id="menu_soap_recipe_main"
+              name="Soap Recipes"
+              parent="mrp.menu_mrp_bom"
+              action="soap_recipe_calculator.action_soap_recipe"
+              sequence="20"
+              groups="mrp.group_mrp_user"/>
+
+    <!-- ── Also available under Manufacturing > Configuration ──────────────── -->
+    <menuitem id="menu_soap_recipe_config"
+              name="Soap Recipes"
+              parent="mrp.menu_mrp_configuration"
+              action="soap_recipe_calculator.action_soap_recipe"
+              sequence="50"
+              groups="mrp.group_mrp_manager"/>
+
+</odoo>

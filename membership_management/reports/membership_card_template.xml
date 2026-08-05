@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="membership_card_template">
+        <t t-call="web.html_container">
+            <style>
+                /*
+                    CR80 landscape: 85.6mm × 54mm = 242pt × 153pt
+                    page_width=86, page_height=54, orientation=Portrait
+                    (Portrait + explicit landscape dimensions = no rotation applied)
+                */
+                @page { size: 242pt 153pt; margin: 0; }
+                html, body { margin: 0 !important; padding: 0 !important; }
+            </style>
+            <t t-foreach="docs" t-as="membership">
+                <div style="page-break-after: always; width: 242pt; height: 153pt;
+                            overflow: hidden; font-family: Arial, Helvetica, sans-serif;">
+                    <table style="width: 242pt; height: 153pt; border-collapse: collapse; table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 110pt;"/>
+                            <col style="width: 132pt;"/>
+                        </colgroup>
+                        <tr>
+
+                            <!-- ══ LEFT: QR Code ══════════════════════════════════ -->
+                            <!--
+                                Inline SVG is placed directly in the <td> with no wrapper div.
+                                wkhtmltopdf respects the SVG element's own width/height CSS when
+                                it participates in normal table-cell flow — no stretch occurs.
+                            -->
+                            <td style="vertical-align: middle; text-align: center;
+                                       background: #ffffff; padding: 4pt;
+                                       border-right: 1pt solid #e0e0e0;">
+                                <t t-out="membership.get_svg_inline()"/>
+                            </td>
+
+                            <!-- ══ RIGHT: Member info ════════════════════════════ -->
+                            <td style="vertical-align: top; padding: 0; overflow: hidden;">
+                                <table style="width: 132pt; height: 153pt; border-collapse: collapse; table-layout: fixed;">
+                                    <tr>
+                                        <!-- Header bar -->
+                                        <td style="height: 24pt; background: #1a1a2e; color: #ffffff;
+                                                   padding: 0 7pt; font-size: 7pt; font-weight: bold;
+                                                   letter-spacing: 0.5pt; text-transform: uppercase;
+                                                   white-space: nowrap; overflow: hidden;
+                                                   vertical-align: middle;">
+                                            <t t-esc="env.company.name or 'Membership Card'"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <!-- Body -->
+                                        <td style="vertical-align: top; padding: 6pt 7pt 4pt 7pt;
+                                                   background: #ffffff;">
+                                            <div style="font-size: 10pt; font-weight: bold; color: #1a1a2e;
+                                                        white-space: nowrap; overflow: hidden; margin-bottom: 3pt;">
+                                                <t t-esc="membership.partner_name or ''"/>
+                                            </div>
+                                            <div style="font-size: 7pt; color: #555555;
+                                                        font-family: monospace; margin-bottom: 4pt;">
+                                                <t t-esc="membership.name or ''"/>
+                                            </div>
+                                            <div style="font-size: 7pt; color: #333333;
+                                                        white-space: nowrap; overflow: hidden; margin-bottom: 5pt;">
+                                                <t t-esc="membership.product_id.name if membership.product_id else ''"/>
+                                            </div>
+                                            <div style="font-size: 6.5pt; color: #666666;">
+                                                <t t-if="membership.date_issued">
+                                                    <strong>Issued:</strong>
+                                                    <t t-esc="membership.date_issued.strftime('%d/%m/%Y')"/>
+                                                </t>
+                                                <t t-if="membership.date_issued and membership.date_expiry">
+                                                    <span style="color: #ccc; margin: 0 2pt;">|</span>
+                                                </t>
+                                                <t t-if="membership.date_expiry">
+                                                    <strong>Expires:</strong>
+                                                    <t t-esc="membership.date_expiry.strftime('%d/%m/%Y')"/>
+                                                </t>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <!-- Status footer -->
+                                        <td style="height: 16pt; background: #e8e8e8; padding: 0 7pt;
+                                                   font-size: 6pt; color: #444444; font-style: italic;
+                                                   text-align: right; vertical-align: middle;">
+                                            <t t-esc="membership.status_id.name if membership.status_id else ''"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

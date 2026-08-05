@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ASBESTOS INSPECTION - embedded/standalone
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_dg_asbestos_inspection_list" model="ir.ui.view">
+        <field name="name">dg.asbestos.inspection.list</field>
+        <field name="model">dg.asbestos.inspection</field>
+        <field name="arch" type="xml">
+            <list string="Inspection Records"
+                  decoration-danger="condition_found in ('poor','very_poor')"
+                  decoration-warning="action_required">
+                <field name="id" string="ID" optional="show"/>
+                <field name="inspection_date"/>
+                <field name="inspected_by"/>
+                <field name="condition_found" widget="badge"
+                       decoration-success="condition_found == 'good'"
+                       decoration-warning="condition_found == 'fair'"
+                       decoration-danger="condition_found in ('poor','very_poor')"/>
+                <field name="findings"/>
+                <field name="action_required" widget="boolean_toggle"/>
+                <field name="action_details" optional="show"/>
+                <field name="next_inspection"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dg_asbestos_inspection_form" model="ir.ui.view">
+        <field name="name">dg.asbestos.inspection.form</field>
+        <field name="model">dg.asbestos.inspection</field>
+        <field name="arch" type="xml">
+            <form string="Inspection Record">
+                <sheet>
+                    <group>
+                        <group string="Inspection Details">
+                            <field name="asbestos_id" invisible="context.get('default_asbestos_id')"/>
+                            <field name="inspection_date"/>
+                            <field name="inspected_by"/>
+                            <field name="condition_found"/>
+                            <field name="next_inspection"/>
+                        </group>
+                        <group string="Action">
+                            <field name="action_required" widget="boolean_toggle"/>
+                            <field name="action_details" invisible="not action_required"/>
+                        </group>
+                    </group>
+                    <group string="Findings / Observations">
+                        <field name="findings" nolabel="1"/>
+                    </group>
+                    <separator string="Photos / Supporting Documents"/>
+                    <field name="photo_ids" widget="many2many_binary" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dg_asbestos_inspection_all" model="ir.actions.act_window">
+        <field name="name">Asbestos Inspections</field>
+        <field name="res_model">dg.asbestos.inspection</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ASBESTOS REGISTER LIST VIEW
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_dg_asbestos_list" model="ir.ui.view">
+        <field name="name">dg.asbestos.list</field>
+        <field name="model">dg.asbestos</field>
+        <field name="arch" type="xml">
+            <list string="Asbestos Register"
+                  decoration-danger="risk_level in ('high','extreme') and asbestos_type == 'friable'"
+                  decoration-warning="risk_level == 'high' or inspection_overdue">
+                <field name="id" string="ID" optional="show"/>
+                <field name="name" string="Ref"/>
+                <field name="item_description"/>
+                <field name="building_id"/>
+                <field name="area_description"/>
+                <field name="asbestos_type" widget="badge"
+                       decoration-danger="asbestos_type == 'friable'"
+                       decoration-warning="asbestos_type == 'non_friable'"
+                       decoration-muted="asbestos_type == 'unknown'"/>
+                <field name="condition" widget="badge"
+                       decoration-success="condition == 'good'"
+                       decoration-warning="condition == 'fair'"
+                       decoration-danger="condition in ('poor','very_poor')"/>
+                <field name="risk_level" widget="badge"
+                       decoration-muted="risk_level == 'low'"
+                       decoration-warning="risk_level == 'medium'"
+                       decoration-danger="risk_level in ('high','extreme')"/>
+                <field name="last_inspection_date"/>
+                <field name="next_inspection_date"
+                       decoration-danger="inspection_overdue"/>
+                <field name="inspection_overdue" column_invisible="True"/>
+                <field name="acm_status" widget="badge"
+                       decoration-success="acm_status == 'removed'"
+                       decoration-warning="acm_status == 'partially_removed'"
+                       decoration-info="acm_status == 'in_situ'"
+                       decoration-muted="acm_status == 'not_confirmed'"/>
+                <field name="removal_required" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ASBESTOS REGISTER FORM VIEW
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_dg_asbestos_form" model="ir.ui.view">
+        <field name="name">dg.asbestos.form</field>
+        <field name="model">dg.asbestos</field>
+        <field name="arch" type="xml">
+            <form string="Asbestos Register">
+                <header>
+                    <button name="action_mark_removed" string="Mark as Removed"
+                            type="object" class="btn-success"
+                            invisible="acm_status == 'removed'"/>
+                    <button name="action_mark_in_situ" string="Mark In Situ"
+                            type="object"
+                            invisible="acm_status == 'in_situ'"/>
+                    <field name="acm_status" widget="statusbar"
+                           statusbar_visible="in_situ,partially_removed,removed"/>
+                </header>
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_inspections" type="object"
+                                class="oe_stat_button" icon="fa-search">
+                            <field name="inspection_count" widget="statinfo" string="Inspections"/>
+                        </button>
+                        <button name="action_print_register" type="object"
+                                class="oe_stat_button" icon="fa-print">
+                            <span>Print Register</span>
+                        </button>
+                    </div>
+
+                    <!-- Overdue alert -->
+                    <div class="alert alert-danger" role="alert" invisible="not inspection_overdue">
+                        <strong>Inspection Overdue</strong> — The scheduled inspection date has passed. Please arrange an inspection of this ACM item.
+                    </div>
+
+                    <!-- Friable warning -->
+                    <div class="alert alert-warning" role="alert" invisible="asbestos_type != 'friable'">
+                        <strong>FRIABLE ASBESTOS</strong> — This item contains or is suspected to contain friable asbestos. Class A licensed removalist required for disturbance or removal (WHS Reg 461).
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Reference"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                        <label for="item_description"/>
+                        <h2><field name="item_description" placeholder="Item description..."/></h2>
+                    </div>
+
+                    <group>
+                        <group string="Classification">
+                            <field name="asbestos_type" widget="badge"
+                                   decoration-danger="asbestos_type == 'friable'"
+                                   decoration-warning="asbestos_type == 'non_friable'"/>
+                            <field name="asbestos_form_id"/>
+                            <field name="fibre_type"/>
+                            <field name="confirmed_by_sampling"/>
+                            <field name="sample_date" invisible="not confirmed_by_sampling"/>
+                            <field name="laboratory" invisible="not confirmed_by_sampling"/>
+                        </group>
+                        <group string="Risk">
+                            <field name="condition" widget="badge"
+                                   decoration-success="condition == 'good'"
+                                   decoration-warning="condition == 'fair'"
+                                   decoration-danger="condition in ('poor','very_poor')"/>
+                            <field name="risk_level" widget="badge"
+                                   decoration-danger="risk_level in ('high','extreme')"
+                                   decoration-warning="risk_level == 'medium'"/>
+                            <field name="accessibility"/>
+                            <field name="quantity"/>
+                            <field name="quantity_uom"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+
+                        <!-- PAGE 1: LOCATION -->
+                        <page string="Location" name="location">
+                            <group>
+                                <group>
+                                    <field name="building_id"/>
+                                    <field name="floor_level"/>
+                                    <field name="area_description"/>
+                                    <field name="gps_coordinates"/>
+                                </group>
+                            </group>
+                            <group string="Specific Location Details" colspan="2">
+                                <field name="specific_location" nolabel="1"
+                                       placeholder="Describe the precise location to allow the ACM to be found..."/>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 2: CONDITION & RISK -->
+                        <page string="Condition &amp; Risk" name="risk">
+                            <group>
+                                <group string="Assessment">
+                                    <field name="condition"/>
+                                    <field name="accessibility"/>
+                                    <field name="risk_level"/>
+                                </group>
+                            </group>
+                            <group string="Risk Assessment Notes">
+                                <field name="risk_assessment_notes" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 3: CONTROL MEASURES -->
+                        <page string="Control Measures" name="controls">
+                            <group>
+                                <group string="Controls in Place">
+                                    <field name="control_measure_ids" widget="many2many_tags"/>
+                                    <field name="signage_present" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Encapsulation">
+                                    <field name="encapsulated" widget="boolean_toggle"/>
+                                    <field name="encapsulation_date" invisible="not encapsulated"/>
+                                </group>
+                            </group>
+                            <group string="Encapsulation Details" invisible="not encapsulated">
+                                <field name="encapsulation_notes" nolabel="1"/>
+                            </group>
+                            <group string="Control Measure Details">
+                                <field name="control_measure_notes" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 4: INSPECTION HISTORY -->
+                        <page string="Inspection History" name="inspections">
+                            <group>
+                                <group string="Identification">
+                                    <field name="identified_date"/>
+                                    <field name="identified_by"/>
+                                </group>
+                                <group string="Inspection Schedule">
+                                    <field name="inspection_frequency"/>
+                                    <field name="last_inspection_date"/>
+                                    <field name="next_inspection_date"/>
+                                    <field name="inspection_overdue" widget="boolean_toggle" readonly="1"/>
+                                </group>
+                            </group>
+                            <separator string="Inspection Records"/>
+                            <field name="inspection_ids" nolabel="1">
+                                <list editable="bottom"
+                                      decoration-danger="condition_found in ('poor','very_poor')"
+                                      decoration-warning="action_required">
+                                    <field name="inspection_date"/>
+                                    <field name="inspected_by"/>
+                                    <field name="condition_found" widget="badge"
+                                           decoration-success="condition_found == 'good'"
+                                           decoration-warning="condition_found == 'fair'"
+                                           decoration-danger="condition_found in ('poor','very_poor')"/>
+                                    <field name="findings"/>
+                                    <field name="action_required" widget="boolean_toggle"/>
+                                    <field name="next_inspection"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- PAGE 5: REMOVAL -->
+                        <page string="Removal" name="removal">
+                            <group>
+                                <group string="Removal Details">
+                                    <field name="removal_required" widget="boolean_toggle"/>
+                                    <field name="removal_priority" invisible="not removal_required"/>
+                                    <field name="removal_date_planned" invisible="not removal_required"/>
+                                    <field name="removal_date_actual"/>
+                                </group>
+                                <group string="Licensed Removalist" invisible="not removal_required">
+                                    <field name="removal_remover_id"/>
+                                    <field name="removal_licence_class" readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Waste Disposal Details" invisible="not removal_required">
+                                <field name="removal_waste_disposal" nolabel="1"/>
+                            </group>
+                            <group string="Clearance Certificate">
+                                <field name="removal_clearance_cert" widget="boolean_toggle"/>
+                                <field name="removal_clearance_date" invisible="not removal_clearance_cert"/>
+                            </group>
+                            <group string="Removal Notes">
+                                <field name="removal_notes" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 6: WHS COMPLIANCE -->
+                        <page string="WHS Compliance" name="compliance">
+                            <group>
+                                <group string="Regulatory Reference">
+                                    <field name="whs_reg_reference" readonly="1"/>
+                                    <field name="register_accessible" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <strong>WHS Regulation 425</strong> — The person with management or control of the workplace must ensure the asbestos register is kept at the workplace and accessible to workers at the workplace at all times when work is being carried out.
+                            </div>
+                        </page>
+
+                        <!-- PAGE 7: ADMINISTRATION -->
+                        <page string="Administration" name="admin">
+                            <group>
+                                <field name="responsible_person_id"/>
+                                <field name="active"/>
+                            </group>
+                            <group string="Notes">
+                                <field name="notes" nolabel="1"/>
+                            </group>
+                        </page>
+
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SEARCH VIEW
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_dg_asbestos_search" model="ir.ui.view">
+        <field name="name">dg.asbestos.search</field>
+        <field name="model">dg.asbestos</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="item_description"/>
+                <field name="area_description"/>
+                <field name="building_id"/>
+                <separator/>
+                <filter name="in_situ" string="In Situ" domain="[('acm_status','=','in_situ')]"/>
+                <filter name="removed" string="Removed" domain="[('acm_status','=','removed')]"/>
+                <filter name="friable" string="Friable Only" domain="[('asbestos_type','=','friable')]"/>
+                <filter name="high_risk" string="High / Extreme Risk"
+                        domain="[('risk_level','in',['high','extreme'])]"/>
+                <filter name="removal_required" string="Removal Required"
+                        domain="[('removal_required','=',True)]"/>
+                <filter name="overdue" string="Inspection Overdue"
+                        domain="[('inspection_overdue','=',True)]"/>
+                <separator/>
+                <filter name="inactive" string="Archived" domain="[('active','=',False)]"/>
+                <group name="group_by">
+                    <filter name="grp_building" string="Building / Site"
+                            context="{'group_by': 'building_id'}"/>
+                    <filter name="grp_type" string="Asbestos Type"
+                            context="{'group_by': 'asbestos_type'}"/>
+                    <filter name="grp_risk" string="Risk Level"
+                            context="{'group_by': 'risk_level'}"/>
+                    <filter name="grp_status" string="ACM Status"
+                            context="{'group_by': 'acm_status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ACTIONS
+         ══════════════════════════════════════════════════════════ -->
+    <record id="action_dg_asbestos_all" model="ir.actions.act_window">
+        <field name="name">Asbestos Register</field>
+        <field name="res_model">dg.asbestos</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dg_asbestos_search"/>
+        <field name="context">{'search_default_in_situ': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No asbestos items recorded yet
+            </p>
+            <p>Add asbestos-containing materials (ACM) to the register to comply with WHS Regulations Part 8.3.</p>
+        </field>
+    </record>
+
+</odoo>

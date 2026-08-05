@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Add a "Print Farm" tab to the product form -->
+    <record id="view_product_template_print_farm_form" model="ir.ui.view">
+        <field name="name">product.template.print.farm.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Print Farm" name="print_farm">
+                    <group>
+                        <field name="print_job_enabled"/>
+                    </group>
+                    <group invisible="not print_job_enabled">
+                        <group string="Default File">
+                            <field name="print_job_file" widget="binary"
+                                   filename="print_job_filename"/>
+                            <field name="print_job_filename"/>
+                            <field name="print_job_description"
+                                   placeholder="Default job description…"/>
+                        </group>
+                        <group string="Filament">
+                            <field name="print_farm_filament_id"/>
+                        </group>
+                    </group>
+                    <group invisible="not print_job_enabled" string="Default Print Settings">
+                        <group>
+                            <field name="print_job_plate_number"/>
+                            <field name="print_job_estimated_time_minutes"/>
+                            <field name="print_job_auto_assign"/>
+                            <field name="print_job_use_ams"/>
+                        </group>
+                        <group>
+                            <field name="print_job_bed_leveling"/>
+                            <field name="print_job_flow_calibration"/>
+                            <field name="print_job_vibration_calibration"/>
+                            <field name="print_job_layer_inspect"/>
+                            <field name="print_job_timelapse"/>
+                        </group>
+                    </group>
+                    <group invisible="not print_job_enabled" string="Notes">
+                        <field name="print_farm_notes" nolabel="1"
+                               placeholder="Slicer settings, plate setup, notes for operators…"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+</odoo>

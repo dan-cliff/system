@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ══ CHEMICAL REGISTER STAGES ═════════════════════════════════ -->
+        <record id="stage_chemical_active" model="dg.chemical.stage">
+            <field name="name">Active</field>
+            <field name="code">active</field>
+            <field name="sequence">10</field>
+            <field name="fold">False</field>
+        </record>
+        <record id="stage_chemical_review" model="dg.chemical.stage">
+            <field name="name">Under Review</field>
+            <field name="code">review</field>
+            <field name="sequence">20</field>
+            <field name="fold">False</field>
+        </record>
+        <record id="stage_chemical_discontinued" model="dg.chemical.stage">
+            <field name="name">Discontinued</field>
+            <field name="code">discontinued</field>
+            <field name="sequence">30</field>
+            <field name="fold">True</field>
+        </record>
+        <record id="stage_chemical_archived" model="dg.chemical.stage">
+            <field name="name">Archived</field>
+            <field name="code">archived</field>
+            <field name="sequence">40</field>
+            <field name="fold">True</field>
+        </record>
+
+        <!-- ══ ADG TRANSPORT CLASSES ═════════════════════════════════════ -->
+        <record id="adg_class_1_1" model="dg.adg.class"><field name="code">1.1</field><field name="name">Explosives — Mass Explosion Hazard</field><field name="sequence">10</field></record>
+        <record id="adg_class_1_2" model="dg.adg.class"><field name="code">1.2</field><field name="name">Explosives — Projection Hazard</field><field name="sequence">11</field></record>
+        <record id="adg_class_1_3" model="dg.adg.class"><field name="code">1.3</field><field name="name">Explosives — Fire, Blast or Projection Hazard</field><field name="sequence">12</field></record>
+        <record id="adg_class_1_4" model="dg.adg.class"><field name="code">1.4</field><field name="name">Explosives — Minor Explosion Hazard</field><field name="sequence">13</field></record>
+        <record id="adg_class_1_5" model="dg.adg.class"><field name="code">1.5</field><field name="name">Explosives — Insensitive Substances</field><field name="sequence">14</field></record>
+        <record id="adg_class_1_6" model="dg.adg.class"><field name="code">1.6</field><field name="name">Explosives — Extremely Insensitive Articles</field><field name="sequence">15</field></record>
+        <record id="adg_class_2_1" model="dg.adg.class"><field name="code">2.1</field><field name="name">Flammable Gases</field><field name="sequence">20</field></record>
+        <record id="adg_class_2_2" model="dg.adg.class"><field name="code">2.2</field><field name="name">Non-Flammable, Non-Toxic Gases</field><field name="sequence">21</field></record>
+        <record id="adg_class_2_3" model="dg.adg.class"><field name="code">2.3</field><field name="name">Toxic Gases</field><field name="sequence">22</field></record>
+        <record id="adg_class_3" model="dg.adg.class"><field name="code">3</field><field name="name">Flammable Liquids</field><field name="sequence">30</field></record>
+        <record id="adg_class_4_1" model="dg.adg.class"><field name="code">4.1</field><field name="name">Flammable Solids, Self-Reactive Substances, Desensitised Explosives</field><field name="sequence">41</field></record>
+        <record id="adg_class_4_2" model="dg.adg.class"><field name="code">4.2</field><field name="name">Substances Liable to Spontaneous Combustion</field><field name="sequence">42</field></record>
+        <record id="adg_class_4_3" model="dg.adg.class"><field name="code">4.3</field><field name="name">Substances which in Contact with Water Emit Flammable Gases</field><field name="sequence">43</field></record>
+        <record id="adg_class_5_1" model="dg.adg.class"><field name="code">5.1</field><field name="name">Oxidising Substances</field><field name="sequence">51</field></record>
+        <record id="adg_class_5_2" model="dg.adg.class"><field name="code">5.2</field><field name="name">Organic Peroxides</field><field name="sequence">52</field></record>
+        <record id="adg_class_6_1" model="dg.adg.class"><field name="code">6.1</field><field name="name">Toxic Substances</field><field name="sequence">61</field></record>
+        <record id="adg_class_6_2" model="dg.adg.class"><field name="code">6.2</field><field name="name">Infectious Substances</field><field name="sequence">62</field></record>
+        <record id="adg_class_7" model="dg.adg.class"><field name="code">7</field><field name="name">Radioactive Material</field><field name="sequence">70</field></record>
+        <record id="adg_class_8" model="dg.adg.class"><field name="code">8</field><field name="name">Corrosive Substances</field><field name="sequence">80</field></record>
+        <record id="adg_class_9" model="dg.adg.class"><field name="code">9</field><field name="name">Miscellaneous Dangerous Goods and Articles</field><field name="sequence">90</field></record>
+
+        <!-- ══ DG STORAGE CLASSES (AS 3833) ══════════════════════════════ -->
+        <record id="sc_1" model="dg.storage.class"><field name="code">SC1</field><field name="name">Oxidising Agents</field><field name="sequence">10</field></record>
+        <record id="sc_2" model="dg.storage.class"><field name="code">SC2</field><field name="name">Flammable and Combustible Liquids</field><field name="sequence">20</field></record>
+        <record id="sc_3" model="dg.storage.class"><field name="code">SC3</field><field name="name">Flammable Solids</field><field name="sequence">30</field></record>
+        <record id="sc_4" model="dg.storage.class"><field name="code">SC4</field><field name="name">Spontaneously Combustible Substances</field><field name="sequence">40</field></record>
+        <record id="sc_5" model="dg.storage.class"><field name="code">SC5</field><field name="name">Substances which in Contact with Water Emit Flammable Gases</field><field name="sequence">50</field></record>
+        <record id="sc_6" model="dg.storage.class"><field name="code">SC6</field><field name="name">Toxic and Infectious Substances</field><field name="sequence">60</field></record>
+        <record id="sc_7" model="dg.storage.class"><field name="code">SC7</field><field name="name">Radioactive Material</field><field name="sequence">70</field></record>
+        <record id="sc_8" model="dg.storage.class"><field name="code">SC8</field><field name="name">Corrosive Substances</field><field name="sequence">80</field></record>
+        <record id="sc_9" model="dg.storage.class"><field name="code">SC9</field><field name="name">Miscellaneous Dangerous Goods</field><field name="sequence">90</field></record>
+
+        <!-- ══ PPE TYPES ═══════════════════════════════════════════════════ -->
+        <record id="ppe_safety_glasses" model="dg.ppe.type"><field name="name">Safety Glasses (AS/NZS 1337)</field><field name="sequence">10</field></record>
+        <record id="ppe_chemical_goggles" model="dg.ppe.type"><field name="name">Chemical Splash Goggles (AS/NZS 1337)</field><field name="sequence">20</field></record>
+        <record id="ppe_face_shield" model="dg.ppe.type"><field name="name">Face Shield (AS/NZS 1337)</field><field name="sequence">30</field></record>
+        <record id="ppe_nitrile_gloves" model="dg.ppe.type"><field name="name">Nitrile Gloves</field><field name="sequence">40</field></record>
+        <record id="ppe_neoprene_gloves" model="dg.ppe.type"><field name="name">Neoprene / Chemical Resistant Gloves</field><field name="sequence">50</field></record>
+        <record id="ppe_pvc_gloves" model="dg.ppe.type"><field name="name">PVC Gloves</field><field name="sequence">55</field></record>
+        <record id="ppe_chemical_apron" model="dg.ppe.type"><field name="name">Chemical Resistant Apron</field><field name="sequence">60</field></record>
+        <record id="ppe_chemical_suit" model="dg.ppe.type"><field name="name">Chemical Resistant Suit (full body)</field><field name="sequence">70</field></record>
+        <record id="ppe_p1_respirator" model="dg.ppe.type"><field name="name">P1 Respirator / Half-Face Mask</field><field name="sequence">80</field></record>
+        <record id="ppe_p2_respirator" model="dg.ppe.type"><field name="name">P2 Respirator / Half-Face Mask (AS/NZS 1716)</field><field name="sequence">85</field></record>
+        <record id="ppe_full_face_respirator" model="dg.ppe.type"><field name="name">Full-Face Respirator with Chemical Cartridges</field><field name="sequence">90</field></record>
+        <record id="ppe_supplied_air" model="dg.ppe.type"><field name="name">Supplied Air / SCBA Respirator</field><field name="sequence">100</field></record>
+        <record id="ppe_safety_boots" model="dg.ppe.type"><field name="name">Chemical Resistant Safety Boots</field><field name="sequence">110</field></record>
+        <record id="ppe_hearing" model="dg.ppe.type"><field name="name">Hearing Protection (AS/NZS 1270)</field><field name="sequence">120</field></record>
+
+        <!-- ══ ASBESTOS FORMS ═════════════════════════════════════════════ -->
+        <record id="asb_form_fibro" model="dg.asbestos.form"><field name="name">Fibro (Flat Asbestos Cement Sheet)</field><field name="sequence">10</field></record>
+        <record id="asb_form_corrugated" model="dg.asbestos.form"><field name="name">Corrugated Asbestos Cement Roofing / Cladding</field><field name="sequence">20</field></record>
+        <record id="asb_form_pipes" model="dg.asbestos.form"><field name="name">Asbestos Cement Pipes / Flues</field><field name="sequence">30</field></record>
+        <record id="asb_form_loose_fill" model="dg.asbestos.form"><field name="name">Loose Fill / Friable Bulk Asbestos (Mr Fluffy)</field><field name="sequence">35</field></record>
+        <record id="asb_form_pipe_lagging" model="dg.asbestos.form"><field name="name">Pipe Lagging / Thermal Insulation</field><field name="sequence">40</field></record>
+        <record id="asb_form_boiler" model="dg.asbestos.form"><field name="name">Boiler / Furnace / Vessel Insulation</field><field name="sequence">50</field></record>
+        <record id="asb_form_spray" model="dg.asbestos.form"><field name="name">Spray-Applied Fireproofing / Insulation</field><field name="sequence">60</field></record>
+        <record id="asb_form_vinyl_tiles" model="dg.asbestos.form"><field name="name">Vinyl Floor Tiles with ACM Backing</field><field name="sequence">70</field></record>
+        <record id="asb_form_floor_tiles" model="dg.asbestos.form"><field name="name">Asbestos Cement Floor Tiles</field><field name="sequence">75</field></record>
+        <record id="asb_form_rope_gaskets" model="dg.asbestos.form"><field name="name">Rope Seals / Gaskets / Packing</field><field name="sequence">80</field></record>
+        <record id="asb_form_textured_paint" model="dg.asbestos.form"><field name="name">Textured Paint / Coating (Artex-type)</field><field name="sequence">90</field></record>
+        <record id="asb_form_bituminous" model="dg.asbestos.form"><field name="name">Bituminous / Bitumen Products</field><field name="sequence">100</field></record>
+        <record id="asb_form_brake_lining" model="dg.asbestos.form"><field name="name">Brake / Clutch Linings</field><field name="sequence">110</field></record>
+        <record id="asb_form_millboard" model="dg.asbestos.form"><field name="name">Asbestos Millboard / Fire Blanket</field><field name="sequence">120</field></record>
+
+        <!-- ══ CONTROL MEASURES ═══════════════════════════════════════════ -->
+        <record id="cm_manage_in_situ" model="dg.control.measure"><field name="name">Manage in situ — Do Not Disturb</field><field name="sequence">10</field></record>
+        <record id="cm_encapsulate" model="dg.control.measure"><field name="name">Encapsulate / Seal ACM</field><field name="sequence">20</field></record>
+        <record id="cm_monitor" model="dg.control.measure"><field name="name">Regular Monitoring and Inspection</field><field name="sequence">30</field></record>
+        <record id="cm_restrict_access" model="dg.control.measure"><field name="name">Restrict Access to Area</field><field name="sequence">40</field></record>
+        <record id="cm_signage" model="dg.control.measure"><field name="name">Install Asbestos Warning Signage</field><field name="sequence">50</field></record>
+        <record id="cm_remove" model="dg.control.measure"><field name="name">Remove and Dispose (Licensed Removalist)</field><field name="sequence">60</field></record>
+        <record id="cm_wet_methods" model="dg.control.measure"><field name="name">Wet Methods to Suppress Dust</field><field name="sequence">70</field></record>
+        <record id="cm_rpe" model="dg.control.measure"><field name="name">Respiratory Protective Equipment (RPE) for Workers</field><field name="sequence">80</field></record>
+        <record id="cm_air_monitoring" model="dg.control.measure"><field name="name">Air Monitoring</field><field name="sequence">90</field></record>
+        <record id="cm_clearance" model="dg.control.measure"><field name="name">Independent Clearance Inspection Required</field><field name="sequence">100</field></record>
+        <record id="cm_decontamination" model="dg.control.measure"><field name="name">Decontamination Procedures in Place</field><field name="sequence">110</field></record>
+
+    </data>
+</odoo>

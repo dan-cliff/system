@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── List view ─────────────────────────────────────────────────────── -->
+    <record id="view_meeting_template_list" model="ir.ui.view">
+        <field name="name">meeting.template.list</field>
+        <field name="model">meeting.template</field>
+        <field name="arch" type="xml">
+            <list string="Meeting Templates">
+                <field name="name"/>
+                <field name="default_meeting_type"/>
+                <field name="default_duration"/>
+                <field name="recurrence_type" optional="show"/>
+                <field name="auto_schedule"/>
+                <field name="meeting_count" string="Meetings"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form view ─────────────────────────────────────────────────────── -->
+    <record id="view_meeting_template_form" model="ir.ui.view">
+        <field name="name">meeting.template.form</field>
+        <field name="model">meeting.template</field>
+        <field name="arch" type="xml">
+            <form string="Meeting Template">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_meetings"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="meeting_count" widget="statinfo" string="Meetings"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Template name…"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Meeting Defaults">
+                            <field name="default_meeting_type"/>
+                            <field name="default_duration"/>
+                            <field name="default_location"/>
+                            <field name="default_start_hour" widget="float_time"/>
+                            <field name="default_chairperson_id"/>
+                            <field name="default_secretary_id"/>
+                        </group>
+                        <group string="Auto-Scheduling">
+                            <field name="auto_schedule"/>
+                            <field name="recurrence_type"
+                                   invisible="not auto_schedule"/>
+                            <field name="recurrence_day_of_week"
+                                   invisible="recurrence_type not in ['weekly','fortnightly'] or not auto_schedule"/>
+                            <field name="recurrence_week_of_month"
+                                   invisible="recurrence_type not in ['monthly','quarterly'] or not auto_schedule"/>
+                            <field name="recurrence_day_of_month"
+                                   invisible="recurrence_type not in ['monthly','quarterly','yearly'] or not auto_schedule"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Default Invitees">
+                            <field name="default_invitee_ids" widget="many2many_tags"
+                                   options="{'no_create': False}"/>
+                        </page>
+                        <page string="Standard Agenda">
+                            <field name="agenda_item_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="item_type"/>
+                                    <field name="default_duration"/>
+                                    <field name="default_presenter_id" optional="show"/>
+                                    <field name="description" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notifications">
+                            <field name="notification_template_ids" widget="many2many_tags"/>
+                            <div class="alert alert-info" role="alert">
+                                These notification templates will be automatically assigned
+                                to new meetings created from this template.
+                            </div>
+                        </page>
+                        <page string="Description">
+                            <field name="description"
+                                   placeholder="Describe the purpose and use of this template…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────────── -->
+    <record id="action_meeting_template" model="ir.actions.act_window">
+        <field name="name">Meeting Templates</field>
+        <field name="res_model">meeting.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first meeting template
+            </p>
+            <p>
+                Meeting templates let you pre-define standard agendas, default invitees
+                and recurrence settings so new meetings can be created quickly and consistently.
+            </p>
+        </field>
+    </record>
+</odoo>

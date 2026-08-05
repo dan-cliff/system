@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Search ────────────────────────────────────────────────────── -->
+    <record id="view_video_script_search" model="ir.ui.view">
+        <field name="name">video.script.search</field>
+        <field name="model">video.script</field>
+        <field name="arch" type="xml">
+            <search string="Search Scripts">
+                <field name="name"/>
+                <field name="production_id"/>
+                <field name="author_id"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="In Review" name="in_review" domain="[('state','=','in_review')]"/>
+                <filter string="Approved" name="approved" domain="[('state','=','approved')]"/>
+                <filter string="My Scripts" name="mine" domain="[('author_id','=',uid)]"/>
+                <group name="group_by">
+                    <filter string="Production" name="group_production"
+                            context="{'group_by': 'production_id'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Author" name="group_author"
+                            context="{'group_by': 'author_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── List ──────────────────────────────────────────────────────── -->
+    <record id="view_video_script_list" model="ir.ui.view">
+        <field name="name">video.script.list</field>
+        <field name="model">video.script</field>
+        <field name="arch" type="xml">
+            <list string="Scripts" default_order="production_id, version_number desc">
+                <field name="version_number" string="Ver." optional="show"/>
+                <field name="name"/>
+                <field name="production_id"/>
+                <field name="state"/>
+                <field name="author_id" widget="many2one_avatar_user"/>
+                <field name="reviewer_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="date_approved" optional="show" options="{'numeric': True}"/>
+                <field name="estimated_duration_min" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form ──────────────────────────────────────────────────────── -->
+    <record id="view_video_script_form" model="ir.ui.view">
+        <field name="name">video.script.form</field>
+        <field name="model">video.script</field>
+        <field name="arch" type="xml">
+            <form string="Script" js_class="video_script_ai_form">
+                <header>
+                    <button name="action_generate_with_ai" type="object"
+                            string="✨ Generate with AI"
+                            class="btn-primary"
+                            invisible="state not in ('draft', 'rejected')"
+                            title="Use AI to generate the outline, full script, and director notes for this production"/>
+                    <button name="action_submit_for_review" type="object"
+                            string="Submit for Review"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object"
+                            string="Approve"
+                            class="btn-success"
+                            invisible="state != 'in_review'"
+                            groups="video_production.group_video_production_manager"/>
+                    <button name="action_reject" type="object"
+                            string="Reject"
+                            class="btn-danger"
+                            invisible="state not in ('in_review', 'approved')"
+                            groups="video_production.group_video_production_manager"/>
+                    <button name="action_reset_to_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state == 'draft'"/>
+                    <button name="action_new_version" type="object"
+                            string="Create New Version"
+                            invisible="state not in ('approved', 'rejected')"/>
+                    <button name="action_open_teleprompter" type="object"
+                            string="📺 Teleprompter"
+                            class="btn-secondary"
+                            invisible="state != 'approved'"
+                            title="Open or send the teleprompter"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_review,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Script name…"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="production_id"/>
+                            <field name="version_number" readonly="1"/>
+                            <field name="author_id" widget="many2one_avatar_user"/>
+                            <field name="reviewer_id" widget="many2one_avatar_user"/>
+                        </group>
+                        <group>
+                            <field name="estimated_duration_min"/>
+                            <field name="approved_by_id" readonly="1"
+                                   widget="many2one_avatar_user"
+                                   invisible="not approved_by_id"/>
+                            <field name="date_approved" readonly="1"
+                                   invisible="not date_approved"
+                                   options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Outline" name="outline">
+                            <field name="outline"
+                                   placeholder="High-level structure and talking points…"/>
+                        </page>
+                        <page string="Full Script" name="full_script">
+                            <field name="full_script"
+                                   placeholder="Word-for-word script…"/>
+                        </page>
+                        <page string="Director Notes" name="notes">
+                            <field name="notes"
+                                   placeholder="Production and direction notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────── -->
+    <record id="action_video_script" model="ir.actions.act_window">
+        <field name="name">Scripts</field>
+        <field name="res_model">video.script</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No scripts yet!
+            </p>
+            <p>Create scripts and outlines for your video productions.</p>
+        </field>
+    </record>
+
+</odoo>

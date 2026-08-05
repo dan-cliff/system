@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Membership Form View ───────────────────────────────────────────── -->
+    <record id="membership_form_view" model="ir.ui.view">
+        <field name="name">membership.membership.form</field>
+        <field name="model">membership.membership</field>
+        <field name="arch" type="xml">
+            <form string="Membership">
+                <header>
+                    <button string="Send Email"
+                            name="action_send_email"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button string="Print Membership Card"
+                            name="action_print_membership_card"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button string="Generate Letter"
+                            name="action_open_letter_wizard"
+                            type="object"
+                            class="btn-secondary"/>
+                    <field name="status_id"
+                           widget="statusbar"
+                           options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <!-- Invisible helper field -->
+                    <field name="status_color" invisible="1"/>
+
+                    <!-- Member number top-left -->
+                    <div class="oe_title">
+                        <label for="name" string="Member Number"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Member Details" name="member_details">
+                            <field name="partner_id"
+                                   string="Contact"
+                                   options="{'no_quick_create': True}"/>
+                            <field name="phone" readonly="1"/>
+                            <field name="email" readonly="1"/>
+                        </group>
+                        <group string="Address" name="address">
+                            <field name="street" readonly="1"/>
+                            <field name="street2" readonly="1"/>
+                            <field name="city" readonly="1"/>
+                            <field name="state_id" readonly="1"/>
+                            <field name="zip" readonly="1"/>
+                            <field name="country_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Membership Details" name="membership_details">
+                            <field name="product_id"
+                                   string="Membership Product"
+                                   options="{'no_quick_create': True}"/>
+                            <field name="date_issued"
+                                   string="Issued Date"
+                                   options='{"numeric": true}'/>
+                            <field name="date_expiry"
+                                   string="Expiry Date"
+                                   options='{"numeric": true}'/>
+                        </group>
+                    </group>
+
+                    <group string="Notes" name="notes">
+                        <field name="notes" nolabel="1" colspan="2"
+                               placeholder="Additional notes..."/>
+                    </group>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Membership List View ───────────────────────────────────────────── -->
+    <record id="membership_list_view" model="ir.ui.view">
+        <field name="name">membership.membership.list</field>
+        <field name="model">membership.membership</field>
+        <field name="arch" type="xml">
+            <list string="Memberships">
+                <field name="id" string="ID"/>
+                <field name="name" string="Member Number"/>
+                <field name="partner_name" string="Member Name"/>
+                <field name="product_id" string="Membership Product"/>
+                <field name="status_id" string="Status"/>
+                <field name="date_issued" string="Issued Date" options='{"numeric": true}'/>
+                <field name="date_expiry" string="Expiry Date" options='{"numeric": true}'/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Membership Search View ─────────────────────────────────────────── -->
+    <record id="membership_search_view" model="ir.ui.view">
+        <field name="name">membership.membership.search</field>
+        <field name="model">membership.membership</field>
+        <field name="arch" type="xml">
+            <search string="Search Memberships">
+                <field name="name" string="Member Number"/>
+                <field name="partner_name" string="Member Name"/>
+                <field name="status_id" string="Status"/>
+                <field name="product_id" string="Membership Product"/>
+                <filter string="Active" name="filter_active"
+                        domain="[('active', '=', True)]"/>
+                <separator/>
+                <filter string="Status" name="group_status"
+                        context="{'group_by': 'status_id'}"/>
+                <filter string="Membership Product" name="group_product"
+                        context="{'group_by': 'product_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Window Action ─────────────────────────────────────────────────── -->
+    <record id="action_membership_list" model="ir.actions.act_window">
+        <field name="name">Memberships</field>
+        <field name="res_model">membership.membership</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="membership_search_view"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No memberships yet.</p>
+            <p>Create a membership to start tracking member cards and access.</p>
+        </field>
+    </record>
+
+</odoo>

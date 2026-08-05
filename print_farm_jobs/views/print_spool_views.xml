@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Spool List ───────────────────────────────────────────────────── -->
+    <record id="view_print_filament_spool_list" model="ir.ui.view">
+        <field name="name">print.filament.spool.list</field>
+        <field name="model">print.filament.spool</field>
+        <field name="arch" type="xml">
+            <list string="Spools"
+                  decoration-muted="state in ('empty','discarded')"
+                  decoration-success="state == 'new'"
+                  decoration-info="state == 'in_use'">
+                <field name="name"/>
+                <field name="filament_id"/>
+                <field name="material"/>
+                <field name="weight_total_g" string="Total (g)"/>
+                <field name="weight_remaining_g" string="Remaining (g)"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'new'"
+                       decoration-info="state == 'in_use'"
+                       decoration-muted="state in ('empty','discarded')"/>
+                <field name="purchase_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Spool Form ───────────────────────────────────────────────────── -->
+    <record id="view_print_filament_spool_form" model="ir.ui.view">
+        <field name="name">print.filament.spool.form</field>
+        <field name="model">print.filament.spool</field>
+        <field name="arch" type="xml">
+            <form string="Spool">
+                <header>
+                    <button name="action_mark_in_use" type="object"
+                            string="Mark In Use" class="btn-primary"
+                            invisible="state != 'new'"/>
+                    <button name="action_mark_empty" type="object"
+                            string="Mark Empty" class="btn-secondary"
+                            invisible="state not in ('new','in_use')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="new,in_use,empty"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Filament">
+                            <field name="filament_id"/>
+                            <field name="material" readonly="1"/>
+                            <field name="color_hex" readonly="1"/>
+                        </group>
+                        <group string="Weight">
+                            <field name="weight_total_g"/>
+                            <field name="weight_remaining_g"/>
+                            <field name="purchase_date"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" placeholder="Notes about this spool…"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Spool Search ─────────────────────────────────────────────────── -->
+    <record id="view_print_filament_spool_search" model="ir.ui.view">
+        <field name="name">print.filament.spool.search</field>
+        <field name="model">print.filament.spool</field>
+        <field name="arch" type="xml">
+            <search string="Spools">
+                <field name="name"/>
+                <field name="filament_id"/>
+                <filter string="New" name="new" domain="[('state','=','new')]"/>
+                <filter string="In Use" name="in_use" domain="[('state','=','in_use')]"/>
+                <filter string="Empty" name="empty" domain="[('state','=','empty')]"/>
+                <filter string="Available" name="available"
+                        domain="[('state','in',['new','in_use'])]"/>
+                <filter string="Archived" name="archived" domain="[('active','=',False)]"/>
+                <separator/>
+                <filter string="Group by Filament" name="group_filament"
+                        context="{'group_by':'filament_id'}"/>
+                <filter string="Group by Material" name="group_material"
+                        context="{'group_by':'material'}"/>
+                <filter string="Group by Status" name="group_state"
+                        context="{'group_by':'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Spool Action ─────────────────────────────────────────────────── -->
+    <record id="action_print_filament_spool" model="ir.actions.act_window">
+        <field name="name">Filament Spools</field>
+        <field name="res_model">print.filament.spool</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_print_filament_spool_search"/>
+        <field name="context">{'search_default_available': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Register your first spool</p>
+            <p>Track individual filament spools and assign them to printer slots.</p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_injury_address_label_wizard_form" model="ir.ui.view">
+        <field name="name">injury.address.label.wizard.form</field>
+        <field name="model">injury.address.label.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Mailing Label">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Print Mailing Address Label</h2>
+                        <p class="text-muted">Dymo 99012 — 89 × 36 mm</p>
+                    </div>
+                    <group>
+                        <field name="case_id" readonly="1" options="{'no_open': True}"/>
+                        <field name="label_type" widget="radio"/>
+                        <field name="partner_id"
+                               invisible="label_type != 'contact'"
+                               options="{'no_create': True}"
+                               required="label_type == 'contact'"/>
+                    </group>
+                    <separator string="Address Details"/>
+                    <p class="text-muted" style="margin-bottom: 8px;">
+                        Fields are auto-populated from the selected recipient.
+                        You can edit them before printing.
+                    </p>
+                    <group>
+                        <group>
+                            <field name="recipient_name" placeholder="Full name…"/>
+                            <field name="company_name" placeholder="Company or organisation…"/>
+                            <field name="street" placeholder="Street address…"/>
+                            <field name="street2" placeholder="Unit / Suite / PO Box…"/>
+                        </group>
+                        <group>
+                            <field name="city" placeholder="City / Suburb…"/>
+                            <field name="state_id" options="{'no_create': True}"
+                                   placeholder="State / Province…"/>
+                            <field name="zip_code" placeholder="Postcode…"/>
+                            <field name="country_id" options="{'no_create': True}"
+                                   placeholder="Country…"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_print" string="Print Label"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_injury_address_label_wizard" model="ir.actions.act_window">
+        <field name="name">Print Mailing Label</field>
+        <field name="res_model">injury.address.label.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

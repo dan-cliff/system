@@ -1,0 +1,934 @@
+/* Asset Control Plane — Responsive PWA Stylesheet
+   Breakpoints:
+     mobile  : < 640px   (default, single column)
+     tablet  : >= 640px  (wider container, better spacing)
+     desktop : >= 1024px (two-column landing grid, sidebar-style header)
+     wide    : >= 1280px (max container width)
+*/
+
+/* ── Design tokens ───────────────────────────────────────────────────────── */
+:root {
+  --cp-bg:           #0f172a;
+  --cp-surface:      #1e293b;
+  --cp-surface-2:    #273548;
+  --cp-border:       #334155;
+  --cp-primary:      #3b82f6;
+  --cp-primary-dark: #2563eb;
+  --cp-success:      #22c55e;
+  --cp-warning:      #f59e0b;
+  --cp-danger:       #ef4444;
+  --cp-text:         #f1f5f9;
+  --cp-text-muted:   #94a3b8;
+  --cp-radius:       12px;
+  --cp-radius-sm:    8px;
+  --cp-shadow:       0 4px 24px rgba(0, 0, 0, 0.4);
+
+  /* Spacing scale */
+  --cp-gap:    16px;
+  --cp-pad-x:  16px;
+  --cp-pad-y:  20px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --cp-gap:   20px;
+    --cp-pad-x: 24px;
+    --cp-pad-y: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --cp-gap:   24px;
+    --cp-pad-x: 32px;
+    --cp-pad-y: 32px;
+  }
+}
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── App shell ───────────────────────────────────────────────────────────── */
+.cp-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Offline Banner ──────────────────────────────────────────────────────── */
+.cp-offline-banner {
+  background: var(--cp-warning);
+  color: #1c1400;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  display: none;
+  flex-shrink: 0;
+}
+body.offline .cp-offline-banner { display: block; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.cp-header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 100%);
+  border-bottom: 1px solid var(--cp-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.cp-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--cp-pad-y) var(--cp-pad-x) 16px;
+}
+
+.cp-header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cp-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  color: var(--cp-text);
+  text-decoration: none;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.cp-back-btn:hover { background: rgba(255,255,255,0.2); }
+
+.cp-header-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  padding: 4px;
+}
+
+@media (min-width: 1024px) {
+  .cp-header-logo {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.cp-asset-name {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .cp-asset-name { font-size: 20px; }
+}
+@media (min-width: 1024px) {
+  .cp-asset-name { font-size: 22px; }
+}
+
+.cp-asset-number {
+  font-size: 12px;
+  color: var(--cp-text-muted);
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+/* ── Main content wrapper ────────────────────────────────────────────────── */
+.cp-body {
+  flex: 1;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--cp-pad-y) var(--cp-pad-x) calc(var(--cp-pad-y) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Install prompt inside body */
+.cp-install-prompt {
+  display: none;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-primary);
+  border-radius: var(--cp-radius);
+  padding: 16px;
+  margin-bottom: var(--cp-gap);
+  align-items: center;
+  gap: 12px;
+}
+.cp-install-prompt.visible { display: flex; }
+.cp-install-prompt p { flex: 1; font-size: 14px; color: var(--cp-text-muted); }
+.cp-install-btn {
+  padding: 10px 18px;
+  background: var(--cp-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--cp-radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Content area ────────────────────────────────────────────────────────── */
+/* Default (mobile + forms): single column */
+.cp-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cp-gap);
+}
+
+/* Landing page: two-column grid on tablet+, three-column on desktop */
+@media (min-width: 640px) {
+  .cp-landing-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cp-gap);
+    align-items: start;
+  }
+}
+@media (min-width: 1024px) {
+  .cp-landing-content {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+/* Cards that should always span the full width of the grid */
+.cp-card-full {
+  grid-column: 1 / -1;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.cp-card {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: var(--cp-radius);
+  padding: 20px;
+  /* No margin-bottom — gap on the flex/grid parent handles spacing */
+}
+
+@media (min-width: 640px) {
+  .cp-card { padding: 24px; }
+}
+@media (min-width: 1024px) {
+  .cp-card { padding: 28px; }
+}
+
+.cp-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-muted);
+  margin-bottom: 12px;
+}
+
+/* ── Stat row ────────────────────────────────────────────────────────────── */
+.cp-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.cp-stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--cp-primary);
+  line-height: 1;
+}
+@media (min-width: 640px) {
+  .cp-stat-value { font-size: 40px; }
+}
+.cp-stat-unit {
+  font-size: 14px;
+  color: var(--cp-text-muted);
+  font-weight: 500;
+}
+.cp-stat-date {
+  font-size: 12px;
+  color: var(--cp-text-muted);
+  margin-top: 4px;
+}
+
+/* ── Action grid ─────────────────────────────────────────────────────────── */
+.cp-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.cp-actions.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* On desktop the Quick Actions card is full-width, so give buttons more room */
+@media (min-width: 1024px) {
+  .cp-actions {
+    grid-template-columns: repeat(2, minmax(120px, 200px));
+    justify-content: start;
+    gap: 16px;
+  }
+  .cp-actions.three {
+    grid-template-columns: repeat(3, minmax(120px, 200px));
+  }
+}
+
+.cp-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 12px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: var(--cp-radius);
+  color: var(--cp-text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.cp-action-btn:hover {
+  background: var(--cp-surface-2);
+  border-color: var(--cp-primary);
+}
+.cp-action-btn:active {
+  transform: scale(0.96);
+  background: var(--cp-surface-2);
+}
+.cp-action-btn .icon {
+  font-size: 28px;
+  line-height: 1;
+}
+@media (min-width: 640px) {
+  .cp-action-btn .icon { font-size: 32px; }
+  .cp-action-btn { font-size: 14px; padding: 24px 16px; }
+}
+.cp-action-btn.primary {
+  background: var(--cp-primary);
+  border-color: var(--cp-primary-dark);
+  color: #fff;
+}
+.cp-action-btn.primary:hover  { background: var(--cp-primary-dark); }
+.cp-action-btn.primary:active { background: var(--cp-primary-dark); }
+
+/* ── Recent entries list ─────────────────────────────────────────────────── */
+.cp-list { list-style: none; }
+.cp-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cp-border);
+  font-size: 14px;
+  gap: 8px;
+}
+.cp-list li:last-child { border-bottom: none; }
+.cp-list .label { color: var(--cp-text-muted); font-size: 12px; }
+.cp-list .value { font-weight: 600; }
+.cp-list .badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--cp-surface-2);
+  white-space: nowrap;
+}
+.cp-list .badge.danger   { background: #7f1d1d; color: #fca5a5; }
+.cp-list .badge.warning  { background: #78350f; color: #fde68a; }
+.cp-list .badge.medium   { background: #1e3a5f; color: #93c5fd; }
+
+/* ── Forms ───────────────────────────────────────────────────────────────── */
+/* Forms are always single-column; on wide screens cap and centre the card */
+@media (min-width: 768px) {
+  .cp-content:not(.cp-landing-content) .cp-card {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}
+
+.cp-form-group {
+  margin-bottom: 20px;
+}
+.cp-form label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.cp-unit-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.75;
+  margin-left: 4px;
+}
+
+/* On tablet+ show two form fields side by side where appropriate */
+@media (min-width: 640px) {
+  .cp-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+.cp-form input[type="text"],
+.cp-form input[type="number"],
+.cp-form input[type="date"],
+.cp-form select,
+.cp-form textarea {
+  width: 100%;
+  background: var(--cp-surface-2);
+  border: 1.5px solid var(--cp-border);
+  border-radius: var(--cp-radius-sm);
+  color: var(--cp-text);
+  font-size: 16px; /* prevents iOS zoom */
+  padding: 14px 16px;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+.cp-form input:focus,
+.cp-form select:focus,
+.cp-form textarea:focus {
+  border-color: var(--cp-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.cp-form select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%2394a3b8'%3E%3Cpath d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+.cp-form textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.cp-form input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}
+
+.cp-submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--cp-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--cp-radius-sm);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 8px;
+}
+.cp-submit-btn:hover   { background: var(--cp-primary-dark); }
+.cp-submit-btn:active  { background: var(--cp-primary-dark); transform: scale(0.98); }
+.cp-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Success / Error alerts ──────────────────────────────────────────────── */
+.cp-alert {
+  padding: 16px;
+  border-radius: var(--cp-radius-sm);
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.cp-alert.success {
+  background: #14532d;
+  color: #86efac;
+  border: 1px solid #166534;
+}
+.cp-alert.error {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border: 1px solid #991b1b;
+}
+
+/* ── Severity badges ─────────────────────────────────────────────────────── */
+.sev-low      { background: #1e3a5f; color: #93c5fd; }
+.sev-medium   { background: #1c3048; color: #7dd3fc; }
+.sev-high     { background: #78350f; color: #fde68a; }
+.sev-critical { background: #7f1d1d; color: #fca5a5; }
+
+/* ── Severity selector ───────────────────────────────────────────────────── */
+.cp-severity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.cp-sev-btn {
+  padding: 10px 4px;
+  border-radius: var(--cp-radius-sm);
+  border: 2px solid transparent;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cp-sev-btn[data-sev="low"]      { background: #1e3a5f; color: #93c5fd; }
+.cp-sev-btn[data-sev="medium"]   { background: #1c3048; color: #7dd3fc; }
+.cp-sev-btn[data-sev="high"]     { background: #78350f; color: #fde68a; }
+.cp-sev-btn[data-sev="critical"] { background: #7f1d1d; color: #fca5a5; }
+.cp-sev-btn.selected { border-color: #fff; transform: scale(1.05); }
+
+/* ── Offline queue badge ─────────────────────────────────────────────────── */
+.cp-queue-badge {
+  display: none;
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cp-warning);
+  color: #1c1400;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: var(--cp-shadow);
+  z-index: 200;
+  white-space: nowrap;
+}
+body.has-pending .cp-queue-badge { display: block; }
+
+/* ── Identity badge (header) ─────────────────────────────────────────────── */
+.cp-identity-badge {
+  display: none; /* shown by JS */
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 5px 10px 5px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 160px;
+}
+.cp-identity-badge.visible { display: flex; }
+.cp-identity-badge-icon { font-size: 16px; flex-shrink: 0; }
+.cp-identity-badge-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-identity-badge-signout {
+  background: none;
+  border: none;
+  color: var(--cp-text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 0 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.cp-identity-badge-signout:hover { color: var(--cp-text); }
+
+/* ── Sign-in card (landing) ──────────────────────────────────────────────── */
+.cp-signin-active-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.cp-signin-photo-wrap {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--cp-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--cp-border);
+}
+.cp-signin-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cp-signin-avatar-placeholder {
+  font-size: 28px;
+  line-height: 1;
+}
+.cp-signin-info { flex: 1; }
+.cp-signin-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Mode tabs */
+.cp-signin-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--cp-surface-2);
+  border-radius: var(--cp-radius-sm);
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.cp-signin-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--cp-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cp-signin-tab.active {
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.cp-signin-panel { }
+
+/* Locked action buttons */
+.cp-action-lock-hint {
+  font-size: 13px;
+  color: var(--cp-warning);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.cp-action-btn.cp-locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+body.cp-identity-required .cp-action-btn {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+body.cp-identity-required .cp-action-btn:active {
+  transform: none;
+}
+
+.cp-btn-ghost {
+  background: none;
+  border: 1.5px solid var(--cp-border);
+  border-radius: var(--cp-radius-sm);
+  color: var(--cp-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+.cp-btn-ghost:hover { border-color: var(--cp-text-muted); color: var(--cp-text); }
+
+.cp-barcode-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.cp-barcode-row input {
+  flex: 1;
+  background: var(--cp-surface-2);
+  border: 1.5px solid var(--cp-border);
+  border-radius: var(--cp-radius-sm);
+  color: var(--cp-text);
+  font-size: 16px;
+  padding: 12px 16px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s;
+}
+.cp-barcode-row input:focus { border-color: var(--cp-primary); }
+.cp-scan-btn {
+  background: var(--cp-primary);
+  border: none;
+  border-radius: var(--cp-radius-sm);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.cp-scan-btn:hover  { background: var(--cp-primary-dark); }
+.cp-scan-btn:active { background: var(--cp-primary-dark); transform: scale(0.97); }
+
+/* Camera button — square icon-only variant */
+.cp-camera-btn {
+  padding: 12px 14px;
+  font-size: 18px;
+  flex-shrink: 0;
+  background: var(--cp-surface-2);
+  border: 1.5px solid var(--cp-border);
+  color: var(--cp-text);
+}
+.cp-camera-btn:hover { background: var(--cp-border); }
+
+/* ── Camera scanner overlay ──────────────────────────────────────────────── */
+.cp-scanner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: flex-end; /* bottom sheet on mobile */
+}
+
+.cp-scanner-modal {
+  width: 100%;
+  background: var(--cp-surface);
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+}
+
+@media (min-width: 640px) {
+  .cp-scanner-overlay {
+    align-items: center;
+    justify-content: center;
+  }
+  .cp-scanner-modal {
+    width: 480px;
+    border-radius: 20px;
+    max-height: 80vh;
+  }
+}
+
+.cp-scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cp-border);
+  flex-shrink: 0;
+}
+.cp-scanner-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+.cp-scanner-close {
+  background: none;
+  border: none;
+  color: var(--cp-text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.cp-scanner-close:hover { color: var(--cp-text); background: rgba(255,255,255,0.08); }
+
+.cp-scanner-viewport {
+  position: relative;
+  background: #000;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  flex-shrink: 0;
+}
+.cp-scanner-viewport video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Darkened surround with a clear window in the centre */
+.cp-scanner-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72%;
+  height: 38%;
+  border: 2px solid var(--cp-primary);
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* Corner accents */
+.cp-scanner-frame::before,
+.cp-scanner-frame::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #fff;
+  border-style: solid;
+}
+.cp-scanner-frame::before {
+  top: -2px; left: -2px;
+  border-width: 3px 0 0 3px;
+  border-radius: 8px 0 0 0;
+}
+.cp-scanner-frame::after {
+  bottom: -2px; right: -2px;
+  border-width: 0 3px 3px 0;
+  border-radius: 0 0 8px 0;
+}
+
+/* Animated scan line */
+.cp-scanner-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--cp-primary) 50%, transparent 100%);
+  animation: cp-scan 2s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--cp-primary);
+}
+@keyframes cp-scan {
+  0%   { top: 4px; opacity: 1; }
+  49%  { opacity: 1; }
+  50%  { top: calc(100% - 6px); opacity: 0.6; }
+  51%  { opacity: 1; }
+  100% { top: 4px; opacity: 1; }
+}
+
+.cp-scanner-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  pointer-events: none;
+}
+
+.cp-scanner-status {
+  padding: 12px 20px;
+  font-size: 13px;
+  color: var(--cp-text-muted);
+  text-align: center;
+  min-height: 42px;
+  flex-shrink: 0;
+}
+
+.cp-barcode-error {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fca5a5;
+  min-height: 18px;
+}
+
+.cp-manual-fallback { margin-top: 16px; }
+
+/* Sign-in card highlight pulse (when action clicked while not signed in) */
+@keyframes cp-highlight-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70%  { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+.cp-signin-highlight {
+  animation: cp-highlight-pulse 0.8s ease-out;
+  border-color: var(--cp-warning) !important;
+}
+.cp-fallback-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+/* ── Misc utilities ──────────────────────────────────────────────────────── */
+.text-muted  { color: var(--cp-text-muted); }
+.mt-1        { margin-top: 8px; }
+.mt-2        { margin-top: 16px; }
+.mb-0        { margin-bottom: 0; }
+.empty-state {
+  text-align: center;
+  color: var(--cp-text-muted);
+  font-size: 14px;
+  padding: 16px 0;
+}
+
+/* ── Location Notice ──────────────────────────────────────────────────────── */
+.cp-location-notice {
+  border-left: 4px solid var(--cp-primary);
+  background: linear-gradient(135deg, #1e3a5f 0%, var(--cp-surface) 100%);
+}
+
+.cp-location-notice-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cp-location-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cp-location-text {
+  flex: 1;
+}
+
+.cp-location-text strong {
+  display: block;
+  font-size: 15px;
+  color: var(--cp-text);
+  margin-bottom: 4px;
+}
+
+.cp-location-text p {
+  font-size: 13px;
+  color: var(--cp-text-muted);
+  margin: 0;
+}
+
+.cp-location-status {
+  font-size: 12px;
+  color: var(--cp-primary);
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--cp-radius-sm);
+  padding: 6px 10px;
+  word-break: break-word;
+}

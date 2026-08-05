@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── List View ──────────────────────────────────────────────────── -->
+    <record id="view_url_slug_config_list" model="ir.ui.view">
+        <field name="name">url.slug.config.list</field>
+        <field name="model">url.slug.config</field>
+        <field name="arch" type="xml">
+            <list string="URL Slug Configurations">
+                <header>
+                    <button name="action_find_missing_views"
+                            type="object"
+                            string="Find missing views"
+                            display="always"
+                            class="btn-primary"/>
+                </header>
+                <field name="id" string="ID"/>
+                <field name="module_display_name" string="Module"
+                       optional="show"/>
+                <field name="action_name" string="Action / View"/>
+                <field name="slug" string="URL Slug"/>
+                <field name="preview_url" string="Preview URL"
+                       optional="show"/>
+                <field name="current_odoo_path" string="Active Odoo Path"
+                       optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Form View ──────────────────────────────────────────────────── -->
+    <record id="view_url_slug_config_form" model="ir.ui.view">
+        <field name="name">url.slug.config.form</field>
+        <field name="model">url.slug.config</field>
+        <field name="arch" type="xml">
+            <form string="URL Slug Configuration">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="action_name" string="Action"/>
+                        <h1>
+                            <field name="action_name" readonly="1"
+                                   placeholder="(select an action)"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Action">
+                            <field name="module_display_name"
+                                   string="Module" readonly="1"/>
+                            <field name="module_name"
+                                   string="Module (Technical)" readonly="1"/>
+                            <field name="action_id" string="Action Record"
+                                   readonly="1"/>
+                        </group>
+                        <group string="URL Configuration">
+                            <field name="slug" string="URL Slug"
+                                   placeholder="e.g. physical-assets"/>
+                            <field name="preview_url" string="Resulting URL"
+                                   readonly="1"/>
+                            <field name="current_odoo_path"
+                                   string="Current Odoo Path" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Slug Rules">
+                        <div class="alert alert-info" role="alert">
+                            <ul class="mb-0">
+                                <li>Use only lowercase letters, digits,
+                                    hyphens (<code>-</code>) and underscores
+                                    (<code>_</code>).</li>
+                                <li>Must start with a letter.</li>
+                                <li>Must not start with
+                                    <code>m-</code> or <code>action-</code>
+                                    (reserved prefixes).</li>
+                                <li>Must not conflict with a slug already
+                                    used by a standard Odoo module.</li>
+                                <li>Must be unique across all actions.</li>
+                                <li>Leave blank to revert to the default
+                                    <code>/odoo/action-&lt;id&gt;</code>
+                                    URL.</li>
+                            </ul>
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Search View ────────────────────────────────────────────────── -->
+    <record id="view_url_slug_config_search" model="ir.ui.view">
+        <field name="name">url.slug.config.search</field>
+        <field name="model">url.slug.config</field>
+        <field name="arch" type="xml">
+            <search string="Search URL Slug Configurations">
+                <field name="action_name" string="Action"/>
+                <field name="module_display_name" string="Module"/>
+                <field name="slug" string="Slug"/>
+                <separator/>
+                <filter name="has_slug" string="Has Custom Slug"
+                        domain="[('slug', '!=', False), ('slug', '!=', '')]"/>
+                <filter name="no_slug" string="No Slug Set"
+                        domain="['|', ('slug', '=', False), ('slug', '=', '')]"/>
+                <group>
+                    <filter name="group_by_module" string="Module"
+                            context="{'group_by': 'module_display_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Action ─────────────────────────────────────────────────────── -->
+    <record id="action_url_slug_config" model="ir.actions.act_window">
+        <field name="name">URL Slug Manager</field>
+        <field name="res_model">url.slug.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_url_slug_config_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No URL slug configurations yet.
+            </p>
+            <p>
+                URL slug configurations map custom-module actions to
+                human-readable URLs such as
+                <code>/odoo/physical-assets</code> instead of the default
+                <code>/odoo/action-5915</code>.
+            </p>
+            <p>
+                Click <b>Rescan Modules</b> in the action menu to
+                auto-populate configurations for all installed custom modules.
+            </p>
+        </field>
+    </record>
+
+</odoo>

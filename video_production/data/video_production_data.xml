@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ── Sequences ─────────────────────────────────────────────────── -->
+    <record id="seq_video_idea" model="ir.sequence">
+        <field name="name">Video Idea Reference</field>
+        <field name="code">video.idea</field>
+        <field name="prefix">IDEA/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_video_production" model="ir.sequence">
+        <field name="name">Video Production Reference</field>
+        <field name="code">video.production</field>
+        <field name="prefix">VP/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- ── Default Idea Stages ───────────────────────────────────────── -->
+    <record id="video_idea_stage_new" model="video.idea.stage">
+        <field name="name">New</field>
+        <field name="sequence">10</field>
+        <field name="fold">False</field>
+        <field name="is_won">False</field>
+        <field name="color">0</field>
+    </record>
+
+    <record id="video_idea_stage_exploring" model="video.idea.stage">
+        <field name="name">Exploring</field>
+        <field name="sequence">20</field>
+        <field name="fold">False</field>
+        <field name="is_won">False</field>
+        <field name="color">3</field>
+    </record>
+
+    <record id="video_idea_stage_approved" model="video.idea.stage">
+        <field name="name">Approved</field>
+        <field name="sequence">30</field>
+        <field name="fold">False</field>
+        <field name="is_won">True</field>
+        <field name="color">10</field>
+    </record>
+
+    <record id="video_idea_stage_complete" model="video.idea.stage">
+        <field name="name">Complete</field>
+        <field name="sequence">40</field>
+        <field name="fold">True</field>
+        <field name="is_won">True</field>
+        <field name="color">10</field>
+    </record>
+
+    <record id="video_idea_stage_archived" model="video.idea.stage">
+        <field name="name">Not Pursuing</field>
+        <field name="sequence">99</field>
+        <field name="fold">True</field>
+        <field name="is_won">False</field>
+        <field name="color">1</field>
+    </record>
+
+    <!-- ── Default Production Stages ────────────────────────────────── -->
+    <record id="video_production_stage_pre_production" model="video.production.stage">
+        <field name="name">Pre-Production</field>
+        <field name="sequence">10</field>
+        <field name="fold">False</field>
+        <field name="is_published">False</field>
+        <field name="color">0</field>
+        <field name="description">Script, planning and scheduling phase.</field>
+    </record>
+
+    <record id="video_production_stage_filming" model="video.production.stage">
+        <field name="name">Filming</field>
+        <field name="sequence">20</field>
+        <field name="fold">False</field>
+        <field name="is_published">False</field>
+        <field name="color">3</field>
+        <field name="description">Shoot days underway or completed.</field>
+    </record>
+
+    <record id="video_production_stage_editing" model="video.production.stage">
+        <field name="name">Editing</field>
+        <field name="sequence">30</field>
+        <field name="fold">False</field>
+        <field name="is_published">False</field>
+        <field name="color">6</field>
+        <field name="description">Edit jobs in progress.</field>
+    </record>
+
+    <record id="video_production_stage_review" model="video.production.stage">
+        <field name="name">Review &amp; Approval</field>
+        <field name="sequence">40</field>
+        <field name="fold">False</field>
+        <field name="is_published">False</field>
+        <field name="color">4</field>
+        <field name="description">Final cut review, thumbnail and metadata approval.</field>
+    </record>
+
+    <record id="video_production_stage_scheduled" model="video.production.stage">
+        <field name="name">Scheduled</field>
+        <field name="sequence">50</field>
+        <field name="fold">False</field>
+        <field name="is_published">False</field>
+        <field name="color">2</field>
+        <field name="description">Video uploaded to YouTube and scheduled for publish.</field>
+    </record>
+
+    <record id="video_production_stage_published" model="video.production.stage">
+        <field name="name">Published</field>
+        <field name="sequence">60</field>
+        <field name="fold">True</field>
+        <field name="is_published">True</field>
+        <field name="color">10</field>
+        <field name="description">Video is live on YouTube.</field>
+    </record>
+
+    <record id="video_production_stage_archived" model="video.production.stage">
+        <field name="name">Archived / Cancelled</field>
+        <field name="sequence">99</field>
+        <field name="fold">True</field>
+        <field name="is_published">False</field>
+        <field name="color">1</field>
+    </record>
+
+    <!-- ── Default Idea Tags ─────────────────────────────────────────── -->
+    <record id="video_idea_tag_trending" model="video.idea.tag">
+        <field name="name">Trending</field>
+        <field name="color">1</field>
+    </record>
+
+    <record id="video_idea_tag_evergreen" model="video.idea.tag">
+        <field name="name">Evergreen</field>
+        <field name="color">10</field>
+    </record>
+
+    <record id="video_idea_tag_series" model="video.idea.tag">
+        <field name="name">Series</field>
+        <field name="color">3</field>
+    </record>
+
+    <record id="video_idea_tag_collab" model="video.idea.tag">
+        <field name="name">Collaboration</field>
+        <field name="color">6</field>
+    </record>
+
+    <!-- ── Default Production Tags ───────────────────────────────────── -->
+    <record id="video_production_tag_sponsor" model="video.production.tag">
+        <field name="name">Sponsored</field>
+        <field name="color">4</field>
+    </record>
+
+    <record id="video_production_tag_shorts" model="video.production.tag">
+        <field name="name">YouTube Shorts</field>
+        <field name="color">1</field>
+    </record>
+
+    <record id="video_production_tag_series" model="video.production.tag">
+        <field name="name">Series</field>
+        <field name="color">3</field>
+    </record>
+
+    <record id="video_production_tag_collab" model="video.production.tag">
+        <field name="name">Collaboration</field>
+        <field name="color">6</field>
+    </record>
+
+    <record id="video_production_tag_premiere" model="video.production.tag">
+        <field name="name">Premiere</field>
+        <field name="color">2</field>
+    </record>
+
+</odoo>

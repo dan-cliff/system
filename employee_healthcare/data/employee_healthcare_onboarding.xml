@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!--
+            Add "Complete Healthcare Profile" as step 40 of the standard HR
+            Onboarding plan (hr.onboarding_plan).  Assigned to the employee
+            themselves so they fill in their own Medicare, insurance, and
+            health-alert details via Employee Healthcare → My Profile.
+        -->
+        <record id="onboarding_complete_healthcare_profile" model="mail.activity.plan.template">
+            <field name="plan_id" ref="hr.onboarding_plan"/>
+            <field name="sequence">40</field>
+            <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+            <field name="summary">Complete Healthcare Profile</field>
+            <field name="responsible_type">employee</field>
+            <field name="note"><![CDATA[
+<p>Please complete your <strong>Employee Healthcare Profile</strong> by navigating to
+<em>Employee Healthcare → My Healthcare Profile</em> in the main menu.</p>
+<p>Your profile should include:</p>
+<ul>
+    <li>Medicare number and expiry date</li>
+    <li>Private health insurance details</li>
+    <li>Ambulance membership details</li>
+    <li>Any health alerts your manager or first-aid officer should be aware of</li>
+    <li>Current medications</li>
+    <li>Known allergies</li>
+    <li>Advanced directives and medical decision-making proxies</li>
+</ul>
+<p>All information is kept strictly confidential and is only accessible to authorised HR personnel.</p>
+            ]]></field>
+        </record>
+
+    </data>
+</odoo>

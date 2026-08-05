@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_injury_meeting_list" model="ir.ui.view">
+        <field name="name">injury.meeting.list</field>
+        <field name="model">injury.meeting</field>
+        <field name="arch" type="xml">
+            <list string="Meetings &amp; Communications" default_order="meeting_date desc">
+                <field name="case_id"/>
+                <field name="meeting_date"/>
+                <field name="meeting_type"/>
+                <field name="subject"/>
+                <field name="location" optional="show"/>
+                <field name="next_meeting_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_injury_meeting_form" model="ir.ui.view">
+        <field name="name">injury.meeting.form</field>
+        <field name="model">injury.meeting</field>
+        <field name="arch" type="xml">
+            <form string="Meeting / Communication">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="case_id" options="{'no_create': True}"/>
+                            <field name="meeting_date"/>
+                            <field name="meeting_type"/>
+                        </group>
+                        <group>
+                            <field name="subject"/>
+                            <field name="location"/>
+                            <field name="next_meeting_date"/>
+                        </group>
+                    </group>
+                    <separator string="Participants / Attendees"/>
+                    <field name="participants" nolabel="0" widget="text"
+                           placeholder="List all participants and their roles…"/>
+                    <separator string="Summary / Minutes"/>
+                    <field name="summary" nolabel="0" widget="text"
+                           placeholder="Record the meeting summary or key discussion points…"/>
+                    <separator string="Action Items"/>
+                    <field name="action_items" nolabel="0" widget="text"
+                           placeholder="List all action items, owners, and due dates…"/>
+                    <separator string="Attachments"/>
+                    <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_injury_meeting_all" model="ir.actions.act_window">
+        <field name="name">Meetings &amp; Communications</field>
+        <field name="res_model">injury.meeting</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

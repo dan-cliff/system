@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         App Root Menu — visible to all three roles
+    ══════════════════════════════════════════════════════════ -->
+    <menuitem id="menu_employee_healthcare_root"
+              name="Employee Healthcare"
+              sequence="85"
+              groups="employee_healthcare.group_employee_healthcare_employee"
+              web_icon="employee_healthcare,static/description/icon.png"/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Healthcare Records — Manager and above only
+    ══════════════════════════════════════════════════════════ -->
+    <menuitem id="menu_employee_healthcare_records"
+              name="Healthcare Records"
+              parent="menu_employee_healthcare_root"
+              action="action_hr_employee_healthcare"
+              sequence="10"
+              groups="employee_healthcare.group_employee_healthcare_manager"/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         My Healthcare Profile — self-service for all roles
+    ══════════════════════════════════════════════════════════ -->
+    <menuitem id="menu_employee_healthcare_my_profile"
+              name="My Healthcare Profile"
+              parent="menu_employee_healthcare_root"
+              action="action_my_healthcare_profile"
+              sequence="20"
+              groups="employee_healthcare.group_employee_healthcare_employee"/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Configuration — Administrator only
+    ══════════════════════════════════════════════════════════ -->
+    <menuitem id="menu_employee_healthcare_config"
+              name="Configuration"
+              parent="menu_employee_healthcare_root"
+              sequence="90"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_indicators"
+              name="Indicators"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_indicator"
+              sequence="10"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_medication_types"
+              name="Medication Types"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_medication_type"
+              sequence="20"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_medication_frequencies"
+              name="Medication Frequencies"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_medication_frequency"
+              sequence="21"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_allergy_types"
+              name="Allergy Types"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_allergy_type"
+              sequence="30"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_allergy_severities"
+              name="Allergy Severities"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_allergy_severity"
+              sequence="31"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_alert_types"
+              name="Health Alert Types"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_alert_type"
+              sequence="40"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_alert_severities"
+              name="Alert Severities"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_alert_severity"
+              sequence="41"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_directive_types"
+              name="Directive / Proxy Types"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_directive_type"
+              sequence="50"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_insurers"
+              name="Private Health Insurers"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_insurer"
+              sequence="60"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+    <menuitem id="menu_healthcare_config_ambulance_providers"
+              name="Ambulance Providers"
+              parent="menu_employee_healthcare_config"
+              action="action_healthcare_ambulance_provider"
+              sequence="70"
+              groups="employee_healthcare.group_employee_healthcare_administrator"/>
+
+</odoo>
