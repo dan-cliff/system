@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_home_menu.NavBar.AppsMenu" t-inherit="web.NavBar.AppsMenu" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_navbar_apps_menu')]" position="replace">
+            <div t-if="!isScopedApp" class="o_navbar_apps_menu">
+                <button data-hotkey="h" title="Home Menu" class="btn" t-on-click="onHomeMenuClick">
+                    <i class="oi oi-apps"/>
+                </button>
+            </div>
+        </xpath>
+    </t>
+
+    <!-- While the home screen is showing: hide the waffle button, the current
+         app's name/breadcrumb sections, and all systray icons except a small
+         allow-list (chat, activities, company, user). Every other page keeps
+         the navbar exactly as it normally renders. -->
+    <t t-name="web_home_menu.NavBar" t-inherit="web.NavBar" t-inherit-mode="extension">
+        <xpath expr="//t[@t-call='web.NavBar.AppsMenu']" position="attributes">
+            <attribute name="t-if">!state.isHomeScreenActive</attribute>
+        </xpath>
+        <xpath expr="//DropdownItem[@onSelected=&quot;() =&gt; this.onNavBarDropdownItemSelection(currentApp)&quot;]" position="attributes">
+            <attribute name="t-if">!this.ui.isSmall and currentApp and !state.isHomeScreenActive</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='web.NavBar.SectionsMenu']" position="attributes">
+            <attribute name="t-if">currentAppSections.length and !state.isHomeScreenActive</attribute>
+        </xpath>
+        <xpath expr="//t[@t-foreach='systrayItems']" position="attributes">
+            <attribute name="t-if">!state.isHomeScreenActive or isSystrayAllowedOnHome(item.key)</attribute>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_home_menu.HomeScreen">
+        <div class="o_home_menu d-flex flex-column align-items-center">
+            <div class="o_home_menu_search my-4 w-100">
+                <input type="text"
+                       class="form-control o_home_menu_search_input mx-auto"
+                       placeholder="Search apps..."
+                       t-att-value="state.searchTerm"
+                       t-on-input="onSearchInput"
+                       autofocus="autofocus"/>
+            </div>
+            <div class="o_home_menu_apps d-flex flex-wrap justify-content-center">
+                <t t-foreach="apps" t-as="app" t-key="app.id">
+                    <div class="o_home_menu_app d-flex flex-column align-items-center"
+                         t-att-data-menu-xmlid="app.xmlid"
+                         t-on-click="() => this.openApp(app)">
+                        <img t-if="app.webIconData" class="o_home_menu_app_icon" t-att-src="app.webIconData"/>
+                        <i t-else="" class="o_home_menu_app_icon o_home_menu_app_icon_fallback oi oi-apps"/>
+                        <span class="o_home_menu_app_name text-center"><t t-esc="app.name"/></span>
+                    </div>
+                </t>
+                <p t-if="!apps.length" class="text-muted mt-4">No apps match your search.</p>
+            </div>
+        </div>
+    </t>
+
+</templates>
