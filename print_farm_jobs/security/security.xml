@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Module Category ───────────────────────────────────────────────────
+         Required by res.groups.privilege so the user form widget renders the
+         Print Farm privilege as a categorised dropdown row.
+         visible=False keeps it out of the Apps module category filter.
+    -->
+    <record id="module_category_print_farm" model="ir.module.category">
+        <field name="name">Print Farm</field>
+        <field name="sequence">80</field>
+        <field name="visible" eval="False"/>
+    </record>
+
+    <!-- ─── Privilege ─────────────────────────────────────────────────────────
+         A single privilege record causes the three groups below to render as
+         one dropdown row (labelled "Print Farm") inside the res_user_group_ids
+         widget on the Access Rights tab, positioned above Extra Rights.
+    -->
+    <record id="privilege_print_farm" model="res.groups.privilege">
+        <field name="name">Print Farm</field>
+        <field name="category_id" ref="module_category_print_farm"/>
+        <field name="sequence">10</field>
+        <field name="placeholder">No access</field>
+    </record>
+
+    <!-- ─── Print Farm / User ─────────────────────────────────────────────────
+         Full access: Print Jobs, Spools.
+         Read-only:   Filament Catalogue, Printers.
+    -->
+    <record id="group_print_farm_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="privilege_id" ref="privilege_print_farm"/>
+        <field name="sequence">10</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- ─── Print Farm / Manager ──────────────────────────────────────────────
+         Inherits User permissions.
+         Adds full access: Restock Orders, Printer file browser.
+    -->
+    <record id="group_print_farm_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="privilege_id" ref="privilege_print_farm"/>
+        <field name="sequence">20</field>
+        <field name="implied_ids" eval="[(4, ref('group_print_farm_user'))]"/>
+    </record>
+
+    <!-- ─── Print Farm / Administrator ───────────────────────────────────────
+         Inherits Manager (and transitively User) permissions.
+         Adds full access: Printers, Filament Catalogue, Printer Slots,
+         Bambu Cloud authentication wizard, Settings menu.
+    -->
+    <record id="group_print_farm_administrator" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_print_farm"/>
+        <field name="sequence">30</field>
+        <field name="implied_ids" eval="[(4, ref('group_print_farm_manager'))]"/>
+    </record>
+
+</odoo>

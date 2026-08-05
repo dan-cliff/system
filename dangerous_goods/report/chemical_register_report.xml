@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ REPORT ACTION ══════════════════════════════════════════════ -->
+    <record id="action_report_chemical_register" model="ir.actions.report">
+        <field name="name">Chemical Register</field>
+        <field name="model">dg.chemical</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dangerous_goods.report_chemical_register_document</field>
+        <field name="report_file">dangerous_goods.report_chemical_register_document</field>
+        <field name="print_report_name">'Chemical Register - %s' % (object.product_name)</field>
+        <field name="binding_model_id" ref="model_dg_chemical"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══ SHARED STYLES ══════════════════════════════════════════════ -->
+    <template id="report_chemical_styles">
+        <style>
+            .dg-header { margin-bottom: 16px; border-bottom: 3px solid #1a5276; padding-bottom: 8px; }
+            .dg-title { font-size: 14pt; font-weight: 700; color: #1a5276; }
+            .dg-ref { font-size: 9pt; color: #666; }
+            .dg-section { margin-bottom: 14px; }
+            .dg-section-title {
+                font-size: 9.5pt; font-weight: 700; color: #fff;
+                background: #1a5276; padding: 3px 8px;
+                margin-bottom: 5px; border-radius: 2px;
+            }
+            .dg-section-title.green { background: #1e8449; }
+            .dg-section-title.orange { background: #b7770d; }
+            .dg-section-title.red { background: #922b21; }
+            .dg-kv { width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 8pt; }
+            .dg-kv th {
+                width: 26%; font-weight: 600; color: #555;
+                vertical-align: top; padding: 2px 6px;
+                border-bottom: 1px solid #e8e8e8; background: #f5f6fa;
+            }
+            .dg-kv td {
+                vertical-align: top; padding: 2px 6px;
+                border-bottom: 1px solid #e8e8e8;
+            }
+            .dg-kv tr:last-child th, .dg-kv tr:last-child td { border-bottom: none; }
+            .dg-text {
+                font-size: 8pt; white-space: pre-wrap;
+                padding: 4px 6px; background: #f5f6fa;
+                border-left: 3px solid #dee2e6; border-radius: 2px;
+                margin-bottom: 6px;
+            }
+            .dg-table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-bottom: 8px; }
+            .dg-table th {
+                background: #1a5276; color: #fff;
+                padding: 3px 6px; text-align: left; font-size: 7.5pt;
+            }
+            .dg-table td { padding: 2px 6px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+            .dg-table tr:nth-child(even) td { background: #f5f6fa; }
+            .badge-danger { color: #fff; background: #c0392b; padding: 1px 7px; border-radius: 10px; font-size: 8pt; font-weight: 700; }
+            .badge-warning { color: #333; background: #f39c12; padding: 1px 7px; border-radius: 10px; font-size: 8pt; font-weight: 700; }
+            .badge-success { color: #fff; background: #1e8449; padding: 1px 7px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-info { color: #fff; background: #1a5276; padding: 1px 7px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-muted { color: #fff; background: #7f8c8d; padding: 1px 7px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-overdue { color: #fff; background: #c0392b; padding: 1px 7px; border-radius: 10px; font-size: 7.5pt; font-weight: 700; }
+            .dg-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+            .dg-tag { background: #e8f4f8; color: #1a5276; padding: 1px 8px; border-radius: 10px; font-size: 7.5pt; border: 1px solid #aed6f1; }
+            .dg-yes { color: #1e8449; font-weight: 600; }
+            .dg-no { color: #aaa; }
+            .dg-footer { font-size: 7pt; color: #999; border-top: 1px solid #ddd; margin-top: 20px; padding-top: 6px; }
+            .page-break { page-break-after: always; }
+        </style>
+    </template>
+
+    <!-- ══ MAIN DOCUMENT ══════════════════════════════════════════════ -->
+    <template id="report_chemical_register_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-call="dangerous_goods.report_chemical_styles"/>
+                    <div class="page">
+
+                        <!-- HEADER -->
+                        <div class="dg-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="dg-title"><t t-esc="o.product_name"/></div>
+                                    <div class="dg-ref">
+                                        <span>Ref: <t t-esc="o.name"/></span>
+                                        <span style="margin-left:12px;">
+                                            Status:
+                                            <t t-if="o.state == 'active'"><span class="badge-success"><t t-esc="o.stage_id.name"/></span></t>
+                                            <t t-elif="o.state == 'review'"><span class="badge-warning"><t t-esc="o.stage_id.name"/></span></t>
+                                            <t t-else=""><span class="badge-muted"><t t-esc="o.stage_id.name"/></span></t>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <t t-if="o.ghs_signal_word == 'danger'">
+                                        <span class="badge-danger" style="font-size:12pt;">&#9888; DANGER</span>
+                                    </t>
+                                    <t t-elif="o.ghs_signal_word == 'warning'">
+                                        <span class="badge-warning" style="font-size:12pt;">&#9888; WARNING</span>
+                                    </t>
+                                    <t t-if="o.sds_overdue">
+                                        <br/><span class="badge-overdue">SDS REVIEW OVERDUE</span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 1: CHEMICAL IDENTIFICATION -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">1. Chemical Identification</div>
+                            <table class="dg-kv">
+                                <tr><th>Product Name</th><td><t t-esc="o.product_name"/></td></tr>
+                                <tr t-if="o.chemical_name"><th>Chemical Name</th><td><t t-esc="o.chemical_name"/></td></tr>
+                                <tr t-if="o.trade_name"><th>Trade / Brand Name</th><td><t t-esc="o.trade_name"/></td></tr>
+                                <tr t-if="o.cas_number"><th>CAS Number</th><td><t t-esc="o.cas_number"/></td></tr>
+                                <tr t-if="o.un_number"><th>UN Number</th><td><t t-esc="o.un_number"/></td></tr>
+                                <tr t-if="o.physical_state"><th>Physical State</th><td><t t-esc="dict(o._fields['physical_state'].selection).get(o.physical_state)"/></td></tr>
+                                <tr t-if="o.colour"><th>Colour / Appearance</th><td><t t-esc="o.colour"/></td></tr>
+                                <tr t-if="o.odour"><th>Odour</th><td><t t-esc="o.odour"/></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 2: SUPPLIER -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">2. Supplier / Manufacturer</div>
+                            <table class="dg-kv">
+                                <tr t-if="o.supplier_id"><th>Supplier / Manufacturer</th><td><t t-esc="o.supplier_id.name"/></td></tr>
+                                <tr t-if="o.supplier_address"><th>Address</th><td><t t-esc="o.supplier_address"/></td></tr>
+                                <tr t-if="o.supplier_emergency_contact"><th>24-Hour Emergency Phone</th><td><strong><t t-esc="o.supplier_emergency_contact"/></strong></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 3: GHS CLASSIFICATION -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">3. GHS Classification (GHS Rev 8)</div>
+                            <table class="dg-kv">
+                                <tr>
+                                    <th>Signal Word</th>
+                                    <td>
+                                        <t t-if="o.ghs_signal_word == 'danger'"><span class="badge-danger">DANGER</span></t>
+                                        <t t-elif="o.ghs_signal_word == 'warning'"><span class="badge-warning">WARNING</span></t>
+                                        <t t-else="">No signal word</t>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.ghs_pictogram_ids">
+                                    <th>Pictograms</th>
+                                    <td>
+                                        <div class="dg-tags">
+                                            <t t-foreach="o.ghs_pictogram_ids" t-as="p">
+                                                <span class="dg-tag"><t t-esc="p.code"/> — <t t-esc="p.name"/></span>
+                                            </t>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.ghs_hazard_class_ids">
+                                    <th>Hazard Classes</th>
+                                    <td>
+                                        <div class="dg-tags">
+                                            <t t-foreach="o.ghs_hazard_class_ids" t-as="hc">
+                                                <span class="dg-tag"><t t-esc="hc.code"/> — <t t-esc="hc.name"/></span>
+                                            </t>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <t t-if="o.ghs_hazard_statement_ids">
+                                <p style="font-weight:600; font-size:8pt; margin:4px 0 2px 0;">Hazard Statements (H-codes):</p>
+                                <table class="dg-table">
+                                    <tr><th style="width:10%">Code</th><th>Statement</th></tr>
+                                    <t t-foreach="o.ghs_hazard_statement_ids" t-as="hs">
+                                        <tr><td><t t-esc="hs.code"/></td><td><t t-esc="hs.statement"/></td></tr>
+                                    </t>
+                                </table>
+                            </t>
+                            <t t-if="o.ghs_precautionary_statement_ids">
+                                <p style="font-weight:600; font-size:8pt; margin:4px 0 2px 0;">Precautionary Statements (P-codes):</p>
+                                <table class="dg-table">
+                                    <tr><th style="width:10%">Code</th><th style="width:15%">Category</th><th>Statement</th></tr>
+                                    <t t-foreach="o.ghs_precautionary_statement_ids" t-as="ps">
+                                        <tr>
+                                            <td><t t-esc="ps.code"/></td>
+                                            <td><t t-esc="dict(ps._fields['category'].selection).get(ps.category) if ps.category else ''"/></td>
+                                            <td><t t-esc="ps.statement"/></td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </t>
+                            <t t-if="o.carcinogen or o.mutagen or o.reproductive_toxicant">
+                                <table class="dg-kv">
+                                    <tr t-if="o.carcinogen">
+                                        <th>Carcinogen</th>
+                                        <td><span class="dg-yes">YES</span>
+                                            <t t-if="o.carcinogen_classification"> — <t t-esc="o.carcinogen_classification"/></t>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="o.mutagen"><th>Mutagen</th><td><span class="dg-yes">YES</span></td></tr>
+                                    <tr t-if="o.reproductive_toxicant"><th>Reproductive Toxicant</th><td><span class="dg-yes">YES</span></td></tr>
+                                </table>
+                            </t>
+                        </div>
+
+                        <!-- SECTION 4: AUSTRALIAN COMPLIANCE -->
+                        <div class="dg-section">
+                            <div class="dg-section-title orange">4. Australian Compliance</div>
+                            <table class="dg-kv">
+                                <tr t-if="o.adg_class_id"><th>ADG Transport Class</th><td><t t-esc="o.adg_class_id.code"/> — <t t-esc="o.adg_class_id.name"/></td></tr>
+                                <tr t-if="o.storage_class_id"><th>DG Storage Class (AS 3833)</th><td><t t-esc="o.storage_class_id.code"/> — <t t-esc="o.storage_class_id.name"/></td></tr>
+                                <tr t-if="o.packing_group"><th>Packing Group</th><td><t t-esc="dict(o._fields['packing_group'].selection).get(o.packing_group)"/></td></tr>
+                                <tr>
+                                    <th>Scheduled Substance</th>
+                                    <td>
+                                        <t t-if="o.scheduled_substance"><span class="dg-yes">YES</span><t t-if="o.schedule_number"> — <t t-esc="o.schedule_number"/></t></t>
+                                        <t t-else=""><span class="dg-no">No</span></t>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Prohibited Substance</th>
+                                    <td>
+                                        <t t-if="o.prohibited_substance"><span class="badge-danger">PROHIBITED</span><t t-if="o.prohibited_reason"> — <t t-esc="o.prohibited_reason"/></t></t>
+                                        <t t-else=""><span class="dg-no">No</span></t>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Manifest Quantity</th>
+                                    <td>
+                                        <t t-if="o.manifest_quantity"><span class="badge-danger">EXCEEDS MANIFEST QUANTITY</span></t>
+                                        <t t-else=""><span class="dg-no">No</span></t>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.workplace_exposure_standard"><th>Workplace Exposure Standard</th><td><t t-esc="o.workplace_exposure_standard"/></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 5: SDS INFO -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">5. Safety Data Sheet (SDS)</div>
+                            <table class="dg-kv">
+                                <tr t-if="o.sds_version"><th>SDS Version</th><td><t t-esc="o.sds_version"/></td></tr>
+                                <tr t-if="o.sds_issue_date"><th>Issue Date</th><td><t t-esc="o.sds_issue_date"/></td></tr>
+                                <tr>
+                                    <th>Review Date</th>
+                                    <td>
+                                        <t t-esc="o.sds_review_date or 'Not set'"/>
+                                        <t t-if="o.sds_overdue"><span class="badge-overdue" style="margin-left:8px;">OVERDUE</span></t>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 6: STORAGE & QUANTITIES -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">6. Storage &amp; Quantities</div>
+                            <table class="dg-kv">
+                                <tr t-if="o.building_id"><th>Building / Site</th><td><t t-esc="o.building_id.name"/></td></tr>
+                                <tr t-if="o.storage_location_ids">
+                                    <th>Storage Locations</th>
+                                    <td>
+                                        <div class="dg-tags">
+                                            <t t-foreach="o.storage_location_ids" t-as="sl">
+                                                <span class="dg-tag"><t t-esc="sl.name"/></span>
+                                            </t>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.quantity_on_hand"><th>Quantity on Hand</th><td><t t-esc="o.quantity_on_hand"/> <t t-esc="o.quantity_uom"/></td></tr>
+                                <tr t-if="o.max_quantity"><th>Maximum Quantity</th><td><t t-esc="o.max_quantity"/> <t t-esc="o.quantity_uom"/></td></tr>
+                                <tr t-if="o.container_type"><th>Container / Packaging</th><td><t t-esc="o.container_type"/></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 7: SAFETY CONTROLS -->
+                        <div class="dg-section">
+                            <div class="dg-section-title">7. Safety Controls</div>
+                            <t t-if="o.ppe_ids">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Required PPE:</p>
+                                <div class="dg-tags" style="margin-bottom:6px;">
+                                    <t t-foreach="o.ppe_ids" t-as="ppe">
+                                        <span class="dg-tag"><t t-esc="ppe.name"/></span>
+                                    </t>
+                                </div>
+                            </t>
+                            <t t-if="o.engineering_controls">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Engineering Controls:</p>
+                                <div class="dg-text"><t t-esc="o.engineering_controls"/></div>
+                            </t>
+                            <t t-if="o.administrative_controls">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Administrative Controls:</p>
+                                <div class="dg-text"><t t-esc="o.administrative_controls"/></div>
+                            </t>
+                            <t t-if="o.first_aid_measures">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">First Aid Measures:</p>
+                                <div class="dg-text"><t t-esc="o.first_aid_measures"/></div>
+                            </t>
+                            <t t-if="o.fire_fighting_measures">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Fire Fighting Measures:</p>
+                                <div class="dg-text"><t t-esc="o.fire_fighting_measures"/></div>
+                            </t>
+                            <t t-if="o.spill_procedures">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Spill / Accidental Release:</p>
+                                <div class="dg-text"><t t-esc="o.spill_procedures"/></div>
+                            </t>
+                            <t t-if="o.emergency_procedures">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Emergency Procedures:</p>
+                                <div class="dg-text"><t t-esc="o.emergency_procedures"/></div>
+                            </t>
+                            <t t-if="o.disposal_methods">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Disposal Methods:</p>
+                                <div class="dg-text"><t t-esc="o.disposal_methods"/></div>
+                            </t>
+                            <t t-if="o.incompatible_materials">
+                                <p style="font-weight:600; font-size:8pt; margin:3px 0;">Incompatible Materials:</p>
+                                <div class="dg-text"><t t-esc="o.incompatible_materials"/></div>
+                            </t>
+                        </div>
+
+                        <!-- FOOTER -->
+                        <div class="dg-footer">
+                            <t t-if="o.responsible_person_id">Responsible Person: <t t-esc="o.responsible_person_id.name"/> — </t>
+                            Printed: <span class="o_report_date"><t t-esc="datetime.date.today()"/></span> —
+                            Reference: <t t-esc="o.name"/> —
+                            This document is generated from the Dangerous Goods &amp; Hazardous Substances Register. Always refer to the current Safety Data Sheet before use.
+                        </div>
+
+                    </div>
+                </t>
+                <t t-if="not o_last">
+                    <p style="page-break-after:always;"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

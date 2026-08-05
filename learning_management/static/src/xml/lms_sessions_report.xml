@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="learning_management.LmsSessionsReport">
+        <div class="lms-sess-root d-flex flex-column">
+
+            <!-- ══ Row 1: primary filters ════════════════════════════════════ -->
+            <div class="lms-sess-controls d-flex align-items-center flex-wrap gap-2 px-3 py-2 border-bottom bg-view flex-shrink-0">
+
+                <span class="fw-semibold me-1">
+                    <i class="fa fa-calendar me-2 text-muted"/>Training Sessions
+                </span>
+
+                <!-- Course -->
+                <select class="form-select form-select-sm lms-sess-select lms-sess-select-lg"
+                        t-on-change="onCourseChange">
+                    <option value="">All Courses</option>
+                    <t t-foreach="state.allCourses" t-as="c" t-key="c.id">
+                        <option t-att-value="c.id"
+                                t-att-selected="state.courseFilter == c.id"
+                                t-esc="c.name"/>
+                    </t>
+                </select>
+
+                <!-- Instructor / Facilitator -->
+                <select class="form-select form-select-sm lms-sess-select lms-sess-select-lg"
+                        t-on-change="onInstructorChange">
+                    <option value="">All Instructors</option>
+                    <t t-foreach="state.allInstructors" t-as="i" t-key="i.id">
+                        <option t-att-value="i.id"
+                                t-att-selected="state.instructorFilter == i.id"
+                                t-esc="i.name"/>
+                    </t>
+                </select>
+
+                <!-- Status -->
+                <select class="form-select form-select-sm lms-sess-select"
+                        t-on-change="onStatusChange">
+                    <t t-foreach="sessionStatuses" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.statusFilter === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+
+                <!-- Self-Enrolment -->
+                <select class="form-select form-select-sm lms-sess-select"
+                        t-on-change="onSelfEnrolChange">
+                    <t t-foreach="selfEnrolOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.selfEnrolFilter === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+
+                <span class="lms-sess-divider"/>
+
+                <!-- Export PDF -->
+                <button class="btn btn-sm btn-outline-secondary"
+                        t-on-click="() => this.exportPdf()"
+                        t-att-disabled="state.loading"
+                        title="Export to PDF (landscape A4)">
+                    <i class="fa fa-file-pdf-o me-1"/>Export PDF
+                </button>
+
+                <!-- Export Excel -->
+                <button class="btn btn-sm btn-outline-success"
+                        t-on-click="() => this.exportExcel()"
+                        t-att-disabled="state.loading"
+                        title="Export to Excel">
+                    <i class="fa fa-file-excel-o me-1"/>Export Excel
+                </button>
+
+                <!-- Summary pills -->
+                <t t-if="!state.loading">
+                    <span class="ms-auto d-flex align-items-center gap-2 text-muted small">
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+                            <t t-esc="stats.total"/> sessions
+                        </span>
+                        <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">
+                            <t t-esc="stats.upcoming"/> upcoming
+                        </span>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                            <t t-esc="stats.full"/> full
+                        </span>
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                            <t t-esc="stats.completed"/> completed
+                        </span>
+                    </span>
+                </t>
+            </div>
+
+            <!-- ══ Row 2: start date filter ══════════════════════════════════ -->
+            <div class="lms-sess-date-bar d-flex align-items-center flex-wrap gap-2 px-3 py-2 border-bottom flex-shrink-0">
+
+                <span class="lms-sess-date-label">Start Date:</span>
+
+                <select class="form-select form-select-sm lms-sess-select"
+                        t-on-change="onStartDateOptionChange">
+                    <t t-foreach="startDateOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.startDateOption === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+
+                <t t-if="state.startDateOption === 'custom'">
+                    <input type="date" class="form-control form-control-sm lms-sess-date-input"
+                           t-att-value="state.startDateFrom"
+                           t-on-change="onStartDateFromChange"
+                           placeholder="From"/>
+                    <span class="text-muted">—</span>
+                    <input type="date" class="form-control form-control-sm lms-sess-date-input"
+                           t-att-value="state.startDateTo"
+                           t-on-change="onStartDateToChange"
+                           placeholder="To"/>
+                </t>
+            </div>
+
+            <!-- ══ Table area ════════════════════════════════════════════════ -->
+            <div class="lms-sess-scroll-wrap flex-grow-1">
+
+                <!-- Loading -->
+                <t t-if="state.loading">
+                    <div class="lms-sess-loading d-flex align-items-center justify-content-center">
+                        <div class="spinner-border text-primary me-3" role="status"/>
+                        <span class="text-muted">Loading sessions…</span>
+                    </div>
+                </t>
+
+                <!-- Empty -->
+                <t t-elif="state.records.length === 0">
+                    <div class="lms-sess-empty d-flex flex-column align-items-center justify-content-center text-muted">
+                        <i class="fa fa-calendar-o fa-3x mb-3 opacity-25"/>
+                        <p class="mb-0">No sessions match the current filters.</p>
+                    </div>
+                </t>
+
+                <!-- Table -->
+                <t t-else="">
+                    <table class="lms-sess-table table table-sm table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Session Name</th>
+                                <th>Course</th>
+                                <th class="text-center">Start Date &amp; Time</th>
+                                <th class="text-center">End Date &amp; Time</th>
+                                <th>Location / Venue</th>
+                                <th>Instructor / Facilitator</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Max</th>
+                                <th class="text-center">Enrolled</th>
+                                <th class="text-center">Available</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.records" t-as="rec" t-key="rec.id">
+                                <tr class="lms-sess-row" t-on-click="() => this.openRecord(rec)">
+                                    <td class="lms-sess-name fw-medium">
+                                        <t t-esc="rec.name"/>
+                                    </td>
+                                    <td>
+                                        <a class="lms-sess-link"
+                                           t-on-click="(ev) => this.openCourse(ev, rec)">
+                                            <t t-esc="rec.course_name"/>
+                                        </a>
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <t t-esc="this.formatDateTime(rec.date_start)"/>
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <t t-esc="this.formatDateTime(rec.date_end)"/>
+                                    </td>
+                                    <td><t t-esc="rec.location"/></td>
+                                    <td><t t-esc="rec.instructor"/></td>
+                                    <td class="text-center">
+                                        <span t-att-class="'badge lms-sess-state-badge ' + this.stateClass(rec.state)">
+                                            <t t-esc="this.stateLabel(rec.state)"/>
+                                        </span>
+                                    </td>
+                                    <td class="text-center"><t t-esc="rec.max_capacity"/></td>
+                                    <td class="text-center"><t t-esc="rec.enrolled_count"/></td>
+                                    <td t-att-class="'text-center ' + (rec.available_seats === 0 ? 'lms-sess-no-seats' : rec.available_seats &lt;= 3 ? 'lms-sess-few-seats' : '')">
+                                        <t t-esc="rec.available_seats"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

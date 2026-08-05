@@ -1,0 +1,1180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         REPORT ACTION
+         ══════════════════════════════════════════════════════════════ -->
+    <record id="action_report_incident_full" model="ir.actions.report">
+        <field name="name">Incident Report</field>
+        <field name="model">incident.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">incident_management.report_incident_full_document</field>
+        <field name="report_file">incident_management.report_incident_full_document</field>
+        <field name="print_report_name">'Incident Report - %s' % object.incident_id.name</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         SHARED STYLES
+         ══════════════════════════════════════════════════════════════ -->
+    <template id="report_incident_styles">
+        <style>
+            .inc-section { margin-bottom: 18px; }
+            .inc-section-title {
+                font-size: 10pt; font-weight: 700; color: #fff;
+                background: #2c3e50; padding: 4px 10px;
+                margin-bottom: 6px; border-radius: 3px;
+            }
+            .inc-section-title.cat { background: #1a6a8a; }
+            .inc-kv { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+            .inc-kv th {
+                width: 28%; font-size: 8pt; font-weight: 600;
+                color: #555; vertical-align: top;
+                padding: 3px 6px; border-bottom: 1px solid #e8e8e8;
+                background: #f8f9fa;
+            }
+            .inc-kv td {
+                font-size: 8.5pt; vertical-align: top;
+                padding: 3px 6px; border-bottom: 1px solid #e8e8e8;
+            }
+            .inc-kv tr:last-child th,
+            .inc-kv tr:last-child td { border-bottom: none; }
+            .inc-label {
+                font-size: 8pt; font-weight: 600; color: #555;
+                margin: 6px 0 2px 0;
+            }
+            .inc-text {
+                font-size: 8.5pt; white-space: pre-wrap;
+                margin: 0 0 8px 0; padding: 4px 6px;
+                background: #f8f9fa; border-radius: 2px;
+                border-left: 3px solid #dee2e6;
+            }
+            .inc-table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-bottom: 8px; }
+            .inc-table th {
+                background: #34495e; color: #fff; font-weight: 600;
+                padding: 4px 6px; text-align: left;
+            }
+            .inc-table td { padding: 3px 6px; border-bottom: 1px solid #e8e8e8; vertical-align: top; }
+            .inc-table tr:nth-child(even) td { background: #f8f9fa; }
+            .inc-table tr.root-cause td { background: #fff3cd; }
+            .inc-table tr.action-done td { background: #d4edda; }
+            .inc-table tr.action-overdue td { background: #f8d7da; }
+            .badge-sev-low { color: #155724; background: #d4edda; padding: 1px 6px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-sev-medium { color: #856404; background: #fff3cd; padding: 1px 6px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-sev-high { color: #721c24; background: #f8d7da; padding: 1px 6px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-sev-critical { color: #fff; background: #721c24; padding: 1px 6px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-state { color: #fff; background: #6c757d; padding: 1px 6px; border-radius: 10px; font-size: 7.5pt; }
+            .badge-confidential { color: #fff; background: #dc3545; padding: 1px 8px; border-radius: 10px; font-size: 8pt; font-weight: 700; }
+            .badge-near-miss { color: #fff; background: #fd7e14; padding: 1px 6px; border-radius: 10px; font-size: 7.5pt; }
+            .inc-yes { color: #155724; font-weight: 600; }
+            .inc-no { color: #6c757d; }
+            .priority-0::before { content: '● '; color: #6c757d; }
+            .priority-1::before { content: '● '; color: #ffc107; }
+            .priority-2::before { content: '● '; color: #fd7e14; }
+            .priority-3::before { content: '● '; color: #dc3545; }
+        </style>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         MAIN DOCUMENT TEMPLATE
+         ══════════════════════════════════════════════════════════════ -->
+    <template id="report_incident_full_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="case" t-value="o.incident_id"/>
+                <t t-call="web.external_layout">
+                    <t t-call="incident_management.report_incident_styles"/>
+
+                    <!-- ── COVER HEADER ───────────────────────────────── -->
+                    <div style="margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #2c3e50;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="font-size: 14pt; font-weight: 700; color: #2c3e50;">
+                                    Incident Report
+                                </div>
+                                <div style="font-size: 10pt; color: #555; margin-top: 2px;">
+                                    <t t-esc="case.name"/>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <t t-if="case.is_confidential">
+                                    <span class="badge-confidential">🔒 CONFIDENTIAL</span><br/>
+                                </t>
+                                <t t-if="case.near_miss">
+                                    <span class="badge-near-miss">⚠ NEAR MISS</span><br/>
+                                </t>
+                                <t t-if="case.severity == 'low'"><span class="badge-sev-low">Low Severity</span></t>
+                                <t t-elif="case.severity == 'medium'"><span class="badge-sev-medium">Medium Severity</span></t>
+                                <t t-elif="case.severity == 'high'"><span class="badge-sev-high">High Severity</span></t>
+                                <t t-elif="case.severity == 'critical'"><span class="badge-sev-critical">Critical Severity</span></t>
+                                <div style="margin-top: 4px; font-size: 8pt; color: #6c757d;">
+                                    <span t-field="case.date_occurred" t-options='{"widget": "datetime"}'/>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Category badges -->
+                        <div style="margin-top: 6px;">
+                            <t t-foreach="case.incident_type_ids" t-as="cat">
+                                <span style="display: inline-block; background: #1a6a8a; color: #fff; padding: 1px 8px; border-radius: 10px; font-size: 7.5pt; margin-right: 4px; margin-bottom: 2px;">
+                                    <t t-esc="cat.name"/>
+                                </span>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- ════════════════════════════════════════════════
+                         SECTION 1 — INCIDENT REPORT
+                         ════════════════════════════════════════════════ -->
+                    <t t-if="o.include_report">
+
+                        <!-- Reporter & People -->
+                        <div class="inc-section">
+                            <div class="inc-section-title">Reporter &amp; People Involved</div>
+                            <table class="inc-kv">
+                                <tr>
+                                    <th>Reported By</th>
+                                    <td><span t-field="case.reporter_id"/></td>
+                                    <th>Contact Number</th>
+                                    <td><t t-esc="case.reporter_phone or '—'"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Employee Involved</th>
+                                    <td><span t-field="case.employee_id"/></td>
+                                    <th>Department</th>
+                                    <td><span t-field="case.department_id"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Job Title / Role</th>
+                                    <td><t t-esc="case.job_title or '—'"/></td>
+                                    <th>Person Type</th>
+                                    <td><span t-field="case.person_type"/></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Incident Core -->
+                        <div class="inc-section">
+                            <div class="inc-section-title">Incident Details</div>
+                            <table class="inc-kv">
+                                <tr>
+                                    <th>Date &amp; Time of Incident</th>
+                                    <td><span t-field="case.date_occurred" t-options='{"widget": "datetime"}'/></td>
+                                    <th>Date Reported</th>
+                                    <td><span t-field="case.date_reported" t-options='{"widget": "datetime"}'/></td>
+                                </tr>
+                                <tr>
+                                    <th>Site / Location</th>
+                                    <td><t t-esc="case.location or '—'"/></td>
+                                    <th>Exact Location / Area</th>
+                                    <td><t t-esc="case.exact_location or '—'"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td><span t-field="case.state"/></td>
+                                    <th>Near Miss</th>
+                                    <td>
+                                        <t t-if="case.near_miss"><span class="inc-yes">Yes</span></t>
+                                        <t t-else=""><span class="inc-no">No</span></t>
+                                    </td>
+                                </tr>
+                                <t t-if="case.responsible_manager_id">
+                                    <tr>
+                                        <th>Responsible Manager</th>
+                                        <td><span t-field="case.responsible_manager_id"/></td>
+                                        <th>Date Assigned</th>
+                                        <td>
+                                            <t t-if="case.date_assigned">
+                                                <span t-field="case.date_assigned" t-options='{"widget": "datetime"}'/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </table>
+                            <t t-if="case.description">
+                                <div class="inc-label">Incident Description</div>
+                                <div class="inc-text"><t t-esc="case.description"/></div>
+                            </t>
+                            <t t-if="case.immediate_action_taken">
+                                <div class="inc-label">Immediate Actions Taken</div>
+                                <div class="inc-text"><t t-esc="case.immediate_action_taken"/></div>
+                            </t>
+                            <t t-if="case.witnesses">
+                                <div class="inc-label">Witnesses</div>
+                                <div class="inc-text"><t t-esc="case.witnesses"/></div>
+                            </t>
+                            <t t-if="case.assignment_note">
+                                <div class="inc-label">Assignment Note</div>
+                                <div class="inc-text"><t t-esc="case.assignment_note"/></div>
+                            </t>
+                        </div>
+
+                        <!-- ── INJURY ─────────────────────────────────── -->
+                        <t t-if="case.is_injury">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Injury Details</div>
+                                <table class="inc-kv">
+                                    <t t-if="case.injury_body_parts_display">
+                                        <tr>
+                                            <th>Body Parts Affected</th>
+                                            <td colspan="3"><t t-esc="case.injury_body_parts_display"/></td>
+                                        </tr>
+                                    </t>
+                                    <tr>
+                                        <th>Nature of Injury</th>
+                                        <td><span t-field="case.injury_nature"/></td>
+                                        <th>Mechanism of Injury</th>
+                                        <td><span t-field="case.injury_mechanism"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Treatment Received</th>
+                                        <td><span t-field="case.injury_treatment"/></td>
+                                        <th>Lost Time Injury</th>
+                                        <td>
+                                            <t t-if="case.injury_lost_time"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="case.injury_lost_time">
+                                        <tr>
+                                            <th>Days Lost</th>
+                                            <td><t t-esc="case.injury_days_lost"/></td>
+                                            <th>Return-to-Work Date</th>
+                                            <td>
+                                                <t t-if="case.injury_return_date">
+                                                    <span t-field="case.injury_return_date" t-options='{"widget": "date"}'/>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr>
+                                        <th>Restricted / Modified Duties</th>
+                                        <td>
+                                            <t t-if="case.injury_restricted_duties"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Notifiable Incident</th>
+                                        <td>
+                                            <t t-if="case.injury_notifiable"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="case.injury_notifiable">
+                                        <tr>
+                                            <th>Regulator Notified</th>
+                                            <td>
+                                                <t t-if="case.injury_regulator_notified"><span class="inc-yes">Yes</span></t>
+                                                <t t-else=""><span class="inc-no">No</span></t>
+                                            </td>
+                                            <th>Notification Date</th>
+                                            <td>
+                                                <t t-if="case.injury_notification_date">
+                                                    <span t-field="case.injury_notification_date" t-options='{"widget": "date"}'/>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </table>
+                                <t t-if="case.injury_medical_officer">
+                                    <div class="inc-label">Treating Medical Officer / Facility</div>
+                                    <div class="inc-text"><t t-esc="case.injury_medical_officer"/></div>
+                                </t>
+                                <t t-if="case.injury_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.injury_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── ILLNESS ────────────────────────────────── -->
+                        <t t-if="case.is_illness">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Illness Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Type of Illness</th>
+                                        <td><span t-field="case.illness_type"/></td>
+                                        <th>Date of Onset</th>
+                                        <td>
+                                            <t t-if="case.illness_onset_date">
+                                                <span t-field="case.illness_onset_date" t-options='{"widget": "date"}'/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Type of Exposure / Hazard</th>
+                                        <td><t t-esc="case.illness_exposure_type or '—'"/></td>
+                                        <th>Duration of Exposure</th>
+                                        <td><t t-esc="case.illness_exposure_duration or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Treatment Received</th>
+                                        <td><span t-field="case.illness_treatment"/></td>
+                                        <th>Lost Time Due to Illness</th>
+                                        <td>
+                                            <t t-if="case.illness_lost_time"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="case.illness_lost_time">
+                                        <tr>
+                                            <th>Days Lost</th>
+                                            <td><t t-esc="case.illness_days_lost"/></td>
+                                            <th>Return-to-Work Date</th>
+                                            <td>
+                                                <t t-if="case.illness_return_date">
+                                                    <span t-field="case.illness_return_date" t-options='{"widget": "date"}'/>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr>
+                                        <th>Workers' Compensation Claim</th>
+                                        <td colspan="3">
+                                            <t t-if="case.illness_workers_comp"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.illness_symptoms">
+                                    <div class="inc-label">Symptoms Described</div>
+                                    <div class="inc-text"><t t-esc="case.illness_symptoms"/></div>
+                                </t>
+                                <t t-if="case.illness_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.illness_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── VEHICLE ────────────────────────────────── -->
+                        <t t-if="case.is_vehicle">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Vehicle Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Vehicle Registration</th>
+                                        <td><t t-esc="case.vehicle_registration or '—'"/></td>
+                                        <th>Vehicle Type</th>
+                                        <td><span t-field="case.vehicle_type"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Make / Model</th>
+                                        <td><t t-esc="case.vehicle_make_model or '—'"/></td>
+                                        <th>Vehicle Ownership</th>
+                                        <td><span t-field="case.vehicle_ownership"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Driver Name</th>
+                                        <td><t t-esc="case.vehicle_driver_name or '—'"/></td>
+                                        <th>Driver Licence Number</th>
+                                        <td><t t-esc="case.vehicle_driver_licence or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Estimated Speed (km/h)</th>
+                                        <td><t t-esc="case.vehicle_estimated_speed or '—'"/></td>
+                                        <th>Road / Surface Conditions</th>
+                                        <td><span t-field="case.vehicle_road_conditions"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Vehicle Required Towing</th>
+                                        <td>
+                                            <t t-if="case.vehicle_towed"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Third Party Involved</th>
+                                        <td>
+                                            <t t-if="case.vehicle_third_party"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Reported to Police</th>
+                                        <td>
+                                            <t t-if="case.vehicle_police_reported"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Police Event / Report Number</th>
+                                        <td><t t-esc="case.vehicle_police_report_no or '—'"/></td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.vehicle_third_party and case.vehicle_third_party_details">
+                                    <div class="inc-label">Third Party Details</div>
+                                    <div class="inc-text"><t t-esc="case.vehicle_third_party_details"/></div>
+                                </t>
+                                <t t-if="case.vehicle_damage_description">
+                                    <div class="inc-label">Vehicle / Property Damage Description</div>
+                                    <div class="inc-text"><t t-esc="case.vehicle_damage_description"/></div>
+                                </t>
+                                <t t-if="case.vehicle_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.vehicle_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── PLANT & EQUIPMENT ──────────────────────── -->
+                        <t t-if="case.is_plant_equipment">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Plant &amp; Equipment Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Equipment Name / Description</th>
+                                        <td><t t-esc="case.plant_equipment_name or '—'"/></td>
+                                        <th>Equipment ID / Asset Tag</th>
+                                        <td><t t-esc="case.plant_equipment_tag or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Equipment Type</th>
+                                        <td><span t-field="case.plant_equipment_type"/></td>
+                                        <th>Operator / User</th>
+                                        <td><t t-esc="case.plant_operator_name or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Failure / Incident Type</th>
+                                        <td><span t-field="case.plant_failure_type"/></td>
+                                        <th>Last Scheduled Maintenance</th>
+                                        <td>
+                                            <t t-if="case.plant_last_maintenance_date">
+                                                <span t-field="case.plant_last_maintenance_date" t-options='{"widget": "date"}'/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Current Inspection Certificate</th>
+                                        <td>
+                                            <t t-if="case.plant_current_certification"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Taken Out of Service</th>
+                                        <td>
+                                            <t t-if="case.plant_taken_out_of_service"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.plant_damage_description">
+                                    <div class="inc-label">Damage / Fault Description</div>
+                                    <div class="inc-text"><t t-esc="case.plant_damage_description"/></div>
+                                </t>
+                                <t t-if="case.plant_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.plant_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── DRUG & ALCOHOL ─────────────────────────── -->
+                        <t t-if="case.is_drug_alcohol">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Drug &amp; Alcohol Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Substance Suspected</th>
+                                        <td><t t-esc="case.da_substance_suspected or '—'"/></td>
+                                        <th>Workplace Test Conducted</th>
+                                        <td>
+                                            <t t-if="case.da_test_conducted"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="case.da_test_conducted">
+                                        <tr>
+                                            <th>Type of Test</th>
+                                            <td><span t-field="case.da_test_type"/></td>
+                                            <th>Test Result</th>
+                                            <td><span t-field="case.da_test_result"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Testing Officer / Agency</th>
+                                            <td colspan="3"><t t-esc="case.da_testing_officer or '—'"/></td>
+                                        </tr>
+                                    </t>
+                                    <tr>
+                                        <th>Employee Stood Down</th>
+                                        <td>
+                                            <t t-if="case.da_stood_down"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Referred to EAP</th>
+                                        <td>
+                                            <t t-if="case.da_referred_eap"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Disciplinary Process Initiated</th>
+                                        <td colspan="3">
+                                            <t t-if="case.da_disciplinary"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.da_persons_involved">
+                                    <div class="inc-label">Person(s) Involved</div>
+                                    <div class="inc-text"><t t-esc="case.da_persons_involved"/></div>
+                                </t>
+                                <t t-if="case.da_observed_behaviour">
+                                    <div class="inc-label">Observed Behaviour / Indicators</div>
+                                    <div class="inc-text"><t t-esc="case.da_observed_behaviour"/></div>
+                                </t>
+                                <t t-if="case.da_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.da_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── BUILDINGS & GROUNDS ────────────────────── -->
+                        <t t-if="case.is_buildings_grounds">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Buildings &amp; Grounds Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Building / Structure</th>
+                                        <td><t t-esc="case.bg_building or '—'"/></td>
+                                        <th>Specific Area / Zone</th>
+                                        <td><t t-esc="case.bg_area or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Damage / Incident Type</th>
+                                        <td><span t-field="case.bg_damage_type"/></td>
+                                        <th>Cause of Damage</th>
+                                        <td><t t-esc="case.bg_damage_cause or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Estimated Cost of Damage</th>
+                                        <td>
+                                            <t t-if="case.bg_estimated_cost">
+                                                $<t t-esc="'%.2f' % case.bg_estimated_cost"/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                        <th>Area Isolated / Barricaded</th>
+                                        <td>
+                                            <t t-if="case.bg_area_isolated"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Repairs Required</th>
+                                        <td>
+                                            <t t-if="case.bg_repairs_required"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Insurance Claim Required</th>
+                                        <td>
+                                            <t t-if="case.bg_insurance_claim"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.bg_area_isolated and case.bg_temporary_measures">
+                                    <div class="inc-label">Temporary / Interim Measures Taken</div>
+                                    <div class="inc-text"><t t-esc="case.bg_temporary_measures"/></div>
+                                </t>
+                                <t t-if="case.bg_repairs_required and case.bg_repair_description">
+                                    <div class="inc-label">Repairs Required — Description</div>
+                                    <div class="inc-text"><t t-esc="case.bg_repair_description"/></div>
+                                </t>
+                                <t t-if="case.bg_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.bg_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── SECURITY ───────────────────────────────── -->
+                        <t t-if="case.is_security">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Security Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Type of Security Incident</th>
+                                        <td><span t-field="case.security_breach_type"/></td>
+                                        <th>Area / Zone</th>
+                                        <td><t t-esc="case.security_area or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Police Notified</th>
+                                        <td>
+                                            <t t-if="case.security_police_notified"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Police Event / Report Number</th>
+                                        <td><t t-esc="case.security_police_report_no or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>CCTV / Security Footage Available</th>
+                                        <td>
+                                            <t t-if="case.security_footage_available"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Footage Preserved / Downloaded</th>
+                                        <td>
+                                            <t t-if="case.security_footage_preserved"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Access Rights Revoked / Changed</th>
+                                        <td colspan="3">
+                                            <t t-if="case.security_access_revoked"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.security_persons_involved">
+                                    <div class="inc-label">Description of Persons Involved</div>
+                                    <div class="inc-text"><t t-esc="case.security_persons_involved"/></div>
+                                </t>
+                                <t t-if="case.security_response_taken">
+                                    <div class="inc-label">Security Response Actions Taken</div>
+                                    <div class="inc-text"><t t-esc="case.security_response_taken"/></div>
+                                </t>
+                                <t t-if="case.security_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.security_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── THEFT ──────────────────────────────────── -->
+                        <t t-if="case.is_theft">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Theft Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Location Where Theft Occurred</th>
+                                        <td><t t-esc="case.theft_location or '—'"/></td>
+                                        <th>Estimated Value of Items</th>
+                                        <td>
+                                            <t t-if="case.theft_estimated_value">
+                                                $<t t-esc="'%.2f' % case.theft_estimated_value"/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Police Notified</th>
+                                        <td>
+                                            <t t-if="case.theft_police_notified"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Police Event / Report Number</th>
+                                        <td><t t-esc="case.theft_police_report_no or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>CCTV / Security Footage Available</th>
+                                        <td>
+                                            <t t-if="case.theft_cctv_available"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Footage Preserved / Downloaded</th>
+                                        <td>
+                                            <t t-if="case.theft_cctv_preserved"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Insurance Claim Required</th>
+                                        <td colspan="3">
+                                            <t t-if="case.theft_insurance_claim"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.theft_items_description">
+                                    <div class="inc-label">Description of Items Stolen / Missing</div>
+                                    <div class="inc-text"><t t-esc="case.theft_items_description"/></div>
+                                </t>
+                                <t t-if="case.theft_suspect_details">
+                                    <div class="inc-label">Suspect Details</div>
+                                    <div class="inc-text"><t t-esc="case.theft_suspect_details"/></div>
+                                </t>
+                                <t t-if="case.theft_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.theft_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── ENVIRONMENTAL ──────────────────────────── -->
+                        <t t-if="case.is_environmental">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Environmental Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Environmental Media Affected</th>
+                                        <td><span t-field="case.env_media_affected"/></td>
+                                        <th>Substance / Pollutant Released</th>
+                                        <td><t t-esc="case.env_substance or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Estimated Quantity Released</th>
+                                        <td><t t-esc="case.env_quantity_released or '—'"/></td>
+                                        <th>Containment Measures Taken</th>
+                                        <td>
+                                            <t t-if="case.env_containment_taken"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Cleanup / Remediation Required</th>
+                                        <td>
+                                            <t t-if="case.env_cleanup_required"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Regulatory Notification Required</th>
+                                        <td>
+                                            <t t-if="case.env_regulatory_required"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="case.env_regulatory_required">
+                                        <tr>
+                                            <th>Relevant Regulatory Body</th>
+                                            <td><t t-esc="case.env_regulatory_body or '—'"/></td>
+                                            <th>Regulatory Body Notified</th>
+                                            <td>
+                                                <t t-if="case.env_notified"><span class="inc-yes">Yes</span></t>
+                                                <t t-else=""><span class="inc-no">No</span></t>
+                                            </td>
+                                        </tr>
+                                        <t t-if="case.env_notified">
+                                            <tr>
+                                                <th>Date Notified to Regulator</th>
+                                                <td colspan="3">
+                                                    <t t-if="case.env_notification_date">
+                                                        <span t-field="case.env_notification_date" t-options='{"widget": "date"}'/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                </table>
+                                <t t-if="case.env_containment_taken and case.env_containment_description">
+                                    <div class="inc-label">Containment / Response Actions Description</div>
+                                    <div class="inc-text"><t t-esc="case.env_containment_description"/></div>
+                                </t>
+                                <t t-if="case.env_cleanup_required and case.env_cleanup_description">
+                                    <div class="inc-label">Cleanup / Remediation Plan Description</div>
+                                    <div class="inc-text"><t t-esc="case.env_cleanup_description"/></div>
+                                </t>
+                                <t t-if="case.env_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.env_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── PSYCHOSOCIAL ───────────────────────────── -->
+                        <t t-if="case.is_psychosocial">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Psychosocial Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Nature of Psychosocial Incident</th>
+                                        <td><span t-field="case.ps_incident_type"/></td>
+                                        <th>Relationship of Subject to Reporter</th>
+                                        <td><span t-field="case.ps_relationship"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Duration / Frequency</th>
+                                        <td><span t-field="case.ps_duration"/></td>
+                                        <th>Support / Action Offered</th>
+                                        <td><span t-field="case.ps_support_offered"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>EAP Referral Accepted</th>
+                                        <td>
+                                            <t t-if="case.ps_eap_referral"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>HR Notified</th>
+                                        <td>
+                                            <t t-if="case.ps_hr_notified"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Formal Complaint Lodged</th>
+                                        <td>
+                                            <t t-if="case.ps_formal_complaint"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Formal Complaint Reference</th>
+                                        <td><t t-esc="case.ps_formal_complaint_ref or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Previous Reports / Incidents</th>
+                                        <td colspan="3">
+                                            <t t-if="case.ps_prior_reports"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.ps_persons_involved">
+                                    <div class="inc-label">Person(s) Involved</div>
+                                    <div class="inc-text"><t t-esc="case.ps_persons_involved"/></div>
+                                </t>
+                                <t t-if="case.ps_impact_on_work">
+                                    <div class="inc-label">Impact on Work / Wellbeing</div>
+                                    <div class="inc-text"><t t-esc="case.ps_impact_on_work"/></div>
+                                </t>
+                                <t t-if="case.ps_prior_reports and case.ps_prior_reports_details">
+                                    <div class="inc-label">Previous Report Details</div>
+                                    <div class="inc-text"><t t-esc="case.ps_prior_reports_details"/></div>
+                                </t>
+                                <t t-if="case.ps_witness_details">
+                                    <div class="inc-label">Witness / Bystander Details</div>
+                                    <div class="inc-text"><t t-esc="case.ps_witness_details"/></div>
+                                </t>
+                                <t t-if="case.ps_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.ps_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── IT ─────────────────────────────────────── -->
+                        <t t-if="case.is_it">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Information Technology Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>IT Incident Category</th>
+                                        <td><span t-field="case.it_incident_category"/></td>
+                                        <th>IT Support Ticket Number</th>
+                                        <td><t t-esc="case.it_ticket_number or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>IT Department Notified</th>
+                                        <td>
+                                            <t t-if="case.it_department_notified"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Date / Time IT Notified</th>
+                                        <td>
+                                            <t t-if="case.it_department_notified_date">
+                                                <span t-field="case.it_department_notified_date" t-options='{"widget": "datetime"}'/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Personal / Sensitive Data Involved</th>
+                                        <td>
+                                            <t t-if="case.it_data_involved"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Regulatory Notification Required</th>
+                                        <td>
+                                            <t t-if="case.it_regulatory_notification"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <t t-if="case.it_systems_affected">
+                                    <div class="inc-label">Systems / Applications Affected</div>
+                                    <div class="inc-text"><t t-esc="case.it_systems_affected"/></div>
+                                </t>
+                                <t t-if="case.it_data_involved and case.it_data_description">
+                                    <div class="inc-label">Description of Data Involved</div>
+                                    <div class="inc-text"><t t-esc="case.it_data_description"/></div>
+                                </t>
+                                <t t-if="case.it_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.it_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── COMPLAINT ──────────────────────────────── -->
+                        <t t-if="case.is_complaint">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat">Complaint Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Complaint Type</th>
+                                        <td><span t-field="case.cmp_complaint_type"/></td>
+                                        <th>Received By</th>
+                                        <td><t t-esc="case.cmp_received_by or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date Complaint Received</th>
+                                        <td>
+                                            <t t-if="case.cmp_received_date">
+                                                <span t-field="case.cmp_received_date" t-options='{"widget": "date"}'/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                        <th>Formal Complaint Lodged</th>
+                                        <td>
+                                            <t t-if="case.cmp_formal_complaint"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="case.cmp_formal_complaint">
+                                        <tr>
+                                            <th>Formal Complaint Reference</th>
+                                            <td><t t-esc="case.cmp_formal_ref or '—'"/></td>
+                                            <th>Escalated to Management</th>
+                                            <td>
+                                                <t t-if="case.cmp_escalated"><span class="inc-yes">Yes</span></t>
+                                                <t t-else=""><span class="inc-no">No</span></t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </table>
+                                <t t-if="case.cmp_subject">
+                                    <div class="inc-label">Subject of Complaint</div>
+                                    <div class="inc-text"><t t-esc="case.cmp_subject"/></div>
+                                </t>
+                                <t t-if="case.cmp_resolution_sought">
+                                    <div class="inc-label">Resolution Sought by Complainant</div>
+                                    <div class="inc-text"><t t-esc="case.cmp_resolution_sought"/></div>
+                                </t>
+                                <t t-if="case.cmp_outcome">
+                                    <div class="inc-label">Outcome / Resolution</div>
+                                    <div class="inc-text"><t t-esc="case.cmp_outcome"/></div>
+                                </t>
+                                <t t-if="case.cmp_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.cmp_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- ── CHILD SAFEGUARDING ─────────────────────── -->
+                        <t t-if="case.is_child_safeguarding">
+                            <div class="inc-section">
+                                <div class="inc-section-title cat" style="background: #721c24;">Child Safeguarding Details</div>
+                                <table class="inc-kv">
+                                    <tr>
+                                        <th>Nature of Concern</th>
+                                        <td><span t-field="case.cs_concern_type"/></td>
+                                        <th>Child Reference / Identifier</th>
+                                        <td><t t-esc="case.cs_child_identifier or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Child Age Range</th>
+                                        <td><span t-field="case.cs_child_age_range"/></td>
+                                        <th>Mandatory Report Required</th>
+                                        <td>
+                                            <t t-if="case.cs_mandatory_report_required"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="case.cs_mandatory_report_required">
+                                        <tr>
+                                            <th>Mandatory Report Date</th>
+                                            <td>
+                                                <t t-if="case.cs_mandatory_report_date">
+                                                    <span t-field="case.cs_mandatory_report_date" t-options='{"widget": "date"}'/>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                            <th>Mandatory Report Reference</th>
+                                            <td><t t-esc="case.cs_mandatory_report_ref or '—'"/></td>
+                                        </tr>
+                                    </t>
+                                    <tr>
+                                        <th>Child Protection Officer Notified</th>
+                                        <td>
+                                            <t t-if="case.cs_cpo_notified"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>Child Protection Officer Name</th>
+                                        <td><t t-esc="case.cs_cpo_name or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>External Agency Notified</th>
+                                        <td>
+                                            <t t-if="case.cs_external_agency_notified"><span class="inc-yes">Yes</span></t>
+                                            <t t-else=""><span class="inc-no">No</span></t>
+                                        </td>
+                                        <th>External Agency / Department</th>
+                                        <td><t t-esc="case.cs_external_agency_name or '—'"/></td>
+                                    </tr>
+                                    <t t-if="case.cs_external_agency_notified">
+                                        <tr>
+                                            <th>External Reference Number</th>
+                                            <td colspan="3"><t t-esc="case.cs_external_ref or '—'"/></td>
+                                        </tr>
+                                    </t>
+                                </table>
+                                <t t-if="case.cs_persons_of_concern">
+                                    <div class="inc-label">Person(s) of Concern</div>
+                                    <div class="inc-text"><t t-esc="case.cs_persons_of_concern"/></div>
+                                </t>
+                                <t t-if="case.cs_support_provided">
+                                    <div class="inc-label">Support Provided to Child</div>
+                                    <div class="inc-text"><t t-esc="case.cs_support_provided"/></div>
+                                </t>
+                                <t t-if="case.cs_additional_notes">
+                                    <div class="inc-label">Additional Notes</div>
+                                    <div class="inc-text"><t t-esc="case.cs_additional_notes"/></div>
+                                </t>
+                            </div>
+                        </t>
+
+                    </t><!-- /include_report -->
+
+                    <!-- ════════════════════════════════════════════════
+                         SECTION 2 — INVESTIGATION
+                         ════════════════════════════════════════════════ -->
+                    <t t-if="o.include_investigation">
+                        <div class="inc-section">
+                            <div class="inc-section-title">Investigation</div>
+                            <table class="inc-kv">
+                                <tr>
+                                    <th>Investigators</th>
+                                    <td colspan="3">
+                                        <t t-foreach="case.investigator_ids" t-as="inv">
+                                            <t t-esc="inv.name"/><t t-if="not inv_last">, </t>
+                                        </t>
+                                        <t t-if="not case.investigator_ids">—</t>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Investigation Start Date</th>
+                                    <td>
+                                        <t t-if="case.investigation_start">
+                                            <span t-field="case.investigation_start" t-options='{"widget": "date"}'/>
+                                        </t>
+                                        <t t-else="">—</t>
+                                    </td>
+                                    <th>Investigation End Date</th>
+                                    <td>
+                                        <t t-if="case.investigation_end">
+                                            <span t-field="case.investigation_end" t-options='{"widget": "date"}'/>
+                                        </t>
+                                        <t t-else="">—</t>
+                                    </td>
+                                </tr>
+                            </table>
+                            <t t-if="case.immediate_cause_desc">
+                                <div class="inc-label">Immediate Cause</div>
+                                <div class="inc-text"><t t-esc="case.immediate_cause_desc"/></div>
+                            </t>
+
+                            <!-- ICAM Findings -->
+                            <t t-if="case.finding_ids">
+                                <div class="inc-label" style="margin-top: 8px;">ICAM Contributing Factors</div>
+                                <table class="inc-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 20%;">Category</th>
+                                            <th style="width: 22%;">Contributing Factor</th>
+                                            <th style="width: 48%;">How Did This Factor Contribute?</th>
+                                            <th style="width: 10%; text-align: center;">Root Cause</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.finding_ids" t-as="finding">
+                                            <tr t-att-class="'root-cause' if finding.is_root_cause else ''">
+                                                <td><t t-esc="finding.icam_category_name or '—'"/></td>
+                                                <td><t t-esc="finding.icam_factor_name or '—'"/></td>
+                                                <td style="white-space: pre-wrap;"><t t-esc="finding.description or '—'"/></td>
+                                                <td style="text-align: center;">
+                                                    <t t-if="finding.is_root_cause">
+                                                        <span style="color: #856404; font-weight: 700;">✓ Root Cause</span>
+                                                    </t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+
+                            <t t-if="case.investigation_conclusion">
+                                <div class="inc-label">Conclusion</div>
+                                <div class="inc-text"><t t-esc="case.investigation_conclusion"/></div>
+                            </t>
+                            <t t-if="case.investigation_recommendations">
+                                <div class="inc-label">Recommendations</div>
+                                <div class="inc-text"><t t-esc="case.investigation_recommendations"/></div>
+                            </t>
+                        </div>
+                    </t><!-- /include_investigation -->
+
+                    <!-- ════════════════════════════════════════════════
+                         SECTION 3 — CORRECTIVE ACTIONS
+                         ════════════════════════════════════════════════ -->
+                    <t t-if="o.include_corrective_actions">
+                        <div class="inc-section">
+                            <div class="inc-section-title">Corrective Actions</div>
+                            <t t-if="case.corrective_action_ids">
+                                <table class="inc-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 5%;">Pri.</th>
+                                            <th style="width: 32%;">Action Description</th>
+                                            <th style="width: 14%;">Control Type</th>
+                                            <th style="width: 15%;">Responsible</th>
+                                            <th style="width: 11%;">Due Date</th>
+                                            <th style="width: 10%;">Status</th>
+                                            <th style="width: 13%;">Completed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.corrective_action_ids" t-as="action">
+                                            <tr t-att-class="'action-done' if action.state == 'done' else ('action-overdue' if action.is_overdue else '')">
+                                                <td style="text-align: center;">
+                                                    <t t-if="action.priority == '3'">⬤</t>
+                                                    <t t-elif="action.priority == '2'">⬤</t>
+                                                    <t t-elif="action.priority == '1'">⬤</t>
+                                                    <t t-else="">⬤</t>
+                                                </td>
+                                                <td style="white-space: pre-wrap;"><t t-esc="action.name or '—'"/></td>
+                                                <td><span t-field="action.action_type"/></td>
+                                                <td><span t-field="action.responsible_id"/></td>
+                                                <td>
+                                                    <t t-if="action.due_date">
+                                                        <span t-field="action.due_date" t-options='{"widget": "date"}'/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                                <td><span t-field="action.state"/></td>
+                                                <td>
+                                                    <t t-if="action.completion_date">
+                                                        <span t-field="action.completion_date" t-options='{"widget": "date"}'/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                            </tr>
+                                            <t t-if="action.notes">
+                                                <tr t-att-class="'action-done' if action.state == 'done' else ('action-overdue' if action.is_overdue else '')">
+                                                    <td></td>
+                                                    <td colspan="6" style="font-size: 7.5pt; color: #555; padding-top: 0; padding-bottom: 6px;">
+                                                        <em>Notes: <t t-esc="action.notes"/></em>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <t t-if="case.corrective_actions_complete">
+                                    <div style="font-size: 8pt; color: #155724; font-weight: 600; margin-top: 4px;">
+                                        ✓ All corrective actions have been completed.
+                                    </div>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <p style="font-size: 8.5pt; color: #6c757d; font-style: italic;">No corrective actions recorded.</p>
+                            </t>
+                        </div>
+                    </t><!-- /include_corrective_actions -->
+
+                </t><!-- /external_layout -->
+            </t><!-- /foreach -->
+        </t><!-- /html_container -->
+    </template>
+
+</odoo>

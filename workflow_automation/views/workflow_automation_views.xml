@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- wf.automation — Form View                                        -->
+    <!-- ================================================================ -->
+    <record id="view_wf_automation_form" model="ir.ui.view">
+        <field name="name">wf.automation.form</field>
+        <field name="model">wf.automation</field>
+        <field name="arch" type="xml">
+            <form string="Workflow Automation">
+                <header>
+                    <button name="action_run_manual"
+                            string="Test Workflow"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-play"
+                            title="Run this workflow now for testing. Record-based triggers will ask you to pick a test record; manual and scheduled triggers execute immediately."/>
+                </header>
+                <sheet>
+                    <!-- Smart button box -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_logs"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-history">
+                            <field name="execution_log_count" widget="statinfo" string="Runs"/>
+                        </button>
+                        <button name="action_open_canvas"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-sitemap"
+                                title="Open the visual canvas editor">
+                            <span class="o_stat_text">Visual<br/>Editor</span>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Workflow Name…"/>
+                        </h1>
+                    </div>
+
+                    <!-- Invisible helpers -->
+                    <field name="model_name" invisible="1"/>
+
+                    <!-- Core configuration -->
+                    <group>
+                        <group string="Trigger">
+                            <field name="trigger"/>
+                            <field name="model_id"
+                                   options="{'no_open': True}"
+                                   required="trigger != 'scheduled'"
+                                   string="Model"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Settings">
+                            <field name="log_level"/>
+                            <field name="last_run" readonly="1" options='{"numeric": true}'/>
+                            <field name="schedule_cron_id"
+                                   readonly="1"
+                                   invisible="trigger != 'scheduled'"/>
+                        </group>
+                    </group>
+
+                    <!-- Hint for scheduled triggers without a model -->
+                    <div class="alert alert-info"
+                         invisible="trigger != 'scheduled' or model_id != False"
+                         role="alert">
+                        <i class="fa fa-info-circle me-2"/>
+                        No model selected — this workflow will run once per schedule trigger
+                        without iterating over records. Select a model above to filter and
+                        process specific records.
+                    </div>
+
+                    <!-- Trigger-specific configuration (non-scheduled) -->
+                    <group string="Trigger Configuration"
+                           invisible="trigger == 'scheduled'">
+                        <field name="trigger_field_ids"
+                               widget="many2many_tags"
+                               invisible="trigger not in ['on_write', 'on_create_or_write', 'on_stage_change', 'on_state_change']"
+                               options="{'no_create': True}"/>
+                        <field name="filter_domain"
+                               widget="domain"
+                               options="{'model': 'model_name'}"/>
+                        <field name="filter_pre_domain"
+                               widget="domain"
+                               options="{'model': 'model_name'}"
+                               groups="base.group_no_one"
+                               invisible="trigger not in ['on_write', 'on_create_or_write', 'on_stage_change', 'on_state_change']"/>
+                    </group>
+
+                    <!-- Schedule configuration (only for scheduled trigger) -->
+                    <group string="Schedule Configuration"
+                           invisible="trigger != 'scheduled'">
+                        <group string="Schedule">
+                            <field name="schedule_type"/>
+                            <field name="schedule_interval"
+                                   string="Run Every"/>
+                            <field name="schedule_time"
+                                   string="Run Time (UTC)"
+                                   widget="float_time"/>
+                        </group>
+                        <group string="Weekly Days"
+                               invisible="schedule_type != 'weekly'">
+                            <field name="sched_mon" widget="boolean_toggle"/>
+                            <field name="sched_tue" widget="boolean_toggle"/>
+                            <field name="sched_wed" widget="boolean_toggle"/>
+                            <field name="sched_thu" widget="boolean_toggle"/>
+                            <field name="sched_fri" widget="boolean_toggle"/>
+                            <field name="sched_sat" widget="boolean_toggle"/>
+                            <field name="sched_sun" widget="boolean_toggle"/>
+                        </group>
+                        <group invisible="schedule_type != 'monthly'">
+                            <field name="schedule_day_of_month"
+                                   string="Day of Month (1–31)"/>
+                        </group>
+                    </group>
+
+                    <!-- Optional model domain for scheduled workflows -->
+                    <group string="Record Filtering"
+                           invisible="trigger != 'scheduled'">
+                        <field name="cron_model_domain"
+                               widget="domain"
+                               options="{'model': 'model_name'}"
+                               string="Domain Filter"
+                               help="If a Model is set above, filter which records the workflow runs over. Leave empty to run the workflow once without iterating over records."/>
+                    </group>
+
+                    <notebook>
+                        <!-- Steps page -->
+                        <page string="Steps" name="steps">
+                            <field name="step_ids" context="{'default_workflow_id': id}">
+                                <list string="Steps" editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="step_type"/>
+                                    <field name="condition_type" string="Condition"/>
+                                    <field name="store_result_var" string="Stores As"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Documentation page -->
+                        <page string="Documentation" name="description">
+                            <field name="description" placeholder="Describe what this workflow does…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.automation — List View                                        -->
+    <!-- ================================================================ -->
+    <record id="view_wf_automation_list" model="ir.ui.view">
+        <field name="name">wf.automation.list</field>
+        <field name="model">wf.automation</field>
+        <field name="arch" type="xml">
+            <list string="Workflow Automations">
+                <field name="name"/>
+                <field name="model_id" string="Model"/>
+                <field name="trigger"/>
+                <field name="schedule_type" invisible="trigger != 'scheduled'" string="Schedule"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="last_run" options='{"numeric": true}'/>
+                <field name="execution_log_count" string="Runs"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.automation — Search View                                      -->
+    <!-- ================================================================ -->
+    <record id="view_wf_automation_search" model="ir.ui.view">
+        <field name="name">wf.automation.search</field>
+        <field name="model">wf.automation</field>
+        <field name="arch" type="xml">
+            <search string="Workflow Automations">
+                <field name="name"/>
+                <field name="model_id"/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="On Create" name="on_create" domain="[('trigger', '=', 'on_create')]"/>
+                <filter string="On Write" name="on_write" domain="[('trigger', '=', 'on_write')]"/>
+                <filter string="Scheduled" name="scheduled" domain="[('trigger', '=', 'scheduled')]"/>
+                <filter string="Manual" name="manual" domain="[('trigger', '=', 'manual')]"/>
+                <group name="group_by">
+                    <filter string="Model" name="group_model" context="{'group_by': 'model_id'}"/>
+                    <filter string="Trigger" name="group_trigger" context="{'group_by': 'trigger'}"/>
+                    <filter string="Schedule Type" name="group_schedule_type" context="{'group_by': 'schedule_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.automation — Window Action                                    -->
+    <!-- ================================================================ -->
+    <record id="action_wf_automation" model="ir.actions.act_window">
+        <field name="name">Workflows</field>
+        <field name="res_model">wf.automation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first workflow automation
+            </p>
+            <p>
+                Workflow automations run multi-step actions automatically when records
+                are created, updated, deleted, or on a schedule.
+            </p>
+        </field>
+    </record>
+
+    <!-- Step form action (used as target for edit button in steps list) -->
+    <record id="action_wf_step_form" model="ir.actions.act_window">
+        <field name="name">Workflow Step</field>
+        <field name="res_model">wf.step</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

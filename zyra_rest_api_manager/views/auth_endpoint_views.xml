@@ -1,0 +1,46 @@
+<odoo>
+    <record id="view_api_auth_endpoint_tree" model="ir.ui.view">
+      <field name="name">api.auth.endpoint.tree</field>
+      <field name="model">api.auth.endpoint</field>
+      <field name="arch" type="xml">
+        <list delete="false">
+          <field name="sequence" widget="handle"/>
+          <field name="name"/>
+          <field name="route"/>
+          <field name="endpoint_url"/>
+          <field name="active"/>
+        </list>
+      </field>
+    </record>
+
+    <record id="view_api_auth_endpoint_form" model="ir.ui.view">
+      <field name="name">api.auth.endpoint.form</field>
+      <field name="model">api.auth.endpoint</field>
+      <field name="arch" type="xml">
+        <form delete="false">
+          <sheet>
+            <group>
+              <field name="name" />
+              <field name="route" readonly="1"/>
+              <field name="endpoint_url" readonly="1"/>
+              <field name="active"/>
+            </group>
+            <group string="Cooldown Settings" invisible="route not in ['login', 'reset_password']">
+              <field name="max_failed_attempts"/>
+              <field name="failure_window_minutes"/>
+              <field name="cooldown_minutes"/>
+            </group>
+            <group>
+              <field name="example_request" readonly="1" nolabel="1" widget="text"/>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_api_auth_endpoint" model="ir.actions.act_window">
+      <field name="name">Auth Endpoints</field>
+      <field name="res_model">api.auth.endpoint</field>
+      <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Employee Form: Healthcare Tab (extends main employee form)
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_hr_employee_form_healthcare" model="ir.ui.view">
+        <field name="name">hr.employee.form.healthcare</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Print Care Profile button in the form header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_print_care_profile"
+                        type="object"
+                        string="Print Care Profile"
+                        icon="fa-file-pdf-o"
+                        class="btn-secondary"
+                        groups="employee_healthcare.group_employee_healthcare_employee"/>
+            </xpath>
+
+            <!-- Healthcare indicators displayed below the job title -->
+            <xpath expr="//field[@name='job_title']" position="after">
+                <field name="healthcare_indicator_ids"
+                       widget="many2many_tags"
+                       options="{'color_field': 'color', 'no_create': True}"
+                       readonly="1"
+                       groups="employee_healthcare.group_employee_healthcare_employee"
+                       nolabel="1"/>
+            </xpath>
+
+            <!-- Healthcare page tab -->
+            <xpath expr="//page[@name='hr_settings']" position="after">
+                <page name="healthcare" string="Healthcare"
+                      groups="employee_healthcare.group_employee_healthcare_employee">
+
+                    <group>
+                        <field name="healthcare_indicator_ids"
+                               widget="many2many_tags"
+                               options="{'color_field': 'color', 'no_create': True}"
+                               readonly="1"
+                               string="Indicators"
+                               nolabel="1"/>
+                    </group>
+
+                    <div class="mt-3">
+                        <button name="action_open_healthcare_record"
+                                type="object"
+                                string="Open Healthcare Record"
+                                icon="fa-heartbeat"
+                                class="btn-primary"/>
+                    </div>
+
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Healthcare Records List View (model: employee.healthcare)
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_employee_healthcare_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.list</field>
+        <field name="model">employee.healthcare</field>
+        <field name="arch" type="xml">
+            <list string="Employee Healthcare">
+                <field name="id" string="ID"/>
+                <field name="employee_id"/>
+                <field name="department_id" optional="hide"/>
+                <field name="job_id"/>
+                <field name="medicare_status" column_invisible="1"/>
+                <field name="medicare_number"
+                       decoration-danger="medicare_status == 'expired'"
+                       decoration-warning="medicare_status == 'next_month'"
+                       decoration-success="medicare_status == 'valid'"/>
+                <field name="medicare_expiry"
+                       widget="month_year"
+                       options='{"numeric": true}'
+                       decoration-danger="medicare_status == 'expired'"
+                       decoration-warning="medicare_status == 'next_month'"
+                       decoration-success="medicare_status == 'valid'"
+                       optional="hide"/>
+                <field name="private_health_insurer_id" optional="hide"/>
+                <field name="ambulance_provider_id" optional="hide"/>
+                <field name="last_verified"/>
+                <field name="healthcare_indicator_ids"
+                       widget="many2many_tags"
+                       options="{'color_field': 'color'}"/>
+                <button name="action_print_care_profile"
+                        type="object"
+                        string="Download Care Profile"
+                        icon="fa-download"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Healthcare Record Form View (model: employee.healthcare)
+         Shows the full healthcare record with chatter.
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_employee_healthcare_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.form</field>
+        <field name="model">employee.healthcare</field>
+        <field name="arch" type="xml">
+            <form string="Employee Healthcare Record">
+                <header>
+                    <button name="action_print_care_profile"
+                            type="object"
+                            string="Print Care Profile"
+                            icon="fa-file-pdf-o"
+                            class="btn-secondary"/>
+                </header>
+                <sheet>
+
+                    <!-- Employee identity header (read-only) -->
+                    <div class="oe_title">
+                        <label for="employee_id"/>
+                        <h1><field name="employee_id" readonly="1"/></h1>
+                        <field name="job_id" readonly="1" placeholder="Job Position"/>
+                        <field name="department_id" readonly="1" placeholder="Department"/>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="healthcare_indicator_ids"
+                                   widget="many2many_tags"
+                                   options="{'color_field': 'color', 'no_create': True}"
+                                   readonly="1"
+                                   string="Indicators"/>
+                        </group>
+                        <group>
+                            <field name="last_verified" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Medicare -->
+                    <separator string="Medicare"/>
+                    <group>
+                        <field name="medicare_number" colspan="2"/>
+                        <field name="medicare_expiry" widget="month_year" colspan="2"/>
+                    </group>
+
+                    <!-- Health Alerts -->
+                    <separator string="Health Alerts"/>
+                    <field name="healthcare_alert_ids" nolabel="1"
+                           context="{'form_view_ref': 'employee_healthcare.view_healthcare_alert_form'}">
+                        <list string="Health Alerts">
+                            <field name="id" string="ID"/>
+                            <field name="alert_type_id"/>
+                            <field name="alert_severity_color" column_invisible="1"/>
+                            <field name="alert_severity_id"
+                                   widget="badge"
+                                   options="{'color_field': 'alert_severity_color'}"/>
+                            <field name="description"/>
+                            <field name="date_noted" options='{"numeric": true}'/>
+                            <field name="is_critical" decoration-danger="is_critical == True"/>
+                        </list>
+                    </field>
+
+                    <!-- Medications -->
+                    <separator string="Medications"/>
+                    <field name="healthcare_medication_ids" nolabel="1"
+                           context="{'form_view_ref': 'employee_healthcare.view_healthcare_medication_form'}">
+                        <list string="Medications">
+                            <field name="id" string="ID"/>
+                            <field name="name"/>
+                            <field name="medication_type_id"/>
+                            <field name="dosage"/>
+                            <field name="frequency_id"/>
+                            <field name="prescribing_doctor"/>
+                        </list>
+                    </field>
+
+                    <!-- Allergies -->
+                    <separator string="Allergies"/>
+                    <field name="healthcare_allergy_ids" nolabel="1"
+                           context="{'form_view_ref': 'employee_healthcare.view_healthcare_allergy_form'}">
+                        <list string="Allergies">
+                            <field name="id" string="ID"/>
+                            <field name="allergen"/>
+                            <field name="allergy_type_id"/>
+                            <field name="severity_color" widget="color" string=" " column_invisible="0" optional="show"/>
+                            <field name="severity_id"
+                                   decoration-danger="severity_id.name == 'Life-threatening (Anaphylaxis)'"
+                                   decoration-warning="severity_id.name == 'Severe'"/>
+                            <field name="reaction"/>
+                            <field name="treatment"/>
+                        </list>
+                    </field>
+
+                    <!-- Private Health Insurance -->
+                    <separator string="Private Health Insurance"/>
+                    <group>
+                        <field name="private_health_insurer_id" colspan="2"/>
+                        <field name="private_health_member_number" colspan="2"/>
+                        <field name="private_health_level" colspan="2"/>
+                    </group>
+
+                    <!-- Ambulance Membership -->
+                    <separator string="Ambulance Membership"/>
+                    <group>
+                        <field name="ambulance_provider_id" colspan="2"/>
+                        <field name="ambulance_membership_number" colspan="2"/>
+                        <field name="ambulance_membership_expiry" options='{"numeric": true}' colspan="2"/>
+                    </group>
+
+                    <!-- Advanced Directives / Proxies -->
+                    <separator string="Advanced Directives &amp; Medical Decision-Making Proxies"/>
+                    <field name="healthcare_directive_ids" nolabel="1"
+                           context="{'form_view_ref': 'employee_healthcare.view_healthcare_directive_form'}">
+                        <list string="Directives &amp; Proxies">
+                            <field name="id" string="ID"/>
+                            <field name="directive_type_id"/>
+                            <field name="name" string="Document Title / Person Name"/>
+                            <field name="relationship"/>
+                            <field name="phone"/>
+                            <field name="date_executed" options='{"numeric": true}'/>
+                        </list>
+                    </field>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Healthcare Records Search View (model: employee.healthcare)
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_employee_healthcare_search" model="ir.ui.view">
+        <field name="name">employee.healthcare.search</field>
+        <field name="model">employee.healthcare</field>
+        <field name="arch" type="xml">
+            <search string="Employee Healthcare">
+
+                <!-- Searchable text / relation fields -->
+                <field name="employee_id" string="Employee"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <field name="medicare_number" string="Medicare Number"/>
+                <field name="medicare_expiry_from" string="Medicare Expiry From"/>
+                <field name="medicare_expiry_to" string="Medicare Expiry To"/>
+
+                <!-- Medicare Expiry relative date filters -->
+                <separator/>
+                <filter string="Last Month" name="medicare_last_month"
+                        domain="[('medicare_expiry', '&gt;=', (context_today() + relativedelta(months=-1)).strftime('%Y-%m-01')), ('medicare_expiry', '&lt;', context_today().strftime('%Y-%m-01'))]"/>
+                <filter string="This Month" name="medicare_this_month"
+                        domain="[('medicare_expiry', '&gt;=', context_today().strftime('%Y-%m-01')), ('medicare_expiry', '&lt;', (context_today() + relativedelta(months=1)).strftime('%Y-%m-01'))]"/>
+                <filter string="Next Month" name="medicare_next_month"
+                        domain="[('medicare_expiry', '&gt;=', (context_today() + relativedelta(months=1)).strftime('%Y-%m-01')), ('medicare_expiry', '&lt;', (context_today() + relativedelta(months=2)).strftime('%Y-%m-01'))]"/>
+                <filter string="Next 3 Months" name="medicare_next_3_months"
+                        domain="[('medicare_expiry', '&gt;=', (context_today() + relativedelta(months=1)).strftime('%Y-%m-01')), ('medicare_expiry', '&lt;', (context_today() + relativedelta(months=4)).strftime('%Y-%m-01'))]"/>
+                <filter string="This Year" name="medicare_this_year"
+                        domain="[('medicare_expiry', '&gt;=', context_today().strftime('%Y-01-01')), ('medicare_expiry', '&lt;', (context_today() + relativedelta(years=1)).strftime('%Y-01-01'))]"/>
+                <filter string="Next Year" name="medicare_next_year"
+                        domain="[('medicare_expiry', '&gt;=', (context_today() + relativedelta(years=1)).strftime('%Y-01-01')), ('medicare_expiry', '&lt;', (context_today() + relativedelta(years=2)).strftime('%Y-01-01'))]"/>
+
+                <!-- Coverage and profile status filters -->
+                <separator/>
+                <filter string="Has Medicare Number" name="has_medicare_number"
+                        domain="[('medicare_number', '!=', False)]"/>
+                <filter string="Has Ambulance Provider" name="has_ambulance_provider"
+                        domain="[('ambulance_provider_id', '!=', False)]"/>
+                <filter string="Has Private Health Insurance" name="has_private_health"
+                        domain="[('private_health_insurer_id', '!=', False)]"/>
+                <filter string="Healthcare Profile Pending" name="profile_pending"
+                        domain="[('healthcare_indicator_ids.name', '=', 'Missing Healthcare Profile')]"/>
+
+                <!-- Group By -->
+                <group>
+                    <filter string="Department" name="group_department"
+                            domain="[]" context="{'group_by': 'department_id'}"/>
+                    <filter string="Job Position" name="group_job"
+                            domain="[]" context="{'group_by': 'job_id'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Healthcare Records Action (model: employee.healthcare)
+         Uses explicit act_window.view records to hard-pin both views.
+    ══════════════════════════════════════════════════════════ -->
+    <record id="action_hr_employee_healthcare" model="ir.actions.act_window">
+        <field name="name">Employee Healthcare</field>
+        <field name="res_model">employee.healthcare</field>
+        <field name="view_mode">list,form</field>
+        <field name="path">healthcare</field>
+        <field name="search_view_id" ref="view_employee_healthcare_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No healthcare records found.</p>
+        </field>
+    </record>
+
+    <record id="action_hr_employee_healthcare_view_list" model="ir.actions.act_window.view">
+        <field name="act_window_id" ref="action_hr_employee_healthcare"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_employee_healthcare_list"/>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="action_hr_employee_healthcare_view_form" model="ir.actions.act_window.view">
+        <field name="act_window_id" ref="action_hr_employee_healthcare"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_employee_healthcare_form"/>
+        <field name="sequence">2</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         My Healthcare Profile — server action
+         Calls action_get_my_profile() on the employee.healthcare model
+         to find/create and open the current user's record.
+    ══════════════════════════════════════════════════════════ -->
+    <record id="action_my_healthcare_profile" model="ir.actions.server">
+        <field name="name">My Healthcare Profile</field>
+        <field name="model_id" ref="employee_healthcare.model_employee_healthcare"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_get_my_profile()</field>
+    </record>
+
+</odoo>

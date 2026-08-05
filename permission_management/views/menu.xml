@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Actions -->
+    <record id="action_permission_role" model="ir.actions.act_window">
+        <field name="name">Roles</field>
+        <field name="res_model">permission.role</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_permission_profile" model="ir.actions.act_window">
+        <field name="name">Profiles</field>
+        <field name="res_model">permission.profile</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem
+        id="menu_permission_management"
+        name="Permission Management"
+        parent="base.menu_administration"
+        sequence="50"/>
+
+    <menuitem
+        id="menu_permission_role"
+        name="Roles"
+        parent="menu_permission_management"
+        action="action_permission_role"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_permission_profile"
+        name="Profiles"
+        parent="menu_permission_management"
+        action="action_permission_profile"
+        sequence="20"/>
+</odoo>

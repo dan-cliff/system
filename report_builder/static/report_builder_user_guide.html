@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Report Builder — User Guide</title>
+  <style>
+    /* ── Reset & base ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      color: #1a1a2e;
+      background: #f5f7fa;
+      line-height: 1.7;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────── */
+    .page-wrap {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    nav {
+      width: 270px;
+      min-width: 270px;
+      background: #1F4E79;
+      color: #d0e8f7;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 0 0 2rem 0;
+      flex-shrink: 0;
+    }
+    .nav-brand {
+      background: #12304e;
+      padding: 1.25rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.03em;
+      line-height: 1.4;
+    }
+    .nav-brand span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #88bfe0;
+      margin-top: 0.15rem;
+    }
+    nav ul { list-style: none; padding: 0.5rem 0; }
+    nav ul li a {
+      display: block;
+      padding: 0.45rem 1.5rem;
+      color: #b8d9f0;
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: background 0.15s, color 0.15s;
+      border-left: 3px solid transparent;
+    }
+    nav ul li a:hover {
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      border-left-color: #5eb8ff;
+    }
+    nav ul li.section-head {
+      padding: 1.1rem 1.5rem 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #5ea8d8;
+    }
+    nav ul li.sub a { padding-left: 2.25rem; }
+
+    /* Main content */
+    main {
+      flex: 1;
+      padding: 3rem 4rem;
+      max-width: 920px;
+    }
+
+    /* ── Typography ─────────────────────────────────────────────────── */
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: #12304e;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      color: #4a7fa5;
+      margin-bottom: 2.5rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1F4E79;
+      margin: 3rem 0 0.75rem;
+      padding-top: 1rem;
+      border-top: 2px solid #dce8f5;
+    }
+    h2:first-of-type { margin-top: 0; border-top: none; }
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2C5F8A;
+      margin: 2rem 0 0.5rem;
+    }
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 1.25rem 0 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    p { margin-bottom: 0.9rem; }
+    ul, ol { margin: 0.5rem 0 0.9rem 1.5rem; }
+    li { margin-bottom: 0.35rem; }
+    strong { color: #12304e; }
+    a { color: #2C5F8A; }
+
+    /* ── Components ─────────────────────────────────────────────────── */
+
+    /* Hero banner */
+    .hero {
+      background: linear-gradient(135deg, #1F4E79 0%, #2C5F8A 60%, #3a7dbf 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 2.5rem 2.5rem 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .hero h1 { color: white; margin-bottom: 0.4rem; }
+    .hero .subtitle { color: #a8d4f5; margin-bottom: 0; }
+
+    /* Info / warning / tip boxes */
+    .callout {
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      border-left: 4px solid;
+      font-size: 0.9rem;
+    }
+    .callout.tip   { background: #edf7ee; border-color: #2e9e52; color: #1a4a28; }
+    .callout.note  { background: #e8f0fb; border-color: #2C5F8A; color: #12304e; }
+    .callout.warn  { background: #fff8e6; border-color: #d4900a; color: #5a3a00; }
+    .callout-title { font-weight: 700; display: block; margin-bottom: 0.25rem; }
+
+    /* Step list */
+    .steps { counter-reset: step; list-style: none; margin: 0.75rem 0 1rem 0; }
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+      align-items: flex-start;
+    }
+    .steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      background: #1F4E79;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.15rem;
+    }
+
+    /* Field reference table */
+    .field-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0.75rem 0 1.25rem;
+    }
+    .field-table thead th {
+      background: #1F4E79;
+      color: white;
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    .field-table tbody tr:nth-child(even) { background: #edf3fb; }
+    .field-table tbody td {
+      padding: 0.55rem 1rem;
+      border-bottom: 1px solid #dce8f5;
+      vertical-align: top;
+    }
+    .field-table tbody td:first-child { font-weight: 600; color: #12304e; white-space: nowrap; }
+    .req { color: #c0392b; font-size: 0.75rem; font-weight: 700; margin-left: 3px; }
+
+    /* Format cards */
+    .format-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1rem 0 1.5rem;
+    }
+    .format-card {
+      background: white;
+      border: 1px solid #cde0f5;
+      border-radius: 10px;
+      padding: 1.25rem 1.25rem 1rem;
+      border-top: 4px solid;
+    }
+    .format-card.excel  { border-top-color: #1F7A3E; }
+    .format-card.csv    { border-top-color: #8a6a00; }
+    .format-card.matrix { border-top-color: #5b2e8a; }
+    .format-card.pdf    { border-top-color: #b22222; }
+    .format-card h4     { margin: 0 0 0.4rem; font-size: 1rem; text-transform: none; letter-spacing: 0; }
+    .format-card .ext   { font-size: 0.75rem; font-weight: 700; opacity: 0.6; margin-bottom: 0.5rem; }
+    .format-card p      { font-size: 0.875rem; margin: 0; }
+
+    /* Code / field paths */
+    code {
+      background: #edf3fb;
+      border: 1px solid #cde0f5;
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.85em;
+      color: #1F4E79;
+    }
+    pre {
+      background: #12304e;
+      color: #c8e6ff;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      margin: 0.75rem 0 1.25rem;
+      line-height: 1.6;
+    }
+    pre code { background: none; border: none; color: inherit; font-size: inherit; padding: 0; }
+
+    /* Example scenarios */
+    .example {
+      background: white;
+      border: 1px solid #cde0f5;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0 1.5rem;
+    }
+    .example-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #2C5F8A;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .example-title::before {
+      content: "📋";
+      font-size: 1rem;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 0.15em 0.6em;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+    .badge.required { background: #fde8e8; color: #c0392b; }
+    .badge.optional { background: #e8f5e9; color: #1e7a38; }
+    .badge.auto     { background: #e8f0fb; color: #1F4E79; }
+
+    /* Navigation anchor target offset */
+    [id] { scroll-margin-top: 1.5rem; }
+
+    /* TOC divider */
+    .toc-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin: 0.75rem 1.5rem;
+    }
+
+    /* Print */
+    @media print {
+      nav { display: none; }
+      main { padding: 1.5rem; max-width: 100%; }
+      .hero { background: #1F4E79 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .callout, .format-card, .example { break-inside: avoid; }
+    }
+
+    @media (max-width: 768px) {
+      .page-wrap { flex-direction: column; }
+      nav { width: 100%; height: auto; position: relative; }
+      main { padding: 1.5rem; }
+      .format-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ══════════════ Sidebar navigation ══════════════ -->
+  <nav>
+    <div class="nav-brand">
+      Report Builder
+      <span>User Guide — Odoo 19</span>
+    </div>
+    <ul>
+      <li class="section-head">Getting Started</li>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#navigation">Finding Report Builder</a></li>
+      <li><a href="#quick-start">Quick-Start Checklist</a></li>
+
+      <li class="section-head">Building a Report</li>
+      <li><a href="#create">Creating a Report</a></li>
+      <li><a href="#config">Report Configuration</a></li>
+      <li><a href="#columns">Columns Tab</a></li>
+      <li class="sub"><a href="#field-selector">Field Selector</a></li>
+      <li class="sub"><a href="#related-fields">Related Fields</a></li>
+      <li class="sub"><a href="#column-order">Ordering Columns</a></li>
+      <li><a href="#filters">Filter Conditions</a></li>
+      <li><a href="#menus">Menu Placement</a></li>
+
+      <li class="section-head">Output Formats</li>
+      <li><a href="#format-excel">Excel (.xlsx)</a></li>
+      <li><a href="#format-csv">CSV</a></li>
+      <li><a href="#format-matrix">Matrix</a></li>
+      <li><a href="#format-pdf">PDF</a></li>
+
+      <li class="section-head">Running Reports</li>
+      <li><a href="#run">Downloading a Report</a></li>
+      <li><a href="#menu-access">Via App Menus</a></li>
+
+      <li class="section-head">Examples</li>
+      <li><a href="#example-sales">Sales Order List</a></li>
+      <li><a href="#example-matrix">Stock Matrix</a></li>
+      <li><a href="#example-pdf">Contact Directory PDF</a></li>
+
+      <li class="section-head">Reference</li>
+      <li><a href="#field-ref">All Fields Reference</a></li>
+      <li><a href="#faq">FAQ &amp; Tips</a></li>
+    </ul>
+  </nav>
+
+  <!-- ══════════════ Main content ══════════════ -->
+  <main>
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Report Builder</h1>
+      <p class="subtitle">
+        Build, filter, and export custom reports from any Odoo model —
+        no coding required.
+      </p>
+    </div>
+
+    <!-- ── Overview ───────────────────────────────────────────── -->
+    <h2 id="overview">Overview</h2>
+    <p>
+      Report Builder lets you create downloadable reports from any data
+      model in Odoo without writing code. Choose the source data, pick the
+      fields you want as columns, apply optional filters, and download the
+      result as Excel, CSV, a cross-tab Matrix spreadsheet, or a formatted PDF.
+    </p>
+    <p>
+      Reports can also be pinned into any Odoo app menu so that
+      team members can trigger a download directly from their usual workflow —
+      no visit to the Report Builder settings page required.
+    </p>
+
+    <h3>What you can do</h3>
+    <ul>
+      <li>Report on <strong>any non-temporary Odoo model</strong> (sales orders, products, contacts, stock moves, custom models, etc.).</li>
+      <li>Include fields from <strong>related records</strong> using dot-notation paths — e.g. the customer's country on a sales order.</li>
+      <li>Apply <strong>domain filters</strong> to limit rows using Odoo's standard filter builder.</li>
+      <li>Export as <strong>Excel, CSV, Matrix, or PDF</strong>.</li>
+      <li>Place a one-click download link under <strong>any menu</strong> in any app.</li>
+    </ul>
+
+    <!-- ── Finding Report Builder ─────────────────────────────── -->
+    <h2 id="navigation">Finding Report Builder</h2>
+    <p>
+      Report Builder appears as its own top-level application in the Odoo
+      home screen. Click the <strong>Report Builder</strong> app icon to open
+      the reports list. All reports you have created are shown here, along
+      with a column count and the output format for quick reference.
+    </p>
+    <div class="callout note">
+      <span class="callout-title">Access rights</span>
+      You must be an <strong>Odoo administrator</strong> or a member of the
+      <strong>Report Builder</strong> access group to create and edit reports.
+      Other users can only run reports that have been placed in their app menus.
+    </div>
+
+    <!-- ── Quick-Start Checklist ──────────────────────────────── -->
+    <h2 id="quick-start">Quick-Start Checklist</h2>
+    <p>
+      To produce your first report in under five minutes, follow these steps:
+    </p>
+    <ol class="steps">
+      <li>Open the <strong>Report Builder</strong> app and click <strong>New</strong>.</li>
+      <li>Enter a <strong>Report Name</strong>.</li>
+      <li>Select the <strong>Primary Model</strong> (the data source — e.g. <em>Sales Order</em>).</li>
+      <li>Choose a <strong>Report Format</strong> (Excel is the default).</li>
+      <li>Open the <strong>Columns</strong> tab and add at least one column using the field selector.</li>
+      <li>Click <strong>Save</strong>, then click the <strong>Run Report</strong> button to download.</li>
+    </ol>
+
+    <!-- ── Creating a Report ──────────────────────────────────── -->
+    <h2 id="create">Creating a Report</h2>
+    <p>
+      From the reports list, click <strong>New</strong> in the top-left corner.
+      The report form opens with several sections. Fill in the Report
+      Configuration section first — the rest of the form depends on the model
+      and format you choose.
+    </p>
+    <p>
+      Click <strong>Save manually</strong> (the floppy-disk icon) or navigate
+      away to auto-save when you are done. Changes to the report name or menu
+      placements are applied immediately on save.
+    </p>
+
+    <!-- ── Report Configuration ───────────────────────────────── -->
+    <h2 id="config">Report Configuration</h2>
+    <p>
+      The <strong>Report Configuration</strong> section at the top of the form
+      defines the fundamental settings for the report.
+    </p>
+
+    <table class="field-table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Report Name <span class="req">✱</span></td>
+          <td>
+            The name shown in the report list, in exported file names, and on
+            the first row of Excel / PDF outputs. Keep it short but descriptive —
+            e.g. <em>Open Sales Orders — This Week</em>.
+          </td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td>
+            Free-text notes about what the report covers, who it is for, and
+            when to run it. Shown on the form only — not included in the export.
+          </td>
+        </tr>
+        <tr>
+          <td>Primary Model <span class="req">✱</span></td>
+          <td>
+            The Odoo model whose records form the rows of the report.
+            Start typing to search by model label (e.g. <em>Sale Order</em>)
+            or technical name (e.g. <em>sale.order</em>). The model drives the
+            field selector in the Columns tab and the domain filter builder.
+          </td>
+        </tr>
+        <tr>
+          <td>Report Format <span class="req">✱</span></td>
+          <td>
+            One of <strong>Excel (.xlsx)</strong>, <strong>CSV</strong>,
+            <strong>Matrix</strong>, or <strong>PDF</strong>.
+            Selecting Matrix or PDF reveals additional configuration options
+            below. See the <a href="#format-excel">Output Formats</a> section
+            for details on each.
+          </td>
+        </tr>
+        <tr>
+          <td>Active</td>
+          <td>
+            Un-tick to archive the report. Archived reports are hidden from
+            the list but can be restored via the <em>Archived</em> filter.
+            Any menu entries created by the report are also hidden while the
+            report is archived.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <span class="callout-title">Primary Model is permanent</span>
+      Changing the Primary Model after adding columns will invalidate all
+      existing column field paths. It is best to decide on the model before
+      building the column list.
+    </div>
+
+    <!-- ── Columns ────────────────────────────────────────────── -->
+    <h2 id="columns">Columns Tab</h2>
+    <p>
+      Open the <strong>Columns</strong> tab to define what data appears in each
+      column of the report. Columns appear in the order set by their drag
+      handle (sequence). You must select a Primary Model before columns become
+      available.
+    </p>
+
+    <h3 id="field-selector">Using the Field Selector</h3>
+    <p>
+      Click the field selector in the <strong>Field Path</strong> cell to open
+      an interactive browser for all fields on the Primary Model. Click a
+      field name to select it. The <strong>Column Header</strong> is
+      auto-populated from the field's label — you can overwrite it at any time.
+    </p>
+
+    <h3 id="related-fields">Including Related Fields</h3>
+    <p>
+      For relation fields (Many2one, Many2many, etc.) a &rsaquo; arrow appears
+      next to the field name in the selector. Click it to traverse into the
+      related model and pick a field there. This builds a dot-notation path
+      automatically, e.g.:
+    </p>
+    <pre><code>partner_id.country_id.name
+order_line.product_id.categ_id.name
+user_id.email</code></pre>
+    <p>
+      The report engine follows the chain at export time, so nested related
+      fields work without any extra configuration.
+    </p>
+
+    <div class="callout tip">
+      <span class="callout-title">Tip — Many2many fields</span>
+      When a field path traverses a Many2many or One2many relation, the report
+      engine joins all related records into a single comma-separated value in
+      that cell. This is usually the most useful behaviour for list exports.
+    </div>
+
+    <h3 id="column-order">Ordering Columns</h3>
+    <p>
+      Drag the <strong>⠿</strong> handle on the left of each row to reorder
+      columns. The sequence number updates automatically. The order in the list
+      is the order in the exported file — left to right for Excel/CSV/Matrix,
+      and left to right in the PDF table.
+    </p>
+
+    <h3>Column Fields Reference</h3>
+    <table class="field-table">
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Field Path <span class="req">✱</span></td>
+          <td>
+            Dot-notation path to the field, built interactively by the field
+            selector. Examples: <code>name</code>, <code>partner_id.name</code>,
+            <code>order_line.price_subtotal</code>.
+          </td>
+        </tr>
+        <tr>
+          <td>Column Header</td>
+          <td>
+            The label for this column. Auto-filled from the field's display
+            name when you select a field. Leave blank to fall back to the raw
+            field path.
+          </td>
+        </tr>
+        <tr>
+          <td>Width (chars)</td>
+          <td>
+            Suggested column width for Excel output, measured in character
+            widths. <code>0</code> (the default) lets the engine auto-size
+            based on the longest value, up to a maximum of 60 characters.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── Filter Conditions ──────────────────────────────────── -->
+    <h2 id="filters">Filter Conditions</h2>
+    <p>
+      The <strong>Filter Conditions</strong> section lets you restrict which
+      records appear in the report using Odoo's standard domain builder.
+      An empty filter (<code>[]</code>) means all records from the Primary Model
+      are included.
+    </p>
+
+    <h3>Using the domain builder</h3>
+    <ol class="steps">
+      <li>Click <strong>Add a filter</strong> in the domain widget.</li>
+      <li>Click the first dropdown to choose a field.</li>
+      <li>Choose a comparison operator (is equal to, contains, is set, etc.).</li>
+      <li>Enter or select the value to compare against.</li>
+      <li>Add further conditions with <strong>AND / OR</strong> as required.</li>
+    </ol>
+
+    <h3>Domain Description</h3>
+    <p>
+      The <strong>Domain Description</strong> text field below the domain
+      builder accepts a free-text summary of what the filter does, for example
+      <em>"Confirmed orders created this financial year"</em>. This text is
+      printed in the report header row of Excel and PDF exports so recipients
+      understand what data they are looking at.
+    </p>
+    <p>
+      If this field is left blank, the raw domain expression is printed in the
+      header instead.
+    </p>
+
+    <div class="callout warn">
+      <span class="callout-title">Performance note</span>
+      Very broad reports with no filter (or a filter that matches thousands of
+      records) may take several seconds to generate. Consider adding a date
+      range filter to keep the result set manageable.
+    </div>
+
+    <!-- ── Menu Placement ─────────────────────────────────────── -->
+    <h2 id="menus">Menu Placement</h2>
+    <p>
+      The <strong>Menu Placement</strong> tab lets you pin a one-click
+      download link for this report under any number of Odoo app menus. This
+      is how you expose a report to end-users without requiring them to open
+      the Report Builder app.
+    </p>
+
+    <h3>How it works</h3>
+    <ol class="steps">
+      <li>Open the <strong>Menu Placement</strong> tab.</li>
+      <li>
+        Click the <strong>Add to Menus</strong> tag input and search for a
+        parent menu — e.g. <em>Reporting</em> under the Sales app.
+      </li>
+      <li>
+        Select as many parent menus as needed. You can also type a new name to
+        create a fresh menu entry on the fly.
+      </li>
+      <li>Save the report.</li>
+    </ol>
+    <p>
+      On save, Report Builder automatically creates a child menu item named
+      after the report under each selected parent. Clicking that menu item
+      anywhere in Odoo triggers an immediate download of the report. If you
+      change the report name or adjust the menu list later, the menu entries
+      are rebuilt automatically.
+    </p>
+
+    <div class="callout note">
+      <span class="callout-title">Refreshing menus</span>
+      Newly created menu entries appear after the next browser page reload.
+      If you do not see the menu item immediately, press <kbd>F5</kbd> or
+      hard-refresh the page.
+    </div>
+
+    <!-- ── Output Formats ─────────────────────────────────────── -->
+    <h2 id="output-formats">Output Formats</h2>
+
+    <div class="format-grid">
+      <div class="format-card excel">
+        <h4>Excel</h4>
+        <div class="ext">.xlsx</div>
+        <p>Formatted spreadsheet with styled headers, banded rows, frozen pane, and auto-column widths. Best for data analysis and sharing with stakeholders.</p>
+      </div>
+      <div class="format-card csv">
+        <h4>CSV</h4>
+        <div class="ext">.csv</div>
+        <p>Plain comma-separated values. Ideal for importing into other systems, Power BI, or any tool that accepts raw tabular data.</p>
+      </div>
+      <div class="format-card matrix">
+        <h4>Matrix</h4>
+        <div class="ext">.xlsx</div>
+        <p>Cross-tab spreadsheet with row values on the left, column values across the top, and a single field value at each intersection. Great for pivot-style views.</p>
+      </div>
+      <div class="format-card pdf">
+        <h4>PDF</h4>
+        <div class="ext">.pdf</div>
+        <p>Print-ready document with a title block and formatted table. Configurable page size (A4–A0) and portrait/landscape orientation.</p>
+      </div>
+    </div>
+
+    <!-- Excel -->
+    <h3 id="format-excel">Excel (.xlsx)</h3>
+    <p>
+      The Excel export produces a fully formatted <code>.xlsx</code> workbook
+      with one sheet named after the report. The sheet layout is:
+    </p>
+    <ul>
+      <li><strong>Row 1</strong> — Report name (dark blue, bold, 14 pt).</li>
+      <li><strong>Row 2</strong> — Primary model name.</li>
+      <li><strong>Row 3</strong> — Domain description (or raw filter expression).</li>
+      <li><strong>Row 4</strong> — Total record count.</li>
+      <li><strong>Row 5</strong> — Blank separator (narrow).</li>
+      <li><strong>Row 6</strong> — Column headers (white text on navy background).</li>
+      <li><strong>Rows 7+</strong> — Data rows with alternating white / pale-blue bands.</li>
+    </ul>
+    <p>
+      The top six rows (meta + header) are <strong>frozen</strong> so they
+      remain visible when scrolling large datasets. Column widths are
+      automatically sized to the widest value in each column, up to a maximum
+      of 60 characters.
+    </p>
+    <p>No extra configuration is required beyond the base Report Configuration and Columns tabs.</p>
+
+    <!-- CSV -->
+    <h3 id="format-csv">CSV</h3>
+    <p>
+      The CSV export writes a header row followed by one data row per record.
+      All values are quoted. The file is encoded in <strong>UTF-8 with BOM</strong>
+      so that Microsoft Excel opens it correctly without a text-import wizard.
+    </p>
+    <p>
+      CSV output is purely data — there are no title rows or formatting. Use
+      this format when the file needs to be consumed programmatically or
+      imported into another application.
+    </p>
+
+    <!-- Matrix -->
+    <h3 id="format-matrix">Matrix</h3>
+    <p>
+      A matrix report is a cross-tab (pivot-style) Excel spreadsheet. You
+      define three fields from the Primary Model:
+    </p>
+    <table class="field-table">
+      <thead>
+        <tr><th>Setting</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Row Axis Field <span class="req">✱</span></td>
+          <td>
+            The field whose distinct values become the <strong>rows</strong>
+            of the matrix. Must be a Many2one, Char, or Selection field.
+          </td>
+        </tr>
+        <tr>
+          <td>Row Axis Label</td>
+          <td>
+            Custom heading for the row axis. Defaults to the field's display
+            name if left blank.
+          </td>
+        </tr>
+        <tr>
+          <td>Column Axis Field <span class="req">✱</span></td>
+          <td>
+            The field whose distinct values become the <strong>columns</strong>
+            of the matrix. Must be a Many2one, Char, or Selection field.
+          </td>
+        </tr>
+        <tr>
+          <td>Column Axis Label</td>
+          <td>Custom heading for the column axis.</td>
+        </tr>
+        <tr>
+          <td>Cell Value Field <span class="req">✱</span></td>
+          <td>
+            The field displayed at the intersection of each row/column
+            combination. Any field type is accepted.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      Row and column values are automatically sorted alphabetically. Where
+      there is no record matching a particular row/column pair, the cell is
+      left blank. Each row group alternates between white and pale-blue
+      backgrounds. The first row (meta) and column (row labels) are frozen.
+    </p>
+
+    <div class="callout warn">
+      <span class="callout-title">One value per intersection</span>
+      If multiple records share the same row/column pair, the matrix stores the
+      value from the <em>last</em> matching record encountered. Matrix format
+      is designed for data where each row-column combination is unique or where
+      only the most recent value matters.
+    </div>
+
+    <!-- PDF -->
+    <h3 id="format-pdf">PDF</h3>
+    <p>
+      The PDF export generates a ReportLab-rendered document suitable for
+      printing or sharing as a read-only report. Two extra settings become
+      visible when PDF is selected:
+    </p>
+    <table class="field-table">
+      <thead>
+        <tr><th>Setting</th><th>Options</th><th>Default</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Page Size</td>
+          <td>A4, A3, A2, A1, A0</td>
+          <td>A4</td>
+        </tr>
+        <tr>
+          <td>Orientation</td>
+          <td>Portrait, Landscape</td>
+          <td>Portrait</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Column widths in the PDF are divided equally across the usable page
+      width. For reports with many columns, choose Landscape or a larger page
+      size to avoid cramped text. The column header row repeats at the top of
+      each page.
+    </p>
+
+    <!-- ── Running Reports ────────────────────────────────────── -->
+    <h2 id="run">Downloading a Report</h2>
+
+    <h3>From the report form</h3>
+    <p>
+      Open the report in Report Builder and click the <strong>Run Report</strong>
+      button in the top header bar. The browser will immediately download the
+      file in the configured format. There is no preview — the file downloads
+      directly.
+    </p>
+
+    <h3 id="menu-access">From an app menu</h3>
+    <p>
+      If the report has been placed under one or more app menus (see
+      <a href="#menus">Menu Placement</a>), any authorised user can trigger the
+      download by clicking that menu item. The report runs with the logged-in
+      user's access rights, so only records that user is permitted to read will
+      appear in the output.
+    </p>
+
+    <!-- ── Examples ───────────────────────────────────────────── -->
+    <h2 id="examples">Examples</h2>
+
+    <div class="example" id="example-sales">
+      <div class="example-title">Example 1 — Open Sales Orders this month</div>
+      <table class="field-table">
+        <tbody>
+          <tr><td>Report Name</td><td>Open Sales Orders — This Month</td></tr>
+          <tr><td>Primary Model</td><td>Sales Order (<code>sale.order</code>)</td></tr>
+          <tr><td>Report Format</td><td>Excel (.xlsx)</td></tr>
+          <tr><td>Filter</td><td>
+            Status <em>is</em> Sales Order <strong>AND</strong>
+            Order Date <em>is in</em> this month
+          </td></tr>
+          <tr><td>Domain Description</td><td>Confirmed orders placed this calendar month</td></tr>
+        </tbody>
+      </table>
+      <p style="margin:0.75rem 0 0.25rem"><strong>Columns:</strong></p>
+      <ol style="margin:0 0 0 1.25rem;font-size:0.875rem">
+        <li><code>name</code> → Order Reference</li>
+        <li><code>partner_id.name</code> → Customer</li>
+        <li><code>partner_id.country_id.name</code> → Country</li>
+        <li><code>date_order</code> → Order Date</li>
+        <li><code>amount_total</code> → Total (incl. Tax)</li>
+        <li><code>user_id.name</code> → Salesperson</li>
+      </ol>
+    </div>
+
+    <div class="example" id="example-matrix">
+      <div class="example-title">Example 2 — Product stock matrix by location and category</div>
+      <table class="field-table">
+        <tbody>
+          <tr><td>Report Name</td><td>Stock Levels by Location &amp; Category</td></tr>
+          <tr><td>Primary Model</td><td>Stock Quant (<code>stock.quant</code>)</td></tr>
+          <tr><td>Report Format</td><td>Matrix</td></tr>
+          <tr><td>Filter</td><td>Quantity &gt; 0</td></tr>
+          <tr><td>Row Axis Field</td><td><code>location_id</code> (Location)</td></tr>
+          <tr><td>Row Axis Label</td><td>Warehouse Location</td></tr>
+          <tr><td>Column Axis Field</td><td><code>product_id.categ_id</code> (Category)</td></tr>
+          <tr><td>Column Axis Label</td><td>Product Category</td></tr>
+          <tr><td>Cell Value Field</td><td><code>quantity</code> (On-Hand Quantity)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="example" id="example-pdf">
+      <div class="example-title">Example 3 — Contact directory PDF (A4 Landscape)</div>
+      <table class="field-table">
+        <tbody>
+          <tr><td>Report Name</td><td>Contact Directory</td></tr>
+          <tr><td>Primary Model</td><td>Contact (<code>res.partner</code>)</td></tr>
+          <tr><td>Report Format</td><td>PDF</td></tr>
+          <tr><td>Page Size</td><td>A4</td></tr>
+          <tr><td>Orientation</td><td>Landscape</td></tr>
+          <tr><td>Filter</td><td>Active <em>is</em> true AND Is Company <em>is</em> true</td></tr>
+        </tbody>
+      </table>
+      <p style="margin:0.75rem 0 0.25rem"><strong>Columns:</strong></p>
+      <ol style="margin:0 0 0 1.25rem;font-size:0.875rem">
+        <li><code>name</code> → Company Name</li>
+        <li><code>phone</code> → Phone</li>
+        <li><code>email</code> → Email</li>
+        <li><code>street</code> → Street</li>
+        <li><code>city</code> → City</li>
+        <li><code>country_id.name</code> → Country</li>
+      </ol>
+    </div>
+
+    <!-- ── Field Reference ────────────────────────────────────── -->
+    <h2 id="field-ref">All Fields Reference</h2>
+
+    <h3>Report record</h3>
+    <table class="field-table">
+      <thead>
+        <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Report Name</td><td>Text <span class="req">✱</span></td><td>Used as the file name and export title.</td></tr>
+        <tr><td>Description</td><td>Long text</td><td>Internal notes only, not included in exports.</td></tr>
+        <tr><td>Active</td><td>Toggle</td><td>Archive / restore the report and its menu entries.</td></tr>
+        <tr><td>Primary Model</td><td>Many2one <span class="req">✱</span></td><td>The data source model. Drives the column field selector and domain builder.</td></tr>
+        <tr><td>Report Format</td><td>Selection <span class="req">✱</span></td><td>Excel, CSV, Matrix, or PDF.</td></tr>
+        <tr><td>Filter Domain</td><td>Domain</td><td>Odoo-style domain expression. <code>[]</code> = no filter.</td></tr>
+        <tr><td>Domain Description</td><td>Long text</td><td>Human-readable filter summary printed in report headers.</td></tr>
+        <tr><td>Page Size</td><td>Selection</td><td>PDF only. A4 / A3 / A2 / A1 / A0.</td></tr>
+        <tr><td>Orientation</td><td>Selection</td><td>PDF only. Portrait or Landscape.</td></tr>
+        <tr><td>Row Axis Field</td><td>Many2one <span class="req">✱ matrix</span></td><td>Field supplying distinct row values for matrix output.</td></tr>
+        <tr><td>Row Axis Label</td><td>Text</td><td>Custom label for the row dimension header.</td></tr>
+        <tr><td>Column Axis Field</td><td>Many2one <span class="req">✱ matrix</span></td><td>Field supplying distinct column values for matrix output.</td></tr>
+        <tr><td>Column Axis Label</td><td>Text</td><td>Custom label for the column dimension header.</td></tr>
+        <tr><td>Cell Value Field</td><td>Many2one <span class="req">✱ matrix</span></td><td>Field value displayed at each row/column intersection.</td></tr>
+        <tr><td>Add to Menus</td><td>Many2many</td><td>Parent menus under which download shortcuts are created automatically.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Column record (Columns tab)</h3>
+    <table class="field-table">
+      <thead>
+        <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Field Path</td><td>Text <span class="req">✱</span></td><td>Dot-notation path built by the field selector.</td></tr>
+        <tr><td>Column Header</td><td>Text</td><td>Display label. Auto-populated from the field's name when a field is selected.</td></tr>
+        <tr><td>Width (chars)</td><td>Integer</td><td>Excel column width hint. 0 = auto (capped at 60).</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── FAQ ────────────────────────────────────────────────── -->
+    <h2 id="faq">FAQ &amp; Tips</h2>
+
+    <h3>Why does my report show no records even though data exists?</h3>
+    <p>
+      Check the <strong>Filter Conditions</strong> section. If a filter is
+      applied, it may be too restrictive. Remove or relax the filter to test
+      with all records, then refine it. Also confirm that the logged-in user
+      has read access to the records in question — the report respects Odoo
+      access rules.
+    </p>
+
+    <h3>Why is a related field showing as blank?</h3>
+    <p>
+      A blank value in a related-field column means either the relation is not
+      set on that record, or one of the intermediate relations in the path is
+      empty. For example, <code>partner_id.country_id.name</code> is blank if
+      the partner has no country set. This is expected behaviour.
+    </p>
+
+    <h3>Can I report across multiple models?</h3>
+    <p>
+      Each report has a single Primary Model, but you can traverse into related
+      models as many levels deep as needed using the dot-notation field path.
+      For genuinely multi-model data that cannot be reached through a relation,
+      create separate reports — one per model — or ask your developer to create
+      a computed field or SQL view that joins the data.
+    </p>
+
+    <h3>Why does my matrix have duplicate or missing cells?</h3>
+    <p>
+      The matrix engine stores one value per (row, column) pair — the last
+      record processed for that pair. If you have multiple records with the
+      same row and column values, only one cell value is kept. Use a domain
+      filter to ensure each row-column combination appears at most once, or
+      choose a different cell value field (such as a sum or count computed
+      field) that aggregates the values upstream.
+    </p>
+
+    <h3>Can I schedule a report to run automatically?</h3>
+    <p>
+      Report Builder does not currently include an automated scheduler.
+      Reports are generated on-demand either by clicking <strong>Run Report</strong>
+      in the form view or by clicking the menu shortcut placed in an app menu.
+    </p>
+
+    <h3>The menu item does not appear after I save the report.</h3>
+    <p>
+      Menu items are created immediately on save, but the browser-side menu
+      cache must be refreshed. Hard-refresh the page (<kbd>Ctrl+Shift+R</kbd>
+      on Windows/Linux, <kbd>Cmd+Shift+R</kbd> on macOS) or simply navigate
+      away and back.
+    </p>
+
+    <h3>How do I delete a report cleanly?</h3>
+    <p>
+      Open the report and use <strong>Action → Delete</strong>. Report Builder
+      automatically removes the associated menu entries and download action
+      when a report is deleted. Alternatively, archive the report (set
+      <strong>Active</strong> to off) to hide it without permanently deleting it.
+    </p>
+
+    <h3>What data types are supported in columns?</h3>
+    <p>
+      All Odoo field types can be included as columns. Values are converted to
+      strings for export:
+    </p>
+    <ul>
+      <li><strong>Boolean fields</strong> — displayed as <em>Yes</em> or <em>No</em>.</li>
+      <li><strong>Many2one / relation fields</strong> — the record's display name is used.</li>
+      <li><strong>Many2many / One2many</strong> — all related record names are joined with a comma.</li>
+      <li><strong>Date / Datetime</strong> — formatted as a string using the field's standard representation.</li>
+      <li><strong>All other types</strong> — converted to string via Python's <code>str()</code>.</li>
+    </ul>
+
+    <hr style="border:none;border-top:2px solid #dce8f5;margin:3rem 0 1.5rem"/>
+    <p style="font-size:0.8rem;color:#888;text-align:center">
+      Report Builder v19.0.1.0.0 &nbsp;·&nbsp; Cliff's Country Crafts &nbsp;·&nbsp; Odoo 19
+    </p>
+
+  </main>
+</div>
+</body>
+</html>

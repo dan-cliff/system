@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         GHS PICTOGRAMS
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_ghs_pictogram_list" model="ir.ui.view">
+        <field name="name">ghs.pictogram.list</field>
+        <field name="model">ghs.pictogram</field>
+        <field name="arch" type="xml">
+            <list string="GHS Pictograms" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ghs_pictogram_form" model="ir.ui.view">
+        <field name="name">ghs.pictogram.form</field>
+        <field name="model">ghs.pictogram</field>
+        <field name="arch" type="xml">
+            <form string="GHS Pictogram">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="GHS Code"/>
+                        <h1><field name="code"/></h1>
+                        <label for="name"/>
+                        <h2><field name="name"/></h2>
+                    </div>
+                    <group>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ghs_pictogram" model="ir.actions.act_window">
+        <field name="name">GHS Pictograms</field>
+        <field name="res_model">ghs.pictogram</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_by_type': 0}</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         GHS HAZARD CLASSES
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_ghs_hazard_class_list" model="ir.ui.view">
+        <field name="name">ghs.hazard.class.list</field>
+        <field name="model">ghs.hazard.class</field>
+        <field name="arch" type="xml">
+            <list string="GHS Hazard Classes">
+                <field name="sequence" widget="handle"/>
+                <field name="id" string="ID" optional="show"/>
+                <field name="hazard_type" widget="badge"
+                       decoration-danger="hazard_type == 'health'"
+                       decoration-warning="hazard_type == 'physical'"
+                       decoration-info="hazard_type == 'environmental'"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="pictogram_ids" widget="many2many_tags"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ghs_hazard_class_form" model="ir.ui.view">
+        <field name="name">ghs.hazard.class.form</field>
+        <field name="model">ghs.hazard.class</field>
+        <field name="arch" type="xml">
+            <form string="GHS Hazard Class">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Code"/>
+                        <h1><field name="code"/></h1>
+                        <label for="name"/>
+                        <h2><field name="name"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="hazard_type"/>
+                            <field name="category"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="pictogram_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ghs_hazard_class_search" model="ir.ui.view">
+        <field name="name">ghs.hazard.class.search</field>
+        <field name="model">ghs.hazard.class</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="physical" string="Physical" domain="[('hazard_type','=','physical')]"/>
+                <filter name="health" string="Health" domain="[('hazard_type','=','health')]"/>
+                <filter name="environmental" string="Environmental" domain="[('hazard_type','=','environmental')]"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('active','=',True)]"/>
+                <group name="group_by">
+                    <filter name="group_type" string="Hazard Type" context="{'group_by': 'hazard_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ghs_hazard_class" model="ir.actions.act_window">
+        <field name="name">GHS Hazard Classes</field>
+        <field name="res_model">ghs.hazard.class</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_ghs_hazard_class_search"/>
+        <field name="context">{'search_default_group_type': 1}</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         GHS HAZARD STATEMENTS (H-CODES)
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_ghs_hazard_statement_list" model="ir.ui.view">
+        <field name="name">ghs.hazard.statement.list</field>
+        <field name="model">ghs.hazard.statement</field>
+        <field name="arch" type="xml">
+            <list string="Hazard Statements">
+                <field name="id" string="ID" optional="show"/>
+                <field name="code"/>
+                <field name="hazard_type" widget="badge"
+                       decoration-danger="hazard_type == 'health'"
+                       decoration-warning="hazard_type == 'physical'"
+                       decoration-info="hazard_type == 'environmental'"
+                       decoration-muted="hazard_type == 'supplemental'"/>
+                <field name="statement"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ghs_hazard_statement_form" model="ir.ui.view">
+        <field name="name">ghs.hazard.statement.form</field>
+        <field name="model">ghs.hazard.statement</field>
+        <field name="arch" type="xml">
+            <form string="Hazard Statement">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="H-Code"/>
+                        <h1><field name="code"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="hazard_type"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="hazard_class_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group string="Statement Text">
+                        <field name="statement" nolabel="1"/>
+                    </group>
+                    <group string="Notes">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ghs_hazard_statement_search" model="ir.ui.view">
+        <field name="name">ghs.hazard.statement.search</field>
+        <field name="model">ghs.hazard.statement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="statement"/>
+                <filter name="physical" string="Physical" domain="[('hazard_type','=','physical')]"/>
+                <filter name="health" string="Health" domain="[('hazard_type','=','health')]"/>
+                <filter name="environmental" string="Environmental" domain="[('hazard_type','=','environmental')]"/>
+                <filter name="supplemental" string="Supplemental" domain="[('hazard_type','=','supplemental')]"/>
+                <group name="group_by">
+                    <filter name="group_type" string="Hazard Type" context="{'group_by': 'hazard_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ghs_hazard_statement" model="ir.actions.act_window">
+        <field name="name">Hazard Statements (H-codes)</field>
+        <field name="res_model">ghs.hazard.statement</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_ghs_hazard_statement_search"/>
+        <field name="context">{'search_default_group_type': 1}</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         GHS PRECAUTIONARY STATEMENTS (P-CODES)
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_ghs_precautionary_statement_list" model="ir.ui.view">
+        <field name="name">ghs.precautionary.statement.list</field>
+        <field name="model">ghs.precautionary.statement</field>
+        <field name="arch" type="xml">
+            <list string="Precautionary Statements">
+                <field name="id" string="ID" optional="show"/>
+                <field name="code"/>
+                <field name="category" widget="badge"/>
+                <field name="statement"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ghs_precautionary_statement_form" model="ir.ui.view">
+        <field name="name">ghs.precautionary.statement.form</field>
+        <field name="model">ghs.precautionary.statement</field>
+        <field name="arch" type="xml">
+            <form string="Precautionary Statement">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="P-Code"/>
+                        <h1><field name="code"/></h1>
+                    </div>
+                    <group>
+                        <field name="category"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Statement Text">
+                        <field name="statement" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ghs_precautionary_statement_search" model="ir.ui.view">
+        <field name="name">ghs.precautionary.statement.search</field>
+        <field name="model">ghs.precautionary.statement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="statement"/>
+                <filter name="general" string="General" domain="[('category','=','general')]"/>
+                <filter name="prevention" string="Prevention" domain="[('category','=','prevention')]"/>
+                <filter name="response" string="Response" domain="[('category','=','response')]"/>
+                <filter name="storage" string="Storage" domain="[('category','=','storage')]"/>
+                <filter name="disposal" string="Disposal" domain="[('category','=','disposal')]"/>
+                <group name="group_by">
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ghs_precautionary_statement" model="ir.actions.act_window">
+        <field name="name">Precautionary Statements (P-codes)</field>
+        <field name="res_model">ghs.precautionary.statement</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_ghs_precautionary_statement_search"/>
+        <field name="context">{'search_default_group_category': 1}</field>
+    </record>
+
+</odoo>

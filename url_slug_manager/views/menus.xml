@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Parent menu: Settings > Technical
+        (base.menu_administration is the "Technical" node inside Settings
+         that is only visible in developer mode or to admin users)
+    -->
+    <menuitem
+        id="menu_url_slug_manager_root"
+        name="URL Slug Manager"
+        parent="base.menu_administration"
+        sequence="200"
+        groups="url_slug_manager.group_technical_config_admin"/>
+
+    <menuitem
+        id="menu_url_slug_config"
+        name="URL Slug Configurations"
+        parent="menu_url_slug_manager_root"
+        action="action_url_slug_config"
+        sequence="10"
+        groups="url_slug_manager.group_technical_config_admin"/>
+
+</odoo>

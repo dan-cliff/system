@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Report Action ─────────────────────────────────────────────────── -->
+    <record id="action_report_injury_rtw_plan" model="ir.actions.report">
+        <field name="name">Return to Work Plan</field>
+        <field name="model">injury.rtw.plan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">injury_management.report_injury_rtw_plan_document</field>
+        <field name="report_file">injury_management.report_injury_rtw_plan_document</field>
+        <field name="print_report_name">'RTW Plan - %s' % (object.display_name or object.version)</field>
+        <field name="binding_model_id" ref="model_injury_rtw_plan"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ── QWeb Template ─────────────────────────────────────────────────── -->
+    <template id="report_injury_rtw_plan_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+
+                    <div class="page">
+
+                        <!-- ══ Title ══════════════════════════════════════════ -->
+                        <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #3a3a6e; padding-bottom: 16px;">
+                            <h1 style="font-size: 22px; font-weight: bold; color: #3a3a6e; margin: 0 0 4px 0;">
+                                Return to Work Plan
+                            </h1>
+                            <p style="font-size: 13px; color: #555; margin: 0;">
+                                <t t-esc="doc.version"/>
+                                <t t-if="doc.case_id">
+                                    &amp;nbsp;·&amp;nbsp;Case: <t t-esc="doc.case_id.name"/>
+                                </t>
+                                <t t-if="doc.state">
+                                    &amp;nbsp;·&amp;nbsp;Status:
+                                    <t t-esc="dict(doc._fields['state'].selection).get(doc.state, doc.state)"/>
+                                </t>
+                            </p>
+                        </div>
+
+                        <!-- ══ Employee &amp; Case Details ═══════════════════ -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
+                            <tr>
+                                <td style="width: 50%; vertical-align: top; padding-right: 16px;">
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <tr>
+                                            <td colspan="2" style="background: #f0f2f8; font-weight: bold; padding: 6px 8px; border: 1px solid #d0d4e8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                Employee Details
+                                            </td>
+                                        </tr>
+                                        <tr t-if="doc.case_id and doc.case_id.employee_id">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; width: 40%; background: #fafbff;">Employee</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;"><t t-esc="doc.case_id.employee_id.name"/></td>
+                                        </tr>
+                                        <tr t-if="doc.case_id and doc.case_id.employee_id.job_title">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Job Title</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;"><t t-esc="doc.case_id.employee_id.job_title"/></td>
+                                        </tr>
+                                        <tr t-if="doc.case_id and doc.case_id.department_id">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Department</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;"><t t-esc="doc.case_id.department_id.name"/></td>
+                                        </tr>
+                                        <tr t-if="doc.case_id and doc.case_id.injury_date">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Date of Injury</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;">
+                                                <t t-esc="doc.case_id.injury_date" t-options="{'widget': 'date'}"/>
+                                            </td>
+                                        </tr>
+                                        <tr t-if="doc.case_id and doc.case_id.pre_injury_hours">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Pre-injury Hours/Week</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;">
+                                                <t t-esc="doc.case_id.pre_injury_hours"/> hrs
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align: top;">
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <tr>
+                                            <td colspan="2" style="background: #f0f2f8; font-weight: bold; padding: 6px 8px; border: 1px solid #d0d4e8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                Plan Details
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; width: 40%; background: #fafbff;">Version</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;"><t t-esc="doc.version or '—'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Plan Date</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;">
+                                                <t t-esc="doc.plan_date" t-options="{'widget': 'date'}"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Start Date</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;">
+                                                <t t-esc="doc.start_date" t-options="{'widget': 'date'}"/>
+                                            </td>
+                                        </tr>
+                                        <tr t-if="doc.end_date">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">End Date</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;">
+                                                <t t-esc="doc.end_date" t-options="{'widget': 'date'}"/>
+                                            </td>
+                                        </tr>
+                                        <tr t-if="doc.case_id and doc.case_id.case_manager_id">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Case Manager</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;"><t t-esc="doc.case_id.case_manager_id.name"/></td>
+                                        </tr>
+                                        <tr t-if="doc.treating_doctor">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Treating Doctor</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;"><t t-esc="doc.treating_doctor"/></td>
+                                        </tr>
+                                        <tr t-if="doc.approved_by_id">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Approved By</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;"><t t-esc="doc.approved_by_id.name"/></td>
+                                        </tr>
+                                        <tr t-if="doc.approval_date">
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8; font-weight: bold; background: #fafbff;">Approval Date</td>
+                                            <td style="padding: 5px 8px; border: 1px solid #d0d4e8;">
+                                                <t t-esc="doc.approval_date" t-options="{'widget': 'date'}"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- ══ Goals / Objectives ════════════════════════════ -->
+                        <t t-if="doc.goals">
+                            <div style="margin-bottom: 20px;">
+                                <div style="background: #f0f2f8; font-weight: bold; padding: 6px 8px; border: 1px solid #d0d4e8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0;">
+                                    Goals / Objectives
+                                </div>
+                                <div style="border: 1px solid #d0d4e8; border-top: none; padding: 10px; font-size: 11px; white-space: pre-wrap; min-height: 40px;">
+                                    <t t-esc="doc.goals"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- ══ Plan Phases ═══════════════════════════════════ -->
+                        <div style="margin-bottom: 20px;">
+                            <div style="background: #3a3a6e; color: white; font-weight: bold; padding: 7px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Return to Work Plan Phases
+                            </div>
+                            <t t-if="doc.line_ids">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
+                                    <thead>
+                                        <tr style="background: #e8eaf0;">
+                                            <th style="padding: 6px 8px; border: 1px solid #c8cce0; text-align: left; width: 10%;">Phase</th>
+                                            <th style="padding: 6px 8px; border: 1px solid #c8cce0; text-align: center; width: 9%;">Start</th>
+                                            <th style="padding: 6px 8px; border: 1px solid #c8cce0; text-align: center; width: 9%;">End</th>
+                                            <th style="padding: 6px 8px; border: 1px solid #c8cce0; text-align: center; width: 8%;">Hrs/Day</th>
+                                            <th style="padding: 6px 8px; border: 1px solid #c8cce0; text-align: center; width: 8%;">Days/Wk</th>
+                                            <th style="padding: 6px 8px; border: 1px solid #c8cce0; text-align: left; width: 28%;">Duties / Tasks</th>
+                                            <th style="padding: 6px 8px; border: 1px solid #c8cce0; text-align: left; width: 28%;">Restrictions / Limitations</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="doc.line_ids" t-as="line">
+                                            <tr t-att-style="'background: #fafbff;' if line_odd else ''">
+                                                <td style="padding: 6px 8px; border: 1px solid #d0d4e8; font-weight: bold;">
+                                                    <t t-esc="line.phase_label"/>
+                                                </td>
+                                                <td style="padding: 6px 8px; border: 1px solid #d0d4e8; text-align: center;">
+                                                    <t t-if="line.start_date">
+                                                        <t t-esc="line.start_date" t-options="{'widget': 'date'}"/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                                <td style="padding: 6px 8px; border: 1px solid #d0d4e8; text-align: center;">
+                                                    <t t-if="line.end_date">
+                                                        <t t-esc="line.end_date" t-options="{'widget': 'date'}"/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                                <td style="padding: 6px 8px; border: 1px solid #d0d4e8; text-align: center;">
+                                                    <t t-if="line.daily_hours">
+                                                        <t t-esc="'%.1f' % line.daily_hours"/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                                <td style="padding: 6px 8px; border: 1px solid #d0d4e8; text-align: center;">
+                                                    <t t-if="line.days_per_week">
+                                                        <t t-esc="line.days_per_week"/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                                <td style="padding: 6px 8px; border: 1px solid #d0d4e8;">
+                                                    <t t-esc="line.duties or ''"/>
+                                                </td>
+                                                <td style="padding: 6px 8px; border: 1px solid #d0d4e8;">
+                                                    <t t-esc="line.restrictions or ''"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <div style="border: 1px solid #d0d4e8; border-top: none; padding: 12px; font-size: 11px; color: #888; font-style: italic;">
+                                    No plan phases have been defined for this RTW plan.
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- ══ Additional Notes ══════════════════════════════ -->
+                        <t t-if="doc.notes">
+                            <div style="margin-bottom: 24px;">
+                                <div style="background: #f0f2f8; font-weight: bold; padding: 6px 8px; border: 1px solid #d0d4e8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Additional Notes
+                                </div>
+                                <div style="border: 1px solid #d0d4e8; border-top: none; padding: 10px; font-size: 11px; white-space: pre-wrap; min-height: 40px;">
+                                    <t t-esc="doc.notes"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- ══ Signature Section ══════════════════════════════ -->
+                        <div style="margin-top: 40px; page-break-inside: avoid;">
+                            <div style="background: #3a3a6e; color: white; font-weight: bold; padding: 7px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 20px;">
+                                Acknowledgement &amp; Signatures
+                            </div>
+                            <p style="font-size: 10px; color: #555; margin-bottom: 20px;">
+                                By signing below, all parties confirm that they have read, understood and agree to the
+                                terms of this Return to Work Plan. The employee agrees to perform only the duties and
+                                hours outlined above. The Case Manager agrees to monitor progress and review the plan
+                                as required.
+                            </p>
+
+                            <!-- Signature boxes — flex row -->
+                            <t t-set="sig_count" t-value="3 if doc.treating_doctor else 2"/>
+                            <t t-set="sig_width" t-value="'31%' if doc.treating_doctor else '46%'"/>
+
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <!-- Employee -->
+                                    <td t-att-style="'width: ' + sig_width + '; vertical-align: top; padding-right: 12px;'">
+                                        <div style="border: 1px solid #aaa; padding: 14px 12px 10px; border-radius: 4px;">
+                                            <div style="font-size: 10px; font-weight: bold; color: #3a3a6e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                                                Employee
+                                            </div>
+                                            <div style="font-size: 11px; margin-bottom: 16px;">
+                                                <t t-if="doc.case_id and doc.case_id.employee_id">
+                                                    <strong><t t-esc="doc.case_id.employee_id.name"/></strong>
+                                                </t>
+                                                <t t-else="">
+                                                    <span style="color: #999;">___________________________</span>
+                                                </t>
+                                            </div>
+                                            <div style="border-top: 1px solid #333; padding-top: 6px; margin-top: 28px;">
+                                                <span style="font-size: 9px; color: #555;">Signature</span>
+                                            </div>
+                                            <div style="margin-top: 14px; border-top: 1px solid #333; padding-top: 6px;">
+                                                <span style="font-size: 9px; color: #555;">Date</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Spacer -->
+                                    <t t-if="doc.treating_doctor">
+                                        <td style="width: 3%;"/>
+                                    </t>
+                                    <t t-else="">
+                                        <td style="width: 8%;"/>
+                                    </t>
+
+                                    <!-- Case Manager -->
+                                    <td t-att-style="'width: ' + sig_width + '; vertical-align: top; padding-right: 12px;'">
+                                        <div style="border: 1px solid #aaa; padding: 14px 12px 10px; border-radius: 4px;">
+                                            <div style="font-size: 10px; font-weight: bold; color: #3a3a6e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                                                Case Manager
+                                            </div>
+                                            <div style="font-size: 11px; margin-bottom: 16px;">
+                                                <t t-if="doc.case_id and doc.case_id.case_manager_id">
+                                                    <strong><t t-esc="doc.case_id.case_manager_id.name"/></strong>
+                                                </t>
+                                                <t t-else="">
+                                                    <span style="color: #999;">___________________________</span>
+                                                </t>
+                                            </div>
+                                            <div style="border-top: 1px solid #333; padding-top: 6px; margin-top: 28px;">
+                                                <span style="font-size: 9px; color: #555;">Signature</span>
+                                            </div>
+                                            <div style="margin-top: 14px; border-top: 1px solid #333; padding-top: 6px;">
+                                                <span style="font-size: 9px; color: #555;">Date</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Treating Doctor (conditional) -->
+                                    <t t-if="doc.treating_doctor">
+                                        <td style="width: 3%;"/>
+                                        <td t-att-style="'width: ' + sig_width + '; vertical-align: top;'">
+                                            <div style="border: 1px solid #aaa; padding: 14px 12px 10px; border-radius: 4px;">
+                                                <div style="font-size: 10px; font-weight: bold; color: #3a3a6e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                                                    Treating Doctor
+                                                </div>
+                                                <div style="font-size: 11px; margin-bottom: 16px;">
+                                                    <strong><t t-esc="doc.treating_doctor"/></strong>
+                                                </div>
+                                                <div style="border-top: 1px solid #333; padding-top: 6px; margin-top: 28px;">
+                                                    <span style="font-size: 9px; color: #555;">Signature</span>
+                                                </div>
+                                                <div style="margin-top: 14px; border-top: 1px solid #333; padding-top: 6px;">
+                                                    <span style="font-size: 9px; color: #555;">Date</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div><!-- /page -->
+                </t><!-- /external_layout -->
+            </t><!-- /foreach -->
+        </t><!-- /html_container -->
+    </template>
+
+</odoo>

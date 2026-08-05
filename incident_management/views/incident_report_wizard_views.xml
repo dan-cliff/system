@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_incident_report_wizard_form" model="ir.ui.view">
+        <field name="name">incident.report.wizard.form</field>
+        <field name="model">incident.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Export Incident Report PDF">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Export Incident Report</h2>
+                    </div>
+                    <group>
+                        <field name="incident_id" readonly="1" options="{'no_open': True}"/>
+                    </group>
+                    <separator string="Select Sections to Include"/>
+                    <p class="text-muted">
+                        Choose which sections to include in the PDF export.
+                        Category-specific detail pages are included automatically
+                        based on the incident's selected categories.
+                    </p>
+                    <div style="margin: 8px 0 16px 0; max-width: 480px;">
+                        <!-- Header -->
+                        <div class="d-flex align-items-center border-bottom pb-1 mb-1 fw-bold text-muted" style="font-size: 0.85em;">
+                            <div class="flex-grow-1 ps-4">Section</div>
+                            <div style="min-width: 70px; text-align: right;">Count</div>
+                        </div>
+                        <!-- Incident Report -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_report" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Report Details</div>
+                            <div style="min-width: 70px; text-align: right; color: #6c757d; font-size: 0.9em;">
+                                <field name="category_count" nolabel="1" readonly="1"/>
+                                <span class="ms-1 text-muted" style="font-size: 0.85em;">categories</span>
+                            </div>
+                        </div>
+                        <!-- Investigation -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_investigation" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Investigation &amp; ICAM Findings</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="finding_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <!-- Corrective Actions -->
+                        <div class="d-flex align-items-center py-1">
+                            <field name="include_corrective_actions" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Corrective Actions</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="corrective_action_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_print" string="Generate PDF"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_incident_report_wizard" model="ir.actions.act_window">
+        <field name="name">Export Incident Report PDF</field>
+        <field name="res_model">incident.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

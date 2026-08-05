@@ -1,0 +1,463 @@
+/** @odoo-module **/
+/**
+ * Training Needs Analysis — Matrix Client Action
+ *
+ * Renders a scrollable matrix with:
+ *   - Courses as rows (vertical axis, sticky left column)
+ *   - Employees as columns (horizontal axis, sticky header row)
+ *   - Coloured state icon + expiry date in each cell
+ */
+
+import { Component, useState, onWillStart } from "@odoo/owl";
+import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
+
+// ── State display configuration ───────────────────────────────────────────────
+const STATE_CONFIG = {
+    completed:            { label: "Completed",            icon: "fa-check-circle"        },
+    in_progress:          { label: "In Progress",          icon: "fa-circle"               },
+    not_started:          { label: "Not Started",          icon: "fa-circle-o"             },
+    pending_upload:       { label: "Pending Upload",       icon: "fa-upload"               },
+    pending_verification: { label: "Pending Verification", icon: "fa-clock-o"              },
+    failed:               { label: "Failed",               icon: "fa-times-circle"         },
+    expired:              { label: "Expired",              icon: "fa-exclamation-triangle"  },
+    lapsed:               { label: "Lapsed",               icon: "fa-ban"                   },
+};
+
+const COURSE_TYPES = [
+    { value: "",              label: "All Types"     },
+    { value: "licence",       label: "Licence"       },
+    { value: "qualification", label: "Qualification" },
+    { value: "training",      label: "Training"      },
+    { value: "elearning",     label: "eLearning"     },
+];
+
+const STATUS_OPTIONS = [
+    { value: "", label: "All Statuses" },
+    ...Object.entries(STATE_CONFIG).map(([value, cfg]) => ({ value, label: cfg.label })),
+];
+
+const COMPLETED_OPTIONS = [
+    { value: "",               label: "Any Completion Date"      },
+    { value: "today",          label: "Completed Today"          },
+    { value: "yesterday",      label: "Completed Yesterday"      },
+    { value: "last_7_days",    label: "Completed Last 7 Days"    },
+    { value: "wtd",            label: "Completed Week to Date"   },
+    { value: "last_cal_week",  label: "Completed Last Cal. Week" },
+    { value: "mtd",            label: "Completed Month to Date"  },
+    { value: "last_month",     label: "Completed Last Month"     },
+    { value: "last_cal_month", label: "Completed Last Cal. Month"},
+    { value: "ytd",            label: "Completed Year to Date"   },
+    { value: "last_year",      label: "Completed Last Year"      },
+    { value: "custom",         label: "Custom Date Range…"       },
+];
+
+const EXPIRES_OPTIONS = [
+    { value: "",            label: "Any Expiry Date"          },
+    { value: "today",       label: "Expires Today"            },
+    { value: "tomorrow",    label: "Expires Tomorrow"         },
+    { value: "next_7_days", label: "Expires Next 7 Days"      },
+    { value: "next_month",  label: "Expires Next Month"       },
+    { value: "next_year",   label: "Expires Next Year"        },
+    { value: "this_year",   label: "Expires This Year"        },
+    { value: "custom",      label: "Custom Date Range…"       },
+];
+
+// ── Component ─────────────────────────────────────────────────────────────────
+export class LmsTnaMatrix extends Component {
+    static template = "learning_management.LmsTnaMatrix";
+    static props = ["*"];
+
+    setup() {
+        this.orm           = useService("orm");
+        this.actionService = useService("action");
+
+        this.stateConfig       = STATE_CONFIG;
+        this.courseTypes       = COURSE_TYPES;
+        this.statusOptions     = STATUS_OPTIONS;
+        this.completedOptions  = COMPLETED_OPTIONS;
+        this.expiresOptions    = EXPIRES_OPTIONS;
+
+        this.state = useState({
+            loading:          true,
+            employees:        [],
+            courses:          [],
+            cells:            {},
+            allCourses:       [],
+            allEmployees:     [],
+            allDepartments:   [],
+            allCompanies:     [],
+            // filters
+            courseTypeFilter:  "",
+            statusFilter:      "",
+            courseFilter:      "",
+            employeeFilter:    "",
+            departmentFilter:  "",
+            companyFilter:     "",
+            completedOption:  "",
+            completedFrom:    "",
+            completedTo:      "",
+            expiresOption:    "",
+            expiresFrom:      "",
+            expiresTo:        "",
+        });
+
+        onWillStart(async () => {
+            const [courses, employees, departments, companies] = await Promise.all([
+                this.orm.searchRead(
+                    "lms.course",
+                    [["active", "=", true]],
+                    ["id", "name"],
+                    { order: "name" },
+                ),
+                this.orm.searchRead(
+                    "hr.employee",
+                    [["active", "=", true]],
+                    ["id", "name"],
+                    { order: "name" },
+                ),
+                this.orm.searchRead(
+                    "hr.department",
+                    [],
+                    ["id", "name"],
+                    { order: "name" },
+                ),
+                this.orm.searchRead(
+                    "res.company",
+                    [],
+                    ["id", "name"],
+                    { order: "name" },
+                ),
+            ]);
+            this.state.allCourses     = courses;
+            this.state.allEmployees   = employees;
+            this.state.allDepartments = departments;
+            this.state.allCompanies   = companies;
+            await this._loadData();
+        });
+    }
+
+    // ── Date helpers ──────────────────────────────────────────────────────────
+
+    /** Format a JS Date as YYYY-MM-DD for Odoo domain values. */
+    _fmt(d) {
+        const yyyy = d.getFullYear();
+        const mm   = String(d.getMonth() + 1).padStart(2, "0");
+        const dd   = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    _addDays(d, n) {
+        const r = new Date(d);
+        r.setDate(r.getDate() + n);
+        return r;
+    }
+
+    /** Build domain clauses for one date field given a filter option key. */
+    _dateDomain(field, option, from, to) {
+        if (!option) return [];
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Monday of the current week (ISO: Mon = start)
+        const dow = today.getDay(); // 0 = Sun
+        const thisMonday = this._addDays(today, dow === 0 ? -6 : 1 - dow);
+        const lastMonday = this._addDays(thisMonday, -7);
+        const lastSunday = this._addDays(thisMonday, -1);
+
+        // Month boundaries
+        const monthStart     = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastMonthEnd   = new Date(monthStart.getTime() - 86400000); // day before 1st
+        const lastMonthStart = new Date(lastMonthEnd.getFullYear(), lastMonthEnd.getMonth(), 1);
+
+        // Year boundaries
+        const yearStart = new Date(today.getFullYear(), 0, 1);
+        const yearEnd   = new Date(today.getFullYear(), 11, 31);
+
+        const gte = (d) => [field, ">=", this._fmt(d)];
+        const lte = (d) => [field, "<=", this._fmt(d)];
+        const eq  = (d) => [field, "=",  this._fmt(d)];
+
+        switch (option) {
+            case "today":          return [eq(today)];
+            case "yesterday":      return [eq(this._addDays(today, -1))];
+            case "tomorrow":       return [eq(this._addDays(today,  1))];
+            case "last_7_days":    return [gte(this._addDays(today, -7)),    lte(today)];
+            case "wtd":            return [gte(thisMonday),                  lte(today)];
+            case "last_cal_week":  return [gte(lastMonday),                  lte(lastSunday)];
+            case "mtd":            return [gte(monthStart),                  lte(today)];
+            case "last_month":     return [gte(this._addDays(today, -30)),   lte(today)];
+            case "last_cal_month": return [gte(lastMonthStart),              lte(lastMonthEnd)];
+            case "ytd":            return [gte(yearStart),                   lte(today)];
+            case "last_year":      return [gte(this._addDays(today, -365)),  lte(today)];
+            case "next_7_days":    return [gte(today), lte(this._addDays(today,  7))];
+            case "next_month":     return [gte(today), lte(this._addDays(today, 30))];
+            case "next_year":      return [gte(today), lte(this._addDays(today, 365))];
+            case "this_year":      return [gte(yearStart), lte(yearEnd)];
+            case "custom": {
+                const clauses = [];
+                if (from) clauses.push([field, ">=", from]);
+                if (to)   clauses.push([field, "<=", to]);
+                return clauses;
+            }
+            default: return [];
+        }
+    }
+
+    // ── Data loading ──────────────────────────────────────────────────────────
+
+    async _loadData() {
+        this.state.loading = true;
+
+        const domain = [];
+
+        if (this.state.courseTypeFilter)
+            domain.push(["course_type", "=", this.state.courseTypeFilter]);
+        if (this.state.statusFilter)
+            domain.push(["state", "=", this.state.statusFilter]);
+        if (this.state.courseFilter)
+            domain.push(["course_id", "=", parseInt(this.state.courseFilter)]);
+        if (this.state.employeeFilter)
+            domain.push(["employee_id", "=", parseInt(this.state.employeeFilter)]);
+        if (this.state.departmentFilter)
+            domain.push(["employee_id.department_id", "=", parseInt(this.state.departmentFilter)]);
+        if (this.state.companyFilter)
+            domain.push(["employee_id.company_id", "=", parseInt(this.state.companyFilter)]);
+
+        domain.push(...this._dateDomain(
+            "completion_date",
+            this.state.completedOption,
+            this.state.completedFrom,
+            this.state.completedTo,
+        ));
+        domain.push(...this._dateDomain(
+            "expiry_date",
+            this.state.expiresOption,
+            this.state.expiresFrom,
+            this.state.expiresTo,
+        ));
+
+        const data = await this.orm.call(
+            "lms.employee.record",
+            "get_tna_matrix_data",
+            [domain],
+        );
+
+        this.state.employees = data.employees;
+        this.state.courses   = data.courses;
+        this.state.cells     = data.cells;
+        this.state.loading   = false;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    getCell(employeeId, courseId) {
+        return this.state.cells[`${employeeId}_${courseId}`] || null;
+    }
+
+    /** Format an ISO date string (YYYY-MM-DD) as "dd/mm/yyyy". */
+    formatDate(dateStr) {
+        if (!dateStr) return "";
+        const [y, m, d] = dateStr.split("-");
+        return `${d}/${m}/${y}`;
+    }
+
+    /** Tooltip string for a cell. */
+    cellTooltip(cell, employeeName, courseName) {
+        if (!cell) return `${employeeName} — ${courseName}\nNo record`;
+        const cfg   = STATE_CONFIG[cell.state] || {};
+        let tooltip = `${employeeName} — ${courseName}\n${cfg.label || cell.state}`;
+        if (cell.completion_date) tooltip += `\nCompleted: ${this.formatDate(cell.completion_date)}`;
+        if (cell.expiry_date)     tooltip += `\nExpires: ${this.formatDate(cell.expiry_date)}`;
+        return tooltip;
+    }
+
+    // ── Event handlers ────────────────────────────────────────────────────────
+
+    async onCourseTypeChange(ev) {
+        this.state.courseTypeFilter = ev.target.value;
+        await this._loadData();
+    }
+
+    async onStatusChange(ev) {
+        this.state.statusFilter = ev.target.value;
+        await this._loadData();
+    }
+
+    async onCourseChange(ev) {
+        this.state.courseFilter = ev.target.value;
+        await this._loadData();
+    }
+
+    async onEmployeeChange(ev) {
+        this.state.employeeFilter = ev.target.value;
+        await this._loadData();
+    }
+
+    async onDepartmentChange(ev) {
+        this.state.departmentFilter = ev.target.value;
+        await this._loadData();
+    }
+
+    async onCompanyChange(ev) {
+        this.state.companyFilter = ev.target.value;
+        await this._loadData();
+    }
+
+    async onCompletedOptionChange(ev) {
+        this.state.completedOption = ev.target.value;
+        if (ev.target.value !== "custom") {
+            this.state.completedFrom = "";
+            this.state.completedTo   = "";
+        }
+        await this._loadData();
+    }
+
+    async onCompletedFromChange(ev) {
+        this.state.completedFrom = ev.target.value;
+        await this._loadData();
+    }
+
+    async onCompletedToChange(ev) {
+        this.state.completedTo = ev.target.value;
+        await this._loadData();
+    }
+
+    async onExpiresOptionChange(ev) {
+        this.state.expiresOption = ev.target.value;
+        if (ev.target.value !== "custom") {
+            this.state.expiresFrom = "";
+            this.state.expiresTo   = "";
+        }
+        await this._loadData();
+    }
+
+    async onExpiresFromChange(ev) {
+        this.state.expiresFrom = ev.target.value;
+        await this._loadData();
+    }
+
+    async onExpiresToChange(ev) {
+        this.state.expiresTo = ev.target.value;
+        await this._loadData();
+    }
+
+    openRecord(cell) {
+        if (!cell) return;
+        this.actionService.doAction({
+            type:      "ir.actions.act_window",
+            res_model: "lms.employee.record",
+            res_id:    cell.id,
+            views:     [[false, "form"]],
+            target:    "current",
+        });
+    }
+
+    openEmployee(employee) {
+        this.actionService.doAction({
+            type:      "ir.actions.act_window",
+            res_model: "hr.employee",
+            res_id:    employee.id,
+            views:     [[false, "form"]],
+            target:    "current",
+        });
+    }
+
+    openCourse(course) {
+        this.actionService.doAction({
+            type:      "ir.actions.act_window",
+            res_model: "lms.course",
+            res_id:    course.id,
+            views:     [[false, "form"]],
+            target:    "current",
+        });
+    }
+
+    exportExcel() {
+        const domain = [];
+
+        if (this.state.courseTypeFilter)
+            domain.push(["course_type", "=", this.state.courseTypeFilter]);
+        if (this.state.statusFilter)
+            domain.push(["state", "=", this.state.statusFilter]);
+        if (this.state.courseFilter)
+            domain.push(["course_id", "=", parseInt(this.state.courseFilter)]);
+        if (this.state.employeeFilter)
+            domain.push(["employee_id", "=", parseInt(this.state.employeeFilter)]);
+        if (this.state.departmentFilter)
+            domain.push(["employee_id.department_id", "=", parseInt(this.state.departmentFilter)]);
+        if (this.state.companyFilter)
+            domain.push(["employee_id.company_id", "=", parseInt(this.state.companyFilter)]);
+
+        domain.push(...this._dateDomain(
+            "completion_date",
+            this.state.completedOption,
+            this.state.completedFrom,
+            this.state.completedTo,
+        ));
+        domain.push(...this._dateDomain(
+            "expiry_date",
+            this.state.expiresOption,
+            this.state.expiresFrom,
+            this.state.expiresTo,
+        ));
+
+        const url = `/learning/tna/excel?domain=${encodeURIComponent(JSON.stringify(domain))}`;
+        window.open(url, "_blank");
+    }
+
+    exportPdf() {
+        // Build the same domain that _loadData() uses, then open the
+        // /learning/tna/pdf controller which renders a landscape A4 PDF.
+        const domain = [];
+
+        if (this.state.courseTypeFilter)
+            domain.push(["course_type", "=", this.state.courseTypeFilter]);
+        if (this.state.statusFilter)
+            domain.push(["state", "=", this.state.statusFilter]);
+        if (this.state.courseFilter)
+            domain.push(["course_id", "=", parseInt(this.state.courseFilter)]);
+        if (this.state.employeeFilter)
+            domain.push(["employee_id", "=", parseInt(this.state.employeeFilter)]);
+        if (this.state.departmentFilter)
+            domain.push(["employee_id.department_id", "=", parseInt(this.state.departmentFilter)]);
+        if (this.state.companyFilter)
+            domain.push(["employee_id.company_id", "=", parseInt(this.state.companyFilter)]);
+
+        // Reuse the shared date-domain helper for both date filters
+        domain.push(...this._dateDomain(
+            "completion_date",
+            this.state.completedOption,
+            this.state.completedFrom,
+            this.state.completedTo,
+        ));
+        domain.push(...this._dateDomain(
+            "expiry_date",
+            this.state.expiresOption,
+            this.state.expiresFrom,
+            this.state.expiresTo,
+        ));
+
+        const url = `/learning/tna/pdf?domain=${encodeURIComponent(JSON.stringify(domain))}`;
+        window.open(url, "_blank");
+    }
+
+    // ── Summary stats ─────────────────────────────────────────────────────────
+
+    get stats() {
+        const cells     = Object.values(this.state.cells);
+        const assigned  = cells.length;
+        const completed = cells.filter(c => c.state === "completed").length;
+        const pct       = assigned ? Math.round((completed / assigned) * 100) : 0;
+        return {
+            employees: this.state.employees.length,
+            courses:   this.state.courses.length,
+            assigned,
+            completed,
+            pct,
+        };
+    }
+}
+
+registry.category("actions").add("lms_tna_matrix", LmsTnaMatrix);

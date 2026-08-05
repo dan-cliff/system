@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Letter Template List View ─────────────────────────────────────── -->
+    <record id="membership_letter_template_list_view" model="ir.ui.view">
+        <field name="name">membership.letter.template.list</field>
+        <field name="model">membership.letter.template</field>
+        <field name="arch" type="xml">
+            <list string="Letter Templates">
+                <field name="id" string="ID"/>
+                <field name="name" string="Template Name"/>
+                <field name="document_filename" string="File"/>
+                <field name="description" string="Description"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Letter Template Form View ─────────────────────────────────────── -->
+    <record id="membership_letter_template_form_view" model="ir.ui.view">
+        <field name="name">membership.letter.template.form</field>
+        <field name="model">membership.letter.template</field>
+        <field name="arch" type="xml">
+            <form string="Letter Template">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Template Name"/>
+                        <h1><field name="name" placeholder="e.g. Welcome Letter"/></h1>
+                    </div>
+                    <group>
+                        <field name="document"
+                               widget="binary"
+                               filename="document_filename"
+                               string="Template Document (.docx)"/>
+                        <field name="document_filename" invisible="1"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description"
+                               string="Description"
+                               nolabel="1"
+                               colspan="2"
+                               placeholder="Brief description of this letter template..."/>
+                    </group>
+                    <div class="alert alert-info mt-2" role="status">
+                        <strong>Merge Fields:</strong> Use <code>{{field_name}}</code> in your
+                        Word document to insert dynamic values. Available fields:
+                        <code>member_number</code>, <code>member_name</code>,
+                        <code>product_name</code>, <code>status_name</code>,
+                        <code>date_issued</code>, <code>date_expiry</code>,
+                        <code>phone</code>, <code>email</code>,
+                        <code>street</code>, <code>city</code>, <code>country</code>.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Window Action ─────────────────────────────────────────────────── -->
+    <record id="action_membership_letter_templates" model="ir.actions.act_window">
+        <field name="name">Letter Templates</field>
+        <field name="res_model">membership.letter.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No letter templates yet.</p>
+            <p>
+                Upload a <strong>.docx</strong> Word document with
+                <strong>{{merge_fields}}</strong> and use it to generate
+                personalised letters for members.
+            </p>
+        </field>
+    </record>
+
+</odoo>

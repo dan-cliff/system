@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Restock List ─────────────────────────────────────────────────── -->
+    <record id="view_print_restock_order_list" model="ir.ui.view">
+        <field name="name">print.restock.order.list</field>
+        <field name="model">print.restock.order</field>
+        <field name="arch" type="xml">
+            <list string="Restock Orders"
+                  decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'received'"
+                  decoration-info="state == 'confirmed'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'received'"
+                       decoration-info="state == 'confirmed'"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Restock Form ─────────────────────────────────────────────────── -->
+    <record id="view_print_restock_order_form" model="ir.ui.view">
+        <field name="name">print.restock.order.form</field>
+        <field name="model">print.restock.order</field>
+        <field name="arch" type="xml">
+            <form string="Restock Order">
+                <header>
+                    <button name="action_confirm" type="object"
+                            string="Confirm" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_receive" type="object"
+                            string="Mark Received" class="btn-success"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel" class="btn-secondary"
+                            invisible="state in ('received','cancelled')"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft" class="btn-secondary"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,received"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="date"/>
+                    </group>
+                    <notebook>
+                        <page string="Filaments" name="lines">
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="filament_id"/>
+                                    <field name="qty_ordered"/>
+                                    <field name="qty_received"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Order notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Restock Search ───────────────────────────────────────────────── -->
+    <record id="view_print_restock_order_search" model="ir.ui.view">
+        <field name="name">print.restock.order.search</field>
+        <field name="model">print.restock.order</field>
+        <field name="arch" type="xml">
+            <search string="Restock Orders">
+                <field name="name"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Confirmed" name="confirmed"
+                        domain="[('state','=','confirmed')]"/>
+                <filter string="Received" name="received"
+                        domain="[('state','=','received')]"/>
+                <separator/>
+                <filter string="Group by Status" name="group_state"
+                        context="{'group_by':'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Restock Action ───────────────────────────────────────────────── -->
+    <record id="action_print_restock_order" model="ir.actions.act_window">
+        <field name="name">Restock Orders</field>
+        <field name="res_model">print.restock.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_print_restock_order_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a restock order</p>
+            <p>Track filament restock orders to keep your print farm supplied.</p>
+        </field>
+    </record>
+
+</odoo>

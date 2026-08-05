@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Kanban view ───────────────────────────────────────────────────── -->
+    <record id="view_meeting_meeting_kanban" model="ir.ui.view">
+        <field name="name">meeting.meeting.kanban</field>
+        <field name="model">meeting.meeting</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="reference"/>
+                <field name="date_start"/>
+                <field name="state"/>
+                <field name="chairperson_id"/>
+                <field name="invitee_count"/>
+                <field name="teams_scheduled"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="fw-bold">
+                                <field name="name"/>
+                            </div>
+                            <div class="text-muted small">
+                                <field name="reference"/> ·
+                                <field name="date_start" widget="datetime"/>
+                            </div>
+                            <div t-if="record.chairperson_id.value" class="small mt-1">
+                                Chair: <field name="chairperson_id"/>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="badge bg-primary rounded-pill">
+                                    <field name="invitee_count"/> invitees
+                                </span>
+                                <span t-if="record.teams_scheduled.raw_value" class="badge bg-info rounded-pill">
+                                    <i class="fa fa-video-camera"/> Teams
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── List view ─────────────────────────────────────────────────────── -->
+    <record id="view_meeting_meeting_list" model="ir.ui.view">
+        <field name="name">meeting.meeting.list</field>
+        <field name="model">meeting.meeting</field>
+        <field name="arch" type="xml">
+            <list string="Meetings" decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'completed'"
+                  decoration-info="state == 'in_progress'">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="template_id" optional="show"/>
+                <field name="date_start"/>
+                <field name="date_end" optional="hide"/>
+                <field name="location" optional="show"/>
+                <field name="meeting_type" optional="show"/>
+                <field name="chairperson_id"/>
+                <field name="invitee_count" string="Invitees"/>
+                <field name="agenda_item_count" string="Agenda"/>
+                <field name="open_action_count" string="Open Actions"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'completed'"
+                       decoration-info="state in ('scheduled','in_progress')"
+                       decoration-danger="state == 'cancelled'"/>
+                <field name="teams_scheduled" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form view ─────────────────────────────────────────────────────── -->
+    <record id="view_meeting_meeting_form" model="ir.ui.view">
+        <field name="name">meeting.meeting.form</field>
+        <field name="model">meeting.meeting</field>
+        <field name="arch" type="xml">
+            <form string="Meeting">
+                <header>
+                    <button name="action_schedule" string="Schedule" type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_start" string="Start Meeting" type="object"
+                            class="btn-primary"
+                            invisible="state != 'scheduled'"/>
+                    <button name="action_complete" string="Complete Meeting" type="object"
+                            class="btn-success"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_approve_minutes" string="Approve Minutes" type="object"
+                            class="btn-secondary"
+                            invisible="state != 'completed' or minutes_approved"/>
+                    <button name="action_schedule_next_meeting" string="Schedule Next Meeting"
+                            type="object" class="btn-secondary"
+                            invisible="state != 'completed' or next_meeting_id != False"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ['completed', 'cancelled']"/>
+                    <button name="action_reset_draft" string="Reset to Draft" type="object"
+                            invisible="state not in ['cancelled', 'scheduled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,scheduled,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_print_agenda" string="Print Agenda"
+                                type="object" class="oe_stat_button" icon="fa-print"
+                                invisible="agenda_item_count == 0"/>
+                        <button name="action_print_minutes" string="Print Minutes"
+                                type="object" class="oe_stat_button" icon="fa-file-text"
+                                invisible="state not in ['in_progress','completed']"/>
+                        <button name="action_send_notification" string="Send Notification"
+                                type="object" class="oe_stat_button" icon="fa-envelope"
+                                invisible="state == 'draft'"/>
+                        <button class="oe_stat_button" icon="fa-tasks"
+                                invisible="action_item_count == 0">
+                            <field name="open_action_count" widget="statinfo" string="Open Actions"/>
+                        </button>
+                    </div>
+
+                    <!-- Teams meeting banner -->
+                    <div class="alert alert-info d-flex align-items-center gap-2 mb-0"
+                         role="alert"
+                         invisible="not teams_scheduled">
+                        <i class="fa fa-video-camera fa-lg"/>
+                        <span>This meeting is scheduled as a <strong>Teams Meeting</strong>.</span>
+                        <button name="action_open_teams_meeting" string="Join Teams Meeting"
+                                type="object" class="btn btn-sm btn-primary ms-2"/>
+                        <field name="teams_join_url" class="ms-2 text-truncate" readonly="1"
+                               style="max-width:300px"/>
+                    </div>
+
+                    <!-- Next meeting banner -->
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-0"
+                         role="alert"
+                         invisible="not next_meeting_id">
+                        <i class="fa fa-arrow-right"/>
+                        Next meeting scheduled:
+                        <field name="next_meeting_id" readonly="1" class="ms-1"/>
+                        on <field name="next_meeting_date" widget="datetime" readonly="1" class="ms-1"/>
+                    </div>
+
+                    <!-- Previous meeting banner -->
+                    <div class="alert alert-secondary d-flex align-items-center gap-2 mb-0"
+                         role="alert"
+                         invisible="not previous_meeting_id">
+                        <i class="fa fa-arrow-left"/>
+                        Previous meeting:
+                        <field name="previous_meeting_id" readonly="1" class="ms-1"/>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Meeting Title…"/>
+                        </h1>
+                        <div class="text-muted">
+                            <field name="reference" readonly="1"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Meeting Details">
+                            <field name="template_id" options="{'no_create': False}"/>
+                            <field name="meeting_type"/>
+                            <field name="location" placeholder="Room / link / address…"/>
+                            <field name="date_start" widget="datetime"/>
+                            <field name="date_end" widget="datetime"/>
+                            <field name="duration" widget="float_time"/>
+                        </group>
+                        <group string="People">
+                            <field name="chairperson_id" options="{'no_create': False}"/>
+                            <field name="secretary_id" options="{'no_create': False}"/>
+                            <field name="invitee_ids" widget="many2many_tags"
+                                   options="{'no_create': False}"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- ── Agenda tab ──────────────────────────────── -->
+                        <page string="Agenda" name="agenda">
+                            <field name="agenda_item_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="item_type" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="presenter_id" optional="show"/>
+                                    <field name="duration" optional="show"/>
+                                    <field name="has_minutes" string="Minutes" widget="boolean_toggle" readonly="1"/>
+                                    <field name="description" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- ── Minutes tab ────────────────────────────── -->
+                        <page string="Minutes" name="minutes"
+                              invisible="state not in ['in_progress','completed']">
+                            <div class="d-flex gap-2 mb-2">
+                                <button name="action_populate_minutes_from_agenda"
+                                        string="Populate from Agenda"
+                                        type="object" class="btn btn-sm btn-secondary"
+                                        invisible="agenda_item_count == 0"/>
+                            </div>
+                            <field name="minutes_item_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="agenda_item_id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="action_item_count" string="Actions" readonly="1"/>
+                                </list>
+                            </field>
+                            <!-- Minutes approval -->
+                            <group string="Minutes Approval" class="mt-3">
+                                <field name="minutes_approved"/>
+                                <field name="minutes_approved_date"
+                                       invisible="not minutes_approved"/>
+                            </group>
+                            <group string="General Notes">
+                                <field name="general_notes" nolabel="1" widget="html"/>
+                            </group>
+                        </page>
+
+                        <!-- ── Action Items tab ───────────────────────── -->
+                        <page string="Action Items" name="action_items">
+                            <!-- Outstanding actions from previous meeting -->
+                            <div invisible="not previous_meeting_id">
+                                <h4 class="text-muted">Outstanding Actions from Previous Meeting</h4>
+                                <field name="previous_open_action_ids" readonly="1">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="assigned_to_id"/>
+                                        <field name="due_date"/>
+                                        <field name="state" widget="badge"
+                                               decoration-success="state == 'done'"
+                                               decoration-warning="state == 'in_progress'"
+                                               decoration-danger="state == 'open'"/>
+                                    </list>
+                                </field>
+                                <hr/>
+                                <h4>New Action Items</h4>
+                            </div>
+                            <field name="action_item_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="assigned_to_id"/>
+                                    <field name="due_date"/>
+                                    <field name="priority" widget="priority"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-warning="state == 'in_progress'"
+                                           decoration-danger="state == 'open'"
+                                           decoration-muted="state == 'cancelled'"/>
+                                    <field name="task_id" optional="show" readonly="1"/>
+                                    <button name="action_create_todo" string="Create To-Do"
+                                            type="object" icon="fa-check-square"
+                                            invisible="task_id != False"/>
+                                    <button name="action_open_todo" string="Open To-Do"
+                                            type="object" icon="fa-external-link"
+                                            invisible="task_id == False"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- ── Teams / Outlook tab ────────────────────── -->
+                        <page string="Teams &amp; Outlook" name="teams">
+                            <group string="Schedule in Microsoft Teams">
+                                <div class="d-flex gap-2 mb-3">
+                                    <button name="action_schedule_teams_meeting"
+                                            string="Create Teams Meeting"
+                                            type="object" class="btn btn-primary"
+                                            invisible="teams_scheduled"/>
+                                    <button name="action_update_teams_meeting"
+                                            string="Update Teams Meeting"
+                                            type="object" class="btn btn-secondary"
+                                            invisible="not teams_scheduled"/>
+                                    <button name="action_open_teams_meeting"
+                                            string="Join Meeting"
+                                            type="object" class="btn btn-info"
+                                            invisible="not teams_scheduled"/>
+                                </div>
+                            </group>
+                            <group string="Teams Meeting Details"
+                                   invisible="not teams_scheduled">
+                                <field name="teams_meeting_id" readonly="1"/>
+                                <field name="teams_join_url" widget="url" readonly="1"/>
+                                <field name="teams_online_meeting_url" widget="url" readonly="1" optional="show"/>
+                                <field name="outlook_event_id" readonly="1" optional="show"/>
+                            </group>
+                            <div class="alert alert-info" role="alert"
+                                 invisible="teams_scheduled">
+                                <strong>Microsoft Teams Integration</strong><br/>
+                                Click <em>Create Teams Meeting</em> to automatically schedule this meeting in
+                                Microsoft Teams and create a calendar event in Outlook for all invitees.
+                                Configure your Azure credentials in
+                                <strong>Settings → Meeting Management</strong>.
+                            </div>
+                        </page>
+
+                        <!-- ── Notifications tab ──────────────────────── -->
+                        <page string="Notifications" name="notifications">
+                            <field name="notification_template_ids" widget="many2many_tags"/>
+                            <div class="alert alert-info mt-2" role="alert">
+                                These templates will be triggered automatically at the relevant meeting stage.
+                                Use the <strong>Send Notification</strong> button to send manually.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search view ───────────────────────────────────────────────────── -->
+    <record id="view_meeting_meeting_search" model="ir.ui.view">
+        <field name="name">meeting.meeting.search</field>
+        <field name="model">meeting.meeting</field>
+        <field name="arch" type="xml">
+            <search string="Search Meetings">
+                <field name="name" string="Meeting"/>
+                <field name="reference"/>
+                <field name="chairperson_id"/>
+                <field name="template_id"/>
+                <field name="invitee_ids" string="Invitee"/>
+                <separator/>
+                <filter name="filter_draft" string="Draft" domain="[('state','=','draft')]"/>
+                <filter name="filter_scheduled" string="Scheduled" domain="[('state','=','scheduled')]"/>
+                <filter name="filter_in_progress" string="In Progress" domain="[('state','=','in_progress')]"/>
+                <filter name="filter_completed" string="Completed" domain="[('state','=','completed')]"/>
+                <filter name="filter_cancelled" string="Cancelled" domain="[('state','=','cancelled')]"/>
+                <separator/>
+                <filter name="filter_teams" string="Teams Meeting" domain="[('teams_scheduled','=',True)]"/>
+                <filter name="filter_open_actions" string="Has Open Actions" domain="[('open_action_count','>',0)]"/>
+                <group name="group_by">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_template" string="Template" context="{'group_by': 'template_id'}"/>
+                    <filter name="group_type" string="Meeting Type" context="{'group_by': 'meeting_type'}"/>
+                    <filter name="group_month" string="Month" context="{'group_by': 'date_start:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Calendar view ─────────────────────────────────────────────────── -->
+    <record id="view_meeting_meeting_calendar" model="ir.ui.view">
+        <field name="name">meeting.meeting.calendar</field>
+        <field name="model">meeting.meeting</field>
+        <field name="arch" type="xml">
+            <calendar string="Meetings"
+                      date_start="date_start"
+                      date_stop="date_end"
+                      color="state"
+                      quick_create="0">
+                <field name="name"/>
+                <field name="chairperson_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────────── -->
+    <record id="action_meeting_meeting" model="ir.actions.act_window">
+        <field name="name">Meetings</field>
+        <field name="res_model">meeting.meeting</field>
+        <field name="view_mode">list,kanban,calendar,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Schedule your first meeting
+            </p>
+            <p>
+                Create meetings with agendas, record minutes, assign action items
+                and integrate with Microsoft Teams.
+            </p>
+        </field>
+    </record>
+</odoo>

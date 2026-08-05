@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ir_cron_dg_chemical_expiry" model="ir.cron">
+        <field name="name">Dangerous Goods: Chemical Expiry Notifications (30 days)</field>
+        <field name="model_id" ref="model_dg_chemical"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_notify_expiry_upcoming()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

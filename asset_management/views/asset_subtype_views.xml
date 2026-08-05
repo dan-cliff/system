@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Asset Sub-Type: List ─────────────────────────────────────────── -->
+    <record id="view_asset_subtype_list" model="ir.ui.view">
+        <field name="name">asset.subtype.list</field>
+        <field name="model">asset.subtype</field>
+        <field name="arch" type="xml">
+            <list string="Asset Sub-Types">
+                <field name="id" string="ID"/>
+                <field name="asset_type_id"/>
+                <field name="name"/>
+                <field name="usage_unit_id" optional="show"/>
+                <field name="has_maintenance" optional="show"/>
+                <field name="has_usage_tracking" optional="show"/>
+                <field name="has_risk_assessments" optional="show"/>
+                <field name="has_hazardous" optional="show"/>
+                <field name="has_project" optional="show"/>
+                <field name="has_location_tracking" optional="show"/>
+                <field name="has_software" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Asset Sub-Type: Form ─────────────────────────────────────────── -->
+    <record id="view_asset_subtype_form" model="ir.ui.view">
+        <field name="name">asset.subtype.form</field>
+        <field name="model">asset.subtype</field>
+        <field name="arch" type="xml">
+            <form string="Asset Sub-Type">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Sub-Type Name…"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="asset_type_id"/>
+                            <field name="usage_unit_id"
+                                   options="{'no_create': False, 'no_open': False}"
+                                   help="Automatically inherited from the Asset Type. Changing this will push the unit to all assets of this sub-type."/>
+                        </group>
+                    </group>
+                    <group string="Additional Management Features">
+                        <group>
+                            <field name="has_maintenance"/>
+                            <field name="has_usage_tracking"/>
+                            <field name="has_risk_assessments"/>
+                        </group>
+                        <group>
+                            <field name="has_hazardous"/>
+                            <field name="has_project"/>
+                            <field name="has_location_tracking"/>
+                            <field name="has_software"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Asset Sub-Type: Search ───────────────────────────────────────── -->
+    <record id="view_asset_subtype_search" model="ir.ui.view">
+        <field name="name">asset.subtype.search</field>
+        <field name="model">asset.subtype</field>
+        <field name="arch" type="xml">
+            <search string="Asset Sub-Types">
+                <field name="name"/>
+                <field name="asset_type_id"/>
+                <group name="group_by">
+                    <filter name="group_type" string="Asset Type" context="{'group_by': 'asset_type_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Asset Sub-Type: Action ───────────────────────────────────────── -->
+    <record id="action_asset_subtype" model="ir.actions.act_window">
+        <field name="name">Asset Sub-Types</field>
+        <field name="res_model">asset.subtype</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_subtype_search"/>
+    </record>
+
+</odoo>

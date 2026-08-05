@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.meeting.management</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Meeting Management" name="meeting_management"
+                     groups="meeting_management.group_meeting_manager">
+                    <block title="Microsoft Teams &amp; Outlook Integration"
+                           name="ms_teams_integration">
+                        <setting string="Azure App Client ID"
+                                 help="Application (client) ID from your Azure App Registration.">
+                            <field name="ms_client_id"
+                                   placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
+                        </setting>
+                        <setting string="Azure App Client Secret"
+                                 help="Client secret value from your Azure App Registration.">
+                            <field name="ms_client_secret" password="True"
+                                   placeholder="Your client secret…"/>
+                        </setting>
+                        <setting string="Azure Tenant ID"
+                                 help="Your Microsoft tenant ID, or 'common' for multi-tenant.">
+                            <field name="ms_tenant_id" placeholder="common"/>
+                        </setting>
+                        <setting string="OAuth Redirect URI"
+                                 help="Callback URL registered in your Azure App. Must match exactly.">
+                            <field name="ms_redirect_uri"
+                                   placeholder="https://yourdomain.com/meeting_management/ms_oauth/callback"/>
+                        </setting>
+                        <setting string="Connection Status">
+                            <div class="d-flex align-items-center gap-3">
+                                <span invisible="not ms_connected">
+                                    <i class="fa fa-check-circle text-success"/> Connected
+                                    <span class="text-muted ms-2 small">
+                                        (expires: <field name="ms_token_expiry" readonly="1" class="d-inline"/>)
+                                    </span>
+                                </span>
+                                <span invisible="ms_connected">
+                                    <i class="fa fa-times-circle text-danger"/> Not connected
+                                </span>
+                                <button name="action_connect_microsoft"
+                                        string="Connect Microsoft Account"
+                                        type="object"
+                                        class="btn btn-primary btn-sm"
+                                        invisible="ms_connected"/>
+                                <button name="action_disconnect_microsoft"
+                                        string="Disconnect"
+                                        type="object"
+                                        class="btn btn-warning btn-sm"
+                                        invisible="not ms_connected"/>
+                            </div>
+                            <div class="alert alert-info mt-2" role="alert" style="max-width:600px">
+                                <strong>Setup instructions:</strong>
+                                <ol class="mb-0">
+                                    <li>Register an app in <a href="https://portal.azure.com" target="_blank">Azure Portal</a> → App registrations.</li>
+                                    <li>Add redirect URI: <code>https://yourdomain.com/meeting_management/ms_oauth/callback</code></li>
+                                    <li>Add API permissions: <em>OnlineMeetings.ReadWrite</em>, <em>Calendars.ReadWrite</em>, <em>offline_access</em>.</li>
+                                    <li>Enter the Client ID, Secret and Tenant ID above, then click <strong>Connect</strong>.</li>
+                                </ol>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_res_config_settings" model="ir.actions.act_window">
+        <field name="name">Meeting Management Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'meeting_management', 'bin_size': False}</field>
+    </record>
+</odoo>

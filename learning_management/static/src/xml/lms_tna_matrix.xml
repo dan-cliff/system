@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="learning_management.LmsTnaMatrix">
+        <div class="lms-tna-root d-flex flex-column">
+
+            <!-- ══ Row 1: primary filters ════════════════════════════════════ -->
+            <div class="lms-tna-controls d-flex align-items-center flex-wrap gap-2 px-3 py-2 border-bottom bg-view flex-shrink-0">
+
+                <span class="fw-semibold me-1">
+                    <i class="fa fa-table me-2 text-muted"/>Training Needs Analysis
+                </span>
+
+                <select class="form-select form-select-sm lms-tna-filter-select"
+                        t-on-change="onCourseTypeChange">
+                    <t t-foreach="courseTypes" t-as="ct" t-key="ct.value">
+                        <option t-att-value="ct.value"
+                                t-att-selected="state.courseTypeFilter === ct.value"
+                                t-esc="ct.label"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-tna-filter-select"
+                        t-on-change="onStatusChange">
+                    <t t-foreach="statusOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.statusFilter === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-tna-filter-select lms-tna-course-select"
+                        t-on-change="onCourseChange">
+                    <option value="">All Courses</option>
+                    <t t-foreach="state.allCourses" t-as="c" t-key="c.id">
+                        <option t-att-value="c.id"
+                                t-att-selected="state.courseFilter == c.id"
+                                t-esc="c.name"/>
+                    </t>
+                </select>
+
+                <span class="lms-tna-date-divider"/>
+
+                <select class="form-select form-select-sm lms-tna-filter-select lms-tna-course-select"
+                        t-on-change="onEmployeeChange">
+                    <option value="">All Employees</option>
+                    <t t-foreach="state.allEmployees" t-as="emp" t-key="emp.id">
+                        <option t-att-value="emp.id"
+                                t-att-selected="state.employeeFilter == emp.id"
+                                t-esc="emp.name"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-tna-filter-select lms-tna-course-select"
+                        t-on-change="onDepartmentChange">
+                    <option value="">All Departments</option>
+                    <t t-foreach="state.allDepartments" t-as="dept" t-key="dept.id">
+                        <option t-att-value="dept.id"
+                                t-att-selected="state.departmentFilter == dept.id"
+                                t-esc="dept.name"/>
+                    </t>
+                </select>
+
+                <select class="form-select form-select-sm lms-tna-filter-select lms-tna-course-select"
+                        t-on-change="onCompanyChange">
+                    <option value="">All Companies</option>
+                    <t t-foreach="state.allCompanies" t-as="co" t-key="co.id">
+                        <option t-att-value="co.id"
+                                t-att-selected="state.companyFilter == co.id"
+                                t-esc="co.name"/>
+                    </t>
+                </select>
+
+                <!-- Export PDF button -->
+                <button class="btn btn-sm btn-outline-secondary ms-1"
+                        t-on-click="() => this.exportPdf()"
+                        t-att-disabled="state.loading"
+                        title="Export current view to PDF (landscape A4)">
+                    <i class="fa fa-file-pdf-o me-1"/>Export PDF
+                </button>
+
+                <!-- Export Excel button -->
+                <button class="btn btn-sm btn-outline-success ms-1"
+                        t-on-click="() => this.exportExcel()"
+                        t-att-disabled="state.loading"
+                        title="Export current view to Excel">
+                    <i class="fa fa-file-excel-o me-1"/>Export Excel
+                </button>
+
+                <!-- Summary pills -->
+                <t t-if="!state.loading">
+                    <span class="ms-auto d-flex align-items-center gap-2 text-muted small">
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+                            <t t-esc="stats.courses"/> courses
+                        </span>
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+                            <t t-esc="stats.employees"/> employees
+                        </span>
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                            <t t-esc="stats.pct"/>% complete
+                        </span>
+                    </span>
+                </t>
+            </div>
+
+            <!-- ══ Row 2: date filters ════════════════════════════════════════ -->
+            <div class="lms-tna-date-bar d-flex align-items-center flex-wrap gap-2 px-3 py-2 border-bottom bg-view flex-shrink-0">
+
+                <!-- Completed On -->
+                <span class="text-muted small lms-tna-date-label">Completed:</span>
+                <select class="form-select form-select-sm lms-tna-filter-select"
+                        t-on-change="onCompletedOptionChange">
+                    <t t-foreach="completedOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.completedOption === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+                <t t-if="state.completedOption === 'custom'">
+                    <input type="date" class="form-control form-control-sm lms-tna-date-input"
+                           t-att-value="state.completedFrom"
+                           t-on-change="onCompletedFromChange"
+                           placeholder="From"/>
+                    <span class="text-muted small">–</span>
+                    <input type="date" class="form-control form-control-sm lms-tna-date-input"
+                           t-att-value="state.completedTo"
+                           t-on-change="onCompletedToChange"
+                           placeholder="To"/>
+                </t>
+
+                <span class="lms-tna-date-divider"/>
+
+                <!-- Expires On -->
+                <span class="text-muted small lms-tna-date-label">Expires:</span>
+                <select class="form-select form-select-sm lms-tna-filter-select"
+                        t-on-change="onExpiresOptionChange">
+                    <t t-foreach="expiresOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="state.expiresOption === opt.value"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+                <t t-if="state.expiresOption === 'custom'">
+                    <input type="date" class="form-control form-control-sm lms-tna-date-input"
+                           t-att-value="state.expiresFrom"
+                           t-on-change="onExpiresFromChange"
+                           placeholder="From"/>
+                    <span class="text-muted small">–</span>
+                    <input type="date" class="form-control form-control-sm lms-tna-date-input"
+                           t-att-value="state.expiresTo"
+                           t-on-change="onExpiresToChange"
+                           placeholder="To"/>
+                </t>
+
+            </div>
+
+            <!-- ══ Loading ═══════════════════════════════════════════════════ -->
+            <div t-if="state.loading"
+                 class="lms-tna-loading d-flex justify-content-center align-items-center flex-grow-1">
+                <div class="text-center text-muted">
+                    <i class="fa fa-spinner fa-spin fa-2x d-block mb-3"/>
+                    Loading matrix…
+                </div>
+            </div>
+
+            <!-- ══ Empty state ═══════════════════════════════════════════════ -->
+            <div t-elif="!state.courses.length"
+                 class="lms-tna-empty d-flex justify-content-center align-items-center flex-grow-1">
+                <div class="text-center text-muted p-5">
+                    <i class="fa fa-table fa-3x d-block mb-3 opacity-25"/>
+                    <p class="mb-0">No training records match the current filters.</p>
+                </div>
+            </div>
+
+            <!-- ══ Matrix ════════════════════════════════════════════════════ -->
+            <div t-else="" class="lms-tna-scroll-wrap flex-grow-1">
+                <table class="lms-tna-table">
+
+                    <thead>
+                        <tr>
+                            <th class="lms-tna-corner">
+                                <span class="lms-tna-axis-label text-muted">
+                                    Course ↓ / Employee →
+                                </span>
+                            </th>
+                            <t t-foreach="state.employees" t-as="emp" t-key="emp.id">
+                                <th class="lms-tna-emp-header"
+                                    t-att-title="emp.name"
+                                    t-on-click="() => this.openEmployee(emp)">
+                                    <div class="lms-tna-emp-label">
+                                        <t t-esc="emp.name"/>
+                                    </div>
+                                </th>
+                            </t>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <t t-foreach="state.courses" t-as="course" t-key="course.id">
+                            <tr>
+                                <td class="lms-tna-course-cell"
+                                    t-on-click="() => this.openCourse(course)"
+                                    t-att-title="course.name">
+                                    <span t-if="course.code"
+                                          class="lms-tna-course-code text-muted me-1"
+                                          t-esc="course.code"/>
+                                    <span class="lms-tna-course-name" t-esc="course.name"/>
+                                </td>
+                                <t t-foreach="state.employees" t-as="emp" t-key="emp.id">
+                                    <t t-set="cell" t-value="getCell(emp.id, course.id)"/>
+                                    <td t-att-class="'lms-tna-cell lms-tna-state-' + (cell ? cell.state : 'none')"
+                                        t-att-data-tooltip="this.cellTooltip(cell, emp.name, course.name)"
+                                        t-att-data-tooltip-delay="200"
+                                        t-on-click="() => this.openRecord(cell)">
+                                        <t t-if="cell">
+                                            <i t-att-class="'fa ' + stateConfig[cell.state].icon"/>
+                                            <div t-if="cell.expiry_date"
+                                                 class="lms-tna-cell-date"
+                                                 t-esc="this.formatDate(cell.expiry_date)"/>
+                                        </t>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                    </tbody>
+
+                </table>
+            </div>
+
+            <!-- ══ Legend ════════════════════════════════════════════════════ -->
+            <div t-if="!state.loading and state.courses.length"
+                 class="lms-tna-legend d-flex flex-wrap align-items-center gap-3 px-3 py-2 border-top bg-view flex-shrink-0">
+                <span class="text-muted small fw-semibold">Legend:</span>
+                <t t-foreach="Object.entries(stateConfig)" t-as="entry" t-key="entry[0]">
+                    <span class="d-flex align-items-center gap-1 small">
+                        <span t-att-class="'lms-tna-legend-dot lms-tna-state-' + entry[0]">
+                            <i t-att-class="'fa fa-xs ' + entry[1].icon"/>
+                        </span>
+                        <t t-esc="entry[1].label"/>
+                    </span>
+                </t>
+                <span class="d-flex align-items-center gap-1 small">
+                    <span class="lms-tna-legend-dot lms-tna-state-none"/>
+                    No Record
+                </span>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

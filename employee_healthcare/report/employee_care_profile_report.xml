@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Report Action
+    ══════════════════════════════════════════════════════════ -->
+    <record id="action_report_employee_care_profile" model="ir.actions.report">
+        <field name="name">Care Profile</field>
+        <field name="model">employee.healthcare</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">employee_healthcare.report_employee_care_profile</field>
+        <field name="report_file">employee_healthcare.report_employee_care_profile</field>
+        <field name="binding_model_id" ref="employee_healthcare.model_employee_healthcare"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         QWeb Template
+         `docs` is a recordset of employee.healthcare records.
+         The loop variable `employee` is an employee.healthcare record:
+           - employee.name            → related to employee_id.name (stored)
+           - employee.job_id          → related field
+           - employee.department_id   → related field
+           - employee.healthcare_indicator_ids → direct Many2many
+           - employee.medicare_number → direct field
+           - employee.healthcare_alert_ids     → direct One2many
+           - employee.healthcare_medication_ids → direct One2many
+           - employee.healthcare_allergy_ids   → direct One2many
+           - employee.healthcare_directive_ids → direct One2many
+    ══════════════════════════════════════════════════════════ -->
+    <template id="report_employee_care_profile">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="employee">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Header -->
+                        <div style="border-bottom: 2px solid #2c7be5; margin-bottom: 16px; padding-bottom: 8px;">
+                            <h2 style="margin: 0; color: #2c7be5;">Employee Care Profile</h2>
+                            <h3 style="margin: 4px 0 0; color: #333;">
+                                <t t-esc="employee.name"/>
+                            </h3>
+                            <span style="color: #666; font-size: 11px;">
+                                <t t-if="employee.job_id">
+                                    <t t-esc="employee.job_id.name"/>
+                                    <t t-if="employee.department_id"> — <t t-esc="employee.department_id.name"/></t>
+                                </t>
+                            </span>
+                        </div>
+
+                        <!-- Indicators -->
+                        <t t-if="employee.healthcare_indicator_ids">
+                            <div style="margin-bottom: 14px;">
+                                <strong>Healthcare Indicators:</strong>
+                                <t t-foreach="employee.healthcare_indicator_ids" t-as="ind">
+                                    <span style="display: inline-block; background: #e8f0fe; color: #2c7be5;
+                                                 border-radius: 4px; padding: 2px 8px; margin: 2px 4px;
+                                                 font-size: 11px; font-weight: bold;">
+                                        <t t-esc="ind.name"/>
+                                    </span>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- Medicare -->
+                        <div style="margin-bottom: 14px;">
+                            <h4 style="background: #f0f4fa; padding: 4px 8px; margin: 0 0 6px;
+                                       border-left: 4px solid #2c7be5; font-size: 12px; text-transform: uppercase;">
+                                Medicare
+                            </h4>
+                            <table style="width: 100%; font-size: 11px;">
+                                <tr>
+                                    <td style="width: 40%; color: #555; padding: 2px 4px;"><strong>Medicare Number</strong></td>
+                                    <td style="padding: 2px 4px;">
+                                        <t t-esc="employee.medicare_number or '—'"/>
+                                    </td>
+                                    <td style="width: 40%; color: #555; padding: 2px 4px;"><strong>Card Expiry</strong></td>
+                                    <td style="padding: 2px 4px;">
+                                        <t t-if="employee.medicare_expiry">
+                                            <t t-esc="employee.medicare_expiry" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                        </t>
+                                        <t t-else="">—</t>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Health Alerts -->
+                        <div style="margin-bottom: 14px;">
+                            <h4 style="background: #fff3cd; padding: 4px 8px; margin: 0 0 6px;
+                                       border-left: 4px solid #f0ad00; font-size: 12px; text-transform: uppercase;">
+                                Health Alerts
+                            </h4>
+                            <t t-if="employee.healthcare_alert_ids">
+                                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Alert Type</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Description</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Date Noted</th>
+                                            <th style="padding: 4px 6px; text-align: center; border-bottom: 1px solid #dee2e6;">Critical</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="employee.healthcare_alert_ids" t-as="alert">
+                                            <tr t-attf-style="background: {{ '#fff5f5' if alert.is_critical else 'transparent' }};">
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;">
+                                                    <t t-esc="alert.alert_type_id.name if alert.alert_type_id else '—'"/>
+                                                </td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;">
+                                                    <t t-esc="alert.description"/>
+                                                </td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;">
+                                                    <t t-if="alert.date_noted">
+                                                        <t t-esc="alert.date_noted" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0; text-align: center;">
+                                                    <t t-if="alert.is_critical">
+                                                        <strong style="color: #dc3545;">&#9888; YES</strong>
+                                                    </t>
+                                                    <t t-else="">No</t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p style="color: #888; font-size: 11px; margin: 4px 0;">No health alerts recorded.</p>
+                            </t>
+                        </div>
+
+                        <!-- Medications -->
+                        <div style="margin-bottom: 14px;">
+                            <h4 style="background: #f0f4fa; padding: 4px 8px; margin: 0 0 6px;
+                                       border-left: 4px solid #2c7be5; font-size: 12px; text-transform: uppercase;">
+                                Medications
+                            </h4>
+                            <t t-if="employee.healthcare_medication_ids">
+                                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Medication</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Type</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Dosage</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Frequency</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Prescribing Doctor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="employee.healthcare_medication_ids" t-as="med">
+                                            <tr>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="med.name"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="med.medication_type_id.name if med.medication_type_id else '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="med.dosage or '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="med.frequency_id.name if med.frequency_id else '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="med.prescribing_doctor or '—'"/></td>
+                                            </tr>
+                                            <t t-if="med.notes">
+                                                <tr>
+                                                    <td colspan="5" style="padding: 2px 6px 6px; color: #555; font-style: italic; border-bottom: 1px solid #f0f0f0;">
+                                                        Notes: <t t-esc="med.notes"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p style="color: #888; font-size: 11px; margin: 4px 0;">No medications recorded.</p>
+                            </t>
+                        </div>
+
+                        <!-- Allergies -->
+                        <div style="margin-bottom: 14px;">
+                            <h4 style="background: #fdf0f0; padding: 4px 8px; margin: 0 0 6px;
+                                       border-left: 4px solid #dc3545; font-size: 12px; text-transform: uppercase;">
+                                Allergies
+                            </h4>
+                            <t t-if="employee.healthcare_allergy_ids">
+                                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Allergen</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Type</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Severity</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Reaction</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Treatment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="employee.healthcare_allergy_ids" t-as="alg">
+                                            <tr>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0; font-weight: bold;"><t t-esc="alg.allergen"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="alg.allergy_type_id.name if alg.allergy_type_id else '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;">
+                                                    <t t-if="alg.severity_id">
+                                                        <t t-esc="alg.severity_id.name"/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="alg.reaction or '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="alg.treatment or '—'"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p style="color: #888; font-size: 11px; margin: 4px 0;">No allergies recorded.</p>
+                            </t>
+                        </div>
+
+                        <!-- Private Health Insurance -->
+                        <div style="margin-bottom: 14px;">
+                            <h4 style="background: #f0f4fa; padding: 4px 8px; margin: 0 0 6px;
+                                       border-left: 4px solid #2c7be5; font-size: 12px; text-transform: uppercase;">
+                                Private Health Insurance
+                            </h4>
+                            <table style="width: 100%; font-size: 11px;">
+                                <tr>
+                                    <td style="width: 25%; color: #555; padding: 2px 4px;"><strong>Insurer</strong></td>
+                                    <td style="padding: 2px 4px;"><t t-esc="employee.private_health_insurer_id.name if employee.private_health_insurer_id else '—'"/></td>
+                                    <td style="width: 25%; color: #555; padding: 2px 4px;"><strong>Member Number</strong></td>
+                                    <td style="padding: 2px 4px;"><t t-esc="employee.private_health_member_number or '—'"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 25%; color: #555; padding: 2px 4px;"><strong>Cover Level</strong></td>
+                                    <td colspan="3" style="padding: 2px 4px;"><t t-esc="employee.private_health_level or '—'"/></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Ambulance Membership -->
+                        <div style="margin-bottom: 14px;">
+                            <h4 style="background: #f0f4fa; padding: 4px 8px; margin: 0 0 6px;
+                                       border-left: 4px solid #2c7be5; font-size: 12px; text-transform: uppercase;">
+                                Ambulance Membership
+                            </h4>
+                            <table style="width: 100%; font-size: 11px;">
+                                <tr>
+                                    <td style="width: 25%; color: #555; padding: 2px 4px;"><strong>Provider</strong></td>
+                                    <td style="padding: 2px 4px;"><t t-esc="employee.ambulance_provider_id.name if employee.ambulance_provider_id else '—'"/></td>
+                                    <td style="width: 25%; color: #555; padding: 2px 4px;"><strong>Membership Number</strong></td>
+                                    <td style="padding: 2px 4px;"><t t-esc="employee.ambulance_membership_number or '—'"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 25%; color: #555; padding: 2px 4px;"><strong>Expiry Date</strong></td>
+                                    <td colspan="3" style="padding: 2px 4px;">
+                                        <t t-if="employee.ambulance_membership_expiry">
+                                            <t t-esc="employee.ambulance_membership_expiry" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                        </t>
+                                        <t t-else="">—</t>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Advanced Directives / Proxies -->
+                        <div style="margin-bottom: 14px;">
+                            <h4 style="background: #f0f4fa; padding: 4px 8px; margin: 0 0 6px;
+                                       border-left: 4px solid #2c7be5; font-size: 12px; text-transform: uppercase;">
+                                Advanced Directives &amp; Medical Decision-Making Proxies
+                            </h4>
+                            <t t-if="employee.healthcare_directive_ids">
+                                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Type</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Document / Person</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Relationship</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Phone</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Email</th>
+                                            <th style="padding: 4px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Date Executed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="employee.healthcare_directive_ids" t-as="dir">
+                                            <tr>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="dir.directive_type_id.name"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="dir.name"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="dir.relationship or '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="dir.phone or '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;"><t t-esc="dir.email or '—'"/></td>
+                                                <td style="padding: 4px 6px; border-bottom: 1px solid #f0f0f0;">
+                                                    <t t-if="dir.date_executed">
+                                                        <t t-esc="dir.date_executed" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                                    </t>
+                                                    <t t-else="">—</t>
+                                                </td>
+                                            </tr>
+                                            <t t-if="dir.notes">
+                                                <tr>
+                                                    <td colspan="6" style="padding: 2px 6px 6px; color: #555; font-style: italic; border-bottom: 1px solid #f0f0f0;">
+                                                        Notes: <t t-esc="dir.notes"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p style="color: #888; font-size: 11px; margin: 4px 0;">No directives or proxies recorded.</p>
+                            </t>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="margin-top: 20px; border-top: 1px solid #dee2e6; padding-top: 8px;
+                                    font-size: 10px; color: #888; text-align: center;">
+                            This document contains sensitive personal health information.
+                            Handle in accordance with applicable privacy legislation.
+                            Generated <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/>.
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

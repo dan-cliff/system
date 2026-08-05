@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="workflow_automation.WorkflowCanvasAction">
+  <div class="wf-canvas-app">
+
+    <!-- ── Toolbar ────────────────────────────────────────────────────── -->
+    <div class="wf-toolbar">
+      <button class="wf-btn wf-btn-back" t-on-click="goBack">
+        <i class="fa fa-arrow-left"/> Back
+      </button>
+      <span class="wf-toolbar-title" t-esc="state.workflowName"/>
+      <div class="wf-toolbar-sep"/>
+
+      <!-- Add Step dropdown -->
+      <div class="wf-add-menu-wrap">
+        <button class="wf-btn wf-btn-primary"
+                t-on-click="() => { this.state.showAddMenu = !this.state.showAddMenu; }">
+          <i class="fa fa-plus"/> Add Step
+        </button>
+        <div t-if="state.showAddMenu" class="wf-add-dropdown">
+          <t t-foreach="stepTypes" t-as="stype" t-key="stype.value">
+            <button class="wf-add-item" t-on-click="() => this.addStep(stype.value)">
+              <i t-att-class="'fa ' + stype.icon"
+                 t-att-style="'color:' + stype.color"/>
+              <t t-esc="stype.label"/>
+            </button>
+          </t>
+        </div>
+      </div>
+
+      <button class="wf-btn" t-on-click="zoomIn"       title="Zoom In"><i class="fa fa-search-plus"/></button>
+      <button class="wf-btn" t-on-click="zoomOut"      title="Zoom Out"><i class="fa fa-search-minus"/></button>
+      <button class="wf-btn" t-on-click="fitView"      title="Fit View"><i class="fa fa-expand"/></button>
+      <button class="wf-btn" t-on-click="autoLayoutAll" title="Auto-arrange nodes"><i class="fa fa-magic"/> Auto-layout</button>
+      <button class="wf-btn wf-btn-success" t-on-click="saveLayout" t-att-disabled="state.saving">
+        <i class="fa fa-save"/> Save Layout
+      </button>
+    </div>
+
+    <!-- ── Body ───────────────────────────────────────────────────────── -->
+    <div class="wf-canvas-body">
+
+      <!-- Canvas area -->
+      <div class="wf-canvas-outer"
+           ref="canvasOuter"
+           t-on-wheel.prevent="onWheel"
+           t-on-mousedown="onCanvasMousedown">
+
+        <t t-if="state.loading">
+          <div class="wf-loading"><i class="fa fa-spinner fa-spin fa-2x"/></div>
+        </t>
+        <t t-else="">
+          <div class="wf-viewport" t-att-style="viewportStyle">
+
+            <!-- SVG connection layer -->
+            <svg class="wf-svg" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+              <defs>
+                <marker id="wf-arrow" markerWidth="10" markerHeight="7"
+                        refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0,10 3.5,0 7" fill="#94A3B8"/>
+                </marker>
+                <marker id="wf-arrow-sel" markerWidth="10" markerHeight="7"
+                        refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0,10 3.5,0 7" fill="#4F46E5"/>
+                </marker>
+              </defs>
+
+              <!-- Existing connections -->
+              <t t-foreach="state.connections" t-as="conn" t-key="conn.id">
+                <t t-set="cp" t-value="connectionPath(conn)"/>
+                <t t-if="cp">
+                  <!-- Wide invisible hit area for easier clicking -->
+                  <path t-att-d="cp.d"
+                        fill="none" stroke="transparent" stroke-width="16"
+                        style="cursor:pointer;"
+                        t-on-click="() => this.selectConnection(conn.id)"/>
+                  <!-- Visible path -->
+                  <path t-att-d="cp.d"
+                        class="wf-edge"
+                        t-att-class="{'wf-edge-selected':     state.selectedConnectionId === conn.id,
+                                      'wf-edge-conditional':  conn.condition_type !== 'none'}"
+                        t-att-marker-end="state.selectedConnectionId === conn.id ? 'url(#wf-arrow-sel)' : 'url(#wf-arrow)'"
+                        t-on-click="() => this.selectConnection(conn.id)"/>
+                  <!-- Optional label -->
+                  <text t-if="conn.label or conn.condition_type !== 'none'"
+                        t-att-x="cp.labelX" t-att-y="cp.labelY"
+                        class="wf-edge-label">
+                    <t t-esc="conn.label || (conn.condition_type !== 'none' ? '\u25C6 condition' : '')"/>
+                  </text>
+                </t>
+              </t>
+
+              <!-- Ghost line while drawing a new connection -->
+              <t t-if="state._connecting">
+                <path t-att-d="ghostPath()" class="wf-edge wf-edge-ghost"/>
+              </t>
+            </svg>
+
+            <!-- Step nodes -->
+            <t t-foreach="state.steps" t-as="step" t-key="step.id">
+              <div class="wf-node"
+                   t-att-class="{
+                     'wf-node-selected': state.selectedStepId === step.id,
+                     'wf-node-inactive': !step.active,
+                     'wf-node-entry':    isEntryStep(step),
+                   }"
+                   t-att-style="nodeStyle(step)"
+                   t-on-click.stop="() => {
+                     this.state.selectedStepId = step.id;
+                     this.state.selectedConnectionId = null;
+                     this.state.editingConnection = null;
+                   }">
+
+                <!-- Input port -->
+                <div class="wf-port wf-port-in"
+                     title="Drop connection here"
+                     t-on-mouseup.stop="(ev) => this.onInputPortMouseup(ev, step.id)"/>
+
+                <!-- Header — drag handle + double-click to edit -->
+                <div class="wf-node-header"
+                     t-att-style="nodeHeaderStyle(step)"
+                     t-on-mousedown.stop="(ev) => this.onNodeMousedown(ev, step)"
+                     t-on-dblclick.stop="() => this.editStep(step.id)">
+                  <i t-att-class="'fa ' + getStepConfig(step.step_type).icon"/>
+                  <span class="wf-node-name" t-esc="step.name"/>
+                </div>
+
+                <!-- Body -->
+                <div class="wf-node-body">
+                  <span class="wf-node-type" t-esc="getStepConfig(step.step_type).label"/>
+                  <span t-if="step.condition_type !== 'none'" class="wf-node-badge" title="Has condition">
+                    <i class="fa fa-filter"/>
+                  </span>
+                  <span t-if="!step.active" class="wf-node-badge wf-badge-inactive" title="Disabled">
+                    <i class="fa fa-pause"/>
+                  </span>
+                </div>
+                <!-- API Call node — show method + URL slug -->
+                <t t-if="step.step_type === 'api_call'">
+                  <div class="wf-node-meta">
+                    <span class="wf-node-method" t-esc="step.api_method || 'POST'"/>
+                    <span class="wf-node-slug"
+                          t-esc="step.api_url_slug || '/'"
+                          title="URL path"/>
+                  </div>
+                </t>
+
+                <!-- Output port — drag to connect -->
+                <div class="wf-port wf-port-out"
+                     title="Drag to connect to another step"
+                     t-on-mousedown.stop="(ev) => this.onOutputPortMousedown(ev, step.id)"/>
+
+                <!-- Duplicate button (shown on hover, top-left) -->
+                <button class="wf-node-dup" title="Duplicate step"
+                        t-on-click.stop="() => this.duplicateStep(step.id)">
+                  <i class="fa fa-copy"/>
+                </button>
+
+                <!-- Delete button (shown on hover, top-right) -->
+                <button class="wf-node-del" title="Delete step"
+                        t-on-click.stop="() => this.deleteStep(step.id)">×</button>
+              </div>
+            </t>
+
+            <!-- Empty-state hint -->
+            <t t-if="!state.steps.length">
+              <div class="wf-empty-canvas">
+                <i class="fa fa-sitemap fa-3x"/>
+                <p>No steps yet — click <strong>Add Step</strong> to begin</p>
+              </div>
+            </t>
+          </div>
+        </t>
+      </div>
+
+      <!-- ── Properties panel ─────────────────────────────────────────── -->
+      <div t-if="state.selectedStepId or state.selectedConnectionId" class="wf-props">
+
+        <!-- Step properties -->
+        <t t-if="state.selectedStepId">
+          <t t-set="sel" t-value="getSelectedStep()"/>
+          <t t-if="sel">
+            <div class="wf-props-header"
+                 t-att-style="'border-left:4px solid ' + getStepConfig(sel.step_type).color">
+              <i t-att-class="'fa fa-lg ' + getStepConfig(sel.step_type).icon"
+                 t-att-style="'color:' + getStepConfig(sel.step_type).color"/>
+              <div class="wf-props-title">
+                <strong t-esc="sel.name"/>
+                <small t-esc="getStepConfig(sel.step_type).label"/>
+              </div>
+            </div>
+            <div class="wf-props-body">
+              <div class="wf-props-row">
+                <label>Condition</label>
+                <span t-esc="sel.condition_type === 'none' ? 'None' : sel.condition_type"/>
+              </div>
+              <div class="wf-props-row">
+                <label>Status</label>
+                <span t-esc="sel.active ? 'Active' : 'Disabled'"/>
+              </div>
+              <div class="wf-props-actions">
+                <button class="wf-btn wf-btn-primary" t-on-click="() => this.editStep(sel.id)">
+                  <i class="fa fa-edit"/> Edit Details
+                </button>
+                <button class="wf-btn" title="Duplicate step"
+                        t-on-click="() => this.duplicateStep(sel.id)">
+                  <i class="fa fa-copy"/> Duplicate
+                </button>
+                <button class="wf-btn wf-btn-danger" t-on-click="() => this.deleteStep(sel.id)">
+                  <i class="fa fa-trash"/>
+                </button>
+              </div>
+            </div>
+          </t>
+        </t>
+
+        <!-- Connection properties -->
+        <t t-if="state.selectedConnectionId">
+          <t t-set="ec" t-value="getSelectedConnection()"/>
+          <t t-if="ec">
+            <div class="wf-props-header" style="border-left:4px solid #94A3B8">
+              <i class="fa fa-lg fa-arrow-right" style="color:#94A3B8"/>
+              <div class="wf-props-title">
+                <strong>Connection</strong>
+                <small>Filter criteria for this path</small>
+              </div>
+            </div>
+            <div class="wf-props-body">
+              <div class="wf-props-field">
+                <label>Label</label>
+                <input type="text" class="wf-input" placeholder="Optional label…"
+                       t-att-value="ec.label"
+                       t-on-input="(ev) => this.updateEditingConn('label', ev.target.value)"/>
+              </div>
+              <div class="wf-props-field">
+                <label>Condition</label>
+                <select class="wf-input"
+                        t-on-change="(ev) => this.updateEditingConn('condition_type', ev.target.value)">
+                  <option value="none"
+                          t-att-selected="ec.condition_type === 'none'">Always follow</option>
+                  <option value="domain"
+                          t-att-selected="ec.condition_type === 'domain'">Domain filter</option>
+                  <option value="expression"
+                          t-att-selected="ec.condition_type === 'expression'">Python expression</option>
+                </select>
+              </div>
+              <!-- Domain: read-only preview + open full domain-builder dialog -->
+              <div t-if="ec.condition_type === 'domain'" class="wf-props-field">
+                <label>Domain Filter</label>
+                <div class="wf-domain-preview">
+                  <t t-if="ec.condition_domain and ec.condition_domain !== '[]'">
+                    <code class="wf-domain-code" t-esc="ec.condition_domain"/>
+                  </t>
+                  <t t-else="">
+                    <span class="text-muted fst-italic">No filter set — all records pass</span>
+                  </t>
+                </div>
+                <button class="wf-btn wf-btn-sm wf-btn-primary mt-1"
+                        t-on-click="() => this.editConnection(ec.id)">
+                  <i class="fa fa-filter"/> Edit Filter
+                </button>
+              </div>
+              <div t-if="ec.condition_type === 'expression'" class="wf-props-field">
+                <label>Expression</label>
+                <textarea class="wf-input wf-input-mono wf-textarea"
+                          placeholder="record.state == 'done'"
+                          t-on-input="(ev) => this.updateEditingConn('condition_expression', ev.target.value)"
+                          t-att-value="ec.condition_expression"/>
+              </div>
+              <div class="wf-props-actions">
+                <button class="wf-btn wf-btn-primary" t-on-click="saveConnectionChanges">
+                  <i class="fa fa-check"/> Apply
+                </button>
+                <button class="wf-btn wf-btn-danger" t-on-click="() => this.deleteConnection(ec.id)">
+                  <i class="fa fa-trash"/>
+                </button>
+              </div>
+            </div>
+          </t>
+        </t>
+      </div>
+    </div>
+  </div>
+</t>
+
+</templates>

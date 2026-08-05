@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         LIST VIEW
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <record id="view_product_cost_analysis_list" model="ir.ui.view">
+        <field name="name">product.cost.analysis.list</field>
+        <field name="model">product.cost.analysis</field>
+        <field name="arch" type="xml">
+            <list string="Cost Analyses"
+                  decoration-success="is_viable"
+                  decoration-danger="not is_viable">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="product_tmpl_id"/>
+                <field name="bom_id" optional="show"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="sell_price"/>
+                <field name="total_fixed_cost" optional="show"/>
+                <field name="total_variable_cost" optional="show"/>
+                <field name="contribution_margin"/>
+                <field name="margin_percent" string="Margin (%)" optional="show"/>
+                <field name="break_even_display" string="Break-Even"/>
+                <field name="is_viable" widget="boolean" string="Viable"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         FORM VIEW
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <record id="view_product_cost_analysis_form" model="ir.ui.view">
+        <field name="name">product.cost.analysis.form</field>
+        <field name="model">product.cost.analysis</field>
+        <field name="arch" type="xml">
+            <form string="Cost Analysis">
+                <sheet>
+
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="True"/>
+                        </h1>
+                    </div>
+
+                    <!-- Product + Pricing  |  Profitability Summary -->
+                    <group>
+                        <group string="Product &amp; Pricing">
+                            <field name="product_tmpl_id"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                            <field name="sell_price"/>
+                            <field name="bom_id"
+                                   domain="[('product_tmpl_id', '=', product_tmpl_id)]"
+                                   options="{'no_create': True, 'no_quick_create': True}"
+                                   invisible="not product_tmpl_id"/>
+                        </group>
+                        <group string="Profitability Summary">
+                            <field name="total_fixed_cost"/>
+                            <field name="total_variable_cost"/>
+                            <field name="contribution_margin"/>
+                            <field name="margin_percent" string="Gross Margin (%)"/>
+                            <field name="break_even_display" string="Break-Even"/>
+                            <field name="total_investment"
+                                   invisible="break_even_units == 0"/>
+                        </group>
+                    </group>
+
+                    <!-- Import from BoM action banner -->
+                    <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded"
+                         style="background:#f0f4ff; border:1px solid #c8d8ff;"
+                         invisible="not bom_id">
+                        <span class="text-muted">
+                            <i class="fa fa-file-text-o me-1" title="Bill of Materials" aria-label="Bill of Materials"/>
+                            Bill of Materials selected:
+                            <strong><field name="bom_id" readonly="True" nolabel="1"/></strong>
+                        </span>
+                        <button name="action_import_from_bom"
+                                type="object"
+                                string="Import / Refresh from BoM"
+                                class="btn btn-secondary btn-sm"
+                                confirm="This will replace ALL existing cost lines with data from the selected Bill of Materials. Any manual lines will be lost. Continue?"/>
+                    </div>
+
+                    <!-- Viability warning -->
+                    <div class="alert alert-warning o_form_label" role="alert"
+                         invisible="is_viable or not sell_price">
+                        <i class="fa fa-exclamation-triangle me-2" title="Warning" aria-label="Warning"/>
+                        <strong>Cannot Break Even:</strong>
+                        The sell price does not exceed the per-unit variable costs.
+                        Increase your sell price or reduce variable costs to make this product viable.
+                    </div>
+
+                    <!-- Zero sell price notice -->
+                    <div class="alert alert-info o_form_label" role="alert"
+                         invisible="sell_price != 0 or not cost_line_ids">
+                        <i class="fa fa-info-circle me-2" title="Info" aria-label="Info"/>
+                        Set an <strong>Anticipated Sell Price</strong> above to calculate break-even and profitability.
+                    </div>
+
+                    <!-- Profitability Analysis grid -->
+                    <div class="mt-4 mb-3"
+                         invisible="not is_viable or not sell_price or not cost_line_ids">
+                        <div class="d-flex align-items-center mb-2 gap-2">
+                            <h5 class="mb-0 fw-semibold">
+                                <i class="fa fa-line-chart me-1 text-primary"
+                                   title="Profitability Analysis"
+                                   aria-label="Profitability Analysis"/>
+                                Profitability Analysis
+                            </h5>
+                            <span class="text-muted small">— net profit at various sales volumes</span>
+                        </div>
+                        <!-- Grid controls -->
+                        <div class="d-flex gap-4 mb-3 align-items-center flex-wrap">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-semibold small">Number of Rows</span>
+                                <field name="profitability_num_rows" nolabel="1"/>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-semibold small">Multiplication Factor</span>
+                                <field name="profitability_factor" nolabel="1"/>
+                            </div>
+                        </div>
+                        <field name="profitability_table_html" widget="html" readonly="True" nolabel="1"/>
+                    </div>
+
+                    <!-- Cost Lines + Notes tabs -->
+                    <notebook>
+                        <page string="Cost Lines" name="cost_lines">
+                            <field name="cost_line_ids">
+                                <list editable="bottom" string="Cost Lines">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" placeholder="e.g. Raw material, Assembly labour…"/>
+                                    <field name="cost_type"/>
+                                    <field name="is_once_off"
+                                           string="Once-Off?"
+                                           widget="boolean"
+                                           help="Tick for a one-time fixed cost. Leave unticked for a per-unit variable cost."/>
+                                    <field name="quantity" string="Qty / Hrs"/>
+                                    <field name="unit_cost" string="Unit Cost / Rate"/>
+                                    <field name="line_total" string="Line Total" readonly="True"/>
+                                    <!-- Optional reference columns - hidden by default, user can show them -->
+                                    <field name="material_product_id"
+                                           optional="hide"
+                                           string="Component"
+                                           options="{'no_create': True}"/>
+                                    <field name="workcenter_id"
+                                           optional="hide"
+                                           string="Work Centre"
+                                           options="{'no_create': True}"/>
+                                    <field name="employee_id"
+                                           optional="hide"
+                                           string="Employee"
+                                           options="{'no_create': True}"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"
+                                   placeholder="Record any assumptions, constraints, or context relevant to this analysis…"
+                                   nolabel="1"/>
+                        </page>
+                    </notebook>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         SEARCH VIEW
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <record id="view_product_cost_analysis_search" model="ir.ui.view">
+        <field name="name">product.cost.analysis.search</field>
+        <field name="model">product.cost.analysis</field>
+        <field name="arch" type="xml">
+            <search string="Cost Analyses">
+                <field name="name" string="Analysis Name"/>
+                <field name="product_tmpl_id" string="Product"/>
+                <field name="bom_id" string="Bill of Materials"/>
+                <separator/>
+                <filter string="Viable" name="viable"
+                        domain="[('is_viable', '=', True)]"
+                        help="Products where sell price exceeds per-unit costs"/>
+                <filter string="Not Viable" name="not_viable"
+                        domain="[('is_viable', '=', False)]"
+                        help="Products where contribution margin is zero or negative"/>
+                <filter string="Has Bill of Materials" name="has_bom"
+                        domain="[('bom_id', '!=', False)]"/>
+                <group>
+                    <filter string="Product" name="by_product"
+                            context="{'group_by': 'product_tmpl_id'}"/>
+                    <filter string="Bill of Materials" name="by_bom"
+                            context="{'group_by': 'bom_id'}"/>
+                    <filter string="Viable" name="by_viable"
+                            context="{'group_by': 'is_viable'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         ACTION
+    ══════════════════════════════════════════════════════════════════════════ -->
+    <record id="action_product_cost_analysis" model="ir.actions.act_window">
+        <field name="name">Cost Analyses</field>
+        <field name="res_model">product.cost.analysis</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_product_cost_analysis_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first cost analysis
+            </p>
+            <p>
+                Attach cost breakdowns to products to model material, labour
+                and overhead costs, distinguish once-off from per-unit expenses,
+                and automatically calculate your break-even point.
+                Import components and work centre operations directly from a Bill of Materials.
+            </p>
+        </field>
+    </record>
+
+</odoo>

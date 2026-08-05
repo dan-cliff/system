@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         LIST VIEW
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_dg_chemical_list" model="ir.ui.view">
+        <field name="name">dg.chemical.list</field>
+        <field name="model">dg.chemical</field>
+        <field name="arch" type="xml">
+            <list string="Chemical Register"
+                  decoration-danger="expiry_overdue or sds_overdue"
+                  decoration-muted="state == 'archived'">
+                <field name="id" string="ID" optional="show"/>
+                <field name="name" string="Ref"/>
+                <field name="product_name"/>
+                <field name="chemical_name"/>
+                <field name="cas_number"/>
+                <field name="un_number"/>
+                <field name="ghs_signal_word" widget="badge"
+                       decoration-danger="ghs_signal_word == 'danger'"
+                       decoration-warning="ghs_signal_word == 'warning'"
+                       decoration-muted="ghs_signal_word == 'none'"/>
+                <field name="adg_class_id" optional="show"/>
+                <field name="building_id" optional="show"/>
+                <field name="chemical_owner_id" optional="show"/>
+                <field name="issued_date" optional="hide"/>
+                <field name="expiry_date"
+                       decoration-danger="expiry_overdue"
+                       optional="show"/>
+                <field name="expiry_overdue" column_invisible="True"/>
+                <field name="sds_review_date"
+                       decoration-danger="sds_overdue"
+                       optional="hide"/>
+                <field name="sds_overdue" column_invisible="True"/>
+                <field name="state" column_invisible="True"/>
+                <field name="stage_id" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'review'"
+                       decoration-danger="state == 'discontinued'"
+                       decoration-muted="state == 'archived'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         FORM VIEW
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_dg_chemical_form" model="ir.ui.view">
+        <field name="name">dg.chemical.form</field>
+        <field name="model">dg.chemical</field>
+        <field name="arch" type="xml">
+            <form string="Chemical Register">
+                <header>
+                    <button name="action_set_active" string="Set Active"
+                            type="object" class="btn-primary"
+                            invisible="state == 'active'"/>
+                    <button name="action_set_review" string="Flag for Review"
+                            type="object"
+                            invisible="state in ('review', 'archived', 'discontinued')"/>
+                    <button name="action_set_discontinued" string="Discontinue"
+                            type="object"
+                            invisible="state in ('discontinued', 'archived')"/>
+                    <field name="stage_id" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_print_register" type="object"
+                                class="oe_stat_button" icon="fa-print">
+                            <span>Print Register</span>
+                        </button>
+                    </div>
+
+                    <!-- Alert banners -->
+                    <div class="alert alert-danger" role="alert" invisible="not expiry_overdue">
+                        <strong>Chemical Expired</strong> — The expiry date for this substance has passed. Do not use. Arrange safe disposal immediately.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="not sds_overdue">
+                        <strong>Safety Data Sheet Expired</strong> — The Safety Data Sheet review date has passed. Please obtain an updated SDS from the supplier.
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Reference"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                        <label for="product_name"/>
+                        <h2><field name="product_name" placeholder="Product / Trade Name..."/></h2>
+                    </div>
+
+                    <group>
+                        <group string="Identifiers">
+                            <field name="chemical_name"/>
+                            <field name="trade_name"/>
+                            <field name="cas_number"/>
+                            <field name="un_number"/>
+                            <field name="physical_state"/>
+                        </group>
+                        <group string="GHS Classification">
+                            <field name="ghs_signal_word"/>
+                            <field name="ghs_pictogram_ids" widget="many2many_tags"/>
+                            <field name="ghs_hazard_class_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+
+                        <!-- PAGE 1: CHEMICAL DETAILS -->
+                        <page string="Chemical Details" name="details">
+                            <group>
+                                <group string="Physical Properties">
+                                    <field name="colour"/>
+                                    <field name="odour"/>
+                                    <field name="flash_point"/>
+                                    <field name="boiling_point"/>
+                                    <field name="vapour_pressure"/>
+                                    <field name="specific_gravity"/>
+                                    <field name="solubility"/>
+                                    <field name="ph"/>
+                                </group>
+                                <group string="Supplier / Manufacturer">
+                                    <field name="supplier_id"/>
+                                    <field name="supplier_address"/>
+                                    <field name="supplier_emergency_contact"
+                                           help="24-hour emergency phone — required on SDS"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 2: GHS CLASSIFICATION -->
+                        <page string="GHS Classification" name="ghs">
+                            <group>
+                                <group string="Pictograms">
+                                    <field name="ghs_pictogram_ids" widget="many2many_tags"
+                                           string="Pictograms" nolabel="1"/>
+                                </group>
+                                <group string="CMR / Long-term Health Effects">
+                                    <field name="carcinogen"/>
+                                    <field name="carcinogen_classification"
+                                           invisible="not carcinogen"/>
+                                    <field name="mutagen"/>
+                                    <field name="reproductive_toxicant"/>
+                                </group>
+                            </group>
+                            <group string="Hazard Classes">
+                                <field name="ghs_hazard_class_ids" widget="many2many_tags"
+                                       nolabel="1"/>
+                            </group>
+                            <separator string="Hazard Statements (H-codes)"/>
+                            <field name="ghs_hazard_statement_ids" widget="many2many_tags"
+                                   nolabel="1"/>
+                            <separator string="Precautionary Statements (P-codes)"/>
+                            <field name="ghs_precautionary_statement_ids" widget="many2many_tags"
+                                   nolabel="1"/>
+                        </page>
+
+                        <!-- PAGE 3: AUSTRALIAN COMPLIANCE -->
+                        <page string="Australian Compliance" name="compliance">
+                            <group>
+                                <group string="Transport (ADG Code)">
+                                    <field name="adg_class_id"/>
+                                    <field name="packing_group"/>
+                                </group>
+                                <group string="Storage (AS 3833)">
+                                    <field name="storage_class_id"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Scheduled / Prohibited Substances">
+                                    <field name="scheduled_substance"/>
+                                    <field name="schedule_number" invisible="not scheduled_substance"/>
+                                    <field name="prohibited_substance"/>
+                                    <field name="prohibited_reason" invisible="not prohibited_substance"/>
+                                </group>
+                                <group string="Manifest / Placard Quantities (WHS Reg)">
+                                    <field name="manifest_quantity"/>
+                                    <field name="placard_quantity"/>
+                                </group>
+                            </group>
+                            <group string="Workplace Exposure Standards (Safe Work Australia)">
+                                <field name="workplace_exposure_standard"/>
+                                <field name="biological_limit"/>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 4: SDS DOCUMENTS -->
+                        <page string="SDS / Documents" name="sds">
+                            <group>
+                                <group string="SDS Details">
+                                    <field name="sds_version"/>
+                                    <field name="sds_issue_date"/>
+                                    <field name="sds_review_date"/>
+                                    <field name="sds_overdue" widget="boolean_toggle" readonly="1"/>
+                                </group>
+                            </group>
+                            <separator string="SDS Attachments"/>
+                            <field name="sds_document_ids" widget="many2many_binary"
+                                   string="Attach SDS Documents" nolabel="1"/>
+                        </page>
+
+                        <!-- PAGE 5: STORAGE & QUANTITIES -->
+                        <page string="Storage &amp; Quantities" name="storage">
+                            <group>
+                                <group string="Location">
+                                    <field name="building_id"/>
+                                    <field name="storage_location_ids" widget="many2many_tags"/>
+                                    <field name="container_type"/>
+                                </group>
+                                <group string="Quantities">
+                                    <field name="quantity_on_hand"/>
+                                    <field name="max_quantity"/>
+                                    <field name="quantity_uom"/>
+                                </group>
+                            </group>
+                            <group string="Special Storage Requirements">
+                                <field name="storage_requirements" nolabel="1"/>
+                            </group>
+                            <group string="Incompatible Materials">
+                                <field name="incompatible_materials" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 6: SAFETY CONTROLS -->
+                        <page string="Safety Controls" name="controls">
+                            <group>
+                                <group string="Required PPE">
+                                    <field name="ppe_ids" widget="many2many_tags" nolabel="1"/>
+                                </group>
+                            </group>
+                            <group string="Engineering Controls">
+                                <field name="engineering_controls" nolabel="1"/>
+                            </group>
+                            <group string="Administrative Controls">
+                                <field name="administrative_controls" nolabel="1"/>
+                            </group>
+                            <group string="First Aid Measures">
+                                <field name="first_aid_measures" nolabel="1"/>
+                            </group>
+                            <group string="Fire Fighting Measures">
+                                <field name="fire_fighting_measures" nolabel="1"/>
+                            </group>
+                            <group string="Spill / Accidental Release Procedures">
+                                <field name="spill_procedures" nolabel="1"/>
+                            </group>
+                            <group string="Emergency Procedures">
+                                <field name="emergency_procedures" nolabel="1"/>
+                            </group>
+                            <group string="Disposal Methods">
+                                <field name="disposal_methods" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- PAGE 7: ADMINISTRATION -->
+                        <page string="Administration" name="admin">
+                            <group>
+                                <group string="Ownership">
+                                    <field name="chemical_owner_id"/>
+                                </group>
+                                <group string="Chemical Lifecycle">
+                                    <field name="issued_date"/>
+                                    <field name="expiry_date"/>
+                                    <field name="expiry_overdue" widget="boolean_toggle" readonly="1"/>
+                                    <field name="last_review_date"/>
+                                </group>
+                            </group>
+                            <group string="Notes">
+                                <field name="notes" nolabel="1"/>
+                            </group>
+                        </page>
+
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SEARCH VIEW
+         ══════════════════════════════════════════════════════════ -->
+    <record id="view_dg_chemical_search" model="ir.ui.view">
+        <field name="name">dg.chemical.search</field>
+        <field name="model">dg.chemical</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_name"/>
+                <field name="chemical_name"/>
+                <field name="cas_number"/>
+                <field name="un_number"/>
+                <field name="supplier_id"/>
+                <field name="building_id"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('state','=','active')]"/>
+                <filter name="expired" string="Expired" domain="[('expiry_overdue','=',True)]"/>
+                <filter name="expiring_soon" string="Expiring within 30 Days"
+                        domain="[('expiry_date','&lt;=', (context_today() + relativedelta(days=30)).strftime('%Y-%m-%d')),
+                                 ('expiry_date','&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="sds_overdue" string="SDS Overdue" domain="[('sds_overdue','=',True)]"/>
+                <filter name="scheduled" string="Scheduled Substances" domain="[('scheduled_substance','=',True)]"/>
+                <filter name="prohibited" string="Prohibited Substances" domain="[('prohibited_substance','=',True)]"/>
+                <filter name="manifest" string="Manifest Quantities" domain="[('manifest_quantity','=',True)]"/>
+                <filter name="carcinogens" string="Carcinogens" domain="[('carcinogen','=',True)]"/>
+                <separator/>
+                <filter name="danger" string="DANGER Signal Word" domain="[('ghs_signal_word','=','danger')]"/>
+                <filter name="warning" string="WARNING Signal Word" domain="[('ghs_signal_word','=','warning')]"/>
+                <separator/>
+                <filter name="inactive" string="Archived" domain="[('active','=',False)]"/>
+                <group name="group_by">
+                    <filter name="grp_building" string="Building / Site" context="{'group_by': 'building_id'}"/>
+                    <filter name="grp_signal" string="Signal Word" context="{'group_by': 'ghs_signal_word'}"/>
+                    <filter name="grp_adg" string="ADG Class" context="{'group_by': 'adg_class_id'}"/>
+                    <filter name="grp_state" string="Status" context="{'group_by': 'stage_id'}"/>
+<filter name="grp_owner" string="Chemical Owner" context="{'group_by': 'chemical_owner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ACTIONS
+         ══════════════════════════════════════════════════════════ -->
+    <record id="action_dg_chemical_all" model="ir.actions.act_window">
+        <field name="name">Chemical Register</field>
+        <field name="res_model">dg.chemical</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dg_chemical_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No chemicals registered yet
+            </p>
+            <p>Add your first chemical to the register to begin tracking hazardous substances at your workplace.</p>
+        </field>
+    </record>
+
+</odoo>

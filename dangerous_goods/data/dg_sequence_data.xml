@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="seq_dg_chemical" model="ir.sequence">
+            <field name="name">Chemical Register</field>
+            <field name="code">dg.chemical</field>
+            <field name="prefix">CHM/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+        </record>
+
+        <record id="seq_dg_asbestos" model="ir.sequence">
+            <field name="name">Asbestos Register</field>
+            <field name="code">dg.asbestos</field>
+            <field name="prefix">ASB/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+        </record>
+
+    </data>
+</odoo>

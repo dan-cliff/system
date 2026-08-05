@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SOAP RECIPE — FORM VIEW
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_soap_recipe_form" model="ir.ui.view">
+        <field name="name">soap.recipe.form</field>
+        <field name="model">soap.recipe</field>
+        <field name="arch" type="xml">
+            <form string="Soap Recipe">
+                <header>
+                    <button name="action_confirm" string="Confirm"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_done" string="Mark as Done"
+                            type="object" class="btn-primary"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_reset_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Lavender Shea Bar Soap…"/>
+                        </h1>
+                    </div>
+
+                    <!-- ── Product Link ──────────────────────────────────────── -->
+                    <group>
+                        <group>
+                            <field name="product_tmpl_id"/>
+                            <field name="product_id"
+                                   groups="product.group_product_variant"
+                                   options="{'no_create': True}"/>
+                            <field name="product_id"
+                                   groups="!product.group_product_variant"
+                                   invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ── Parameters ────────────────────────────────────────── -->
+                    <group>
+                        <group string="Recipe Settings">
+                            <field name="lye_type"/>
+                            <field name="total_oil_weight"/>
+                        </group>
+                        <group string="Percentages">
+                            <field name="water_pct"/>
+                            <field name="superfat_pct"/>
+                            <field name="fragrance_pct"/>
+                        </group>
+                    </group>
+
+                    <!-- ── Calculated Amounts ─────────────────────────────────── -->
+                    <group string="Calculated Amounts">
+                        <group>
+                            <field name="lye_amount"       readonly="1"/>
+                            <field name="water_amount"     readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="fragrance_amount" readonly="1"/>
+                            <field name="total_pct"        readonly="1"
+                                   string="Total Oil %"/>
+                        </group>
+                    </group>
+
+                    <!-- ── Tabs ──────────────────────────────────────────────── -->
+                    <notebook>
+
+                        <!-- PAGE 1: Ingredients -->
+                        <page string="Ingredients" name="ingredients">
+                            <field name="ingredient_ids" nolabel="1">
+                                <list editable="bottom" string="Ingredients">
+                                    <field name="id" string="ID"/>
+                                    <field name="product_id"
+                                           domain="[('is_soap_ingredient', '=', True)]"
+                                           options="{'no_create': False}"/>
+                                    <field name="percentage"/>
+                                    <field name="weight"     readonly="1"/>
+                                    <field name="naoh_sap"   readonly="1" optional="show"/>
+                                    <field name="koh_sap"    readonly="1" optional="show"/>
+                                    <field name="soap_iodine" readonly="1" optional="show" string="Iodine"/>
+                                    <field name="soap_ins"   readonly="1" optional="show" string="INS"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- PAGE 2: Fatty Acid Profile (recipe weighted averages) -->
+                        <page string="Fatty Acid Profile" name="fatty_acids">
+                            <group>
+                                <group string="Saturated Fatty Acids">
+                                    <field name="fa_lauric"     readonly="1"/>
+                                    <field name="fa_myristic"   readonly="1"/>
+                                    <field name="fa_palmitic"   readonly="1"/>
+                                    <field name="fa_stearic"    readonly="1"/>
+                                </group>
+                                <group string="Unsaturated Fatty Acids">
+                                    <field name="fa_ricinoleic" readonly="1"/>
+                                    <field name="fa_oleic"      readonly="1"/>
+                                    <field name="fa_linoleic"   readonly="1"/>
+                                    <field name="fa_linolenic"  readonly="1"/>
+                                </group>
+                            </group>
+                            <p class="text-muted" style="font-size:0.875rem; margin-top:8px;">
+                                Percentages shown are weighted averages across all recipe oils.
+                            </p>
+                        </page>
+
+                        <!-- PAGE 3: Soap Qualities -->
+                        <page string="Soap Qualities" name="soap_qualities">
+                            <group>
+                                <group>
+                                    <field name="quality_hardness"     readonly="1" string="Hardness (ideal: 29–54)"/>
+                                    <field name="quality_cleansing"    readonly="1" string="Cleansing (ideal: 12–22)"/>
+                                    <field name="quality_conditioning" readonly="1" string="Conditioning (ideal: 44–69)"/>
+                                    <field name="quality_bubbly"       readonly="1" string="Bubbly Lather (ideal: 14–46)"/>
+                                </group>
+                                <group>
+                                    <field name="quality_creamy"       readonly="1" string="Creamy Lather (ideal: 16–48)"/>
+                                    <field name="quality_iodine"       readonly="1" string="Iodine (ideal: 41–70)"/>
+                                    <field name="quality_ins"          readonly="1" string="INS (ideal: 136–165)"/>
+                                </group>
+                            </group>
+                            <p class="text-muted" style="font-size:0.875rem; margin-top:8px;">
+                                Quality predictions are based on soapcalc.net methodology.
+                                Values highlighted in the list view indicate whether they fall within the ideal range.
+                            </p>
+                            <div class="mt-3">
+                                <button name="action_suggest_improvements"
+                                        string="✨ Suggest Improvements"
+                                        type="object"
+                                        class="btn btn-secondary"/>
+                            </div>
+                        </page>
+
+                    </notebook>
+
+                    <!-- Notes — full width below the tabs -->
+                    <separator string="Notes"/>
+                    <field name="notes" nolabel="1"
+                           placeholder="Batch notes, colour additives, fragrance blend details, cure time…"/>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SOAP RECIPE — LIST VIEW
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_soap_recipe_list" model="ir.ui.view">
+        <field name="name">soap.recipe.list</field>
+        <field name="model">soap.recipe</field>
+        <field name="arch" type="xml">
+            <list string="Soap Recipes" default_order="id desc">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="lye_type"/>
+                <field name="total_oil_weight"/>
+                <field name="total_pct"
+                       decoration-danger="total_pct != 100"
+                       decoration-success="total_pct == 100"/>
+                <field name="lye_amount"/>
+                <field name="water_amount" optional="show"/>
+                <field name="quality_hardness" optional="show"
+                       decoration-success="quality_hardness &gt;= 29 and quality_hardness &lt;= 54"
+                       decoration-warning="quality_hardness &gt; 0 and (quality_hardness &lt; 29 or quality_hardness &gt; 54)"/>
+                <field name="quality_ins" optional="show"
+                       decoration-success="quality_ins &gt;= 136 and quality_ins &lt;= 165"
+                       decoration-warning="quality_ins &gt; 0 and (quality_ins &lt; 136 or quality_ins &gt; 165)"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SOAP RECIPE — SEARCH VIEW
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_soap_recipe_search" model="ir.ui.view">
+        <field name="name">soap.recipe.search</field>
+        <field name="model">soap.recipe</field>
+        <field name="arch" type="xml">
+            <search string="Soap Recipes">
+                <field name="name" string="Recipe Name"/>
+                <separator/>
+                <filter name="draft"     string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="confirmed" string="Confirmed"
+                        domain="[('state', '=', 'confirmed')]"/>
+                <filter name="done"      string="Done"
+                        domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="bar_soap"    string="Bar Soap (NaOH)"
+                        domain="[('lye_type', '=', 'naoh')]"/>
+                <filter name="liquid_soap" string="Liquid Soap (KOH)"
+                        domain="[('lye_type', 'in', ['koh', 'koh90'])]"/>
+                <group>
+                    <filter name="group_lye_type" string="Lye Type"
+                            context="{'group_by': 'lye_type'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SOAP RECIPE — ACTION
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="action_soap_recipe" model="ir.actions.act_window">
+        <field name="name">Soap Recipes</field>
+        <field name="res_model">soap.recipe</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_soap_recipe_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No soap recipes yet — create your first one!
+            </p>
+            <p>
+                Add your oil blend, choose NaOH or KOH, set your superfat percentage,
+                and the calculator will work out the exact lye and water amounts.
+            </p>
+        </field>
+    </record>
+
+</odoo>

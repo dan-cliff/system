@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Membership Status List View ───────────────────────────────────── -->
+    <record id="membership_status_list_view" model="ir.ui.view">
+        <field name="name">membership.status.list</field>
+        <field name="model">membership.status</field>
+        <field name="arch" type="xml">
+            <list string="Membership Statuses">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name" string="Status Name"/>
+                <field name="color" string="Colour"/>
+                <field name="fold" string="Folded"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Membership Status Form View ───────────────────────────────────── -->
+    <record id="membership_status_form_view" model="ir.ui.view">
+        <field name="name">membership.status.form</field>
+        <field name="model">membership.status</field>
+        <field name="arch" type="xml">
+            <form string="Membership Status">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Status Name"/>
+                        <h1><field name="name" placeholder="e.g. Active"/></h1>
+                    </div>
+                    <group>
+                        <field name="sequence" string="Sequence"/>
+                        <field name="color" string="Colour" widget="color"/>
+                        <field name="fold" string="Folded in Status Bar"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Window Action ─────────────────────────────────────────────────── -->
+    <record id="action_membership_status" model="ir.actions.act_window">
+        <field name="name">Membership Statuses</field>
+        <field name="res_model">membership.status</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No statuses configured yet.</p>
+            <p>Create statuses to track the lifecycle of memberships.</p>
+        </field>
+    </record>
+
+</odoo>

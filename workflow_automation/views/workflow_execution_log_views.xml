@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- wf.execution.log — List View                                     -->
+    <!-- ================================================================ -->
+    <record id="view_wf_execution_log_list" model="ir.ui.view">
+        <field name="name">wf.execution.log.list</field>
+        <field name="model">wf.execution.log</field>
+        <field name="arch" type="xml">
+            <list string="Execution Logs" default_order="started_at desc">
+                <field name="workflow_id"/>
+                <field name="trigger_record_name" string="Record"/>
+                <field name="trigger_type" string="Trigger"/>
+                <field name="state"
+                       decoration-success="state == 'success'"
+                       decoration-warning="state == 'partial'"
+                       decoration-danger="state == 'error'"
+                       decoration-info="state == 'running'"
+                       widget="badge"/>
+                <field name="started_at"/>
+                <field name="duration_ms" string="Duration (ms)"/>
+                <field name="steps_executed" string="Exec."/>
+                <field name="steps_total" string="Total"/>
+                <field name="steps_skipped" string="Skipped"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.execution.log — Form View                                     -->
+    <!-- ================================================================ -->
+    <record id="view_wf_execution_log_form" model="ir.ui.view">
+        <field name="name">wf.execution.log.form</field>
+        <field name="model">wf.execution.log</field>
+        <field name="arch" type="xml">
+            <form string="Execution Log">
+                <sheet>
+                    <group>
+                        <group string="Workflow">
+                            <field name="workflow_id" readonly="1"/>
+                            <field name="trigger_type" readonly="1" string="Trigger Event"/>
+                            <field name="state"
+                                   readonly="1"
+                                   decoration-success="state == 'success'"
+                                   decoration-warning="state == 'partial'"
+                                   decoration-danger="state == 'error'"
+                                   decoration-info="state == 'running'"
+                                   widget="badge"/>
+                        </group>
+                        <group string="Trigger Record">
+                            <field name="trigger_model" readonly="1"/>
+                            <field name="trigger_record_id" readonly="1" string="Record ID"/>
+                            <field name="trigger_record_name" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Timing">
+                            <field name="started_at" readonly="1"/>
+                            <field name="ended_at" readonly="1"/>
+                            <field name="duration_ms" readonly="1"/>
+                        </group>
+                        <group string="Step Summary">
+                            <field name="steps_total" readonly="1"/>
+                            <field name="steps_executed" readonly="1"/>
+                            <field name="steps_skipped" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group invisible="not error_message" string="Error">
+                        <field name="error_message" readonly="1" nolabel="1" colspan="2"/>
+                    </group>
+
+                    <!-- Step logs -->
+                    <separator string="Step Logs"/>
+                    <field name="step_log_ids" readonly="1">
+                        <list string="Step Logs" default_order="sequence asc">
+                            <field name="sequence"/>
+                            <field name="step_name"/>
+                            <field name="step_type"/>
+                            <field name="state"
+                                   decoration-success="state == 'success'"
+                                   decoration-warning="state == 'skipped' or state == 'stopped'"
+                                   decoration-danger="state == 'error'"
+                                   widget="badge"/>
+                            <field name="duration_ms" string="ms"/>
+                            <field name="result_summary"/>
+                            <field name="stored_variable_name" string="Variable"/>
+                            <field name="error_message"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.execution.log — Search View                                   -->
+    <!-- ================================================================ -->
+    <record id="view_wf_execution_log_search" model="ir.ui.view">
+        <field name="name">wf.execution.log.search</field>
+        <field name="model">wf.execution.log</field>
+        <field name="arch" type="xml">
+            <search string="Execution Logs">
+                <field name="workflow_id"/>
+                <field name="trigger_record_name"/>
+                <filter string="Success" name="success" domain="[('state', '=', 'success')]"/>
+                <filter string="Errors" name="errors" domain="[('state', 'in', ['error', 'partial'])]"/>
+                <filter string="Running" name="running" domain="[('state', '=', 'running')]"/>
+                <group name="group_by">
+                    <filter string="Workflow" name="group_workflow" context="{'group_by': 'workflow_id'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'started_at:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.execution.log — Window Action                                 -->
+    <!-- ================================================================ -->
+    <record id="action_wf_execution_log" model="ir.actions.act_window">
+        <field name="name">Execution Logs</field>
+        <field name="res_model">wf.execution.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No workflow executions yet
+            </p>
+            <p>
+                Execution logs are created whenever a workflow runs. They capture
+                timing, step-by-step results, and any error messages.
+            </p>
+        </field>
+    </record>
+
+</odoo>

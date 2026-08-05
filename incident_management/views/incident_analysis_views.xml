@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SHARED SEARCH VIEW
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_incident_analysis_search" model="ir.ui.view">
+        <field name="name">incident.report.analysis.search</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <search string="Incident Analysis">
+                <filter string="Near Miss" name="near_miss"
+                        domain="[('near_miss','=',True)]"/>
+                <separator/>
+                <filter string="Draft"               name="state_draft"
+                        domain="[('state','=','draft')]"/>
+                <filter string="Submitted"           name="state_submitted"
+                        domain="[('state','=','submitted')]"/>
+                <filter string="Assigned"            name="state_assigned"
+                        domain="[('state','=','assigned')]"/>
+                <filter string="Under Investigation" name="state_invest"
+                        domain="[('state','=','under_investigation')]"/>
+                <filter string="Corrective Actions"  name="state_ca"
+                        domain="[('state','=','corrective_actions')]"/>
+                <filter string="Closed"              name="state_closed"
+                        domain="[('state','=','closed')]"/>
+                <filter string="Cancelled"           name="state_cancelled"
+                        domain="[('state','=','cancelled')]"/>
+                <separator/>
+                <filter string="Low Severity"      name="sev_low"
+                        domain="[('severity','=','low')]"/>
+                <filter string="Medium Severity"   name="sev_medium"
+                        domain="[('severity','=','medium')]"/>
+                <filter string="High Severity"     name="sev_high"
+                        domain="[('severity','=','high')]"/>
+                <filter string="Critical Severity" name="sev_critical"
+                        domain="[('severity','=','critical')]"/>
+                <separator/>
+                <filter string="This Month" name="this_month"
+                        domain="[('date_occurred','&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                  ('date_occurred','&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Year" name="this_year"
+                        domain="[('date_occurred','&gt;=', context_today().strftime('%Y-01-01')),
+                                  ('date_occurred','&lt;=', context_today().strftime('%Y-12-31'))]"/>
+                <group name="group_by">
+                    <filter string="Status"     name="gb_state"
+                            context="{'group_by':'state'}"/>
+                    <filter string="Severity"   name="gb_severity"
+                            context="{'group_by':'severity'}"/>
+                    <filter string="Category"   name="gb_type"
+                            context="{'group_by':'type_id'}"/>
+                    <filter string="Department" name="gb_department"
+                            context="{'group_by':'department_id'}"/>
+                    <filter string="Manager"    name="gb_manager"
+                            context="{'group_by':'responsible_manager_id'}"/>
+                    <filter string="Month"      name="gb_month"
+                            context="{'group_by':'date_occurred:month'}"/>
+                    <filter string="Quarter"    name="gb_quarter"
+                            context="{'group_by':'date_occurred:quarter'}"/>
+                    <filter string="Year"       name="gb_year"
+                            context="{'group_by':'date_occurred:year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         REPORT 1 — BY STATUS
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_incident_analysis_pivot_status" model="ir.ui.view">
+        <field name="name">incident.report.analysis.pivot.status</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Incidents by Status" disable_linking="0">
+                <field name="state"     type="row"/>
+                <field name="severity"  type="col"/>
+                <field name="incident_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_incident_analysis_graph_status" model="ir.ui.view">
+        <field name="name">incident.report.analysis.graph.status</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="Incidents by Status" type="bar" stacked="0">
+                <field name="state"          type="row"/>
+                <field name="incident_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_incident_analysis_by_status" model="ir.actions.act_window">
+        <field name="name">Incidents by Status</field>
+        <field name="res_model">incident.report.analysis</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_incident_analysis_search"/>
+        <field name="context">{
+            'search_default_gb_state': 1
+        }</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         REPORT 2 — BY SEVERITY
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_incident_analysis_pivot_severity" model="ir.ui.view">
+        <field name="name">incident.report.analysis.pivot.severity</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Incidents by Severity" disable_linking="0">
+                <field name="severity"  type="row"/>
+                <field name="state"     type="col"/>
+                <field name="incident_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_incident_analysis_graph_severity" model="ir.ui.view">
+        <field name="name">incident.report.analysis.graph.severity</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="Incidents by Severity" type="bar" stacked="0">
+                <field name="severity"       type="row"/>
+                <field name="incident_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_incident_analysis_by_severity" model="ir.actions.act_window">
+        <field name="name">Incidents by Severity</field>
+        <field name="res_model">incident.report.analysis</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_incident_analysis_search"/>
+        <field name="context">{
+            'search_default_gb_severity': 1
+        }</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         REPORT 3 — BY CATEGORY
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_incident_analysis_pivot_category" model="ir.ui.view">
+        <field name="name">incident.report.analysis.pivot.category</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Incidents by Category" disable_linking="0">
+                <field name="type_id"   type="row"/>
+                <field name="severity"  type="col"/>
+                <field name="incident_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_incident_analysis_graph_category" model="ir.ui.view">
+        <field name="name">incident.report.analysis.graph.category</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="Incidents by Category" type="bar" stacked="0">
+                <field name="type_id"        type="row"/>
+                <field name="incident_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_incident_analysis_by_category" model="ir.actions.act_window">
+        <field name="name">Incidents by Category</field>
+        <field name="res_model">incident.report.analysis</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_incident_analysis_search"/>
+        <field name="context">{
+            'search_default_gb_type': 1
+        }</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         REPORT 4 — TREND OVER TIME  (bonus: month × severity stacked bar)
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_incident_analysis_graph_trend" model="ir.ui.view">
+        <field name="name">incident.report.analysis.graph.trend</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="Incident Trend" type="bar" stacked="1">
+                <field name="date_occurred" interval="month" type="row"/>
+                <field name="severity"                       type="col"/>
+                <field name="incident_count"                 type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_incident_analysis_pivot_trend" model="ir.ui.view">
+        <field name="name">incident.report.analysis.pivot.trend</field>
+        <field name="model">incident.report.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Incident Trend" disable_linking="0">
+                <field name="date_occurred" interval="month" type="row"/>
+                <field name="severity"                       type="col"/>
+                <field name="incident_count"                 type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_incident_analysis_trend" model="ir.actions.act_window">
+        <field name="name">Incident Trend</field>
+        <field name="res_model">incident.report.analysis</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="search_view_id" ref="view_incident_analysis_search"/>
+        <field name="context">{
+            'search_default_gb_month': 1
+        }</field>
+    </record>
+
+</odoo>

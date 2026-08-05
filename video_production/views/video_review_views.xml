@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Search ────────────────────────────────────────────────────── -->
+    <record id="view_video_review_search" model="ir.ui.view">
+        <field name="name">video.review.search</field>
+        <field name="model">video.review</field>
+        <field name="arch" type="xml">
+            <search string="Search Reviews">
+                <field name="name"/>
+                <field name="production_id"/>
+                <field name="request_owner_id"/>
+                <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="In Review" name="in_review" domain="[('state','=','in_review')]"/>
+                <filter string="Approved" name="approved" domain="[('state','=','approved')]"/>
+                <filter string="Mine to Approve" name="mine_to_approve"
+                        domain="[('approver_ids.user_id','=',uid),
+                                  ('approver_ids.status','=','pending'),
+                                  ('state','=','in_review')]"/>
+                <filter string="Overdue" name="overdue"
+                        domain="[('deadline','&lt;',context_today().strftime('%Y-%m-%d')),
+                                 ('state','not in',('approved','refused','cancelled'))]"/>
+                <group name="group_by">
+                    <filter string="Production" name="group_production"
+                            context="{'group_by': 'production_id'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Review Type" name="group_type"
+                            context="{'group_by': 'review_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Kanban ─────────────────────────────────────────────────────── -->
+    <record id="view_video_review_kanban" model="ir.ui.view">
+        <field name="name">video.review.kanban</field>
+        <field name="model">video.review</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="review_type"/>
+                <field name="production_id"/>
+                <field name="request_owner_id"/>
+                <field name="deadline"/>
+                <field name="approved_count"/>
+                <field name="required_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div>
+                            <div class="o_kanban_record_top mb4">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <small class="text-muted">
+                                        <field name="production_id"/>
+                                    </small>
+                                </div>
+                                <span class="badge rounded-pill text-bg-secondary">
+                                    <field name="review_type"/>
+                                </span>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <t t-if="record.deadline.raw_value">
+                                    <span class="small text-muted">
+                                        Due: <field name="deadline" options="{'numeric': True}"/>
+                                    </span>
+                                </t>
+                                <t t-if="record.required_count.raw_value">
+                                    <div class="mt4 progress" style="height:6px;">
+                                        <div class="progress-bar bg-success"
+                                             t-attf-style="width:#{Math.round(record.approved_count.raw_value/record.required_count.raw_value*100)}%"/>
+                                    </div>
+                                    <small class="text-muted">
+                                        <t t-esc="record.approved_count.raw_value"/>/<t t-esc="record.required_count.raw_value"/> approved
+                                    </small>
+                                </t>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left"/>
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="request_owner_id" widget="many2one_avatar_user"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── List ──────────────────────────────────────────────────────── -->
+    <record id="view_video_review_list" model="ir.ui.view">
+        <field name="name">video.review.list</field>
+        <field name="model">video.review</field>
+        <field name="arch" type="xml">
+            <list string="Reviews" default_order="deadline">
+                <field name="name"/>
+                <field name="production_id"/>
+                <field name="review_type"/>
+                <field name="state"/>
+                <field name="deadline"
+                       decoration-danger="deadline &lt; context_today() and state not in ('approved','refused','cancelled')"
+                       options="{'numeric': True}"/>
+                <field name="approved_count" string="Approved"/>
+                <field name="required_count" string="Required"/>
+                <field name="request_owner_id" widget="many2one_avatar_user"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form ──────────────────────────────────────────────────────── -->
+    <record id="view_video_review_form" model="ir.ui.view">
+        <field name="name">video.review.form</field>
+        <field name="model">video.review</field>
+        <field name="arch" type="xml">
+            <form string="Review &amp; Approval">
+                <header>
+                    <button name="action_submit" type="object"
+                            string="Submit for Review" class="btn-primary"
+                            invisible="state != 'pending'"/>
+                    <button name="action_approve" type="object"
+                            string="Approve" class="btn-success"
+                            invisible="state != 'in_review'"/>
+                    <button name="action_refuse" type="object"
+                            string="Refuse" class="btn-danger"
+                            invisible="state != 'in_review'"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state in ('approved','refused','cancelled')"/>
+                    <button name="action_reset_to_pending" type="object"
+                            string="Reset to Pending"
+                            invisible="state not in ('refused','cancelled')"
+                            groups="video_production.group_video_production_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending,in_review,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Review name…"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Review Details">
+                            <field name="production_id"/>
+                            <field name="review_type"/>
+                            <field name="request_owner_id" widget="many2one_avatar_user"/>
+                            <field name="deadline" options="{'numeric': True}"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="approved_count" readonly="1"/>
+                            <field name="required_count" readonly="1"/>
+                            <field name="all_approved" readonly="1" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group string="Reference Links">
+                        <field name="reference_url" widget="url"
+                               placeholder="https://… Frame.io, Google Drive, Dropbox…"/>
+                        <field name="script_id"
+                               domain="[('production_id','=',production_id)]"
+                               options="{'no_create': True}"/>
+                        <field name="edit_version_id"
+                               domain="[('edit_job_id.production_id','=',production_id)]"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <notebook>
+                        <page string="Instructions" name="instructions">
+                            <field name="description"
+                                   placeholder="What to review and how to provide feedback…"/>
+                        </page>
+                        <page string="Approvers" name="approvers">
+                            <field name="approver_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="required"/>
+                                    <field name="status" readonly="1"/>
+                                    <field name="date_acted" readonly="1" options="{'numeric': True}"/>
+                                    <field name="comment"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Approve Wizard View ────────────────────────────────────────── -->
+    <record id="view_video_approve_wizard_form" model="ir.ui.view">
+        <field name="name">video.approve.wizard.form</field>
+        <field name="model">video.approve.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Approve / Refuse Reviews">
+                <group>
+                    <field name="action" widget="radio"/>
+                    <field name="comment" placeholder="Optional comment or feedback…"/>
+                </group>
+                <group string="Reviews">
+                    <field name="review_ids" widget="many2many_tags" nolabel="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_video_approve_wizard" model="ir.actions.act_window">
+        <field name="name">Approve / Refuse</field>
+        <field name="res_model">video.approve.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_video_review"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+    <!-- ── Actions ───────────────────────────────────────────────────── -->
+    <record id="action_video_review" model="ir.actions.act_window">
+        <field name="name">Reviews &amp; Approvals</field>
+        <field name="res_model">video.review</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_mine_to_approve': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No reviews yet!
+            </p>
+            <p>Create review requests for scripts, edits, thumbnails and metadata.</p>
+        </field>
+    </record>
+
+</odoo>

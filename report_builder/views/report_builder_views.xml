@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================
+         Report Builder — List View
+    ================================================================ -->
+    <record id="view_report_builder_list" model="ir.ui.view">
+        <field name="name">report.builder.list</field>
+        <field name="model">report.builder</field>
+        <field name="arch" type="xml">
+            <list string="Reports">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="model_id"/>
+                <field name="report_format"/>
+                <field name="column_count" string="Columns"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================================================================
+         Report Builder — Form View
+    ================================================================ -->
+    <record id="view_report_builder_form" model="ir.ui.view">
+        <field name="name">report.builder.form</field>
+        <field name="model">report.builder</field>
+        <field name="arch" type="xml">
+            <form string="Report Builder">
+                <header>
+                    <button name="action_run_report"
+                            string="Run Report"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-download"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Report Name..."/>
+                        </h1>
+                    </div>
+
+                    <group string="Report Configuration">
+                        <field name="model_id"
+                               options='{"no_create": true, "no_open": true}'/>
+                        <field name="model_name" invisible="1"/>
+                        <field name="report_format"/>
+                        <field name="active"/>
+                    </group>
+
+                    <group string="Description">
+                        <field name="description" colspan="2"/>
+                    </group>
+
+                    <!-- PDF Options -->
+                    <group string="PDF Options"
+                           invisible="report_format != 'pdf'">
+                        <group>
+                            <field name="pdf_page_size"/>
+                            <field name="pdf_orientation"/>
+                        </group>
+                    </group>
+
+                    <!-- Matrix Options -->
+                    <group string="Matrix Configuration"
+                           invisible="report_format != 'matrix'">
+                        <group string="Axes">
+                            <field name="matrix_row_field_id"
+                                   domain="[('model_id', '=', model_id)]"
+                                   options='{"no_create": true, "no_open": true}'/>
+                            <field name="matrix_row_label"/>
+                            <field name="matrix_col_field_id"
+                                   domain="[('model_id', '=', model_id)]"
+                                   options='{"no_create": true, "no_open": true}'/>
+                            <field name="matrix_col_label"/>
+                        </group>
+                        <group string="Cell Value">
+                            <field name="matrix_cell_field_id"
+                                   domain="[('model_id', '=', model_id)]"
+                                   options='{"no_create": true, "no_open": true}'/>
+                        </group>
+                    </group>
+
+                    <!-- Filter / Domain -->
+                    <group string="Filter Conditions" col="1">
+                        <field name="domain" widget="domain"
+                               options="{'model': 'model_name'}"
+                               nolabel="1"/>
+                        <field name="domain_description"
+                               placeholder="Human-readable description of the filter (shown in report header)..."/>
+                    </group>
+
+                    <!-- Columns -->
+                    <notebook>
+                        <page string="Columns" name="columns">
+                            <field name="column_ids"
+                                   invisible="not model_id">
+                                <list editable="bottom">
+                                    <field name="id" string="ID"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="model_name" column_invisible="1"/>
+                                    <field name="field_path"
+                                           widget="field_selector"
+                                           options='{"model": "model_name", "follow_relations": true}'/>
+                                    <field name="label"
+                                           placeholder="Column Header"/>
+                                    <field name="width"/>
+                                </list>
+                            </field>
+                            <div class="o_field_widget o_wrap_field"
+                                 invisible="model_id">
+                                <p class="text-muted">
+                                    Please select a Primary Model first.
+                                </p>
+                            </div>
+                        </page>
+
+                        <page string="Menu Placement" name="menus">
+                            <p class="text-muted mb-2">
+                                Select the menus where this report will appear.
+                                The report will be added as a child action of the selected menu items.
+                            </p>
+                            <group col="1">
+                                <field name="menu_ids" widget="many2many_tags"
+                                       string="Add to Menus"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================
+         Report Builder — Search View
+    ================================================================ -->
+    <record id="view_report_builder_search" model="ir.ui.view">
+        <field name="name">report.builder.search</field>
+        <field name="model">report.builder</field>
+        <field name="arch" type="xml">
+            <search string="Search Reports">
+                <field name="name"/>
+                <field name="model_id"/>
+                <filter name="filter_active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="filter_inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="fmt_excel" string="Excel" domain="[('report_format', '=', 'excel')]"/>
+                <filter name="fmt_csv" string="CSV" domain="[('report_format', '=', 'csv')]"/>
+                <filter name="fmt_matrix" string="Matrix" domain="[('report_format', '=', 'matrix')]"/>
+                <filter name="fmt_pdf" string="PDF" domain="[('report_format', '=', 'pdf')]"/>
+                <group name="group_by">
+                    <filter name="group_model" string="Model"
+                            context="{'group_by': 'model_id'}"/>
+                    <filter name="group_format" string="Format"
+                            context="{'group_by': 'report_format'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================================================================
+         Window Action
+    ================================================================ -->
+    <record id="action_report_builder" model="ir.actions.act_window">
+        <field name="name">Reports</field>
+        <field name="res_model">report.builder</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_report_builder_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first custom report
+            </p>
+            <p>
+                Build reports from any model, select columns, apply filters,
+                and export as Excel, CSV, Matrix or PDF.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_injury" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.injury_management</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Injury Management" string="Injury Management"
+                     name="injury_management" groups="base.group_system">
+
+                    <block title="Integrations" name="injury_integrations_block">
+
+                        <setting id="injury_rtw_integration"
+                                 string="Integrate Incident and Return to Work"
+                                 help="Automatically create a Return to Work case when an incident is flagged as a Lost Time Injury or Restricted / Modified Duties.">
+
+                            <field name="injury_integrate_rtw"
+                                   readonly="not incident_management_installed or not injury_management_installed"/>
+
+                            <div class="alert alert-warning mt-2 mb-0" role="status"
+                                 invisible="incident_management_installed and injury_management_installed">
+                                <i class="fa fa-exclamation-triangle me-1"/>
+                                This setting requires both the <strong>Incident Management</strong>
+                                and <strong>Injury Management</strong> modules to be installed.
+                            </div>
+
+                            <div class="text-muted mt-1"
+                                 invisible="not injury_integrate_rtw or not incident_management_installed or not injury_management_installed">
+                                When an incident report is saved with <strong>Lost Time Injury</strong>
+                                or <strong>Restricted / Modified Duties</strong> set, a Return to Work
+                                case will be automatically created and linked to the incident.
+                            </div>
+
+                        </setting>
+
+                    </block>
+
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

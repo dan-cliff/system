@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Root menu ─────────────────────────────────────────────────────── -->
+    <menuitem id="menu_meeting_management_root"
+              name="Meetings"
+              sequence="20"
+              web_icon="meeting_management,static/description/icon.png"
+              groups="meeting_management.group_meeting_user"/>
+
+    <!-- ── Meetings ──────────────────────────────────────────────────────── -->
+    <menuitem id="menu_meeting_meetings"
+              name="Meetings"
+              parent="menu_meeting_management_root"
+              sequence="10"/>
+
+    <menuitem id="menu_meeting_all"
+              name="All Meetings"
+              parent="menu_meeting_meetings"
+              action="action_meeting_meeting"
+              sequence="10"/>
+
+    <!-- ── Configuration ─────────────────────────────────────────────────── -->
+    <menuitem id="menu_meeting_config"
+              name="Configuration"
+              parent="menu_meeting_management_root"
+              sequence="90"
+              groups="meeting_management.group_meeting_manager"/>
+
+    <menuitem id="menu_meeting_templates"
+              name="Meeting Templates"
+              parent="menu_meeting_config"
+              action="action_meeting_template"
+              sequence="10"/>
+
+    <menuitem id="menu_meeting_notification_templates"
+              name="Notification Templates"
+              parent="menu_meeting_config"
+              action="action_meeting_notification_template"
+              sequence="20"/>
+
+    <menuitem id="menu_meeting_settings"
+              name="Settings"
+              parent="menu_meeting_config"
+              action="action_res_config_settings"
+              sequence="90"/>
+</odoo>

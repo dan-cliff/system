@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_injury_case_report_wizard_form" model="ir.ui.view">
+        <field name="name">injury.case.report.wizard.form</field>
+        <field name="model">injury.case.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Export RTW Case PDF">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Export RTW Case Report</h2>
+                    </div>
+                    <group>
+                        <field name="case_id" readonly="1" options="{'no_open': True}"/>
+                    </group>
+                    <separator string="Select Registers to Include"/>
+                    <p class="text-muted">
+                        Choose which registers to include in the PDF export.
+                        Only registers with at least one record are shown with their count.
+                    </p>
+                    <div style="margin: 8px 0 16px 0; max-width: 480px;">
+                        <!-- Header -->
+                        <div class="d-flex align-items-center border-bottom pb-1 mb-1 fw-bold text-muted" style="font-size: 0.85em;">
+                            <div class="flex-grow-1 ps-4">Register</div>
+                            <div style="min-width: 70px; text-align: right;">Records</div>
+                        </div>
+                        <!-- Case Notes -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_case_notes" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Case Notes</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="case_note_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <!-- Medical Appointments -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_appointments" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Medical Appointments</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="appointment_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <!-- Meetings & Communications -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_meetings" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Meetings &amp; Communications</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="meeting_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <!-- File Notes -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_file_notes" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">File Notes</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="file_note_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <!-- Costs -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_costs" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Costs</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="cost_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <!-- RTW Plans -->
+                        <div class="d-flex align-items-center py-1 border-bottom">
+                            <field name="include_rtw_plans" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">RTW Plans</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="rtw_plan_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <!-- Medical Certificates -->
+                        <div class="d-flex align-items-center py-1">
+                            <field name="include_certificates" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1">Medical Certificates</div>
+                            <div style="min-width: 70px; text-align: right;">
+                                <field name="certificate_count" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Addendum — only shown when a linked incident exists -->
+                    <div invisible="not has_incident_report"
+                         style="margin: 4px 0 16px 0; max-width: 480px;">
+                        <div class="fw-bold text-muted border-bottom pb-1 mb-1"
+                             style="font-size: 0.85em; letter-spacing: 0.04em; text-transform: uppercase;">
+                            Addendum
+                        </div>
+                        <!-- Top-level addendum toggle -->
+                        <div class="d-flex align-items-center py-1">
+                            <field name="include_incident_report" nolabel="1" class="me-2"/>
+                            <div class="flex-grow-1 fw-semibold">Linked Incident Report</div>
+                            <div style="min-width: 70px; text-align: right; color: #6c757d; font-size: 0.9em;">
+                                <field name="has_incident_report" nolabel="1" readonly="1" invisible="1"/>
+                                1
+                            </div>
+                        </div>
+                        <!-- Sub-section checkboxes — visible only when addendum is enabled -->
+                        <div invisible="not include_incident_report"
+                             style="margin-left: 28px; border-left: 2px solid #dee2e6; padding-left: 10px;">
+                            <div class="d-flex align-items-center py-1 border-bottom">
+                                <field name="inc_report_details" nolabel="1" class="me-2"/>
+                                <div class="flex-grow-1 text-muted">Report Details</div>
+                            </div>
+                            <div class="d-flex align-items-center py-1 border-bottom">
+                                <field name="inc_investigation" nolabel="1" class="me-2"/>
+                                <div class="flex-grow-1 text-muted">Investigation &amp; ICAM Findings</div>
+                            </div>
+                            <div class="d-flex align-items-center py-1">
+                                <field name="inc_corrective_actions" nolabel="1" class="me-2"/>
+                                <div class="flex-grow-1 text-muted">Corrective Actions</div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_print" string="Generate PDF"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_injury_case_report_wizard" model="ir.actions.act_window">
+        <field name="name">Export RTW Case PDF</field>
+        <field name="res_model">injury.case.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

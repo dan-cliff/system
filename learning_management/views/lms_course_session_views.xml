@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ─── Session Enrolment ─── -->
+    <record id="view_lms_enrollment_list" model="ir.ui.view">
+        <field name="name">lms.session.enrollment.list</field>
+        <field name="model">lms.session.enrollment</field>
+        <field name="arch" type="xml">
+            <list string="Enrolments"
+                  decoration-warning="state == 'pending_approval'"
+                  decoration-success="state == 'attended'"
+                  decoration-muted="state in ('cancelled', 'absent')">
+                <field name="id" optional="show"/>
+                <field name="session_id"/>
+                <field name="course_id"/>
+                <field name="employee_id"/>
+                <field name="manager_id"/>
+                <field name="state"/>
+                <field name="is_self_enrolled"/>
+                <field name="enrolled_by"/>
+                <button name="action_confirm" type="object" string="Confirm"
+                        icon="fa-check" class="btn-success"
+                        invisible="state != 'pending_approval'"
+                        groups="learning_management.group_lms_people_leader"/>
+                <button name="action_cancel" type="object" string="Cancel"
+                        icon="fa-times" class="btn-danger"
+                        invisible="state in ('cancelled', 'attended', 'absent')"
+                        groups="learning_management.group_lms_facilitator"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_enrollment_form" model="ir.ui.view">
+        <field name="name">lms.session.enrollment.form</field>
+        <field name="model">lms.session.enrollment</field>
+        <field name="arch" type="xml">
+            <form string="Session Enrolment">
+                <header>
+                    <button name="action_confirm" type="object" string="Approve &amp; Confirm"
+                            class="btn-primary"
+                            invisible="state != 'pending_approval'"
+                            groups="learning_management.group_lms_people_leader"/>
+                    <button name="action_mark_attended" type="object" string="Mark Attended"
+                            class="btn-success"
+                            invisible="state != 'confirmed'"
+                            groups="learning_management.group_lms_facilitator"/>
+                    <button name="action_mark_absent" type="object" string="Mark Absent"
+                            class="btn-warning"
+                            invisible="state != 'confirmed'"
+                            groups="learning_management.group_lms_facilitator"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('cancelled', 'attended', 'absent')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending_approval,confirmed,attended"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Enrolment">
+                            <field name="session_id"/>
+                            <field name="course_id" readonly="1"/>
+                            <field name="employee_id"/>
+                            <field name="manager_id" readonly="1"/>
+                        </group>
+                        <group string="Details">
+                            <field name="enrolled_by" readonly="1"/>
+                            <field name="is_self_enrolled" readonly="1"/>
+                            <field name="approval_required" readonly="1"/>
+                            <field name="approved_by" readonly="1"/>
+                            <field name="approved_date" readonly="1" options='{"format": "dd/MM/yyyy HH:mm"}'/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_enrollment_search" model="ir.ui.view">
+        <field name="name">lms.session.enrollment.search</field>
+        <field name="model">lms.session.enrollment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="session_id"/>
+                <filter name="pending" string="Pending Approval" domain="[('state', '=', 'pending_approval')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="attended" string="Attended" domain="[('state', '=', 'attended')]"/>
+                <filter name="self_enrolled" string="Self-Enrolled" domain="[('is_self_enrolled', '=', True)]"/>
+                <group name="group_by">
+                    <filter name="group_session" string="Session" context="{'group_by': 'session_id'}"/>
+                    <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lms_enrollment" model="ir.actions.act_window">
+        <field name="name">Enrolments</field>
+        <field name="res_model">lms.session.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_lms_enrollment_search"/>
+    </record>
+
+    <!-- Pending approvals shortcut -->
+    <record id="action_lms_enrollment_pending" model="ir.actions.act_window">
+        <field name="name">Pending Approval</field>
+        <field name="res_model">lms.session.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'pending_approval')]</field>
+        <field name="search_view_id" ref="view_lms_enrollment_search"/>
+    </record>
+
+    <!-- ─── Course Session ─── -->
+    <record id="view_lms_session_list" model="ir.ui.view">
+        <field name="name">lms.course.session.list</field>
+        <field name="model">lms.course.session</field>
+        <field name="arch" type="xml">
+            <list string="Sessions"
+                  decoration-danger="state == 'cancelled'"
+                  decoration-success="state == 'completed'"
+                  decoration-info="state in ('open', 'closed')"
+                  decoration-warning="state == 'full'">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="course_id"/>
+                <field name="date_start" options='{"format": "dd/MM/yyyy HH:mm"}'/>
+                <field name="date_end" options='{"format": "dd/MM/yyyy HH:mm"}'/>
+                <field name="location"/>
+                <field name="instructor_id"/>
+                <field name="enrolled_count"/>
+                <field name="max_capacity"/>
+                <field name="available_seats"/>
+                <field name="state"/>
+                <field name="is_public"/>
+                <button name="action_open" type="object" string="Open"
+                        icon="fa-unlock" invisible="state != 'draft'"
+                        groups="learning_management.group_lms_facilitator"/>
+                <button name="action_close_enrolment" type="object" string="Close Enrolment"
+                        icon="fa-lock" invisible="state != 'open'"
+                        groups="learning_management.group_lms_facilitator"/>
+                <button name="action_complete" type="object" string="Complete"
+                        icon="fa-check-circle" invisible="state not in ('open', 'closed', 'in_progress')"
+                        groups="learning_management.group_lms_facilitator"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_session_calendar" model="ir.ui.view">
+        <field name="name">lms.course.session.calendar</field>
+        <field name="model">lms.course.session</field>
+        <field name="arch" type="xml">
+            <calendar string="Training Sessions"
+                      date_start="date_start"
+                      date_stop="date_end"
+                      color="course_id">
+                <field name="course_id"/>
+                <field name="location"/>
+                <field name="state"/>
+                <field name="enrolled_count"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_lms_session_form" model="ir.ui.view">
+        <field name="name">lms.course.session.form</field>
+        <field name="model">lms.course.session</field>
+        <field name="arch" type="xml">
+            <form string="Training Session">
+                <header>
+                    <button name="action_open" type="object" string="Open for Enrolment"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="learning_management.group_lms_facilitator"/>
+                    <button name="action_close_enrolment" type="object" string="Close Enrolment"
+                            invisible="state != 'open'"
+                            groups="learning_management.group_lms_facilitator"/>
+                    <button name="action_complete" type="object" string="Mark Complete"
+                            class="btn-success"
+                            invisible="state not in ('open', 'closed', 'in_progress')"
+                            groups="learning_management.group_lms_facilitator"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('completed', 'cancelled')"
+                            groups="learning_management.group_lms_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,open,closed,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_enrollments" type="object"
+                                class="oe_stat_button" icon="fa-users">
+                            <field name="enrolled_count" widget="statinfo" string="Enrolled"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Session Name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Session Details">
+                            <field name="course_id"/>
+                            <field name="date_start" options='{"format": "dd/MM/yyyy HH:mm"}'/>
+                            <field name="date_end" options='{"format": "dd/MM/yyyy HH:mm"}'/>
+                            <field name="location"/>
+                        </group>
+                        <group string="Capacity &amp; Facilitation">
+                            <field name="instructor_id"/>
+                            <field name="instructor_name"
+                                   placeholder="If external facilitator"/>
+                            <field name="max_capacity"/>
+                            <field name="enrolled_count" readonly="1"/>
+                            <field name="available_seats" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Enrolment Settings">
+                        <field name="is_public"/>
+                        <field name="requires_approval"/>
+                    </group>
+                    <group string="Notes / Instructions">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Enrolments" name="enrollments">
+                            <field name="enrollment_ids">
+                                <list editable="bottom"
+                                      decoration-warning="state == 'pending_approval'"
+                                      decoration-success="state == 'attended'">
+                                    <field name="id" optional="show"/>
+                                    <field name="employee_id"/>
+                                    <field name="state"/>
+                                    <field name="is_self_enrolled"/>
+                                    <field name="enrolled_by"/>
+                                    <button name="action_confirm" type="object" string="Confirm"
+                                            icon="fa-check" class="btn-success"
+                                            invisible="state != 'pending_approval'"
+                                            groups="learning_management.group_lms_people_leader"/>
+                                    <button name="action_mark_attended" type="object"
+                                            string="Attended" icon="fa-user-check"
+                                            invisible="state != 'confirmed'"
+                                            groups="learning_management.group_lms_facilitator"/>
+                                    <button name="action_mark_absent" type="object"
+                                            string="Absent" icon="fa-user-times"
+                                            invisible="state != 'confirmed'"
+                                            groups="learning_management.group_lms_facilitator"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_session_search" model="ir.ui.view">
+        <field name="name">lms.course.session.search</field>
+        <field name="model">lms.course.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="course_id"/>
+                <field name="instructor_id"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="open" string="Open for Enrolment" domain="[('state', '=', 'open')]"/>
+                <filter name="closed" string="Closed for Enrolment" domain="[('state', '=', 'closed')]"/>
+                <filter name="full" string="Full" domain="[('state', '=', 'full')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="completed" string="Completed" domain="[('state', '=', 'completed')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <filter name="public" string="Self-Enrolment Open"
+                        domain="[('is_public', '=', True), ('state', '=', 'open')]"/>
+                <filter name="upcoming" string="Upcoming"
+                        domain="[('date_start', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group name="group_by">
+                    <filter name="group_course" string="Course" context="{'group_by': 'course_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_month" string="Month"
+                            context="{'group_by': 'date_start:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lms_session" model="ir.actions.act_window">
+        <field name="name">Training Sessions</field>
+        <field name="res_model">lms.course.session</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="search_view_id" ref="view_lms_session_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Schedule your first in-person training session!
+            </p>
+        </field>
+    </record>
+</odoo>

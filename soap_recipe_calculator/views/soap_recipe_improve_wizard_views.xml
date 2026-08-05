@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_soap_recipe_improve_wizard_form" model="ir.ui.view">
+        <field name="name">soap.recipe.improve.wizard.form</field>
+        <field name="model">soap.recipe.improve.wizard</field>
+        <field name="arch" type="xml">
+            <form string="AI Improvement Suggestions">
+                <sheet>
+                    <div class="oe_title">
+                        <h3>
+                            <i class="fa fa-lightbulb-o me-2" style="color:#f0ad4e"/>
+                            AI Soap Recipe Analysis
+                        </h3>
+                    </div>
+
+                    <field name="recipe_id" invisible="1"/>
+                    <field name="changes_json" invisible="1"/>
+
+                    <field name="recommendations_html"
+                           widget="html"
+                           readonly="1"
+                           style="min-height:300px; max-height:520px; overflow-y:auto; border:1px solid #dee2e6; border-radius:4px; padding:16px; background:#fff;"/>
+
+                </sheet>
+                <footer>
+                    <button name="action_accept_recommendations"
+                            string="Accept Recommendations"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="q"
+                            confirm="Apply the AI's suggested changes to the recipe and save a summary to the chatter?"/>
+                    <button name="action_save_to_chatter"
+                            string="Save to Chatter"
+                            type="object"
+                            class="btn-secondary"
+                            data-hotkey="s"/>
+                    <button string="Close"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

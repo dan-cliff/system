@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_print_farm" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.print.farm</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Print Farm"
+                     data-string="Print Farm"
+                     name="print_farm"
+                     logo="/print_farm_jobs/static/description/icon.png"
+                     groups="print_farm_jobs.group_print_farm_manager">
+
+                    <!-- ── Purchase Integration ───────────────────────────── -->
+                    <block title="Purchase Integration" name="print_farm_purchase_block">
+                        <setting id="print_farm_restock_to_purchase"
+                                 string="Link Restock Orders to Purchases"
+                                 help="Confirming a Restock Order automatically creates a draft Purchase Order for all lines.">
+                            <field name="print_farm_restock_to_purchase"/>
+                        </setting>
+                    </block>
+
+                    <!-- ── Sales Integration ──────────────────────────────── -->
+                    <block title="Sales Integration" name="print_farm_sales_block">
+                        <setting id="print_farm_sale_to_print_job"
+                                 string="Create Print Jobs from Sale Orders"
+                                 help="Confirming a Sale Order automatically creates a Print Job for each line whose product has a Default Filament set.">
+                            <field name="print_farm_sale_to_print_job"/>
+                        </setting>
+                    </block>
+
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

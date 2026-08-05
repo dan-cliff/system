@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- wf.api.call.log — List View                                      -->
+    <!-- ================================================================ -->
+    <record id="view_wf_api_call_log_list" model="ir.ui.view">
+        <field name="name">wf.api.call.log.list</field>
+        <field name="model">wf.api.call.log</field>
+        <field name="arch" type="xml">
+            <list string="API Call Logs" default_order="called_at desc">
+                <field name="id" string="ID"/>
+                <field name="called_at" options='{"numeric": true}'/>
+                <field name="name"/>
+                <field name="service_platform_id"/>
+                <field name="trigger_model_id" string="Source Model"/>
+                <field name="trigger_record_name" string="Source Record"/>
+                <field name="http_method"/>
+                <field name="endpoint"/>
+                <field name="response_status_code" string="Status"/>
+                <field name="duration_ms" string="ms"/>
+                <field name="state"
+                       decoration-success="state == 'success'"
+                       decoration-danger="state == 'error'"
+                       widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.api.call.log — Form View                                      -->
+    <!-- ================================================================ -->
+    <record id="view_wf_api_call_log_form" model="ir.ui.view">
+        <field name="name">wf.api.call.log.form</field>
+        <field name="model">wf.api.call.log</field>
+        <field name="arch" type="xml">
+            <form string="API Call Log" create="false" edit="false">
+                <sheet>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- Summary group -->
+                    <group>
+                        <group string="Call Details">
+                            <field name="called_at"
+                                   options='{"numeric": true}'
+                                   readonly="1"/>
+                            <field name="service_platform_id" readonly="1"/>
+                            <field name="http_method" readonly="1"/>
+                            <field name="endpoint" readonly="1"/>
+                            <field name="response_status_code" readonly="1"/>
+                            <field name="duration_ms" readonly="1"/>
+                        </group>
+                        <group string="Outcome">
+                            <field name="state" widget="badge" readonly="1"/>
+                            <field name="error_message"
+                                   readonly="1"
+                                   invisible="state != 'error'"/>
+                        </group>
+                    </group>
+
+                    <!-- Source / Trigger group -->
+                    <group string="Triggered By">
+                        <field name="trigger_model_id" string="Source Model" readonly="1"/>
+                        <field name="trigger_res_id" string="Record ID" readonly="1"/>
+                        <field name="trigger_record_name" string="Record" readonly="1"/>
+                    </group>
+
+                    <notebook>
+                        <!-- Request tab -->
+                        <page string="Request" name="request">
+                            <div class="o_horizontal_separator mb-2">Headers</div>
+                            <field name="request_headers"
+                                   widget="ace"
+                                   options="{'mode': 'javascript'}"
+                                   nolabel="1"
+                                   readonly="1"/>
+                            <div class="o_horizontal_separator mt-4 mb-2">Body</div>
+                            <field name="request_body"
+                                   widget="ace"
+                                   options="{'mode': 'javascript'}"
+                                   nolabel="1"
+                                   readonly="1"/>
+                        </page>
+
+                        <!-- Response tab -->
+                        <page string="Response" name="response">
+                            <div class="o_horizontal_separator mb-2">Headers</div>
+                            <field name="response_headers"
+                                   widget="ace"
+                                   options="{'mode': 'javascript'}"
+                                   nolabel="1"
+                                   readonly="1"/>
+                            <div class="o_horizontal_separator mt-4 mb-2">Body</div>
+                            <field name="response_body"
+                                   widget="ace"
+                                   options="{'mode': 'javascript'}"
+                                   nolabel="1"
+                                   readonly="1"/>
+                        </page>
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.api.call.log — Search View                                    -->
+    <!-- ================================================================ -->
+    <record id="view_wf_api_call_log_search" model="ir.ui.view">
+        <field name="name">wf.api.call.log.search</field>
+        <field name="model">wf.api.call.log</field>
+        <field name="arch" type="xml">
+            <search string="API Call Logs">
+                <field name="name" string="Call Name"/>
+                <field name="service_platform_id" string="Service / Platform"/>
+                <field name="endpoint" string="Endpoint"/>
+                <field name="trigger_record_name" string="Source Record"/>
+                <filter string="Successful" name="filter_success"
+                        domain="[('state', '=', 'success')]"/>
+                <filter string="Errors" name="filter_error"
+                        domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter string="Today" name="filter_today"
+                        domain="[('called_at', '>=', (context_today()).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter string="Group by Service / Platform" name="group_platform"
+                        context="{'group_by': 'service_platform_id'}"/>
+                <filter string="Group by Source Model" name="group_trigger_model"
+                        context="{'group_by': 'trigger_model_id'}"/>
+                <filter string="Group by State" name="group_state"
+                        context="{'group_by': 'state'}"/>
+                <filter string="Group by HTTP Method" name="group_method"
+                        context="{'group_by': 'http_method'}"/>
+                <filter string="Group by Date" name="group_date"
+                        context="{'group_by': 'called_at:day'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.api.call.log — Window Action                                  -->
+    <!-- ================================================================ -->
+    <record id="action_wf_api_call_log" model="ir.actions.act_window">
+        <field name="name">API Call Logs</field>
+        <field name="res_model">wf.api.call.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_wf_api_call_log_search"/>
+        <field name="context">{'search_default_filter_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No API calls logged yet
+            </p>
+            <p>
+                All outbound API calls made through the Workflow Engine will
+                appear here, including full request and response details.
+            </p>
+        </field>
+    </record>
+
+</odoo>

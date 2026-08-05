@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ─── Employee Record ─── -->
+    <record id="view_lms_employee_record_list" model="ir.ui.view">
+        <field name="name">lms.employee.record.list</field>
+        <field name="model">lms.employee.record</field>
+        <field name="arch" type="xml">
+            <list string="Training Records"
+                  decoration-success="state == 'completed'"
+                  decoration-warning="state in ('in_progress', 'pending_upload', 'pending_verification')"
+                  decoration-danger="state in ('failed', 'expired', 'lapsed')"
+                  decoration-muted="state == 'not_started'">
+                <field name="id" optional="show"/>
+                <field name="employee_id"/>
+                <field name="course_id"/>
+                <field name="course_type"/>
+                <field name="delivery_mode"/>
+                <field name="assignment_id" optional="show"/>
+                <field name="state"/>
+                <field name="start_date" optional="show" options='{"format": "dd/MM/yyyy"}'/>
+                <field name="completion_date" options='{"format": "dd/MM/yyyy"}'/>
+                <field name="expiry_date" options='{"format": "dd/MM/yyyy"}'/>
+                <field name="passed" optional="show"/>
+                <field name="score" optional="show"/>
+                <field name="attachment_count" string="Docs"/>
+                <button name="action_verify" type="object" string="Verify"
+                        icon="fa-check-circle" class="btn-success"
+                        invisible="state not in ('pending_upload', 'pending_verification')"
+                        groups="learning_management.group_lms_manager"/>
+                <button name="action_mark_complete" type="object" string="Complete"
+                        icon="fa-graduation-cap"
+                        invisible="state in ('completed', 'not_started')"
+                        groups="learning_management.group_lms_manager"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_employee_record_form" model="ir.ui.view">
+        <field name="name">lms.employee.record.form</field>
+        <field name="model">lms.employee.record</field>
+        <field name="arch" type="xml">
+            <form string="Training Record">
+                <header>
+                    <button name="action_start" type="object" string="Start"
+                            class="btn-primary"
+                            invisible="state != 'not_started'"
+                            groups="learning_management.group_lms_employee"/>
+                    <button name="action_view_assessments" type="object"
+                            string="Assessment"
+                            class="btn-primary"
+                            invisible="not course_id.assessment_template_id or state in ('completed', 'lapsed')"
+                            groups="learning_management.group_lms_employee"/>
+                    <button name="action_verify" type="object" string="Verify Upload"
+                            class="btn-success"
+                            invisible="state not in ('pending_upload', 'pending_verification')"
+                            groups="learning_management.group_lms_manager"/>
+                    <button name="action_mark_complete" type="object" string="Mark Complete"
+                            class="btn-success"
+                            invisible="state in ('completed', 'not_started', 'lapsed')"
+                            groups="learning_management.group_lms_manager"/>
+                    <button name="action_fail" type="object" string="Mark Failed"
+                            invisible="state not in ('in_progress', 'pending_upload', 'pending_verification')"
+                            groups="learning_management.group_lms_manager"/>
+                    <button name="action_lapse" type="object" string="Mark Lapsed"
+                            invisible="state not in ('expired', 'failed', 'completed')"
+                            groups="learning_management.group_lms_manager"/>
+                    <button name="action_reset" type="object" string="Reset"
+                            invisible="state == 'not_started'"
+                            groups="learning_management.group_lms_admin"/>
+                    <button name="action_print_training_record" type="object"
+                            string="Print" icon="fa-print"
+                            class="btn-secondary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="not_started,in_progress,completed,lapsed"/>
+                </header>
+
+                <!-- Lapsed banner -->
+                <div class="alert alert-info d-flex align-items-center gap-2 mb-0 rounded-0 border-0 border-bottom"
+                     role="alert"
+                     invisible="state != 'lapsed'">
+                    <i class="fa fa-info-circle fa-lg" title="Information"/>
+                    <strong>TRAINING RECORD LAPSED</strong>
+                </div>
+
+                <sheet readonly="state == 'lapsed'">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_lms_enrollment)d" type="action"
+                                class="oe_stat_button" icon="fa-calendar"
+                                invisible="not session_enrollment_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Session</span>
+                            </div>
+                        </button>
+                        <button name="action_view_assessments" type="object"
+                                class="oe_stat_button" icon="fa-pencil-square-o"
+                                invisible="not assessment_count or not course_id.assessment_template_id">
+                            <field name="assessment_count" widget="statinfo" string="Assessments"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group string="Employee &amp; Course">
+                            <field name="employee_id"/>
+                            <field name="course_id"/>
+                            <field name="course_type" readonly="1"/>
+                            <field name="delivery_mode" readonly="1"/>
+                            <field name="assignment_id"/>
+                            <field name="session_enrollment_id"/>
+                        </group>
+                        <group string="Completion">
+                            <field name="start_date" options='{"format": "dd/MM/yyyy"}'/>
+                            <field name="completion_date" options='{"format": "dd/MM/yyyy"}'/>
+                            <field name="expiry_date" options='{"format": "dd/MM/yyyy"}'/>
+                            <field name="score"
+                                   invisible="delivery_mode != 'scorm'"/>
+                            <field name="passed"/>
+                        </group>
+                    </group>
+                    <group string="Verification"
+                           invisible="state not in ('pending_verification', 'completed') or not verified_by">
+                        <field name="verified_by" readonly="1"/>
+                        <field name="verified_date" readonly="1" options='{"format": "dd/MM/yyyy"}'/>
+                    </group>
+                    <notebook>
+                        <page string="Supporting Documents" name="attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="SCORM Data" name="scorm"
+                              invisible="delivery_mode != 'scorm'"
+                              groups="learning_management.group_lms_admin">
+                            <field name="scorm_completion_status" readonly="1"/>
+                            <field name="scorm_data" readonly="1"/>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_employee_record_search" model="ir.ui.view">
+        <field name="name">lms.employee.record.search</field>
+        <field name="model">lms.employee.record</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="course_id"/>
+                <filter name="not_started" string="Not Started" domain="[('state', '=', 'not_started')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="pending_upload" string="Pending Upload" domain="[('state', '=', 'pending_upload')]"/>
+                <filter name="pending_verification" string="Pending Verification" domain="[('state', '=', 'pending_verification')]"/>
+                <filter name="completed" string="Completed" domain="[('state', '=', 'completed')]"/>
+                <filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
+                <filter name="lapsed" string="Lapsed" domain="[('state', '=', 'lapsed')]"/>
+                <separator/>
+                <filter name="expiring_soon" string="Expiring in 30 days"
+                        domain="[('expiry_date', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d')),
+                                 ('expiry_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                                 ('state', '=', 'completed')]"/>
+                <group name="group_by">
+                    <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_course" string="Course" context="{'group_by': 'course_id'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'course_type'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lms_employee_record" model="ir.actions.act_window">
+        <field name="name">Training Records</field>
+        <field name="res_model">lms.employee.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_lms_employee_record_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No training records yet.
+            </p>
+        </field>
+    </record>
+
+    <!-- ─── Notification Template ─── -->
+    <record id="view_lms_notification_template_list" model="ir.ui.view">
+        <field name="name">lms.notification.template.list</field>
+        <field name="model">lms.notification.template</field>
+        <field name="arch" type="xml">
+            <list string="Notification Templates">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="trigger_model"/>
+                <field name="trigger_event"/>
+                <field name="recipient_type"/>
+                <field name="send_email"/>
+                <field name="post_chatter"/>
+                <field name="is_automated"/>
+                <field name="log_count" string="Sent"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_notification_template_form" model="ir.ui.view">
+        <field name="name">lms.notification.template.form</field>
+        <field name="model">lms.notification.template</field>
+        <field name="arch" type="xml">
+            <form string="Notification Template">
+                <header>
+                    <button name="action_view_logs" type="object"
+                            string="View Send History" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_logs" type="object"
+                                class="oe_stat_button" icon="fa-envelope">
+                            <field name="log_count" widget="statinfo" string="Sent"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Template Name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Trigger">
+                            <field name="trigger_model"/>
+                            <field name="trigger_event"/>
+                            <field name="reminder_days"
+                                   invisible="trigger_event != 'session_reminder'"/>
+                            <field name="is_automated"/>
+                        </group>
+                        <group string="Recipients">
+                            <field name="recipient_type"/>
+                            <field name="recipient_group_id"
+                                   invisible="recipient_type != 'group'"/>
+                            <field name="recipient_email"
+                                   invisible="recipient_type != 'custom'"/>
+                        </group>
+                    </group>
+                    <group string="Notification Channels">
+                        <field name="send_email"/>
+                        <field name="post_chatter"/>
+                        <field name="create_activity"/>
+                        <field name="activity_type_id"
+                               invisible="not create_activity"/>
+                        <field name="activity_deadline_days"
+                               invisible="not create_activity"/>
+                    </group>
+                    <group string="Message">
+                        <field name="subject" placeholder="Email / notification subject"/>
+                    </group>
+                    <div class="o_field_widget mb-2">
+                        <div class="alert alert-info" role="alert">
+                            <strong>Available placeholders:</strong>
+                            <code>{{employee_name}}</code> · <code>{{course_name}}</code> ·
+                            <code>{{session_name}}</code> · <code>{{session_date}}</code> ·
+                            <code>{{session_location}}</code> · <code>{{completion_date}}</code> ·
+                            <code>{{expiry_date}}</code> · <code>{{package_name}}</code> ·
+                            <code>{{manager_name}}</code>
+                        </div>
+                    </div>
+                    <field name="body_html" widget="html" options="{'codeview': True}"/>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_notification_log_list" model="ir.ui.view">
+        <field name="name">lms.notification.log.list</field>
+        <field name="model">lms.notification.log</field>
+        <field name="arch" type="xml">
+            <list string="Notification History" create="false" edit="false" delete="false">
+                <field name="id" optional="show"/>
+                <field name="create_date" string="Sent At" options='{"format": "dd/MM/yyyy HH:mm"}'/>
+                <field name="template_id"/>
+                <field name="record_name" string="Record"/>
+                <field name="subject"/>
+                <field name="recipients"/>
+                <field name="sent_by"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_lms_notification_template" model="ir.actions.act_window">
+        <field name="name">Notification Templates</field>
+        <field name="res_model">lms.notification.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Design your first notification template!
+            </p>
+            <p>
+                Create automated or manual notifications for training events
+                such as enrolment confirmations, session reminders and expiry alerts.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_lms_notification_log" model="ir.actions.act_window">
+        <field name="name">Notification History</field>
+        <field name="res_model">lms.notification.log</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ─── HR Employee Extensions ─── -->
+    <record id="view_hr_employee_lms_tab" model="ir.ui.view">
+        <field name="name">hr.employee.lms.tab</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Training &amp; Qualifications" name="lms_tab"
+                      groups="learning_management.group_lms_people_leader">
+                    <div class="oe_button_box mb-3">
+                        <button name="action_view_lms_assignments" type="object"
+                                class="oe_stat_button" icon="fa-book">
+                            <field name="lms_assignment_count" widget="statinfo" string="Packages"/>
+                        </button>
+                        <button name="action_view_lms_records" type="object"
+                                class="oe_stat_button" icon="fa-graduation-cap">
+                            <field name="lms_record_count" widget="statinfo" string="Records"/>
+                        </button>
+                    </div>
+                    <field name="lms_record_ids" readonly="1">
+                        <list decoration-success="state == 'completed'"
+                              decoration-warning="state in ('in_progress', 'pending_upload', 'pending_verification')"
+                              decoration-danger="state in ('failed', 'expired', 'lapsed')">
+                            <field name="id" optional="show"/>
+                            <field name="course_id"/>
+                            <field name="course_type"/>
+                            <field name="state"/>
+                            <field name="completion_date" options='{"format": "dd/MM/yyyy"}'/>
+                            <field name="expiry_date" options='{"format": "dd/MM/yyyy"}'/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

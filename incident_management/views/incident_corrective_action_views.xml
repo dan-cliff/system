@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Corrective Action — standalone list (accessed via smart button) ── -->
+    <record id="view_corrective_action_list" model="ir.ui.view">
+        <field name="name">incident.corrective.action.list</field>
+        <field name="model">incident.corrective.action</field>
+        <field name="arch" type="xml">
+            <list string="Corrective Actions"
+                  decoration-danger="is_overdue"
+                  decoration-success="state == 'done'">
+                <field name="incident_id"/>
+                <field name="priority" widget="priority" optional="show"/>
+                <field name="name"/>
+                <field name="action_type" optional="show"/>
+                <field name="responsible_id"/>
+                <field name="due_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-danger="is_overdue"/>
+                <field name="completion_date" optional="show"/>
+                <field name="is_overdue" column_invisible="True"/>
+                <button name="action_start" string="Start" type="object"
+                        class="btn-sm btn-secondary" invisible="state != 'open'"/>
+                <button name="action_done" string="Done" type="object"
+                        class="btn-sm btn-primary" invisible="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_corrective_action_form" model="ir.ui.view">
+        <field name="name">incident.corrective.action.form</field>
+        <field name="model">incident.corrective.action</field>
+        <field name="arch" type="xml">
+            <form string="Corrective Action">
+                <header>
+                    <button name="action_start" string="Start" type="object"
+                            class="btn-secondary" invisible="state != 'open'"/>
+                    <button name="action_done" string="Mark Complete" type="object"
+                            class="btn-primary" invisible="state == 'done'"/>
+                    <button name="action_reopen" string="Reopen" type="object"
+                            class="btn-secondary" invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,in_progress,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="incident_id" options="{'no_create': True}"/>
+                            <field name="action_type"/>
+                            <field name="icam_finding_id"
+                                   domain="[('incident_id', '=', incident_id)]"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="priority" widget="priority"/>
+                            <field name="responsible_id" options="{'no_create': True}"/>
+                            <field name="due_date"/>
+                            <field name="is_overdue" readonly="1"/>
+                        </group>
+                    </group>
+                    <separator string="Action Description"/>
+                    <field name="name" nolabel="0" widget="text"
+                           placeholder="Describe the corrective action to be taken…"/>
+                    <group string="Completion">
+                        <group>
+                            <field name="completion_date" readonly="1"/>
+                            <field name="verification_required"/>
+                        </group>
+                        <group>
+                            <field name="verified_by_id"
+                                   invisible="not verification_required"
+                                   options="{'no_create': True}"/>
+                            <field name="verification_date"
+                                   invisible="not verification_required"/>
+                        </group>
+                    </group>
+                    <separator string="Notes / Evidence of Completion"/>
+                    <field name="notes" nolabel="0" widget="text"
+                           placeholder="Describe how the action was completed, reference supporting evidence…"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_incident_corrective_action_all" model="ir.actions.act_window">
+        <field name="name">Corrective Actions</field>
+        <field name="res_model">incident.corrective.action</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No corrective actions yet</p>
+        </field>
+    </record>
+
+</odoo>

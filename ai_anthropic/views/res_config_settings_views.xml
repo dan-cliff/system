@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_anthropic" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.ai.anthropic</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="ai_app.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert after the Google Gemini setting block -->
+            <xpath expr="//setting[@id='google_provider']" position="after">
+                <setting
+                    id="anthropic_provider"
+                    string="Use your own Claude Anthropic account"
+                    help="Provide your Anthropic API key to use Claude models (Opus, Sonnet, Haiku) across the platform."
+                    groups="base.group_system"
+                >
+                    <field name="anthropic_key_enabled"/>
+                    <group invisible="not anthropic_key_enabled">
+                        <div class="flex-grow-1">
+                            <field
+                                name="anthropic_key"
+                                placeholder="sk-ant-…"
+                                password="True"
+                                nolabel="1"
+                                class="w-100"
+                            />
+                        </div>
+                    </group>
+                    <!-- Sign-in wizard button — always visible so users can
+                         open the guided flow whether or not a key is set yet -->
+                    <div class="mt-2">
+                        <button
+                            name="action_open_anthropic_wizard"
+                            type="object"
+                            string="Sign in to Anthropic to get an API key"
+                            icon="oi-arrow-right"
+                            class="btn-link p-0"
+                            groups="base.group_system"
+                        />
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

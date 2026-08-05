@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_incident_assign_wizard_form" model="ir.ui.view">
+        <field name="name">incident.assign.wizard.form</field>
+        <field name="model">incident.assign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Responsible Manager">
+                <group>
+                    <group string="Incident">
+                        <field name="incident_id" readonly="1"/>
+                        <field name="incident_name" invisible="1"/>
+                        <field name="incident_type_ids" widget="many2many_tags" readonly="1"/>
+                    </group>
+                    <group string="Assignment">
+                        <field name="responsible_manager_id" options="{'no_create': True}"/>
+                        <field name="notify_by_email"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="note" placeholder="Optional message to include in the notification to the manager…"
+                           widget="text" nolabel="1"/>
+                </group>
+                <footer>
+                    <button name="action_assign" string="Assign Manager"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

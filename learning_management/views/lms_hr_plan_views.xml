@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+            Extend the Employee Plans form view to show Training Packages.
+            Inherits from the base mail.activity.plan form so it applies
+            regardless of which view variant is rendered.
+        -->
+        <record id="mail_activity_plan_view_form_lms" model="ir.ui.view">
+            <field name="name">mail.activity.plan.view.form.inherit.lms</field>
+            <field name="model">mail.activity.plan</field>
+            <field name="inherit_id" ref="mail.mail_activity_plan_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Training Packages"
+                          invisible="res_model != 'hr.employee'"
+                          name="training_packages">
+                        <field name="course_group_ids" nolabel="1" options="{'no_quick_create': True}">
+                            <list string="Training Packages" create="0">
+                                <field name="name" string="Package Name"/>
+                                <field name="code" optional="show"/>
+                                <field name="course_count" string="Courses"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

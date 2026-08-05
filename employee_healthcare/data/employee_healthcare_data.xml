@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Medication Types -->
+        <record id="med_type_analgesic" model="employee.healthcare.medication.type">
+            <field name="name">Analgesic / Painkiller</field>
+        </record>
+        <record id="med_type_antibiotic" model="employee.healthcare.medication.type">
+            <field name="name">Antibiotic</field>
+        </record>
+        <record id="med_type_anticoagulant" model="employee.healthcare.medication.type">
+            <field name="name">Anticoagulant / Blood Thinner</field>
+        </record>
+        <record id="med_type_antidepressant" model="employee.healthcare.medication.type">
+            <field name="name">Antidepressant</field>
+        </record>
+        <record id="med_type_antidiabetic" model="employee.healthcare.medication.type">
+            <field name="name">Antidiabetic</field>
+        </record>
+        <record id="med_type_antihistamine" model="employee.healthcare.medication.type">
+            <field name="name">Antihistamine</field>
+        </record>
+        <record id="med_type_antihypertensive" model="employee.healthcare.medication.type">
+            <field name="name">Antihypertensive / Blood Pressure</field>
+        </record>
+        <record id="med_type_antiviral" model="employee.healthcare.medication.type">
+            <field name="name">Antiviral</field>
+        </record>
+        <record id="med_type_bronchodilator" model="employee.healthcare.medication.type">
+            <field name="name">Bronchodilator / Asthma</field>
+        </record>
+        <record id="med_type_cardiac" model="employee.healthcare.medication.type">
+            <field name="name">Cardiac</field>
+        </record>
+        <record id="med_type_cholesterol" model="employee.healthcare.medication.type">
+            <field name="name">Cholesterol-lowering (Statin)</field>
+        </record>
+        <record id="med_type_hormone" model="employee.healthcare.medication.type">
+            <field name="name">Hormone / Endocrine</field>
+        </record>
+        <record id="med_type_immunosuppressant" model="employee.healthcare.medication.type">
+            <field name="name">Immunosuppressant</field>
+        </record>
+        <record id="med_type_supplement" model="employee.healthcare.medication.type">
+            <field name="name">Supplement / Vitamin</field>
+        </record>
+        <record id="med_type_other" model="employee.healthcare.medication.type">
+            <field name="name">Other</field>
+        </record>
+
+        <!-- Medication Frequencies -->
+        <record id="freq_once_daily" model="employee.healthcare.medication.frequency">
+            <field name="name">Once Daily</field>
+        </record>
+        <record id="freq_twice_daily" model="employee.healthcare.medication.frequency">
+            <field name="name">Twice Daily</field>
+        </record>
+        <record id="freq_three_daily" model="employee.healthcare.medication.frequency">
+            <field name="name">Three Times Daily</field>
+        </record>
+        <record id="freq_four_daily" model="employee.healthcare.medication.frequency">
+            <field name="name">Four Times Daily</field>
+        </record>
+        <record id="freq_with_meals" model="employee.healthcare.medication.frequency">
+            <field name="name">With Meals</field>
+        </record>
+        <record id="freq_morning" model="employee.healthcare.medication.frequency">
+            <field name="name">Morning Only</field>
+        </record>
+        <record id="freq_evening" model="employee.healthcare.medication.frequency">
+            <field name="name">Evening / Night Only</field>
+        </record>
+        <record id="freq_weekly" model="employee.healthcare.medication.frequency">
+            <field name="name">Weekly</field>
+        </record>
+        <record id="freq_fortnightly" model="employee.healthcare.medication.frequency">
+            <field name="name">Fortnightly</field>
+        </record>
+        <record id="freq_monthly" model="employee.healthcare.medication.frequency">
+            <field name="name">Monthly</field>
+        </record>
+        <record id="freq_as_needed" model="employee.healthcare.medication.frequency">
+            <field name="name">As Needed (PRN)</field>
+        </record>
+
+        <!-- Allergy Types -->
+        <record id="allergy_type_drug" model="employee.healthcare.allergy.type">
+            <field name="name">Drug / Medication</field>
+        </record>
+        <record id="allergy_type_food" model="employee.healthcare.allergy.type">
+            <field name="name">Food</field>
+        </record>
+        <record id="allergy_type_environmental" model="employee.healthcare.allergy.type">
+            <field name="name">Environmental / Seasonal</field>
+        </record>
+        <record id="allergy_type_insect" model="employee.healthcare.allergy.type">
+            <field name="name">Insect / Venom</field>
+        </record>
+        <record id="allergy_type_latex" model="employee.healthcare.allergy.type">
+            <field name="name">Latex / Rubber</field>
+        </record>
+        <record id="allergy_type_chemical" model="employee.healthcare.allergy.type">
+            <field name="name">Chemical / Substance</field>
+        </record>
+        <record id="allergy_type_other" model="employee.healthcare.allergy.type">
+            <field name="name">Other</field>
+        </record>
+
+        <!-- Allergy Severities -->
+        <record id="severity_mild" model="employee.healthcare.allergy.severity">
+            <field name="name">Mild</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="severity_moderate" model="employee.healthcare.allergy.severity">
+            <field name="name">Moderate</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="severity_severe" model="employee.healthcare.allergy.severity">
+            <field name="name">Severe</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="severity_life_threatening" model="employee.healthcare.allergy.severity">
+            <field name="name">Life-threatening (Anaphylaxis)</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <!-- Alert Types -->
+        <record id="alert_type_cardiac" model="employee.healthcare.alert.type">
+            <field name="name">Cardiac Condition</field>
+        </record>
+        <record id="alert_type_diabetes" model="employee.healthcare.alert.type">
+            <field name="name">Diabetes</field>
+        </record>
+        <record id="alert_type_epilepsy" model="employee.healthcare.alert.type">
+            <field name="name">Epilepsy / Seizure Disorder</field>
+        </record>
+        <record id="alert_type_implant" model="employee.healthcare.alert.type">
+            <field name="name">Medical Implant (Pacemaker, etc.)</field>
+        </record>
+        <record id="alert_type_pregnancy" model="employee.healthcare.alert.type">
+            <field name="name">Pregnancy</field>
+        </record>
+        <record id="alert_type_mental_health" model="employee.healthcare.alert.type">
+            <field name="name">Mental Health Condition</field>
+        </record>
+        <record id="alert_type_blood_disorder" model="employee.healthcare.alert.type">
+            <field name="name">Blood Disorder</field>
+        </record>
+        <record id="alert_type_respiratory" model="employee.healthcare.alert.type">
+            <field name="name">Respiratory Condition</field>
+        </record>
+        <record id="alert_type_other" model="employee.healthcare.alert.type">
+            <field name="name">Other</field>
+        </record>
+
+        <!-- Directive Types -->
+        <record id="directive_type_ahd" model="employee.healthcare.directive.type">
+            <field name="name">Advance Health Directive</field>
+        </record>
+        <record id="directive_type_poa" model="employee.healthcare.directive.type">
+            <field name="name">Medical Power of Attorney</field>
+        </record>
+        <record id="directive_type_proxy" model="employee.healthcare.directive.type">
+            <field name="name">Medical Decision-Making Proxy</field>
+        </record>
+        <record id="directive_type_dnr" model="employee.healthcare.directive.type">
+            <field name="name">Do Not Resuscitate (DNR) Order</field>
+        </record>
+        <record id="directive_type_emergency_contact" model="employee.healthcare.directive.type">
+            <field name="name">Emergency Medical Contact</field>
+        </record>
+        <record id="directive_type_living_will" model="employee.healthcare.directive.type">
+            <field name="name">Living Will</field>
+        </record>
+
+        <!-- Private Health Insurers (Australian) -->
+        <record id="insurer_ahm" model="employee.healthcare.insurer">
+            <field name="name">AHM Health Insurance</field>
+        </record>
+        <record id="insurer_bupa" model="employee.healthcare.insurer">
+            <field name="name">Bupa</field>
+        </record>
+        <record id="insurer_cbhs" model="employee.healthcare.insurer">
+            <field name="name">CBHS Health Fund</field>
+        </record>
+        <record id="insurer_defence" model="employee.healthcare.insurer">
+            <field name="name">Defence Health</field>
+        </record>
+        <record id="insurer_hbf" model="employee.healthcare.insurer">
+            <field name="name">HBF Health</field>
+        </record>
+        <record id="insurer_hcf" model="employee.healthcare.insurer">
+            <field name="name">HCF</field>
+        </record>
+        <record id="insurer_medibank" model="employee.healthcare.insurer">
+            <field name="name">Medibank</field>
+        </record>
+        <record id="insurer_nib" model="employee.healthcare.insurer">
+            <field name="name">nib Health Funds</field>
+        </record>
+        <record id="insurer_osh" model="employee.healthcare.insurer">
+            <field name="name">onemedifund</field>
+        </record>
+        <record id="insurer_teachers" model="employee.healthcare.insurer">
+            <field name="name">Teachers Health</field>
+        </record>
+        <record id="insurer_other" model="employee.healthcare.insurer">
+            <field name="name">Other</field>
+        </record>
+
+        <!-- Ambulance Providers (Australian) -->
+        <record id="amb_qas" model="employee.healthcare.ambulance.provider">
+            <field name="name">Queensland Ambulance Service (QAS)</field>
+        </record>
+        <record id="amb_saas" model="employee.healthcare.ambulance.provider">
+            <field name="name">SA Ambulance Service (SAAS)</field>
+        </record>
+        <record id="amb_actas" model="employee.healthcare.ambulance.provider">
+            <field name="name">ACT Ambulance Service (ACTAS)</field>
+        </record>
+        <record id="amb_nsw" model="employee.healthcare.ambulance.provider">
+            <field name="name">NSW Ambulance</field>
+        </record>
+        <record id="amb_ambulance_vic" model="employee.healthcare.ambulance.provider">
+            <field name="name">Ambulance Victoria</field>
+        </record>
+        <record id="amb_st_john_wa" model="employee.healthcare.ambulance.provider">
+            <field name="name">St John Ambulance (WA)</field>
+        </record>
+        <record id="amb_st_john_nt" model="employee.healthcare.ambulance.provider">
+            <field name="name">St John Ambulance (NT)</field>
+        </record>
+        <record id="amb_tas" model="employee.healthcare.ambulance.provider">
+            <field name="name">Ambulance Tasmania</field>
+        </record>
+        <record id="amb_other" model="employee.healthcare.ambulance.provider">
+            <field name="name">Other</field>
+        </record>
+
+    </data>
+
+    <!-- Runs on every install AND upgrade (-u) — no noupdate flag -->
+    <data>
+        <function model="employee.healthcare" name="_ensure_all_employee_records"/>
+    </data>
+
+</odoo>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_permission_profile" model="ir.ui.view">
+        <field name="name">res.users.form.permission.profile</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add permission profile fields after the role selector (within the same Roles group) -->
+            <xpath expr="//field[@name='role'][@widget='radio']" position="after">
+                <field name="permission_profile_id"
+                       options='{"no_create": true, "no_quick_create": true}'/>
+                <field name="permission_profile_override"
+                       invisible="not permission_profile_id"/>
+                <field name="job_default_profile_id" invisible="1"/>
+            </xpath>
+
+            <!-- Reset button and effective groups, inserted above the hidden group_ids widgets -->
+            <xpath expr="//field[@name='group_ids'][@widget='res_user_group_ids'][@groups='base.group_no_one']"
+                   position="before">
+                <div invisible="not (permission_profile_override and job_default_profile_id)"
+                     class="ps-3 pb-2">
+                    <button name="action_reset_profile_to_default"
+                            type="object"
+                            string="Reset to Job Default"
+                            class="btn btn-sm btn-secondary"/>
+                </div>
+
+            </xpath>
+
+            <!-- Hide the native module-level group permission selectors -->
+            <xpath expr="//field[@name='group_ids'][@widget='res_user_group_ids'][@groups='base.group_no_one']"
+                   position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='group_ids'][@widget='res_user_group_ids'][@groups='!base.group_no_one']"
+                   position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

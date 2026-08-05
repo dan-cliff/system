@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report action: model is the wizard, not the case -->
+    <record id="action_report_injury_case_full" model="ir.actions.report">
+        <field name="name">RTW Case Report</field>
+        <field name="model">injury.case.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">injury_management.report_injury_case_full_document</field>
+        <field name="print_report_name">'RTW Case Report - %s' % object.case_id.name</field>
+        <field name="binding_model_id" ref="model_injury_rtw_case"/>
+    </record>
+
+    <template id="report_injury_case_full_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <!-- o is the injury.case.report.wizard record -->
+                <t t-set="case" t-value="o.case_id"/>
+                <t t-call="web.external_layout">
+
+                    <!-- ═══════════════════════════════════════════ -->
+                    <!-- CASE SUMMARY HEADER                        -->
+                    <!-- ═══════════════════════════════════════════ -->
+                    <div class="page">
+                        <style>
+                            .rtw-title { background: #2c3e50; color: #fff; padding: 10px 16px; margin-bottom: 16px; border-radius: 4px; }
+                            .rtw-title h2 { margin: 0; font-size: 18pt; color: #fff; }
+                            .rtw-title .sub { font-size: 10pt; opacity: 0.8; }
+                            .section-header { background: #3498db; color: #fff; padding: 6px 12px; margin: 20px 0 8px 0; border-radius: 3px; font-size: 12pt; font-weight: bold; }
+                            .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9pt; }
+                            .detail-table td, .detail-table th { border: 1px solid #d0d0d0; padding: 5px 8px; vertical-align: top; }
+                            .detail-table th { background: #f0f0f0; font-weight: bold; width: 30%; }
+                            .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 8.5pt; }
+                            .data-table thead th { background: #4a4a4a; color: #fff; padding: 5px 7px; text-align: left; font-weight: bold; }
+                            .data-table tbody td { border: 1px solid #d8d8d8; padding: 4px 7px; vertical-align: top; }
+                            .data-table tbody tr:nth-child(even) td { background: #f9f9f9; }
+                            .data-table tfoot td { border: 1px solid #d8d8d8; padding: 5px 7px; font-weight: bold; background: #f0f0f0; }
+                            .sub-plan { border: 1px solid #bbb; border-radius: 4px; padding: 10px; margin-bottom: 14px; }
+                            .sub-plan-title { font-weight: bold; font-size: 10pt; margin-bottom: 6px; color: #2c3e50; }
+                            .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 7.5pt; font-weight: bold; }
+                            .badge-draft { background: #e0e0e0; color: #555; }
+                            .badge-active { background: #d4edda; color: #155724; }
+                            .badge-completed { background: #cce5ff; color: #004085; }
+                            .badge-cancelled { background: #f8d7da; color: #721c24; }
+                            .text-muted { color: #888; font-style: italic; }
+                            .no-records { color: #888; font-style: italic; font-size: 8.5pt; padding: 6px 0; }
+                        </style>
+
+                        <!-- Title bar -->
+                        <div class="rtw-title">
+                            <h2>Return to Work Case Report</h2>
+                            <div class="sub">
+                                <t t-esc="case.name"/> &amp;nbsp;|&amp;nbsp;
+                                Generated: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/>
+                            </div>
+                        </div>
+
+                        <!-- Case Details -->
+                        <div class="section-header">Case Details</div>
+                        <table class="detail-table">
+                            <tr>
+                                <th>Case Reference</th>
+                                <td><t t-esc="case.name"/></td>
+                                <th>Status</th>
+                                <td><t t-esc="dict(case._fields['state'].selection).get(case.state, case.state)"/></td>
+                            </tr>
+                            <tr>
+                                <th>Employee</th>
+                                <td><t t-esc="case.employee_id.name or ''"/></td>
+                                <th>Job Title</th>
+                                <td><t t-esc="case.job_title or ''"/></td>
+                            </tr>
+                            <tr>
+                                <th>Department</th>
+                                <td><t t-esc="case.department_id.name or ''"/></td>
+                                <th>Case Manager</th>
+                                <td><t t-esc="case.case_manager_id.name or ''"/></td>
+                            </tr>
+                            <tr>
+                                <th>Date of Injury / Illness</th>
+                                <td><span t-field="case.injury_date" t-options='{"widget": "date"}'/></td>
+                                <th>Injury / Illness Type</th>
+                                <td><t t-esc="dict(case._fields['injury_type'].selection).get(case.injury_type, '') if case.injury_type else ''"/></td>
+                            </tr>
+                            <tr>
+                                <th>Body Part / Area</th>
+                                <td><t t-esc="case.body_part_affected or ''"/></td>
+                                <th>Pre-injury Hours / Week</th>
+                                <td><t t-esc="'%.1f hrs' % case.pre_injury_hours if case.pre_injury_hours else ''"/></td>
+                            </tr>
+                            <tr>
+                                <th>Case Opened</th>
+                                <td>
+                                    <span t-field="case.open_date" t-options='{"widget": "date"}'/><t t-if="case.days_open_label">&amp;nbsp;(<t t-esc="case.days_open_label"/>)</t>
+                                </td>
+                                <th>Expected RTW Date</th>
+                                <td><span t-if="case.expected_rtw_date" t-field="case.expected_rtw_date" t-options='{"widget": "date"}'/></td>
+                            </tr>
+                            <t t-if="case.insurer_id or case.claim_number">
+                                <tr>
+                                    <th>Insurer</th>
+                                    <td><t t-esc="case.insurer_id.name or ''"/></td>
+                                    <th>Claim Number</th>
+                                    <td><t t-esc="case.claim_number or ''"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="case.incident_id">
+                                <tr>
+                                    <th>Linked Incident</th>
+                                    <td colspan="3"><t t-esc="case.incident_id.name or case.incident_id.display_name or ''"/></td>
+                                </tr>
+                            </t>
+                        </table>
+
+                        <t t-if="case.injury_description">
+                            <div><strong>Injury / Illness Description</strong></div>
+                            <p style="margin: 4px 0 12px 0; font-size: 8.5pt; white-space: pre-wrap;"><t t-esc="case.injury_description"/></p>
+                        </t>
+
+                        <t t-if="case.pre_injury_duties">
+                            <div><strong>Pre-injury Duties</strong></div>
+                            <p style="margin: 4px 0 12px 0; font-size: 8.5pt; white-space: pre-wrap;"><t t-esc="case.pre_injury_duties"/></p>
+                        </t>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- CASE NOTES                                 -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <t t-if="o.include_case_notes">
+                            <div class="section-header">Case Notes</div>
+                            <t t-if="case.case_note_ids">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:10%">Date</th>
+                                            <th style="width:14%">Type</th>
+                                            <th style="width:12%">Author</th>
+                                            <th style="width:8%">Conf.</th>
+                                            <th>Content</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.case_note_ids.sorted('note_date')" t-as="note">
+                                            <tr>
+                                                <td><span t-field="note.note_date" t-options='{"widget": "date"}'/></td>
+                                                <td><t t-esc="dict(note._fields['note_type'].selection).get(note.note_type, note.note_type)"/></td>
+                                                <td><t t-esc="note.author_id.name or ''"/></td>
+                                                <td><t t-esc="'Yes' if note.is_confidential else 'No'"/></td>
+                                                <td style="white-space: pre-wrap;"><t t-esc="note.content or ''"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="no-records">No case notes recorded.</p>
+                            </t>
+                        </t>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- MEDICAL APPOINTMENTS                       -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <t t-if="o.include_appointments">
+                            <div class="section-header">Medical Appointments</div>
+                            <t t-if="case.appointment_ids">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:12%">Date</th>
+                                            <th style="width:14%">Type</th>
+                                            <th style="width:16%">Provider</th>
+                                            <th style="width:14%">Location</th>
+                                            <th style="width:6%">Attended</th>
+                                            <th>Purpose / Outcome</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.appointment_ids.sorted('appointment_date')" t-as="appt">
+                                            <tr>
+                                                <td><span t-field="appt.appointment_date" t-options='{"widget": "datetime"}'/></td>
+                                                <td><t t-esc="dict(appt._fields['appointment_type'].selection).get(appt.appointment_type, appt.appointment_type)"/></td>
+                                                <td><t t-esc="appt.provider_name or ''"/></td>
+                                                <td><t t-esc="appt.clinic_location or ''"/></td>
+                                                <td><t t-esc="'Yes' if appt.attended else 'No'"/></td>
+                                                <td>
+                                                    <t t-if="appt.appointment_purpose">
+                                                        <strong>Purpose:</strong> <t t-esc="appt.appointment_purpose"/>
+                                                    </t>
+                                                    <t t-if="appt.appointment_purpose and appt.outcome"><br/></t>
+                                                    <t t-if="appt.outcome">
+                                                        <strong>Outcome:</strong> <t t-esc="appt.outcome"/>
+                                                    </t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="no-records">No medical appointments recorded.</p>
+                            </t>
+                        </t>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- MEETINGS & COMMUNICATIONS                  -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <t t-if="o.include_meetings">
+                            <div class="section-header">Meetings &amp; Communications</div>
+                            <t t-if="case.meeting_ids">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:12%">Date</th>
+                                            <th style="width:14%">Type</th>
+                                            <th style="width:20%">Subject</th>
+                                            <th style="width:12%">Location</th>
+                                            <th>Summary / Action Items</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.meeting_ids.sorted('meeting_date')" t-as="mtg">
+                                            <tr>
+                                                <td><span t-field="mtg.meeting_date" t-options='{"widget": "datetime"}'/></td>
+                                                <td><t t-esc="dict(mtg._fields['meeting_type'].selection).get(mtg.meeting_type, mtg.meeting_type)"/></td>
+                                                <td><t t-esc="mtg.subject or ''"/></td>
+                                                <td><t t-esc="mtg.location or ''"/></td>
+                                                <td>
+                                                    <t t-if="mtg.summary">
+                                                        <strong>Summary:</strong> <t t-esc="mtg.summary"/>
+                                                    </t>
+                                                    <t t-if="mtg.summary and mtg.action_items"><br/></t>
+                                                    <t t-if="mtg.action_items">
+                                                        <strong>Actions:</strong> <t t-esc="mtg.action_items"/>
+                                                    </t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="no-records">No meetings or communications recorded.</p>
+                            </t>
+                        </t>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- FILE NOTES                                 -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <t t-if="o.include_file_notes">
+                            <div class="section-header">File Notes</div>
+                            <t t-if="case.file_note_ids">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:10%">Date</th>
+                                            <th style="width:14%">Category</th>
+                                            <th style="width:20%">Subject</th>
+                                            <th style="width:12%">Author</th>
+                                            <th style="width:8%">Conf.</th>
+                                            <th>Content</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.file_note_ids.sorted('note_date')" t-as="fn">
+                                            <tr>
+                                                <td><span t-field="fn.note_date" t-options='{"widget": "date"}'/></td>
+                                                <td><t t-esc="dict(fn._fields['category'].selection).get(fn.category, fn.category)"/></td>
+                                                <td><t t-esc="fn.subject or ''"/></td>
+                                                <td><t t-esc="fn.author_id.name or ''"/></td>
+                                                <td><t t-esc="'Yes' if fn.is_confidential else 'No'"/></td>
+                                                <td style="white-space: pre-wrap;"><t t-esc="fn.content or ''"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="no-records">No file notes recorded.</p>
+                            </t>
+                        </t>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- COSTS                                      -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <t t-if="o.include_costs">
+                            <div class="section-header">Costs</div>
+                            <t t-if="case.cost_ids">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:10%">Date</th>
+                                            <th style="width:14%">Type</th>
+                                            <th style="width:20%">Description</th>
+                                            <th style="width:14%">Payee</th>
+                                            <th style="width:12%">Invoice Ref.</th>
+                                            <th style="width:10%; text-align: right;">Amount</th>
+                                            <th style="width:8%">Reimbursed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.cost_ids.sorted('cost_date')" t-as="cost">
+                                            <tr>
+                                                <td><span t-field="cost.cost_date" t-options='{"widget": "date"}'/></td>
+                                                <td><t t-esc="dict(cost._fields['cost_type'].selection).get(cost.cost_type, cost.cost_type)"/></td>
+                                                <td><t t-esc="cost.description or ''"/></td>
+                                                <td><t t-esc="cost.payee or ''"/></td>
+                                                <td><t t-esc="cost.invoice_reference or ''"/></td>
+                                                <td style="text-align: right;"><span t-field="cost.amount" t-options='{"widget": "monetary", "display_currency": cost.currency_id}'/></td>
+                                                <td><t t-esc="'Yes' if cost.reimbursed else 'No'"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="5" style="text-align: right;"><strong>Total</strong></td>
+                                            <td style="text-align: right;">
+                                                <span t-field="case.total_cost" t-options='{"widget": "monetary", "display_currency": case.currency_id}'/>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="no-records">No costs recorded.</p>
+                            </t>
+                        </t>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- RTW PLANS                                  -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <t t-if="o.include_rtw_plans">
+                            <div class="section-header">RTW Plans</div>
+                            <t t-if="case.rtw_plan_ids">
+                                <t t-foreach="case.rtw_plan_ids.sorted('plan_date')" t-as="plan">
+                                    <div class="sub-plan">
+                                        <div class="sub-plan-title">
+                                            Plan: <t t-esc="plan.version or 'Draft'"/> —
+                                            <t t-esc="dict(plan._fields['state'].selection).get(plan.state, plan.state)"/>
+                                        </div>
+                                        <table class="detail-table" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <th style="width:20%">Plan Date</th>
+                                                <td><span t-field="plan.plan_date" t-options='{"widget": "date"}'/></td>
+                                                <th style="width:20%">Start Date</th>
+                                                <td><span t-if="plan.start_date" t-field="plan.start_date" t-options='{"widget": "date"}'/></td>
+                                            </tr>
+                                            <tr>
+                                                <th>End Date</th>
+                                                <td><span t-if="plan.end_date" t-field="plan.end_date" t-options='{"widget": "date"}'/></td>
+                                                <th>Treating Doctor</th>
+                                                <td><t t-esc="plan.treating_doctor or ''"/></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Approved By</th>
+                                                <td><t t-esc="plan.approved_by_id.name or ''"/></td>
+                                                <th>Approval Date</th>
+                                                <td><span t-if="plan.approval_date" t-field="plan.approval_date" t-options='{"widget": "date"}'/></td>
+                                            </tr>
+                                        </table>
+
+                                        <t t-if="plan.goals">
+                                            <p style="font-size: 8.5pt; margin: 0 0 8px 0;">
+                                                <strong>Goals / Objectives:</strong><br/>
+                                                <span style="white-space: pre-wrap;"><t t-esc="plan.goals"/></span>
+                                            </p>
+                                        </t>
+
+                                        <t t-if="plan.line_ids">
+                                            <table class="data-table" style="font-size: 8pt;">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:14%">Phase</th>
+                                                        <th style="width:10%">Start</th>
+                                                        <th style="width:10%">End</th>
+                                                        <th style="width:9%">Hrs/Day</th>
+                                                        <th style="width:9%">Days/Wk</th>
+                                                        <th style="width:24%">Duties</th>
+                                                        <th>Restrictions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="plan.line_ids" t-as="line">
+                                                        <tr>
+                                                            <td><t t-esc="line.phase_label"/></td>
+                                                            <td><span t-if="line.start_date" t-field="line.start_date" t-options='{"widget": "date"}'/></td>
+                                                            <td><span t-if="line.end_date" t-field="line.end_date" t-options='{"widget": "date"}'/></td>
+                                                            <td><t t-esc="'%.1f' % line.daily_hours if line.daily_hours else ''"/></td>
+                                                            <td><t t-esc="line.days_per_week or ''"/></td>
+                                                            <td style="white-space: pre-wrap;"><t t-esc="line.duties or ''"/></td>
+                                                            <td style="white-space: pre-wrap;"><t t-esc="line.restrictions or ''"/></td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </t>
+                                    </div>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <p class="no-records">No RTW plans recorded.</p>
+                            </t>
+                        </t>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- MEDICAL CERTIFICATES                       -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <t t-if="o.include_certificates">
+                            <div class="section-header">Medical Certificates</div>
+                            <t t-if="case.certificate_ids">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:16%">Type</th>
+                                            <th style="width:10%">Issued</th>
+                                            <th style="width:10%">Valid From</th>
+                                            <th style="width:10%">Valid To</th>
+                                            <th style="width:16%">Doctor</th>
+                                            <th style="width:14%">Clinic</th>
+                                            <th style="width:8%; text-align:right;">Hrs/Day</th>
+                                            <th>Restrictions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="case.certificate_ids.sorted('valid_from')" t-as="cert">
+                                            <tr>
+                                                <td><t t-esc="dict(cert._fields['certificate_type'].selection).get(cert.certificate_type, cert.certificate_type)"/></td>
+                                                <td><span t-field="cert.issue_date" t-options='{"widget": "date"}'/></td>
+                                                <td><span t-field="cert.valid_from" t-options='{"widget": "date"}'/></td>
+                                                <td><span t-if="cert.valid_to" t-field="cert.valid_to" t-options='{"widget": "date"}'/></td>
+                                                <td><t t-esc="cert.doctor_name or ''"/></td>
+                                                <td><t t-esc="cert.clinic or ''"/></td>
+                                                <td style="text-align:right;"><t t-esc="'%.1f' % cert.capacity_hours if cert.capacity_hours else ''"/></td>
+                                                <td style="white-space: pre-wrap;"><t t-esc="cert.restrictions or ''"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="no-records">No medical certificates recorded.</p>
+                            </t>
+                        </t>
+
+                    </div><!-- /page -->
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

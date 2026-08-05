@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_video_metadata_seo_wizard_form" model="ir.ui.view">
+        <field name="name">video.metadata.seo.wizard.form</field>
+        <field name="model">video.metadata.seo.wizard</field>
+        <field name="arch" type="xml">
+            <form string="SEO Improvement Suggestions" js_class="video_metadata_seo_wizard_form">
+                <field name="state" invisible="1"/>
+                <field name="metadata_id" invisible="1"/>
+                <sheet>
+                    <!-- Generating state: JS overlay covers this with the progress bar -->
+                    <div invisible="state != 'generating'" class="text-center py-5">
+                        <p class="text-muted">Gemini is analysing your metadata…</p>
+                    </div>
+
+                    <!-- Done state: AI recommendations -->
+                    <div invisible="state != 'done'">
+                        <h4 class="mb-3">
+                            <i class="fa fa-magic me-2 text-primary"/>
+                            AI-Suggested SEO Improvements
+                        </h4>
+                        <group string="Suggested Title">
+                            <field name="suggested_title" nolabel="1"
+                                   placeholder="AI-suggested YouTube title…"/>
+                        </group>
+                        <group string="Suggested Tags">
+                            <field name="suggested_tags" nolabel="1"
+                                   placeholder="tag1, tag2, tag3, …"/>
+                        </group>
+                        <group string="Suggested Category">
+                            <field name="suggested_category" nolabel="1"/>
+                        </group>
+                        <group string="Suggested Description">
+                            <field name="suggested_description" nolabel="1"
+                                   placeholder="AI-suggested description…"/>
+                        </group>
+                        <group string="Why These Changes?">
+                            <field name="rationale_html" nolabel="1" widget="html"/>
+                        </group>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_proceed"
+                            string="Proceed with Recommendations"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'done'"/>
+                    <button name="action_save_to_chatter"
+                            string="Save to Chatter"
+                            type="object"
+                            invisible="state != 'done'"/>
+                    <button string="Discard" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

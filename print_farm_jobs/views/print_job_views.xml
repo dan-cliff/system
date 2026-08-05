@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_print_job_list" model="ir.ui.view">
+        <field name="name">print.job.list</field>
+        <field name="model">print.job</field>
+        <field name="arch" type="xml">
+            <list string="Print Jobs"
+                  decoration-muted="state in ('cancelled','done')"
+                  decoration-success="state == 'done'"
+                  decoration-info="state == 'printing'"
+                  decoration-warning="state in ('queued','sending')"
+                  decoration-danger="state == 'failed'">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="name" string="Job Ref"/>
+                <field name="job_filename" optional="show"/>
+                <field name="printer_id" optional="show"/>
+                <field name="filament_count" string="Filaments"/>
+                <field name="total_filament_g" string="Est. g" optional="show"/>
+                <field name="estimated_time_minutes" string="Est. min" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state in ('printing','sending')"
+                       decoration-warning="state == 'queued'"
+                       decoration-danger="state == 'failed'"
+                       decoration-muted="state == 'cancelled'"/>
+                <field name="date_queued" optional="hide"/>
+                <field name="date_done" optional="hide"/>
+                <button name="action_queue" type="object" string="Queue"
+                        invisible="state != 'draft'" class="btn-sm btn-primary"/>
+                <button name="action_send_to_printer" type="object" string="Send"
+                        invisible="state != 'queued'" class="btn-sm btn-primary"/>
+                <button name="action_mark_done" type="object" string="Done"
+                        invisible="state != 'printing'" class="btn-sm btn-success"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Form ─────────────────────────────────────────────────────────── -->
+    <record id="view_print_job_form" model="ir.ui.view">
+        <field name="name">print.job.form</field>
+        <field name="model">print.job</field>
+        <field name="arch" type="xml">
+            <form string="Print Job">
+                <header>
+                    <!-- State buttons -->
+                    <button name="action_queue" type="object"
+                            string="Add to Queue" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_open_assign_wizard" type="object"
+                            string="Assign &amp; Send" class="btn-primary"
+                            invisible="state not in ('draft','queued')"/>
+                    <button name="action_send_to_printer" type="object"
+                            string="Send to Printer" class="btn-secondary"
+                            invisible="state != 'queued'"/>
+                    <button name="action_mark_done" type="object"
+                            string="Mark as Done" class="btn-success"
+                            invisible="state not in ('printing','paused')"/>
+                    <button name="action_mark_failed" type="object"
+                            string="Mark as Failed" class="btn-danger"
+                            invisible="state not in ('printing','paused','sending')"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel" class="btn-secondary"
+                            invisible="state in ('done','cancelled')"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft" class="btn-secondary"
+                            invisible="state not in ('cancelled','failed')"/>
+                    <button name="action_reprint" type="object"
+                            string="Reprint" class="btn-primary"
+                            invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,queued,printing,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <field name="job_title" placeholder="Job Title…"/>
+                        <field name="job_description" placeholder="Job Description…"/>
+                    </div>
+
+                    <!-- Failure alert -->
+                    <div class="alert alert-danger" role="alert"
+                         invisible="state != 'failed'">
+                        <strong>Job Failed</strong>
+                        <span invisible="not error_message">: <field name="error_message" readonly="1" nolabel="1"/></span>
+                    </div>
+
+                    <!-- Main info -->
+                    <group>
+                        <group string="Job Details">
+                            <field name="priority" widget="priority"/>
+                            <field name="queue_position"/>
+                            <field name="estimated_time_minutes"/>
+                            <field name="total_filament_g" readonly="1"/>
+                        </group>
+                        <group string="Printer Assignment">
+                            <field name="auto_assign"/>
+                            <field name="printer_id"
+                                   options="{'no_create': True}"
+                                   readonly="state not in ('draft','queued')"/>
+                            <field name="compatible_printer_count" readonly="1"
+                                   string="Compatible Printers"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- Print File -->
+                        <page string="Print File" name="file">
+                            <group>
+                                <field name="job_filename" placeholder="myprint.3mf"/>
+                                <field name="file_size_kb" readonly="1" string="File Size (KB)"/>
+                            </group>
+                            <field name="job_file" filename="job_filename"
+                                   widget="binary"
+                                   string="Upload .3mf / .gcode File"/>
+                        </page>
+
+                        <!-- Required Filaments -->
+                        <page string="Required Filaments" name="filaments">
+                            <div class="alert alert-info mb-2" role="alert"
+                                 invisible="bool(required_filament_ids)">
+                                Add the filaments required for this print. The system will use
+                                these to find a compatible printer automatically.
+                            </div>
+                            <field name="required_filament_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="filament_id"/>
+                                    <field name="material" readonly="1"/>
+                                    <field name="color_hex" readonly="1" string="Colour"/>
+                                    <field name="estimated_weight_g" string="Est. Weight (g)"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Print Settings -->
+                        <page string="Print Settings" name="settings">
+                            <group>
+                                <group string="File Settings">
+                                    <field name="plate_number"/>
+                                    <field name="use_ams"/>
+                                </group>
+                                <group string="Calibration &amp; Features">
+                                    <field name="bed_leveling"/>
+                                    <field name="flow_calibration"/>
+                                    <field name="vibration_calibration"/>
+                                    <field name="layer_inspect"/>
+                                    <field name="timelapse"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Compatible Printers tab -->
+                        <page string="Compatible Printers" name="compatible">
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="compatible_printer_count != 0">
+                                No compatible printers found. Ensure at least one printer has
+                                all the required filaments loaded.
+                            </div>
+                            <field name="compatible_printer_ids" readonly="1"
+                                   widget="many2many_list" nolabel="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="printer_model"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'idle'"
+                                           decoration-warning="state == 'unknown'"
+                                           decoration-danger="state in ('error','offline')"
+                                           decoration-info="state == 'printing'"/>
+                                    <field name="location"/>
+                                    <field name="queued_job_count" string="Queued Jobs"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Timeline -->
+                        <page string="Timeline" name="timeline">
+                            <group>
+                                <field name="date_queued" readonly="1"/>
+                                <field name="date_sent" readonly="1"/>
+                                <field name="date_started" readonly="1"/>
+                                <field name="date_done" readonly="1"/>
+                            </group>
+                        </page>
+
+                        <!-- Notes -->
+                        <page string="Notes" name="notes">
+                            <field name="job_description"
+                                   placeholder="Describe the print, customer, or special instructions…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Kanban ────────────────────────────────────────────────────────── -->
+    <record id="view_print_job_kanban" model="ir.ui.view">
+        <field name="name">print.job.kanban</field>
+        <field name="model">print.job</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column"
+                    on_create="quick_create">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="priority"/>
+                <field name="printer_id"/>
+                <field name="job_filename"/>
+                <field name="filament_count"/>
+                <field name="compatible_printer_count"/>
+                <field name="date_queued"/>
+                <progressbar field="priority"
+                             colors='{"1": "danger", "0": "success"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="priority" widget="priority"/>
+                            <span t-attf-class="badge rounded-pill
+                                #{record.state.raw_value == 'done' ? 'text-bg-success' :
+                                  record.state.raw_value == 'printing' ? 'text-bg-primary' :
+                                  record.state.raw_value == 'queued' ? 'text-bg-warning' :
+                                  record.state.raw_value == 'failed' ? 'text-bg-danger' :
+                                  'text-bg-secondary'}">
+                                <field name="state"/>
+                            </span>
+                        </div>
+                        <strong><field name="name"/></strong>
+                        <div class="text-muted small" t-if="record.job_filename.value">
+                            <i class="fa fa-file me-1" title="File"/>
+                            <field name="job_filename"/>
+                        </div>
+                        <div class="mt-2 d-flex gap-2 align-items-center">
+                            <span t-if="record.printer_id.value" class="text-info small">
+                                <i class="fa fa-print me-1" title="Printer"/>
+                                <field name="printer_id"/>
+                            </span>
+                            <span t-else="" class="text-muted small">
+                                <i class="fa fa-question-circle me-1" title="Compatible printers"/>
+                                <t t-esc="record.compatible_printer_count.value"/> compatible
+                            </span>
+                        </div>
+                        <div class="small text-muted mt-1" t-if="record.filament_count.value">
+                            <i class="fa fa-paint-brush me-1" title="Filaments"/>
+                            <field name="filament_count"/> filament(s)
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ─── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_print_job_search" model="ir.ui.view">
+        <field name="name">print.job.search</field>
+        <field name="model">print.job</field>
+        <field name="arch" type="xml">
+            <search string="Print Jobs">
+                <field name="name"/>
+                <field name="job_filename"/>
+                <field name="printer_id"/>
+                <field name="required_filament_ids" string="Filament"
+                       filter_domain="[('required_filament_ids.filament_id.name','ilike',self)]"/>
+                <!-- State filters -->
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Queued" name="queued" domain="[('state','=','queued')]"/>
+                <filter string="Printing" name="printing" domain="[('state','=','printing')]"/>
+                <filter string="Done" name="done" domain="[('state','=','done')]"/>
+                <filter string="Failed" name="failed" domain="[('state','=','failed')]"/>
+                <separator/>
+                <filter string="Urgent" name="urgent" domain="[('priority','=','1')]"/>
+                <filter string="Active" name="active"
+                        domain="[('state','not in',['done','cancelled'])]"/>
+                <separator/>
+                <filter string="Group by Status" name="group_state" context="{'group_by':'state'}"/>
+                <filter string="Group by Printer" name="group_printer"
+                        context="{'group_by':'printer_id'}"/>
+                <filter string="Group by Priority" name="group_priority"
+                        context="{'group_by':'priority'}"/>
+                <filter string="Group by Queue Date" name="group_date"
+                        context="{'group_by':'date_queued:day'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Action ───────────────────────────────────────────────────────── -->
+    <record id="action_print_job" model="ir.actions.act_window">
+        <field name="name">Print Jobs</field>
+        <field name="res_model">print.job</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_print_job_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first print job
+            </p>
+            <p>Upload a .3mf or .gcode file, set the required filaments, and send it to a printer.</p>
+        </field>
+    </record>
+
+    <!-- Queue view (filtered to queued only) -->
+    <record id="action_print_job_queue" model="ir.actions.act_window">
+        <field name="name">Job Queue</field>
+        <field name="res_model">print.job</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_print_job_search"/>
+        <field name="domain">[('state','in',['queued','sending','printing'])]</field>
+        <field name="context">{'search_default_queued': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Queue is empty</p>
+            <p>Jobs waiting to be sent to printers will appear here.</p>
+        </field>
+    </record>
+
+</odoo>

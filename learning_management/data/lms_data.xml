@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default Course Categories -->
+    <record id="lms_category_safety" model="lms.course.category">
+        <field name="name">Health &amp; Safety</field>
+        <field name="color">1</field>
+    </record>
+    <record id="lms_category_compliance" model="lms.course.category">
+        <field name="name">Compliance &amp; Regulatory</field>
+        <field name="color">2</field>
+    </record>
+    <record id="lms_category_technical" model="lms.course.category">
+        <field name="name">Technical / Operational</field>
+        <field name="color">3</field>
+    </record>
+    <record id="lms_category_leadership" model="lms.course.category">
+        <field name="name">Leadership &amp; Management</field>
+        <field name="color">4</field>
+    </record>
+    <record id="lms_category_hr" model="lms.course.category">
+        <field name="name">Human Resources</field>
+        <field name="color">5</field>
+    </record>
+    <record id="lms_category_elearning" model="lms.course.category">
+        <field name="name">eLearning</field>
+        <field name="color">6</field>
+    </record>
+
+    <!-- Cron: Check record expiry nightly -->
+    <record id="cron_lms_check_expiry" model="ir.cron">
+        <field name="name">LMS: Check Training Record Expiry</field>
+        <field name="model_id" ref="model_lms_employee_record"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_expiry()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+    <!-- Cron: Send session reminder notifications -->
+    <record id="cron_lms_session_reminders" model="ir.cron">
+        <field name="name">LMS: Send Session Reminder Notifications</field>
+        <field name="model_id" ref="model_lms_notification_template"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_session_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

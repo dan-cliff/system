@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Health Alert — popup dialog form
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_alert_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.alert.form</field>
+        <field name="model">employee.healthcare.alert</field>
+        <field name="arch" type="xml">
+            <form string="Health Alert">
+                <sheet>
+                    <group>
+                        <group string="Alert Details">
+                            <field name="alert_severity_color" invisible="1"/>
+                            <field name="alert_type_id"/>
+                            <field name="alert_severity_id"/>
+                            <field name="date_noted" options='{"numeric": true}'/>
+                            <field name="is_critical"/>
+                        </group>
+                        <group string="Health / Action Plan">
+                            <field name="action_plan"
+                                   widget="binary"
+                                   filename="action_plan_filename"/>
+                            <field name="action_plan_filename" invisible="1"/>
+                        </group>
+                    </group>
+                    <group col="1">
+                        <field name="description"
+                               placeholder="Describe the health alert, any known triggers, or special instructions..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Medication — popup dialog form
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_medication_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.medication.form</field>
+        <field name="model">employee.healthcare.medication</field>
+        <field name="arch" type="xml">
+            <form string="Medication">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Medication name..."/></h1>
+                    </div>
+                    <group string="Medication Details" col="2">
+                        <field name="medication_type_id"/>
+                        <field name="dosage"/>
+                        <field name="frequency_id"/>
+                        <field name="prescribing_doctor"/>
+                    </group>
+                    <group col="1">
+                        <field name="notes" placeholder="Additional notes..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Allergy — popup dialog form
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_allergy_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.allergy.form</field>
+        <field name="model">employee.healthcare.allergy</field>
+        <field name="arch" type="xml">
+            <form string="Allergy">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="allergen"/>
+                        <h1><field name="allergen" placeholder="Allergen..."/></h1>
+                    </div>
+                    <group>
+                        <group string="Allergy Details">
+                            <field name="severity_color" invisible="1"/>
+                            <field name="allergy_type_id"/>
+                            <field name="severity_id"
+                                   widget="badge"
+                                   options="{'color_field': 'severity_color'}"/>
+                        </group>
+                    </group>
+                    <group col="1">
+                        <field name="reaction"
+                               placeholder="Describe the reaction or symptoms..."/>
+                    </group>
+                    <group col="1">
+                        <field name="treatment"
+                               placeholder="Describe the treatment or management plan..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Advanced Directive / Proxy — popup dialog form
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_directive_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.directive.form</field>
+        <field name="model">employee.healthcare.directive</field>
+        <field name="arch" type="xml">
+            <form string="Directive / Proxy">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"
+                                   placeholder="Document title or proxy person's name..."/></h1>
+                    </div>
+                    <group>
+                        <group string="Details">
+                            <field name="directive_type_id"/>
+                            <field name="relationship"/>
+                            <field name="date_executed" options='{"numeric": true}'/>
+                        </group>
+                        <group string="Contact">
+                            <field name="phone"/>
+                            <field name="email"/>
+                        </group>
+                    </group>
+                    <group string="Document">
+                        <field name="document"
+                               widget="binary"
+                               filename="document_filename"/>
+                        <field name="document_filename" invisible="1"/>
+                    </group>
+                    <group col="1">
+                        <field name="notes" placeholder="Additional notes..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

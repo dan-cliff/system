@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_location_log_list" model="ir.ui.view">
+        <field name="name">asset.location.log.list</field>
+        <field name="model">asset.location.log</field>
+        <field name="arch" type="xml">
+            <list string="Location History" default_order="recorded_at desc" create="false">
+                <field name="id" string="ID"/>
+                <field name="recorded_at"/>
+                <field name="nearest_address" string="Address"/>
+                <field name="latitude" digits="[10,7]"/>
+                <field name="longitude" digits="[10,7]"/>
+                <field name="accuracy" string="Accuracy (m)" optional="show"/>
+                <field name="source" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_location_log_form" model="ir.ui.view">
+        <field name="name">asset.location.log.form</field>
+        <field name="model">asset.location.log</field>
+        <field name="arch" type="xml">
+            <form string="Location Record" create="false">
+                <sheet>
+                    <group>
+                        <group string="Details">
+                            <field name="asset_id" readonly="1"/>
+                            <field name="recorded_at" readonly="1"/>
+                            <field name="source" readonly="1"/>
+                        </group>
+                        <group string="Coordinates">
+                            <field name="latitude" readonly="1"/>
+                            <field name="longitude" readonly="1"/>
+                            <field name="accuracy" readonly="1" string="Accuracy (m)"/>
+                        </group>
+                    </group>
+
+                    <group string="Address">
+                        <field name="nearest_address" readonly="1" nolabel="1"
+                               style="font-size:14px;"/>
+                    </group>
+
+                    <div invisible="not map_embed" style="margin-top:16px;">
+                        <div class="o_horizontal_separator mt-2 mb-3 fw-bold text-uppercase"
+                             style="font-size:11px;letter-spacing:.06em;color:var(--o-label-color, #6c757d)">
+                            Location Map
+                        </div>
+                        <field name="map_embed" widget="html" readonly="1" nolabel="1"/>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

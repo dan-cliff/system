@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Asset: Form ──────────────────────────────────────────────────── -->
+    <record id="view_asset_asset_form" model="ir.ui.view">
+        <field name="name">asset.asset.form</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <form string="Asset">
+                <header>
+                    <button name="action_open_control_plane" type="object"
+                            string="Open Control Plane" class="btn-primary"
+                            icon="fa-mobile"
+                            invisible="not cp_token"/>
+                    <button name="action_view_cp_details" type="object"
+                            string="Control Plane Details"
+                            class="btn-secondary"
+                            icon="fa-cog"
+                            groups="base.group_system"/>
+                    <button name="action_view_current_location" type="object"
+                            string="Current Location"
+                            class="btn-secondary"
+                            icon="fa-map-marker"
+                            invisible="not eff_location_tracking"
+                            groups="asset_management.group_asset_manager"/>
+                    <button name="action_view_management_features" type="object"
+                            string="Management Features"
+                            class="btn-secondary"
+                            icon="fa-sliders"
+                            groups="base.group_system"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="active,maintenance,inactive,retired"/>
+                </header>
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_usage_logs" type="object"
+                                class="oe_stat_button" icon="fa-tachometer"
+                                invisible="not eff_usage_tracking">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="latest_usage_reading"/>
+                                    <field name="usage_unit_short_code"
+                                           invisible="not usage_unit_short_code"
+                                           class="ms-1 text-muted fw-normal"
+                                           style="font-size:0.75em;"/>
+                                </span>
+                                <span class="o_stat_text">Latest Reading</span>
+                            </div>
+                        </button>
+                        <button name="action_view_defects" type="object"
+                                class="oe_stat_button" icon="fa-exclamation-triangle">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="open_defect_count"/>
+                                </span>
+                                <span class="o_stat_text">Open Defects</span>
+                            </div>
+                        </button>
+                        <button name="action_view_maintenance_logs" type="object"
+                                class="oe_stat_button" icon="fa-wrench"
+                                invisible="not eff_maintenance">
+                            <field name="maintenance_log_count" widget="statinfo" string="Maintenance"/>
+                        </button>
+                        <button name="action_view_location_logs" type="object"
+                                class="oe_stat_button" icon="fa-map-marker"
+                                invisible="not eff_location_tracking">
+                            <span class="o_stat_info">
+                                <span class="o_stat_text">Location History</span>
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Photo + Title -->
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Asset Name…"/>
+                        </h1>
+                        <div class="o_row">
+                            <span class="text-muted me-2">
+                                <field name="asset_number" readonly="1"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Core details -->
+                    <group>
+                        <group string="Classification">
+                            <field name="asset_type_id"/>
+                            <field name="asset_subtype_id"
+                                   domain="[('asset_type_id','=',asset_type_id)]"
+                                   context="{'default_asset_type_id': asset_type_id}"/>
+                            <field name="usage_unit_id"
+                                   invisible="not eff_usage_tracking"
+                                   readonly="usage_unit_locked"
+                                   options="{'no_create': False, 'no_open': False}"/>
+                            <field name="usage_unit_locked" invisible="1"/>
+                        </group>
+                        <group string="Details">
+                            <field name="serial_number"/>
+                            <field name="registration_number"/>
+                            <field name="location"/>
+                        </group>
+                    </group>
+
+                    <!-- Purchase Information -->
+                    <group string="Purchase Information">
+                        <group>
+                            <field name="supplier_id"
+                                   options="{'no_create': False}"
+                                   context="{'default_is_company': True}"/>
+                            <field name="manufacturer_id"
+                                   options="{'no_create': False}"
+                                   context="{'default_is_company': True}"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                            <field name="purchase_cost" widget="monetary"/>
+                        </group>
+                        <group>
+                            <field name="purchase_date" options="{'numeric': true}"/>
+                            <field name="warranty_expiry_date" options="{'numeric': true}"/>
+                        </group>
+                    </group>
+
+                    <!-- Ownership and Assignment -->
+                    <group string="Ownership and Assignment">
+                        <group>
+                            <field name="owner_id"
+                                   options="{'no_create': False}"/>
+                        </group>
+                        <group>
+                            <field name="assigned_to_id"/>
+                            <field name="date_assignment"/>
+                        </group>
+                    </group>
+
+                    <!-- Software Details -->
+                    <group string="Software Details" invisible="not eff_software">
+                        <group>
+                            <field name="sw_supplier_id" string="Supplier"
+                                   options="{'no_create': False}"
+                                   context="{'default_is_company': True}"/>
+                            <field name="sw_website" string="Website" widget="url"/>
+                        </group>
+                        <group>
+                            <field name="sw_licence_key"/>
+                        </group>
+                        <group col="1">
+                            <field name="sw_notes" string="Notes" nolabel="1"
+                                   placeholder="Additional software notes…"/>
+                        </group>
+                    </group>
+
+                    <!-- Hidden feature flag fields (used by tabs/sections below) -->
+                    <field name="eff_maintenance" invisible="1"/>
+                    <field name="eff_usage_tracking" invisible="1"/>
+                    <field name="eff_risk_assessments" invisible="1"/>
+                    <field name="eff_hazardous" invisible="1"/>
+                    <field name="eff_project" invisible="1"/>
+                    <field name="eff_location_tracking" invisible="1"/>
+                    <field name="eff_software" invisible="1"/>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Asset: Control Plane Details Popup ────────────────────────────── -->
+    <record id="view_asset_cp_details_popup" model="ir.ui.view">
+        <field name="name">asset.asset.cp.details.popup</field>
+        <field name="model">asset.asset</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form string="Control Plane Details">
+
+                <!-- No token yet -->
+                <sheet invisible="cp_token">
+                    <div class="text-center p-4">
+                        <i class="fa fa-mobile fa-3x mb-3 d-block text-muted" title="Mobile"/>
+                        <p class="text-muted mb-3">
+                            No Control Plane has been generated for this asset.<br/>
+                            Generate one to enable the mobile PWA for usage logs,
+                            defect reports and maintenance.
+                        </p>
+                        <button name="action_generate_token" type="object"
+                                string="Generate Control Plane"
+                                class="btn-primary"
+                                icon="fa-mobile"/>
+                    </div>
+                </sheet>
+
+                <!-- Token exists -->
+                <sheet invisible="not cp_token">
+                    <group>
+                        <group string="Access Details">
+                            <field name="cp_token" readonly="1"/>
+                            <field name="cp_url" widget="url" readonly="1"/>
+                            <button name="action_generate_token" type="object"
+                                    string="Regenerate Token"
+                                    class="btn-warning mt-2"
+                                    icon="fa-refresh"
+                                    confirm="Regenerating the token will invalidate the existing Control Plane link. Any installed PWA shortcuts will stop working. Continue?"/>
+                        </group>
+                        <group string="Scan to Open">
+                            <field name="cp_qr_code" widget="image" readonly="1"
+                                   options="{'size': [200, 200]}" nolabel="1"/>
+                        </group>
+                    </group>
+                </sheet>
+
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Asset: Management Features Popup ──────────────────────────────── -->
+    <record id="view_asset_management_features_popup" model="ir.ui.view">
+        <field name="name">asset.asset.management.features.popup</field>
+        <field name="model">asset.asset</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form string="Management Features" create="false" edit="false">
+                <sheet>
+                    <div class="o_horizontal_separator mb-3 fw-bold text-uppercase"
+                         style="font-size:11px;letter-spacing:.06em;color:var(--o-label-color,#6c757d)">
+                        Active Features
+                    </div>
+                    <div class="d-flex flex-row flex-wrap gap-2 mb-4">
+                        <span invisible="not eff_maintenance"
+                              class="badge rounded-pill text-bg-primary fs-6 px-3 py-2">Maintenance</span>
+                        <span invisible="not eff_usage_tracking"
+                              class="badge rounded-pill text-bg-success fs-6 px-3 py-2">Usage Tracking</span>
+                        <span invisible="not eff_risk_assessments"
+                              class="badge rounded-pill text-bg-warning fs-6 px-3 py-2">Risk Assessments</span>
+                        <span invisible="not eff_hazardous"
+                              class="badge rounded-pill text-bg-danger fs-6 px-3 py-2">Hazardous Substances</span>
+                        <span invisible="not eff_project"
+                              class="badge rounded-pill text-bg-info fs-6 px-3 py-2">Project / Job Assignment</span>
+                        <span invisible="not eff_location_tracking"
+                              class="badge rounded-pill text-bg-secondary fs-6 px-3 py-2">Location Tracking</span>
+                        <span invisible="not eff_software"
+                              class="badge rounded-pill text-bg-dark fs-6 px-3 py-2">Software Fields</span>
+                        <span invisible="eff_maintenance or eff_usage_tracking or eff_risk_assessments or eff_hazardous or eff_project or eff_location_tracking or eff_software"
+                              class="text-muted fst-italic">No features enabled for this asset type.</span>
+                    </div>
+                    <div class="o_horizontal_separator mb-3 fw-bold text-uppercase"
+                         style="font-size:11px;letter-spacing:.06em;color:var(--o-label-color,#6c757d)">
+                        Configuration
+                    </div>
+                    <group>
+                        <group>
+                            <field name="asset_type_id" readonly="1"/>
+                            <field name="asset_subtype_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="eff_maintenance" string="Maintenance" readonly="1"/>
+                            <field name="eff_usage_tracking" string="Usage Tracking" readonly="1"/>
+                            <field name="eff_risk_assessments" string="Risk Assessments" readonly="1"/>
+                            <field name="eff_hazardous" string="Hazardous Substances" readonly="1"/>
+                            <field name="eff_project" string="Project / Job" readonly="1"/>
+                            <field name="eff_location_tracking" string="Location Tracking" readonly="1"/>
+                            <field name="eff_software" string="Software Fields" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Asset: Current Location Popup ─────────────────────────────────── -->
+    <record id="view_asset_location_popup" model="ir.ui.view">
+        <field name="name">asset.asset.location.popup</field>
+        <field name="model">asset.asset</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form string="Current Location" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group string="Coordinates">
+                            <field name="latitude" readonly="1"/>
+                            <field name="longitude" readonly="1"/>
+                            <field name="location_accuracy" string="Accuracy (m)" readonly="1"/>
+                            <field name="location_updated" readonly="1"/>
+                        </group>
+                        <group string="Address">
+                            <field name="nearest_address" readonly="1" nolabel="1"
+                                   style="font-size:14px;"/>
+                        </group>
+                    </group>
+                    <div invisible="not map_embed" style="margin-top:12px;">
+                        <field name="map_embed" widget="html" readonly="1" nolabel="1"/>
+                    </div>
+                    <div invisible="latitude or longitude" class="text-center text-muted p-4">
+                        <i class="fa fa-map-marker fa-2x mb-2 d-block"/>
+                        No location data has been received for this asset yet.
+                        Ensure the Control Plane is open on a GPS-enabled device.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Asset: List ──────────────────────────────────────────────────── -->
+    <record id="view_asset_asset_list" model="ir.ui.view">
+        <field name="name">asset.asset.list</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <list string="Assets" default_order="asset_number desc">
+                <field name="id" string="ID"/>
+                <field name="asset_number"/>
+                <field name="name"/>
+                <field name="asset_type_id"/>
+                <field name="asset_subtype_id" optional="show"/>
+                <field name="serial_number" optional="show"/>
+                <field name="registration_number" optional="show"/>
+                <field name="location" optional="show"/>
+                <field name="usage_unit_id" optional="show" string="Unit"/>
+                <field name="owner_id" optional="show"/>
+                <field name="assigned_to_id" optional="show"/>
+                <field name="latest_usage_reading" optional="show"/>
+                <field name="latest_usage_unit" optional="show"/>
+                <field name="latest_usage_date" optional="show"/>
+                <field name="open_defect_count" optional="show" string="Open Defects"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'maintenance'"
+                       
+                       decoration-danger="state == 'retired'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Asset: Kanban ────────────────────────────────────────────────── -->
+    <record id="view_asset_asset_kanban" model="ir.ui.view">
+        <field name="name">asset.asset.kanban</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_group_by="state">
+                <field name="name"/>
+                <field name="asset_number"/>
+                <field name="asset_type_id"/>
+                <field name="state"/>
+                <field name="open_defect_count"/>
+                <field name="image"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-start">
+                            <field name="image" widget="image" class="o_kanban_image me-2"/>
+                            <div>
+                                <strong><field name="name"/></strong>
+                                <div class="text-muted small"><field name="asset_number"/></div>
+                                <div><field name="asset_type_id"/></div>
+                                <div t-if="record.open_defect_count.raw_value > 0" class="text-danger small">
+                                    <i class="fa fa-exclamation-triangle"/> <t t-esc="record.open_defect_count.value"/> open defects
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Asset: Search ────────────────────────────────────────────────── -->
+    <record id="view_asset_asset_search" model="ir.ui.view">
+        <field name="name">asset.asset.search</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <search string="Assets">
+                <field name="name" string="Asset" filter_domain="['|',('name','ilike',self),('asset_number','ilike',self)]"/>
+                <field name="asset_type_id"/>
+                <field name="asset_subtype_id"/>
+                <field name="serial_number"/>
+                <field name="location"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('state','=','active')]"/>
+                <filter name="maintenance" string="Under Maintenance" domain="[('state','=','maintenance')]"/>
+                <separator/>
+                <filter name="usage_tracking" string="Usage Tracking" domain="[('eff_usage_tracking','=',True)]"/>
+                <separator/>
+                <group name="group_by">
+                    <filter name="group_type" string="Asset Type" context="{'group_by': 'asset_type_id'}"/>
+                    <filter name="group_subtype" string="Sub-Type" context="{'group_by': 'asset_subtype_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_location" string="Location" context="{'group_by': 'location'}"/>
+                </group>
+                <searchpanel>
+                    <field name="asset_type_id" string="Asset Type" enable_counters="1" expand="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Asset: Action ────────────────────────────────────────────────── -->
+    <record id="action_asset_asset" model="ir.actions.act_window">
+        <field name="name">Assets</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_asset_asset_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+</odoo>

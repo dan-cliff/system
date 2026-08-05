@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ── Shared AI loading dialog ─────────────────────────────────────── -->
+    <t t-name="video_production.AILoadingDialog">
+        <Dialog title="'AI is Working'" size="'sm'" close="props.close">
+            <div class="text-center py-4 px-2">
+                <i class="fa fa-magic fa-2x vp_ai_magic_icon mb-3"/>
+                <p class="fw-semibold mb-3" t-esc="props.message"/>
+                <div class="progress vp_ai_progress_bar">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated w-100"
+                         role="progressbar"
+                         aria-label="AI processing"/>
+                </div>
+                <p class="text-muted small mt-2">This may take a few seconds</p>
+            </div>
+            <t t-set-slot="footer"/>
+        </Dialog>
+    </t>
+
+    <!-- ── SEO Improvement wizard: generating overlay ───────────────────── -->
+    <t t-name="video_production.VideoMetadataSEOWizardController"
+       t-inherit="web.FormView"
+       t-inherit-mode="primary">
+
+        <xpath expr="//div[hasclass('o_form_view_container')]" position="inside">
+            <div t-if="aiState.isGenerating" class="vp_ai_generating_overlay">
+                <div class="vp_ai_generating_inner">
+                    <i class="fa fa-magic fa-2x vp_ai_magic_icon mb-3"/>
+                    <p class="fw-semibold mb-3">Gemini is analysing your metadata and generating SEO improvements…</p>
+                    <div class="progress vp_ai_progress_bar">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated w-100"
+                             role="progressbar"
+                             aria-label="Generating SEO suggestions"/>
+                    </div>
+                    <p class="text-muted small mt-2">This may take a few seconds</p>
+                </div>
+            </div>
+        </xpath>
+
+    </t>
+
+</templates>

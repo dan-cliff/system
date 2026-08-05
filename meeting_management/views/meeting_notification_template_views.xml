@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── List view ─────────────────────────────────────────────────────── -->
+    <record id="view_meeting_notification_template_list" model="ir.ui.view">
+        <field name="name">meeting.notification.template.list</field>
+        <field name="model">meeting.notification.template</field>
+        <field name="arch" type="xml">
+            <list string="Notification Templates">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="trigger"/>
+                <field name="notification_type"/>
+                <field name="recipient_type"/>
+                <field name="attach_agenda"/>
+                <field name="attach_minutes"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form view ─────────────────────────────────────────────────────── -->
+    <record id="view_meeting_notification_template_form" model="ir.ui.view">
+        <field name="name">meeting.notification.template.form</field>
+        <field name="model">meeting.notification.template</field>
+        <field name="arch" type="xml">
+            <form string="Notification Template">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Template name…"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Trigger">
+                            <field name="trigger"/>
+                            <field name="trigger_hours"
+                                   invisible="trigger not in ['before_meeting','after_meeting']"/>
+                            <field name="notification_type"/>
+                        </group>
+                        <group string="Recipients">
+                            <field name="recipient_type"/>
+                            <field name="recipient_ids" widget="many2many_tags"
+                                   invisible="recipient_type != 'custom'"/>
+                        </group>
+                    </group>
+                    <group string="Email Content">
+                        <field name="subject" placeholder="e.g. Meeting Agenda: {meeting_name} — {meeting_date}"/>
+                    </group>
+                    <notebook>
+                        <page string="Email Body">
+                            <div class="alert alert-info" role="alert">
+                                <strong>Available Placeholders:</strong>
+                                <code>{meeting_name}</code> &amp;nbsp;
+                                <code>{meeting_reference}</code> &amp;nbsp;
+                                <code>{meeting_date}</code> &amp;nbsp;
+                                <code>{meeting_end}</code> &amp;nbsp;
+                                <code>{meeting_location}</code> &amp;nbsp;
+                                <code>{meeting_type}</code> &amp;nbsp;
+                                <code>{chairperson}</code> &amp;nbsp;
+                                <code>{secretary}</code> &amp;nbsp;
+                                <code>{invitees}</code> &amp;nbsp;
+                                <code>{teams_join_url}</code> &amp;nbsp;
+                                <code>{agenda_count}</code> &amp;nbsp;
+                                <code>{action_items_count}</code> &amp;nbsp;
+                                <code>{company_name}</code>
+                            </div>
+                            <field name="body_html" widget="html" style="min-height:250px"/>
+                        </page>
+                        <page string="Attachments">
+                            <group>
+                                <field name="attach_agenda"/>
+                                <field name="attach_minutes"/>
+                            </group>
+                            <div class="alert alert-warning" role="alert">
+                                <strong>Note:</strong> The Agenda PDF will only attach if the meeting has agenda items.
+                                The Minutes PDF will only attach if the meeting is in <em>Completed</em> state.
+                            </div>
+                        </page>
+                        <page string="Internal Notes">
+                            <field name="description" placeholder="Internal description of when to use this template…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────────── -->
+    <record id="action_meeting_notification_template" model="ir.actions.act_window">
+        <field name="name">Notification Templates</field>
+        <field name="res_model">meeting.notification.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first notification template
+            </p>
+            <p>
+                Notification templates let you define email or internal messages
+                that can be automatically sent at different stages of a meeting,
+                optionally attaching the Agenda or Minutes PDF.
+            </p>
+        </field>
+    </record>
+</odoo>

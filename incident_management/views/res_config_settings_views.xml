@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_incident" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.incident</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Incidents"
+                     string="Incidents"
+                     name="incident_management"
+                     logo="/incident_management/static/description/icon.png"
+                     groups="incident_management.group_incident_admin">
+                    <block title="AI Integration" name="incident_ai_integration">
+                        <field name="im_openai_from_ai_settings" invisible="1"/>
+                        <field name="im_google_from_ai_settings" invisible="1"/>
+                        <setting string="ChatGPT (OpenAI) API Key"
+                                 help="API key for ChatGPT corrective action recommendations. Obtain from https://platform.openai.com/api-keys">
+                            <div class="text-muted small mt4"
+                                 invisible="not im_openai_from_ai_settings">
+                                Using OpenAI key from AI app settings (General Settings &#8594; AI).
+                            </div>
+                            <field name="im_openai_api_key"
+                                   password="True"
+                                   placeholder="sk-..."
+                                   invisible="im_openai_from_ai_settings"/>
+                        </setting>
+                        <setting string="Google Gemini API Key"
+                                 help="Google Gemini API key used as a fallback AI provider. Obtain from https://aistudio.google.com/apikey">
+                            <div class="text-muted small mt4"
+                                 invisible="not im_google_from_ai_settings">
+                                Using Google Gemini key from AI app settings (General Settings &#8594; AI).
+                            </div>
+                            <field name="im_google_api_key"
+                                   password="True"
+                                   placeholder="AIza..."
+                                   invisible="im_google_from_ai_settings"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_incident_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'incident_management', 'bin_size': False}</field>
+    </record>
+
+    <menuitem id="menu_incident_settings_root"
+              name="Incidents"
+              parent="base.menu_administration"
+              action="action_incident_config_settings"
+              sequence="80"
+              groups="incident_management.group_incident_admin"/>
+
+</odoo>

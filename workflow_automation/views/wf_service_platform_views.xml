@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- wf.service.platform — List View                                  -->
+    <!-- ================================================================ -->
+    <record id="view_wf_service_platform_list" model="ir.ui.view">
+        <field name="name">wf.service.platform.list</field>
+        <field name="model">wf.service.platform</field>
+        <field name="arch" type="xml">
+            <list string="Services &amp; Platforms">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="auth_type"/>
+                <field name="auth_endpoint"/>
+                <field name="last_authenticated" options='{"numeric": true}'/>
+                <field name="last_token_expiry" options='{"numeric": true}'/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.service.platform — Form View                                  -->
+    <!-- ================================================================ -->
+    <record id="view_wf_service_platform_form" model="ir.ui.view">
+        <field name="name">wf.service.platform.form</field>
+        <field name="model">wf.service.platform</field>
+        <field name="arch" type="xml">
+            <form string="Service / Platform">
+                <sheet>
+
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_api_call_logs"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-history">
+                            <field name="api_call_log_count" widget="statinfo" string="API Logs"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Service / Platform Name…"/>
+                        </h1>
+                    </div>
+
+                    <!-- Core settings -->
+                    <group>
+                        <group string="General">
+                            <field name="auth_type"/>
+                            <field name="body_format"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Description">
+                            <field name="description" nolabel="1" placeholder="Optional description…"/>
+                        </group>
+                    </group>
+
+                    <!-- Username & Password credentials -->
+                    <group string="Credentials" invisible="auth_type != 'basic'">
+                        <group>
+                            <field name="username" placeholder="username"/>
+                            <field name="password" password="True" placeholder="••••••••"/>
+                        </group>
+                    </group>
+
+                    <!-- OAuth 2.0 credentials -->
+                    <group string="OAuth 2.0 Credentials" invisible="auth_type != 'oauth2'">
+                        <group>
+                            <field name="client_id" placeholder="Client ID"/>
+                            <field name="client_secret" password="True" placeholder="••••••••"/>
+                        </group>
+                    </group>
+
+                    <!-- Endpoint & response token key -->
+                    <group string="Endpoint">
+                        <field name="base_url"
+                               string="Base URL"
+                               placeholder="https://api.example.com/v1"
+                               colspan="2"/>
+                        <field name="auth_endpoint"
+                               string="Authentication Endpoint"
+                               placeholder="https://api.example.com/auth/token"
+                               colspan="2"/>
+                        <field name="response_token_key"
+                               string="Response API Key"
+                               placeholder="Key in the response that holds the token, e.g. access_token  or  data.token"
+                               colspan="2"/>
+                    </group>
+
+                    <notebook>
+
+                        <!-- ── Request Headers ──────────────────────────── -->
+                        <page string="Request Headers" name="headers">
+                            <div class="text-muted mb-2">
+                                <small>
+                                    Added on top of the default
+                                    <code>Content-Type</code> (set automatically from
+                                    <strong>Request Body Format</strong> above) and
+                                    <code>Accept: application/json</code> headers.
+                                    Custom rows can override those defaults or add
+                                    new ones.  Header values support
+                                    <code>{{username}}</code>,
+                                    <code>{{password}}</code>,
+                                    <code>{{client_id}}</code>, and
+                                    <code>{{client_secret}}</code> placeholders.
+                                </small>
+                            </div>
+                            <field name="header_ids" nolabel="1">
+                                <list editable="bottom" string="Request Headers">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"
+                                           placeholder="e.g. X-Tenant-ID"
+                                           string="Header Name"/>
+                                    <field name="value"
+                                           placeholder="e.g. acme  or  Bearer {{client_secret}}"
+                                           string="Value"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- ── Request Body ─────────────────────────────── -->
+                        <page string="Request Body" name="request_body">
+
+                            <!-- Body parameters table -->
+                            <div class="o_horizontal_separator mt-2 mb-1">Body Parameters</div>
+                            <div class="text-muted mb-2">
+                                <small>
+                                    Rows are assembled into the request body in sequence order
+                                    and serialised according to the
+                                    <strong>Request Body Format</strong> setting (JSON or Form
+                                    Encoded).  Use <strong>Credential Field</strong> to inject a
+                                    stored credential without exposing it in plain text.
+                                    Ignored when a JSON Override is set below.
+                                </small>
+                            </div>
+                            <field name="body_param_ids" nolabel="1">
+                                <list editable="bottom" string="Body Parameters">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="key" placeholder="e.g. grant_type"/>
+                                    <field name="value_type" string="Type"/>
+                                    <field name="static_value"
+                                           string="Value"
+                                           placeholder="plain value"
+                                           invisible="value_type != 'static'"/>
+                                    <field name="credential_field"
+                                           string="Credential Field"
+                                           invisible="value_type != 'credential'"/>
+                                    <field name="value_preview"
+                                           string="Resolved As"
+                                           readonly="1"/>
+                                </list>
+                            </field>
+
+                            <!-- JSON override -->
+                            <div class="o_horizontal_separator mt-4 mb-1">Body Override (JSON syntax)</div>
+                            <div class="text-muted mb-2">
+                                <small>
+                                    When set, <strong>completely replaces</strong> the Body
+                                    Parameters table and the default body for the selected
+                                    auth type.  The content is always written in JSON syntax
+                                    regardless of <strong>Request Body Format</strong> — it is
+                                    parsed into a key/value dict and then re-serialised using
+                                    the chosen format before the request is sent.
+                                    Supports credential placeholders:
+                                    <code>{{username}}</code>,
+                                    <code>{{password}}</code>,
+                                    <code>{{client_id}}</code>,
+                                    <code>{{client_secret}}</code>.
+                                </small>
+                            </div>
+                            <field name="auth_request_body"
+                                   widget="ace"
+                                   options="{'mode': 'javascript'}"
+                                   nolabel="1"
+                                   placeholder='{"grant_type": "password", "username": "{{username}}", "password": "{{password}}"}'/>
+
+                        </page>
+
+                        <!-- ── Token Cache ──────────────────────────────── -->
+                        <page string="Token Cache" name="token_cache">
+                            <group>
+                                <group>
+                                    <field name="last_authenticated"
+                                           options='{"numeric": true}'
+                                           readonly="1"/>
+                                    <field name="last_token_expiry"
+                                           options='{"numeric": true}'
+                                           readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="last_token" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                    </notebook>
+
+                    <!-- Test authentication button -->
+                    <div class="mt-3">
+                        <button name="action_test_authentication"
+                                type="object"
+                                string="Test Authentication"
+                                class="btn btn-primary"
+                                icon="fa-plug"/>
+                    </div>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.service.platform — Search View                                -->
+    <!-- ================================================================ -->
+    <record id="view_wf_service_platform_search" model="ir.ui.view">
+        <field name="name">wf.service.platform.search</field>
+        <field name="model">wf.service.platform</field>
+        <field name="arch" type="xml">
+            <search string="Services &amp; Platforms">
+                <field name="name" string="Name"/>
+                <field name="auth_endpoint" string="Endpoint"/>
+                <filter string="Username &amp; Password" name="filter_basic"
+                        domain="[('auth_type', '=', 'basic')]"/>
+                <filter string="OAuth 2.0" name="filter_oauth2"
+                        domain="[('auth_type', '=', 'oauth2')]"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Group by Auth Type" name="group_auth_type"
+                        context="{'group_by': 'auth_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.service.platform — Window Action                              -->
+    <!-- ================================================================ -->
+    <record id="action_wf_service_platform" model="ir.actions.act_window">
+        <field name="name">Services &amp; Platforms</field>
+        <field name="res_model">wf.service.platform</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_wf_service_platform_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add your first service or platform
+            </p>
+            <p>
+                Store authentication credentials for external APIs and platforms.
+                Use Username &amp; Password or OAuth 2.0 Client Credentials.
+            </p>
+        </field>
+    </record>
+
+</odoo>

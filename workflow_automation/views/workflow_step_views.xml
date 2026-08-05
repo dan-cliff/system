@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- Inline list for field mappings (reused in create + update pages) -->
+    <!-- ================================================================ -->
+
+    <!-- ================================================================ -->
+    <!-- wf.step — Form View (dialog)                                     -->
+    <!-- ================================================================ -->
+    <record id="view_wf_step_form" model="ir.ui.view">
+        <field name="name">wf.step.form</field>
+        <field name="model">wf.step</field>
+        <field name="arch" type="xml">
+            <form string="Workflow Step">
+                <!-- Header bar -->
+                <group>
+                    <group>
+                        <field name="name"/>
+                        <field name="step_type"/>
+                        <field name="sequence"/>
+                        <!-- Invisible helpers — feed model name to domain widgets below -->
+                        <field name="workflow_model_name" invisible="1"/>
+                        <field name="target_model_name" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="active" widget="boolean_toggle"/>
+                        <field name="store_result_var"
+                               placeholder="e.g. new_partner"
+                               help="Store the step result in this variable name for use in later steps."/>
+                    </group>
+                </group>
+
+                <notebook>
+
+                    <!-- ============================================================ -->
+                    <!-- Step Configuration page                                       -->
+                    <!-- ============================================================ -->
+                    <page string="Configuration" name="config">
+
+                        <!-- Condition -->
+                        <group string="Condition">
+                            <field name="condition_type"/>
+                            <field name="condition_domain"
+                                   widget="domain"
+                                   options="{'model': 'workflow_model_name'}"
+                                   invisible="condition_type != 'domain'"/>
+                            <field name="condition_python"
+                                   widget="ace"
+                                   options="{'mode': 'python'}"
+                                   invisible="condition_type != 'python'"/>
+                            <field name="on_condition_fail"
+                                   invisible="condition_type == 'none'"/>
+                        </group>
+
+                        <!-- Target record (hidden for step types that don't need it) -->
+                        <group string="Target Record"
+                               invisible="step_type in ['create_record', 'python_code', 'api_call', 'send_notification', 'stop_workflow', 'trigger_workflow', 'conditional_branch', 'random_generator']">
+                            <field name="target_record_type"/>
+                            <field name="target_relation_field_id"
+                                   invisible="target_record_type != 'relation'"/>
+                            <field name="target_model_id"
+                                   invisible="target_record_type != 'domain'"/>
+                            <field name="target_domain"
+                                   widget="domain"
+                                   options="{'model': 'target_model_name'}"
+                                   invisible="target_record_type != 'domain'"/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- CREATE RECORD                                                     -->
+                        <!-- ================================================================ -->
+                        <group string="Create Record Configuration"
+                               invisible="step_type != 'create_record'">
+                            <field name="create_model_id" options="{'no_open': True}"/>
+                            <field name="create_link_field_id"
+                                   domain="[('model_id', '=', create_model_id), ('ttype', '=', 'many2one')]"/>
+                            <field name="mapping_model_id" invisible="1"/>
+                        </group>
+                        <group string="Fields to Set" invisible="step_type != 'create_record'">
+                            <field name="field_mapping_ids"
+                                   nolabel="1"
+                                   context="{'default_step_id': id}">
+                                <list editable="bottom" string="Field Mappings">
+                                    <field name="field_id"
+                                           domain="[('model_id', '=', parent.mapping_model_id)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="value_type"/>
+                                    <field name="static_value"
+                                           invisible="value_type != 'static'"/>
+                                    <field name="expression_value"
+                                           invisible="value_type != 'expression'"/>
+                                    <field name="record_field_path"
+                                           invisible="value_type != 'record_field'"/>
+                                    <field name="variable_name"
+                                           invisible="value_type != 'variable'"/>
+                                    <field name="m2m_operation"/>
+                                </list>
+                            </field>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- UPDATE RECORD                                                     -->
+                        <!-- ================================================================ -->
+                        <group string="Fields to Update" invisible="step_type != 'update_record'">
+                            <field name="mapping_model_id" invisible="1"/>
+                            <field name="field_mapping_ids"
+                                   nolabel="1"
+                                   context="{'default_step_id': id}">
+                                <list editable="bottom" string="Field Mappings">
+                                    <field name="field_id"
+                                           domain="[('model_id', '=', parent.mapping_model_id)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="value_type"/>
+                                    <field name="static_value"
+                                           invisible="value_type != 'static'"/>
+                                    <field name="expression_value"
+                                           invisible="value_type != 'expression'"/>
+                                    <field name="record_field_path"
+                                           invisible="value_type != 'record_field'"/>
+                                    <field name="variable_name"
+                                           invisible="value_type != 'variable'"/>
+                                    <field name="m2m_operation"/>
+                                </list>
+                            </field>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- ADD ACTIVITY                                                      -->
+                        <!-- ================================================================ -->
+                        <group string="Activity Configuration"
+                               invisible="step_type != 'add_activity'">
+                            <group>
+                                <field name="activity_type_id"/>
+                                <field name="activity_summary"/>
+                                <field name="activity_deadline_days"/>
+                            </group>
+                            <group>
+                                <field name="activity_user_type"/>
+                                <field name="activity_user_id"
+                                       invisible="activity_user_type != 'specific_user'"/>
+                                <field name="activity_user_field_id"
+                                       invisible="activity_user_type != 'record_user'"/>
+                            </group>
+                            <field name="activity_note" nolabel="1" colspan="2"/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- GENERATE REPORT                                                   -->
+                        <!-- ================================================================ -->
+                        <group string="Report Generation"
+                               invisible="step_type != 'generate_report'">
+                            <div class="text-muted mb-2" colspan="2">
+                                <small>
+                                    Generated report files are stored as attachments and made
+                                    available to subsequent <b>Send Email</b>, <b>Post Message</b>,
+                                    <b>Send Notification</b> and <b>API Call</b> steps in this workflow.
+                                </small>
+                            </div>
+                            <field name="generate_report_ids"
+                                   widget="many2many_tags"
+                                   options='{"no_create": true}'
+                                   nolabel="1"
+                                   colspan="2"/>
+                            <field name="generate_report_attach_to_record"/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- POST MESSAGE                                                      -->
+                        <!-- ================================================================ -->
+                        <group string="Message Configuration"
+                               invisible="step_type != 'post_message'">
+                            <field name="message_post_method"/>
+                            <field name="message_body" nolabel="1" colspan="2"/>
+                            <field name="include_report_names"
+                                   string="Include Generated Report Names"
+                                   help="Append the names of any reports generated by earlier Generate Report steps to this message."/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- SEND NOTIFICATION                                                 -->
+                        <!-- ================================================================ -->
+                        <group string="Notification Configuration"
+                               invisible="step_type != 'send_notification'">
+                            <field name="notification_level"/>
+                            <field name="notification_message"/>
+                            <field name="notification_target"/>
+                            <field name="notification_user_ids"
+                                   widget="many2many_tags"
+                                   invisible="notification_target != 'specific_users'"/>
+                            <field name="include_report_names"
+                                   string="Include Generated Report Names"
+                                   help="Append the names of any reports generated by earlier Generate Report steps to this notification."/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- SEND EMAIL                                                        -->
+                        <!-- ================================================================ -->
+                        <group string="Email Configuration"
+                               invisible="step_type != 'send_email'">
+                            <field name="email_type"/>
+                            <field name="email_template_id"
+                                   invisible="email_type != 'template'"/>
+                            <field name="email_subject"
+                                   invisible="email_type != 'inline'"/>
+                            <field name="email_to_type"
+                                   invisible="email_type != 'inline'"/>
+                            <field name="email_to_field_id"
+                                   invisible="email_type != 'inline' or email_to_type != 'field'"/>
+                            <field name="email_to_user_ids"
+                                   widget="many2many_tags"
+                                   invisible="email_type != 'inline' or email_to_type != 'specific_users'"/>
+                            <field name="email_body"
+                                   invisible="email_type != 'inline'"
+                                   nolabel="1"
+                                   colspan="2"/>
+                            <field name="include_report_names"
+                                   invisible="email_type != 'inline'"
+                                   string="Include Generated Report Names in Body"
+                                   help="Append report names from any preceding Generate Report step to the email body."/>
+                        </group>
+                        <group string="Report Attachments"
+                               invisible="step_type != 'send_email'">
+                            <div class="text-muted mb-1" colspan="2">
+                                <small>
+                                    Attach the output of these reports to the outgoing email.
+                                    Select only reports that appear in a <b>Generate Report</b>
+                                    step earlier in this workflow.
+                                </small>
+                            </div>
+                            <field name="email_attach_report_ids"
+                                   widget="many2many_tags"
+                                   options='{"no_create": true}'
+                                   nolabel="1"
+                                   colspan="2"/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- PYTHON CODE                                                       -->
+                        <!-- ================================================================ -->
+                        <group string="Python Code" invisible="step_type != 'python_code'"
+                               groups="base.group_system">
+                            <field name="python_code"
+                                   widget="ace"
+                                   options="{'mode': 'python'}"
+                                   nolabel="1"
+                                   colspan="2"/>
+                            <field name="python_result_var"
+                                   help="Variable name under which 'result' is stored for later steps."/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- API CALL                                                          -->
+                        <!-- ================================================================ -->
+                        <group string="API Call Configuration"
+                               invisible="step_type != 'api_call'">
+                            <group string="Service &amp; Endpoint">
+                                <field name="api_service_platform_id"
+                                       options="{'no_create': True}"
+                                       placeholder="Select a Service / Platform…"/>
+                                <field name="api_base_url"
+                                       string="Base URL"
+                                       readonly="1"
+                                       invisible="not api_base_url"/>
+                                <field name="api_url_slug"
+                                       placeholder="/path/to/{{record.id}}/resource"/>
+                                <field name="api_method"/>
+                                <field name="api_timeout"/>
+                                <field name="api_response_key_path"
+                                       placeholder="e.g. data.id  or  result.token"/>
+                            </group>
+                        </group>
+
+                        <!-- API Call — Query Parameters -->
+                        <group string="Query Parameters"
+                               invisible="step_type != 'api_call'">
+                            <div class="text-muted mb-2" colspan="2">
+                                <small>
+                                    Key/value pairs appended to the URL as a query string
+                                    (<code>?key=value&amp;key2=value2</code>).
+                                    Applies to all HTTP methods.
+                                    Values support <code>{{expression}}</code> templates.
+                                </small>
+                            </div>
+                            <field name="api_query_param_ids" nolabel="1" colspan="2">
+                                <list editable="bottom" string="Query Parameters">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"
+                                           placeholder="e.g. page"
+                                           string="Key"/>
+                                    <field name="value"
+                                           placeholder="e.g. {{record.id}}"
+                                           string="Value"/>
+                                </list>
+                            </field>
+                        </group>
+
+                        <!-- API Call — Custom Headers -->
+                        <group string="Request Headers"
+                               invisible="step_type != 'api_call'">
+                            <div class="text-muted mb-2" colspan="2">
+                                <small>
+                                    Custom headers sent with the API request, merged on top of
+                                    <code>Content-Type: application/json</code> and
+                                    <code>Accept: application/json</code>.
+                                    Add authentication headers manually here — use
+                                    <code>{{api_token}}</code> to inject the platform
+                                    credential token.
+                                    Header values support <code>{{expression}}</code> templates.
+                                </small>
+                            </div>
+                            <field name="api_header_ids" nolabel="1" colspan="2">
+                                <list editable="bottom" string="Custom Headers">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"
+                                           placeholder="e.g. X-Tenant-ID"
+                                           string="Header Name"/>
+                                    <field name="value"
+                                           placeholder="e.g. {{record.company_id.name}}"
+                                           string="Value"/>
+                                </list>
+                            </field>
+                        </group>
+
+                        <!-- API Call — Request Body -->
+                        <group string="Request Body"
+                               invisible="step_type != 'api_call' or api_method in ['GET', 'DELETE']">
+                            <field name="api_body_type" colspan="2"/>
+
+                            <!-- Key / Value body -->
+                            <group string="Body Parameters"
+                                   invisible="api_body_type != 'key_value'"
+                                   colspan="2">
+                                <div class="text-muted mb-2" colspan="2">
+                                    <small>
+                                        Each row adds one key to the JSON body in sequence order.
+                                        Use <strong>Record Field</strong> or <strong>Variable</strong>
+                                        to inject live values without hard-coding them.
+                                    </small>
+                                </div>
+                                <field name="api_body_param_ids" nolabel="1" colspan="2">
+                                    <list editable="bottom" string="Body Parameters">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="key" placeholder="e.g. order_id"/>
+                                        <field name="value_type" string="Type"/>
+                                        <field name="static_value"
+                                               string="Value"
+                                               placeholder="plain text"
+                                               invisible="value_type != 'static'"/>
+                                        <field name="record_field_path"
+                                               string="Field Path"
+                                               placeholder="e.g. partner_id.email"
+                                               invisible="value_type != 'record_field'"/>
+                                        <field name="variable_name"
+                                               string="Variable"
+                                               placeholder="e.g. prev_result"
+                                               invisible="value_type != 'variable'"/>
+                                        <field name="expression_value"
+                                               string="Expression"
+                                               placeholder="e.g. record.amount_total * 1.1"
+                                               invisible="value_type != 'expression'"/>
+                                        <field name="value_preview"
+                                               string="Resolved As"
+                                               readonly="1"/>
+                                    </list>
+                                </field>
+                            </group>
+
+                            <!-- JSON body editor -->
+                            <group string="JSON Body Template"
+                                   invisible="api_body_type != 'json'"
+                                   colspan="2">
+                                <div class="text-muted mb-2" colspan="2">
+                                    <small>
+                                        Enter a JSON template.  <code>{{expression}}</code>
+                                        placeholders are evaluated and their string representation
+                                        is substituted before the result is parsed as JSON.<br/>
+                                        Example: <code>{"order_id": {{record.id}}, "state": "{{record.state}}"}</code>
+                                    </small>
+                                </div>
+                                <field name="api_body_json"
+                                       widget="ace"
+                                       options="{'mode': 'javascript'}"
+                                       nolabel="1"
+                                       colspan="2"/>
+                            </group>
+
+                            <field name="include_report_names"
+                                   string="Include Generated Report Names in Body"
+                                   help="Appends a '_generated_report_names' key to the JSON/KV body listing the names of any reports from preceding Generate Report steps."/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- RANDOM GENERATOR                                                  -->
+                        <!-- ================================================================ -->
+                        <group string="Random Generator Configuration"
+                               invisible="step_type != 'random_generator'">
+
+                            <field name="rand_generate_type" widget="radio"/>
+
+                            <!-- ── Word options ──────────────────────────── -->
+                            <field name="rand_word_count"
+                                   invisible="rand_generate_type != 'word'"/>
+                            <field name="rand_word_spaces"
+                                   widget="boolean_toggle"
+                                   invisible="rand_generate_type != 'word'"/>
+
+                            <!-- ── Number options ────────────────────────── -->
+                            <group string="Range"
+                                   invisible="rand_generate_type != 'number'">
+                                <field name="rand_number_min"/>
+                                <field name="rand_number_max"/>
+                            </group>
+
+                            <!-- ── Password options ──────────────────────── -->
+                            <field name="rand_password_type"
+                                   widget="radio"
+                                   invisible="rand_generate_type != 'password'"/>
+                            <field name="rand_password_length"
+                                   invisible="rand_generate_type != 'password'"/>
+
+                        </group>
+
+                        <div invisible="step_type != 'random_generator'"
+                             class="alert alert-info mt-0 mb-2" role="alert">
+                            <i class="fa fa-info-circle me-1"/>
+                            Set <strong>Store Result As</strong> (top of the form) to a variable
+                            name so later steps can reference the generated value via
+                            <code>variables.your_var_name</code>.
+                        </div>
+
+                        <!-- ================================================================ -->
+                        <!-- CONDITIONAL BRANCH                                                -->
+                        <!-- ================================================================ -->
+                        <group string="Branch Configuration"
+                               invisible="step_type != 'conditional_branch'">
+                            <field name="branch_condition_type"/>
+                            <field name="branch_condition_domain"
+                                   widget="domain"
+                                   options="{'model': 'workflow_model_name'}"
+                                   invisible="branch_condition_type != 'domain'"/>
+                            <field name="branch_condition_python"
+                                   widget="ace"
+                                   options="{'mode': 'python'}"
+                                   invisible="branch_condition_type != 'python'"/>
+                            <field name="branch_action"/>
+                        </group>
+
+                        <!-- ================================================================ -->
+                        <!-- TRIGGER WORKFLOW                                                  -->
+                        <!-- ================================================================ -->
+                        <group string="Sub-Workflow Configuration"
+                               invisible="step_type != 'trigger_workflow'">
+                            <field name="sub_workflow_id"/>
+                            <field name="sub_workflow_record_type"/>
+                            <field name="sub_workflow_record_field_id"
+                                   invisible="sub_workflow_record_type != 'relation'"/>
+                        </group>
+
+                    </page>
+
+                    <!-- ============================================================ -->
+                    <!-- Notes page                                                    -->
+                    <!-- ============================================================ -->
+                    <page string="Notes" name="notes">
+                        <field name="notes" placeholder="Internal notes about this step…"/>
+                    </page>
+
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- wf.step — List View (standalone)                                 -->
+    <!-- ================================================================ -->
+    <record id="view_wf_step_list" model="ir.ui.view">
+        <field name="name">wf.step.list</field>
+        <field name="model">wf.step</field>
+        <field name="arch" type="xml">
+            <list string="Workflow Steps">
+                <field name="sequence" widget="handle"/>
+                <field name="workflow_id"/>
+                <field name="name"/>
+                <field name="step_type"/>
+                <field name="condition_type" string="Condition"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+</odoo>

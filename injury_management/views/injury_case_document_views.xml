@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_injury_case_document_list" model="ir.ui.view">
+        <field name="name">injury.case.document.list</field>
+        <field name="model">injury.case.document</field>
+        <field name="arch" type="xml">
+            <list string="Case Documents" create="false" edit="false" delete="false"
+                  default_order="source_order, name">
+                <field name="source_register" string="Register"/>
+                <field name="source_record_name" string="Source Record"/>
+                <field name="name" string="File Name"/>
+                <field name="mimetype" string="Type" optional="show"/>
+                <field name="file_size" string="Size (bytes)" optional="show"/>
+                <field name="source_order" column_invisible="True"/>
+                <button name="action_download" type="object"
+                        string="Download" icon="fa-download"
+                        title="Download this file"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_injury_case_document" model="ir.actions.act_window">
+        <field name="name">Case Documents</field>
+        <field name="res_model">injury.case.document</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

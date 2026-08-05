@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bambu_auth_wizard_form" model="ir.ui.view">
+        <field name="name">print.printer.bambu.auth.wizard.form</field>
+        <field name="model">print.printer.bambu.auth.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bambu Cloud Authentication">
+                <field name="step" invisible="1"/>
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Sign in to Bambu Cloud</h2>
+                        <h3 class="text-muted">
+                            <field name="printer_name" readonly="1"/>
+                        </h3>
+                    </div>
+
+                    <!-- Step 1: credentials -->
+                    <div invisible="step != 'credentials'">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fa fa-info-circle me-2" title="Information"/>
+                            Enter your <strong>Bambu Lab account</strong> credentials.
+                            The resulting access token will be saved to the printer's
+                            <em>Cloud Token</em> field. Your password is not stored.
+                        </div>
+                        <group>
+                            <field name="cloud_region"/>
+                            <field name="email" placeholder="you@example.com"/>
+                            <field name="password" widget="password" placeholder="••••••••"/>
+                        </group>
+                    </div>
+
+                    <!-- Step 2: email verification code -->
+                    <div invisible="step != 'verify'">
+                        <div class="alert alert-success" role="alert">
+                            <i class="fa fa-envelope me-2" title="Email"/>
+                            <strong>Check your email.</strong>
+                            Bambu Cloud has sent a verification code to
+                            <strong><field name="email" readonly="1" nolabel="1"/></strong>.
+                            Enter it below to complete sign-in.
+                        </div>
+                        <group>
+                            <field name="verification_code"
+                                   placeholder="123456"
+                                   autofocus="autofocus"/>
+                        </group>
+                        <div class="mt-1">
+                            <button name="action_resend_code" type="object"
+                                    string="Resend Code" class="btn-link"
+                                    icon="fa-refresh"/>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fa fa-exclamation-triangle me-2" title="Warning"/>
+                        <strong>Authenticator-app 2FA</strong> is not supported by this flow.
+                        If your account uses an authenticator app (not email codes), temporarily
+                        disable it in your Bambu account settings, save the token here, then
+                        re-enable it.
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_authenticate" type="object"
+                            string="Continue" class="btn-primary"
+                            invisible="step != 'credentials'"/>
+                    <button name="action_verify" type="object"
+                            string="Verify &amp; Save Token" class="btn-primary"
+                            invisible="step != 'verify'"/>
+                    <button name="action_resend_code" type="object"
+                            string="Resend Code" class="btn-secondary"
+                            invisible="step != 'verify'"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

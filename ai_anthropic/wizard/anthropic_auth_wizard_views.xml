@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_anthropic_auth_wizard_form" model="ir.ui.view">
+        <field name="name">anthropic.auth.wizard.form</field>
+        <field name="model">anthropic.auth.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sign in to Anthropic">
+                <!-- Hidden computed fields used for conditional visibility -->
+                <field name="has_existing_key" invisible="1"/>
+                <field name="key_hint" invisible="1"/>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Sign in to Anthropic</h2>
+                        <p class="text-muted">
+                            Connect your Anthropic account to use
+                            <strong>Claude</strong> models (Opus, Sonnet, Haiku)
+                            across Odoo.
+                        </p>
+                    </div>
+
+                    <!-- Currently active key banner -->
+                    <div class="alert alert-success d-flex align-items-center gap-2"
+                         role="alert"
+                         invisible="not has_existing_key">
+                        <i class="fa fa-check-circle fa-lg text-success" title="Active"/>
+                        <div>
+                            <strong>A key is currently active:</strong>
+                            <code class="ms-1"><field name="key_hint" nolabel="1" readonly="1"/></code>
+                            <br/>
+                            Enter a new key below to replace it, or
+                            <button name="action_clear_key" type="object"
+                                    string="remove it" class="btn-link p-0 align-baseline"/>
+                            to disconnect.
+                        </div>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="mb-4">
+                        <h5 class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill text-bg-primary">1</span>
+                            Open the Anthropic Console
+                        </h5>
+                        <p class="text-muted ms-4 mb-2">
+                            Click below to open the Anthropic Console in a new tab.
+                            Log in, then go to <strong>API Keys</strong> and create
+                            or copy an existing key.
+                        </p>
+                        <div class="ms-4">
+                            <button name="action_open_console" type="object"
+                                    string="Open Anthropic Console"
+                                    icon="fa-external-link"
+                                    class="btn btn-outline-secondary btn-sm"/>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="mb-3">
+                        <h5 class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill text-bg-primary">2</span>
+                            Paste your API key
+                        </h5>
+                        <p class="text-muted ms-4 mb-2">
+                            API keys start with <code>sk-ant-</code>.
+                            Your key is sent directly to Anthropic for validation
+                            and is never stored in plain text in the browser.
+                        </p>
+                        <div class="ms-4">
+                            <field name="api_key"
+                                   widget="password"
+                                   placeholder="sk-ant-api03-…"
+                                   nolabel="1"
+                                   class="w-100"/>
+                        </div>
+                    </div>
+
+                </sheet>
+
+                <footer>
+                    <button name="action_validate_and_save" type="object"
+                            string="Validate &amp; Save"
+                            class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Window action used by the settings button -->
+    <record id="action_anthropic_auth_wizard" model="ir.actions.act_window">
+        <field name="name">Sign in to Anthropic</field>
+        <field name="res_model">anthropic.auth.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

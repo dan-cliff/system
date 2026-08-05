@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+<t t-name="incident_management.BodyPartWidget">
+<div class="o_body_part_widget">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         FRONT / BACK TOGGLE
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="o_body_view_toggle btn-group mb-3" role="group">
+        <button t-on-click="() => this.switchView('front')"
+                t-attf-class="btn btn-sm {{ isFrontView ? 'btn-primary' : 'btn-outline-secondary' }}">
+            Front
+        </button>
+        <button t-on-click="() => this.switchView('back')"
+                t-attf-class="btn btn-sm {{ !isFrontView ? 'btn-primary' : 'btn-outline-secondary' }}">
+            Back
+        </button>
+    </div>
+
+    <div class="d-flex align-items-start gap-4 flex-wrap">
+
+        <!-- ═══════════════════════════════════════════════════════════════════
+             MAIN BODY SVG
+             ═══════════════════════════════════════════════════════════════════ -->
+        <div style="flex:0 0 auto;">
+
+            <!-- ─── FRONT VIEW ──────────────────────────────────────────────── -->
+            <t t-if="isFrontView">
+            <svg viewBox="0 0 200 500" xmlns="http://www.w3.org/2000/svg"
+                 width="185" height="462" style="display:block;user-select:none;">
+                <style>
+                    .bp{fill:#e8edf2;stroke:#8fa3b8;stroke-width:1.5;cursor:pointer;transition:fill .15s;}
+                    .bp:hover{fill:#c5d6e8;}
+                    .bp.sel{fill:#3399ff;stroke:#0066cc;}
+                    .bpl{font-size:6.5px;fill:#333;text-anchor:middle;pointer-events:none;font-family:sans-serif;}
+                </style>
+
+                <!-- HEAD -->
+                <ellipse t-attf-class="bp {{ isSelected('head') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('head')"
+                         cx="100" cy="38" rx="33" ry="35"><title>Head</title></ellipse>
+                <text class="bpl" x="100" y="41">Head</text>
+
+                <!-- NECK -->
+                <rect t-attf-class="bp {{ isSelected('neck') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('neck')"
+                      x="89" y="71" width="22" height="18" rx="4"><title>Neck</title></rect>
+                <text class="bpl" x="100" y="83">Neck</text>
+
+                <!-- LEFT SHOULDER -->
+                <ellipse t-attf-class="bp {{ isSelected('left_shoulder') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_shoulder')"
+                         cx="62" cy="97" rx="22" ry="17"><title>Left Shoulder</title></ellipse>
+                <text class="bpl" x="62" y="100">L.Shldr</text>
+
+                <!-- RIGHT SHOULDER -->
+                <ellipse t-attf-class="bp {{ isSelected('right_shoulder') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_shoulder')"
+                         cx="138" cy="97" rx="22" ry="17"><title>Right Shoulder</title></ellipse>
+                <text class="bpl" x="138" y="100">R.Shldr</text>
+
+                <!-- CHEST -->
+                <rect t-attf-class="bp {{ isSelected('chest') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('chest')"
+                      x="74" y="87" width="52" height="68" rx="5"><title>Chest</title></rect>
+                <text class="bpl" x="100" y="126">Chest</text>
+
+                <!-- ABDOMEN -->
+                <rect t-attf-class="bp {{ isSelected('abdomen') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('abdomen')"
+                      x="77" y="153" width="46" height="52" rx="5"><title>Abdomen</title></rect>
+                <text class="bpl" x="100" y="183">Abdomen</text>
+
+                <!-- PELVIS -->
+                <rect t-attf-class="bp {{ isSelected('pelvis') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('pelvis')"
+                      x="80" y="203" width="40" height="32" rx="5"><title>Pelvis</title></rect>
+                <text class="bpl" x="100" y="223">Pelvis</text>
+
+                <!-- LEFT HIP -->
+                <rect t-attf-class="bp {{ isSelected('left_hip') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_hip')"
+                      x="57" y="203" width="25" height="40" rx="8"><title>Left Hip</title></rect>
+                <text class="bpl" x="70" y="227">L.Hip</text>
+
+                <!-- RIGHT HIP -->
+                <rect t-attf-class="bp {{ isSelected('right_hip') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_hip')"
+                      x="118" y="203" width="25" height="40" rx="8"><title>Right Hip</title></rect>
+                <text class="bpl" x="131" y="227">R.Hip</text>
+
+                <!-- LEFT ARM (upper + forearm as one long region) -->
+                <rect t-attf-class="bp {{ isSelected('left_arm') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_arm')"
+                      x="39" y="85" width="26" height="148" rx="10"><title>Left Arm</title></rect>
+                <text class="bpl" x="52" y="162">L.Arm</text>
+
+                <!-- RIGHT ARM -->
+                <rect t-attf-class="bp {{ isSelected('right_arm') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_arm')"
+                      x="135" y="85" width="26" height="148" rx="10"><title>Right Arm</title></rect>
+                <text class="bpl" x="148" y="162">R.Arm</text>
+
+                <!-- LEFT ELBOW (overlaid on arm) -->
+                <ellipse t-attf-class="bp {{ isSelected('left_elbow') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_elbow')"
+                         cx="52" cy="185" rx="17" ry="13"><title>Left Elbow</title></ellipse>
+                <text class="bpl" x="52" y="188">L.Elbow</text>
+
+                <!-- RIGHT ELBOW -->
+                <ellipse t-attf-class="bp {{ isSelected('right_elbow') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_elbow')"
+                         cx="148" cy="185" rx="17" ry="13"><title>Right Elbow</title></ellipse>
+                <text class="bpl" x="148" y="188">R.Elbow</text>
+
+                <!-- LEFT HAND -->
+                <ellipse t-attf-class="bp {{ isSelected('left_hand') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_hand')"
+                         cx="52" cy="253" rx="17" ry="19"><title>Left Hand</title></ellipse>
+                <text class="bpl" x="52" y="256">L.Hand</text>
+
+                <!-- RIGHT HAND -->
+                <ellipse t-attf-class="bp {{ isSelected('right_hand') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_hand')"
+                         cx="148" cy="253" rx="17" ry="19"><title>Right Hand</title></ellipse>
+                <text class="bpl" x="148" y="256">R.Hand</text>
+
+                <!-- LEFT THIGH -->
+                <rect t-attf-class="bp {{ isSelected('left_thigh') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_thigh')"
+                      x="78" y="240" width="21" height="86" rx="5"><title>Left Thigh</title></rect>
+                <text class="bpl" x="88" y="286">L.Thigh</text>
+
+                <!-- RIGHT THIGH -->
+                <rect t-attf-class="bp {{ isSelected('right_thigh') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_thigh')"
+                      x="101" y="240" width="21" height="86" rx="5"><title>Right Thigh</title></rect>
+                <text class="bpl" x="111" y="286">R.Thigh</text>
+
+                <!-- LEFT KNEE -->
+                <rect t-attf-class="bp {{ isSelected('left_knee') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_knee')"
+                      x="78" y="324" width="21" height="26" rx="5"><title>Left Knee</title></rect>
+                <text class="bpl" x="88" y="340">L.Knee</text>
+
+                <!-- RIGHT KNEE -->
+                <rect t-attf-class="bp {{ isSelected('right_knee') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_knee')"
+                      x="101" y="324" width="21" height="26" rx="5"><title>Right Knee</title></rect>
+                <text class="bpl" x="111" y="340">R.Knee</text>
+
+                <!-- LEFT SHIN -->
+                <rect t-attf-class="bp {{ isSelected('left_shin') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_shin')"
+                      x="80" y="348" width="19" height="86" rx="5"><title>Left Shin</title></rect>
+                <text class="bpl" x="89" y="394">L.Shin</text>
+
+                <!-- RIGHT SHIN -->
+                <rect t-attf-class="bp {{ isSelected('right_shin') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_shin')"
+                      x="101" y="348" width="19" height="86" rx="5"><title>Right Shin</title></rect>
+                <text class="bpl" x="110" y="394">R.Shin</text>
+
+                <!-- LEFT FOOT -->
+                <ellipse t-attf-class="bp {{ isSelected('left_foot') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_foot')"
+                         cx="85" cy="452" rx="18" ry="13"><title>Left Foot</title></ellipse>
+                <text class="bpl" x="85" y="455">L.Foot</text>
+
+                <!-- RIGHT FOOT -->
+                <ellipse t-attf-class="bp {{ isSelected('right_foot') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_foot')"
+                         cx="115" cy="452" rx="18" ry="13"><title>Right Foot</title></ellipse>
+                <text class="bpl" x="115" y="455">R.Foot</text>
+
+                <text font-size="7" fill="#bbb" x="8" y="490" font-style="italic">← Left</text>
+                <text font-size="7" fill="#bbb" x="144" y="490" font-style="italic">Right →</text>
+            </svg>
+            </t>
+
+            <!-- ─── BACK VIEW ───────────────────────────────────────────────── -->
+            <t t-if="!isFrontView">
+            <svg viewBox="0 0 200 500" xmlns="http://www.w3.org/2000/svg"
+                 width="185" height="462" style="display:block;user-select:none;">
+                <style>
+                    .bp{fill:#e8edf2;stroke:#8fa3b8;stroke-width:1.5;cursor:pointer;transition:fill .15s;}
+                    .bp:hover{fill:#c5d6e8;}
+                    .bp.sel{fill:#3399ff;stroke:#0066cc;}
+                    .bpl{font-size:6.5px;fill:#333;text-anchor:middle;pointer-events:none;font-family:sans-serif;}
+                </style>
+
+                <!-- HEAD -->
+                <ellipse t-attf-class="bp {{ isSelected('head') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('head')"
+                         cx="100" cy="38" rx="33" ry="35"><title>Head</title></ellipse>
+                <text class="bpl" x="100" y="41">Head</text>
+
+                <!-- NECK -->
+                <rect t-attf-class="bp {{ isSelected('neck') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('neck')"
+                      x="89" y="71" width="22" height="18" rx="4"><title>Neck</title></rect>
+                <text class="bpl" x="100" y="83">Neck</text>
+
+                <!-- LEFT SHOULDER -->
+                <ellipse t-attf-class="bp {{ isSelected('left_shoulder') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_shoulder')"
+                         cx="62" cy="97" rx="22" ry="17"><title>Left Shoulder</title></ellipse>
+                <text class="bpl" x="62" y="100">L.Shldr</text>
+
+                <!-- RIGHT SHOULDER -->
+                <ellipse t-attf-class="bp {{ isSelected('right_shoulder') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_shoulder')"
+                         cx="138" cy="97" rx="22" ry="17"><title>Right Shoulder</title></ellipse>
+                <text class="bpl" x="138" y="100">R.Shldr</text>
+
+                <!-- UPPER BACK -->
+                <rect t-attf-class="bp {{ isSelected('upper_back') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('upper_back')"
+                      x="74" y="87" width="52" height="65" rx="5"><title>Upper Back</title></rect>
+                <text class="bpl" x="100" y="123">Upper Back</text>
+
+                <!-- LOWER BACK -->
+                <rect t-attf-class="bp {{ isSelected('lower_back') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lower_back')"
+                      x="77" y="150" width="46" height="52" rx="5"><title>Lower Back</title></rect>
+                <text class="bpl" x="100" y="180">Lower Back</text>
+
+                <!-- LEFT BUTTOCK -->
+                <rect t-attf-class="bp {{ isSelected('left_buttock') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_buttock')"
+                      x="80" y="200" width="20" height="38" rx="5"><title>Left Buttock</title></rect>
+                <text class="bpl" x="90" y="223">L.But</text>
+
+                <!-- RIGHT BUTTOCK -->
+                <rect t-attf-class="bp {{ isSelected('right_buttock') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_buttock')"
+                      x="100" y="200" width="20" height="38" rx="5"><title>Right Buttock</title></rect>
+                <text class="bpl" x="110" y="223">R.But</text>
+
+                <!-- LEFT HIP -->
+                <rect t-attf-class="bp {{ isSelected('left_hip') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_hip')"
+                      x="57" y="203" width="25" height="40" rx="8"><title>Left Hip</title></rect>
+                <text class="bpl" x="70" y="227">L.Hip</text>
+
+                <!-- RIGHT HIP -->
+                <rect t-attf-class="bp {{ isSelected('right_hip') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_hip')"
+                      x="118" y="203" width="25" height="40" rx="8"><title>Right Hip</title></rect>
+                <text class="bpl" x="131" y="227">R.Hip</text>
+
+                <!-- LEFT ARM -->
+                <rect t-attf-class="bp {{ isSelected('left_arm') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_arm')"
+                      x="39" y="85" width="26" height="148" rx="10"><title>Left Arm</title></rect>
+                <text class="bpl" x="52" y="162">L.Arm</text>
+
+                <!-- RIGHT ARM -->
+                <rect t-attf-class="bp {{ isSelected('right_arm') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_arm')"
+                      x="135" y="85" width="26" height="148" rx="10"><title>Right Arm</title></rect>
+                <text class="bpl" x="148" y="162">R.Arm</text>
+
+                <!-- LEFT ELBOW -->
+                <ellipse t-attf-class="bp {{ isSelected('left_elbow') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_elbow')"
+                         cx="52" cy="185" rx="17" ry="13"><title>Left Elbow</title></ellipse>
+                <text class="bpl" x="52" y="188">L.Elbow</text>
+
+                <!-- RIGHT ELBOW -->
+                <ellipse t-attf-class="bp {{ isSelected('right_elbow') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_elbow')"
+                         cx="148" cy="185" rx="17" ry="13"><title>Right Elbow</title></ellipse>
+                <text class="bpl" x="148" y="188">R.Elbow</text>
+
+                <!-- LEFT HAND -->
+                <ellipse t-attf-class="bp {{ isSelected('left_hand') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_hand')"
+                         cx="52" cy="253" rx="17" ry="19"><title>Left Hand</title></ellipse>
+                <text class="bpl" x="52" y="256">L.Hand</text>
+
+                <!-- RIGHT HAND -->
+                <ellipse t-attf-class="bp {{ isSelected('right_hand') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_hand')"
+                         cx="148" cy="253" rx="17" ry="19"><title>Right Hand</title></ellipse>
+                <text class="bpl" x="148" y="256">R.Hand</text>
+
+                <!-- LEFT THIGH -->
+                <rect t-attf-class="bp {{ isSelected('left_thigh') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_thigh')"
+                      x="78" y="240" width="21" height="86" rx="5"><title>Left Thigh</title></rect>
+                <text class="bpl" x="88" y="286">L.Thigh</text>
+
+                <!-- RIGHT THIGH -->
+                <rect t-attf-class="bp {{ isSelected('right_thigh') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_thigh')"
+                      x="101" y="240" width="21" height="86" rx="5"><title>Right Thigh</title></rect>
+                <text class="bpl" x="111" y="286">R.Thigh</text>
+
+                <!-- LEFT KNEE -->
+                <rect t-attf-class="bp {{ isSelected('left_knee') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_knee')"
+                      x="78" y="324" width="21" height="26" rx="5"><title>Left Knee</title></rect>
+                <text class="bpl" x="88" y="340">L.Knee</text>
+
+                <!-- RIGHT KNEE -->
+                <rect t-attf-class="bp {{ isSelected('right_knee') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_knee')"
+                      x="101" y="324" width="21" height="26" rx="5"><title>Right Knee</title></rect>
+                <text class="bpl" x="111" y="340">R.Knee</text>
+
+                <!-- LEFT SHIN (back = calf) -->
+                <rect t-attf-class="bp {{ isSelected('left_shin') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('left_shin')"
+                      x="80" y="348" width="19" height="86" rx="5"><title>Left Shin / Calf</title></rect>
+                <text class="bpl" x="89" y="394">L.Calf</text>
+
+                <!-- RIGHT SHIN (back = calf) -->
+                <rect t-attf-class="bp {{ isSelected('right_shin') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('right_shin')"
+                      x="101" y="348" width="19" height="86" rx="5"><title>Right Shin / Calf</title></rect>
+                <text class="bpl" x="110" y="394">R.Calf</text>
+
+                <!-- LEFT FOOT -->
+                <ellipse t-attf-class="bp {{ isSelected('left_foot') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('left_foot')"
+                         cx="85" cy="452" rx="18" ry="13"><title>Left Foot</title></ellipse>
+                <text class="bpl" x="85" y="455">L.Foot</text>
+
+                <!-- RIGHT FOOT -->
+                <ellipse t-attf-class="bp {{ isSelected('right_foot') ? 'sel' : '' }}"
+                         t-on-click="() => this.toggle('right_foot')"
+                         cx="115" cy="452" rx="18" ry="13"><title>Right Foot</title></ellipse>
+                <text class="bpl" x="115" y="455">R.Foot</text>
+
+                <text font-size="7" fill="#bbb" x="8" y="490" font-style="italic">← Left</text>
+                <text font-size="7" fill="#bbb" x="144" y="490" font-style="italic">Right →</text>
+            </svg>
+            </t>
+
+        </div><!-- end main SVG wrapper -->
+
+        <!-- ═══════════════════════════════════════════════════════════════════
+             SELECTION SUMMARY
+             ═══════════════════════════════════════════════════════════════════ -->
+        <div class="o_body_parts_summary" style="flex:1;min-width:160px;">
+            <div class="fw-semibold mb-1 small text-muted">Selected body parts:</div>
+            <t t-if="selectedParts.length === 0">
+                <div class="text-muted fst-italic small">
+                    Click body regions on the diagram to select them.
+                </div>
+            </t>
+            <t t-else="">
+                <div class="d-flex flex-wrap gap-1">
+                    <t t-foreach="selectedParts" t-as="part" t-key="part.code">
+                        <span class="badge rounded-pill bg-primary d-inline-flex align-items-center gap-1"
+                              style="font-size:0.75rem;padding:4px 8px;">
+                            <t t-esc="part.label"/>
+                            <t t-if="!props.readonly">
+                                <button type="button"
+                                        class="btn-close btn-close-white"
+                                        style="font-size:0.55rem;margin-left:2px;"
+                                        t-on-click="() => this.removeTag(part.code)"/>
+                            </t>
+                        </span>
+                    </t>
+                </div>
+            </t>
+            <t t-if="!props.readonly">
+                <div class="mt-2 small text-muted">
+                    <i class="fa fa-info-circle me-1"/>
+                    Selections persist across Front / Back toggle.
+                </div>
+            </t>
+        </div>
+
+    </div><!-- end d-flex main row -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SUB-DETAIL SVGs — shown conditionally below the main figure
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ─── HEAD DETAIL ──────────────────────────────────────────────────── -->
+    <t t-if="showHeadDetail">
+    <div class="mt-3 p-2 border rounded" style="background:#f8f9fa;">
+        <div class="small fw-semibold text-muted mb-2">
+            <i class="fa fa-search-plus me-1"/>Head — detailed regions
+        </div>
+        <svg viewBox="0 0 220 230" xmlns="http://www.w3.org/2000/svg"
+             width="220" height="230" style="display:block;user-select:none;">
+            <style>
+                .bp{fill:#e8edf2;stroke:#8fa3b8;stroke-width:1.5;cursor:pointer;transition:fill .15s;}
+                .bp:hover{fill:#c5d6e8;}
+                .bp.sel{fill:#3399ff;stroke:#0066cc;}
+                .bpl{font-size:6.5px;fill:#333;text-anchor:middle;pointer-events:none;font-family:sans-serif;}
+            </style>
+
+            <!-- CROWN -->
+            <ellipse t-attf-class="bp {{ isSelected('hd_crown') ? 'sel' : '' }}"
+                     t-on-click="() => this.toggle('hd_crown')"
+                     cx="110" cy="16" rx="55" ry="18"><title>Crown</title></ellipse>
+            <text class="bpl" x="110" y="19">Crown</text>
+
+            <!-- FOREHEAD -->
+            <rect t-attf-class="bp {{ isSelected('hd_forehead') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_forehead')"
+                  x="58" y="16" width="104" height="40" rx="5"><title>Forehead</title></rect>
+            <text class="bpl" x="110" y="40">Forehead</text>
+
+            <!-- LEFT FACE (viewer left) -->
+            <rect t-attf-class="bp {{ isSelected('hd_left_face') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_left_face')"
+                  x="28" y="54" width="56" height="86" rx="10"><title>Left Face</title></rect>
+            <text class="bpl" x="56" y="120">Left Face</text>
+
+            <!-- RIGHT FACE (viewer right) -->
+            <rect t-attf-class="bp {{ isSelected('hd_right_face') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_right_face')"
+                  x="136" y="54" width="56" height="86" rx="10"><title>Right Face</title></rect>
+            <text class="bpl" x="164" y="120">Right Face</text>
+
+            <!-- LEFT EYE -->
+            <ellipse t-attf-class="bp {{ isSelected('hd_left_eye') ? 'sel' : '' }}"
+                     t-on-click="() => this.toggle('hd_left_eye')"
+                     cx="70" cy="78" rx="22" ry="12"><title>Left Eye</title></ellipse>
+            <text class="bpl" x="70" y="81">Left Eye</text>
+
+            <!-- RIGHT EYE -->
+            <ellipse t-attf-class="bp {{ isSelected('hd_right_eye') ? 'sel' : '' }}"
+                     t-on-click="() => this.toggle('hd_right_eye')"
+                     cx="150" cy="78" rx="22" ry="12"><title>Right Eye</title></ellipse>
+            <text class="bpl" x="150" y="81">Right Eye</text>
+
+            <!-- NOSE -->
+            <rect t-attf-class="bp {{ isSelected('hd_nose') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_nose')"
+                  x="96" y="91" width="28" height="30" rx="10"><title>Nose</title></rect>
+            <text class="bpl" x="110" y="110">Nose</text>
+
+            <!-- MOUTH -->
+            <rect t-attf-class="bp {{ isSelected('hd_mouth') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_mouth')"
+                  x="78" y="123" width="64" height="20" rx="8"><title>Mouth</title></rect>
+            <text class="bpl" x="110" y="136">Mouth</text>
+
+            <!-- TEETH -->
+            <rect t-attf-class="bp {{ isSelected('hd_teeth') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_teeth')"
+                  x="86" y="127" width="48" height="12" rx="4"><title>Teeth</title></rect>
+            <text class="bpl" x="110" y="135">Teeth</text>
+
+            <!-- BACK OF HEAD -->
+            <rect t-attf-class="bp {{ isSelected('hd_back_of_head') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_back_of_head')"
+                  x="58" y="148" width="104" height="32" rx="12"><title>Back of Head</title></rect>
+            <text class="bpl" x="110" y="168">Back of Head</text>
+
+            <!-- MENTAL HEALTH -->
+            <rect t-attf-class="bp {{ isSelected('hd_mental_health') ? 'sel' : '' }}"
+                  t-on-click="() => this.toggle('hd_mental_health')"
+                  x="50" y="185" width="120" height="34" rx="8"
+                  stroke-dasharray="4 2"><title>Mental Health</title></rect>
+            <text class="bpl" x="110" y="200">Mental Health</text>
+            <text style="font-size:6px;fill:#888;text-anchor:middle;pointer-events:none;font-family:sans-serif;"
+                  x="110" y="212">(psychological impact)</text>
+        </svg>
+    </div>
+    </t>
+
+    <!-- ─── HAND DETAILS ─────────────────────────────────────────────────── -->
+    <t t-if="showLeftHand or showRightHand">
+    <div class="mt-3 d-flex flex-wrap gap-4">
+
+        <!-- LEFT HAND -->
+        <t t-if="showLeftHand">
+        <div class="p-2 border rounded" style="background:#f8f9fa;">
+            <div class="small fw-semibold text-muted mb-2">
+                <i class="fa fa-search-plus me-1"/>Left Hand — detailed regions
+            </div>
+            <!-- Left hand palm-up: thumb on right, pinky on left -->
+            <svg viewBox="0 0 155 215" xmlns="http://www.w3.org/2000/svg"
+                 width="155" height="215" style="display:block;user-select:none;">
+                <style>
+                    .bp{fill:#e8edf2;stroke:#8fa3b8;stroke-width:1.5;cursor:pointer;transition:fill .15s;}
+                    .bp:hover{fill:#c5d6e8;}
+                    .bp.sel{fill:#3399ff;stroke:#0066cc;}
+                    .bpl{font-size:6px;fill:#333;text-anchor:middle;pointer-events:none;font-family:sans-serif;}
+                </style>
+                <!-- Pinky (leftmost) -->
+                <rect t-attf-class="bp {{ isSelected('lhand_pinky') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lhand_pinky')"
+                      x="4" y="22" width="20" height="58" rx="8"><title>Left Pinky</title></rect>
+                <text class="bpl" x="14" y="54">Pinky</text>
+                <!-- Ring -->
+                <rect t-attf-class="bp {{ isSelected('lhand_ring') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lhand_ring')"
+                      x="28" y="12" width="22" height="68" rx="8"><title>Left Ring Finger</title></rect>
+                <text class="bpl" x="39" y="48">Ring</text>
+                <!-- Middle -->
+                <rect t-attf-class="bp {{ isSelected('lhand_middle') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lhand_middle')"
+                      x="54" y="6" width="22" height="74" rx="8"><title>Left Middle Finger</title></rect>
+                <text class="bpl" x="65" y="44">Mid</text>
+                <!-- Index -->
+                <rect t-attf-class="bp {{ isSelected('lhand_index') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lhand_index')"
+                      x="80" y="12" width="22" height="68" rx="8"><title>Left Index Finger</title></rect>
+                <text class="bpl" x="91" y="48">Index</text>
+                <!-- Thumb (rightmost for left hand palm-up) -->
+                <rect t-attf-class="bp {{ isSelected('lhand_thumb') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lhand_thumb')"
+                      x="107" y="42" width="26" height="58" rx="12"><title>Left Thumb</title></rect>
+                <text class="bpl" x="120" y="72">Thumb</text>
+                <!-- Palm -->
+                <rect t-attf-class="bp {{ isSelected('lhand_palm') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lhand_palm')"
+                      x="4" y="76" width="126" height="90" rx="12"><title>Left Palm</title></rect>
+                <text class="bpl" x="67" y="126">Palm</text>
+                <text style="font-size:6px;fill:#aaa;text-anchor:middle;font-family:sans-serif;"
+                      x="77" y="206">Left Hand (palm view)</text>
+            </svg>
+        </div>
+        </t>
+
+        <!-- RIGHT HAND -->
+        <t t-if="showRightHand">
+        <div class="p-2 border rounded" style="background:#f8f9fa;">
+            <div class="small fw-semibold text-muted mb-2">
+                <i class="fa fa-search-plus me-1"/>Right Hand — detailed regions
+            </div>
+            <!-- Right hand palm-up: thumb on left, pinky on right -->
+            <svg viewBox="0 0 155 215" xmlns="http://www.w3.org/2000/svg"
+                 width="155" height="215" style="display:block;user-select:none;">
+                <style>
+                    .bp{fill:#e8edf2;stroke:#8fa3b8;stroke-width:1.5;cursor:pointer;transition:fill .15s;}
+                    .bp:hover{fill:#c5d6e8;}
+                    .bp.sel{fill:#3399ff;stroke:#0066cc;}
+                    .bpl{font-size:6px;fill:#333;text-anchor:middle;pointer-events:none;font-family:sans-serif;}
+                </style>
+                <!-- Thumb (leftmost for right hand palm-up) -->
+                <rect t-attf-class="bp {{ isSelected('rhand_thumb') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rhand_thumb')"
+                      x="5" y="42" width="26" height="58" rx="12"><title>Right Thumb</title></rect>
+                <text class="bpl" x="18" y="72">Thumb</text>
+                <!-- Index -->
+                <rect t-attf-class="bp {{ isSelected('rhand_index') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rhand_index')"
+                      x="36" y="12" width="22" height="68" rx="8"><title>Right Index Finger</title></rect>
+                <text class="bpl" x="47" y="48">Index</text>
+                <!-- Middle -->
+                <rect t-attf-class="bp {{ isSelected('rhand_middle') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rhand_middle')"
+                      x="62" y="6" width="22" height="74" rx="8"><title>Right Middle Finger</title></rect>
+                <text class="bpl" x="73" y="44">Mid</text>
+                <!-- Ring -->
+                <rect t-attf-class="bp {{ isSelected('rhand_ring') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rhand_ring')"
+                      x="88" y="12" width="22" height="68" rx="8"><title>Right Ring Finger</title></rect>
+                <text class="bpl" x="99" y="48">Ring</text>
+                <!-- Pinky (rightmost) -->
+                <rect t-attf-class="bp {{ isSelected('rhand_pinky') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rhand_pinky')"
+                      x="114" y="22" width="20" height="58" rx="8"><title>Right Pinky</title></rect>
+                <text class="bpl" x="124" y="54">Pinky</text>
+                <!-- Palm -->
+                <rect t-attf-class="bp {{ isSelected('rhand_palm') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rhand_palm')"
+                      x="4" y="76" width="126" height="90" rx="12"><title>Right Palm</title></rect>
+                <text class="bpl" x="67" y="126">Palm</text>
+                <text style="font-size:6px;fill:#aaa;text-anchor:middle;font-family:sans-serif;"
+                      x="77" y="206">Right Hand (palm view)</text>
+            </svg>
+        </div>
+        </t>
+
+    </div>
+    </t>
+
+    <!-- ─── FOOT DETAILS ─────────────────────────────────────────────────── -->
+    <t t-if="showLeftFoot or showRightFoot">
+    <div class="mt-3 d-flex flex-wrap gap-4">
+
+        <!-- LEFT FOOT -->
+        <t t-if="showLeftFoot">
+        <div class="p-2 border rounded" style="background:#f8f9fa;">
+            <div class="small fw-semibold text-muted mb-2">
+                <i class="fa fa-search-plus me-1"/>Left Foot — detailed regions
+            </div>
+            <!-- Left foot top/dorsal view: big toe on RIGHT, little toe on LEFT -->
+            <svg viewBox="0 0 135 225" xmlns="http://www.w3.org/2000/svg"
+                 width="135" height="225" style="display:block;user-select:none;">
+                <style>
+                    .bp{fill:#e8edf2;stroke:#8fa3b8;stroke-width:1.5;cursor:pointer;transition:fill .15s;}
+                    .bp:hover{fill:#c5d6e8;}
+                    .bp.sel{fill:#3399ff;stroke:#0066cc;}
+                    .bpl{font-size:6px;fill:#333;text-anchor:middle;pointer-events:none;font-family:sans-serif;}
+                </style>
+                <!-- Toe 5 / Little (leftmost) -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_toe5') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_toe5')"
+                      x="4" y="10" width="15" height="26" rx="6"><title>Left Toe 5</title></rect>
+                <text class="bpl" x="11" y="26">T5</text>
+                <!-- Toe 4 -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_toe4') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_toe4')"
+                      x="22" y="7" width="17" height="30" rx="6"><title>Left Toe 4</title></rect>
+                <text class="bpl" x="30" y="25">T4</text>
+                <!-- Toe 3 -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_toe3') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_toe3')"
+                      x="42" y="4" width="18" height="34" rx="6"><title>Left Toe 3</title></rect>
+                <text class="bpl" x="51" y="24">T3</text>
+                <!-- Toe 2 -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_toe2') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_toe2')"
+                      x="63" y="4" width="18" height="34" rx="6"><title>Left Toe 2</title></rect>
+                <text class="bpl" x="72" y="24">T2</text>
+                <!-- Big Toe (rightmost for left foot dorsal view) -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_big_toe') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_big_toe')"
+                      x="84" y="6" width="28" height="38" rx="10"><title>Left Big Toe</title></rect>
+                <text class="bpl" x="98" y="28">Big Toe</text>
+                <!-- Ball of Foot -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_ball') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_ball')"
+                      x="4" y="40" width="112" height="30" rx="5"><title>Ball of Foot</title></rect>
+                <text class="bpl" x="60" y="59">Ball of Foot</text>
+                <!-- Upper Foot / Dorsum -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_upper') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_upper')"
+                      x="10" y="68" width="96" height="78" rx="5"><title>Upper Foot</title></rect>
+                <text class="bpl" x="58" y="112">Upper Foot</text>
+                <!-- Sole / Heel -->
+                <rect t-attf-class="bp {{ isSelected('lfoot_sole') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('lfoot_sole')"
+                      x="18" y="144" width="80" height="56" rx="20"><title>Sole / Heel</title></rect>
+                <text class="bpl" x="58" y="176">Sole / Heel</text>
+                <text style="font-size:6px;fill:#aaa;text-anchor:middle;font-family:sans-serif;"
+                      x="60" y="215">Left Foot (top view)</text>
+            </svg>
+        </div>
+        </t>
+
+        <!-- RIGHT FOOT -->
+        <t t-if="showRightFoot">
+        <div class="p-2 border rounded" style="background:#f8f9fa;">
+            <div class="small fw-semibold text-muted mb-2">
+                <i class="fa fa-search-plus me-1"/>Right Foot — detailed regions
+            </div>
+            <!-- Right foot top/dorsal view: big toe on LEFT, little toe on RIGHT -->
+            <svg viewBox="0 0 135 225" xmlns="http://www.w3.org/2000/svg"
+                 width="135" height="225" style="display:block;user-select:none;">
+                <style>
+                    .bp{fill:#e8edf2;stroke:#8fa3b8;stroke-width:1.5;cursor:pointer;transition:fill .15s;}
+                    .bp:hover{fill:#c5d6e8;}
+                    .bp.sel{fill:#3399ff;stroke:#0066cc;}
+                    .bpl{font-size:6px;fill:#333;text-anchor:middle;pointer-events:none;font-family:sans-serif;}
+                </style>
+                <!-- Big Toe (leftmost for right foot dorsal view) -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_big_toe') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_big_toe')"
+                      x="4" y="6" width="28" height="38" rx="10"><title>Right Big Toe</title></rect>
+                <text class="bpl" x="18" y="28">Big Toe</text>
+                <!-- Toe 2 -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_toe2') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_toe2')"
+                      x="35" y="4" width="18" height="34" rx="6"><title>Right Toe 2</title></rect>
+                <text class="bpl" x="44" y="24">T2</text>
+                <!-- Toe 3 -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_toe3') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_toe3')"
+                      x="56" y="4" width="18" height="34" rx="6"><title>Right Toe 3</title></rect>
+                <text class="bpl" x="65" y="24">T3</text>
+                <!-- Toe 4 -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_toe4') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_toe4')"
+                      x="77" y="7" width="17" height="30" rx="6"><title>Right Toe 4</title></rect>
+                <text class="bpl" x="85" y="25">T4</text>
+                <!-- Toe 5 / Little (rightmost) -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_toe5') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_toe5')"
+                      x="97" y="10" width="15" height="26" rx="6"><title>Right Toe 5</title></rect>
+                <text class="bpl" x="104" y="26">T5</text>
+                <!-- Ball of Foot -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_ball') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_ball')"
+                      x="4" y="40" width="112" height="30" rx="5"><title>Ball of Foot</title></rect>
+                <text class="bpl" x="60" y="59">Ball of Foot</text>
+                <!-- Upper Foot / Dorsum -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_upper') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_upper')"
+                      x="10" y="68" width="96" height="78" rx="5"><title>Upper Foot</title></rect>
+                <text class="bpl" x="58" y="112">Upper Foot</text>
+                <!-- Sole / Heel -->
+                <rect t-attf-class="bp {{ isSelected('rfoot_sole') ? 'sel' : '' }}"
+                      t-on-click="() => this.toggle('rfoot_sole')"
+                      x="18" y="144" width="80" height="56" rx="20"><title>Sole / Heel</title></rect>
+                <text class="bpl" x="58" y="176">Sole / Heel</text>
+                <text style="font-size:6px;fill:#aaa;text-anchor:middle;font-family:sans-serif;"
+                      x="60" y="215">Right Foot (top view)</text>
+            </svg>
+        </div>
+        </t>
+
+    </div>
+    </t>
+
+</div><!-- end o_body_part_widget -->
+</t>
+
+</templates>

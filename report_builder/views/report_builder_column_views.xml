@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Standalone list view for columns (used within report form) -->
+    <record id="view_report_builder_column_form" model="ir.ui.view">
+        <field name="name">report.builder.column.form</field>
+        <field name="model">report.builder.column</field>
+        <field name="arch" type="xml">
+            <form string="Column">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="field_path"
+                                   placeholder="e.g. partner_id.country_id.name"/>
+                            <field name="label" placeholder="Column Header"/>
+                            <field name="width"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

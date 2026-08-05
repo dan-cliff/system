@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Email Template Form View ─────────────────────────────────────── -->
+    <record id="membership_email_template_form_view" model="ir.ui.view">
+        <field name="name">membership.email.template.form</field>
+        <field name="model">membership.email.template</field>
+        <field name="arch" type="xml">
+            <form string="Email Template">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Template Name"/>
+                        <h1><field name="name" placeholder="e.g. Membership Welcome Email"/></h1>
+                    </div>
+
+                    <!-- Subject row with Fields button -->
+                    <div class="row align-items-center mb-2">
+                        <div class="col-10">
+                            <label for="subject" string="Subject"/>
+                            <field name="subject"
+                                   placeholder="Welcome [[partner_name]] — your membership [[name]] is active"/>
+                        </div>
+                        <div class="col-2 text-end">
+                            <button string="⊞ Fields"
+                                    name="action_open_field_browser"
+                                    type="object"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    title="Browse available merge fields"/>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <label for="body_html" string="Body"/>
+                    <field name="body_html"
+                           style="min-height: 300px;"
+                           placeholder="Dear [[partner_name]], ..."/>
+
+                    <!-- Attachments -->
+                    <notebook>
+                        <page string="Attachments" name="attachments">
+                            <group string="Uploaded Attachments" name="uploads">
+                                <field name="attachment_ids"
+                                       widget="many2many_binary"
+                                       nolabel="1"
+                                       colspan="2"
+                                       string="Files"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Email Template List View ─────────────────────────────────────── -->
+    <record id="membership_email_template_list_view" model="ir.ui.view">
+        <field name="name">membership.email.template.list</field>
+        <field name="model">membership.email.template</field>
+        <field name="arch" type="xml">
+            <list string="Email Templates">
+                <field name="id" string="ID"/>
+                <field name="name" string="Template Name"/>
+                <field name="subject" string="Subject"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Field Browser Dialog ──────────────────────────────────────────── -->
+    <record id="membership_email_field_browser_form" model="ir.ui.view">
+        <field name="name">membership.email.field.browser.form</field>
+        <field name="model">membership.email.field.browser</field>
+        <field name="arch" type="xml">
+            <form string="Available Merge Fields">
+                <sheet>
+                    <field name="field_table" nolabel="1" colspan="2" readonly="1" sanitize="0"/>
+                </sheet>
+                <footer>
+                    <button string="Close" special="cancel" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Window Action ─────────────────────────────────────────────────── -->
+    <record id="action_membership_email_templates" model="ir.actions.act_window">
+        <field name="name">Email Templates</field>
+        <field name="res_model">membership.email.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No email templates yet.</p>
+            <p>
+                Create a template with a subject and body using
+                <strong>[[ field_name ]]</strong> merge codes that are
+                automatically replaced with membership data when the email is sent.
+            </p>
+        </field>
+    </record>
+
+</odoo>

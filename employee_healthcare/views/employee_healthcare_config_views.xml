@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Medication Types
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_medication_type_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.medication.type.list</field>
+        <field name="model">employee.healthcare.medication.type</field>
+        <field name="arch" type="xml">
+            <list string="Medication Types">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_medication_type_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.medication.type.form</field>
+        <field name="model">employee.healthcare.medication.type</field>
+        <field name="arch" type="xml">
+            <form string="Medication Type">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Medication type name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_medication_type" model="ir.actions.act_window">
+        <field name="name">Medication Types</field>
+        <field name="res_model">employee.healthcare.medication.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a medication type</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Medication Frequencies
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_medication_frequency_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.medication.frequency.list</field>
+        <field name="model">employee.healthcare.medication.frequency</field>
+        <field name="arch" type="xml">
+            <list string="Medication Frequencies">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_medication_frequency_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.medication.frequency.form</field>
+        <field name="model">employee.healthcare.medication.frequency</field>
+        <field name="arch" type="xml">
+            <form string="Medication Frequency">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Frequency name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_medication_frequency" model="ir.actions.act_window">
+        <field name="name">Medication Frequencies</field>
+        <field name="res_model">employee.healthcare.medication.frequency</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a medication frequency</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Allergy Types
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_allergy_type_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.allergy.type.list</field>
+        <field name="model">employee.healthcare.allergy.type</field>
+        <field name="arch" type="xml">
+            <list string="Allergy Types">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_allergy_type_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.allergy.type.form</field>
+        <field name="model">employee.healthcare.allergy.type</field>
+        <field name="arch" type="xml">
+            <form string="Allergy Type">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Allergy type name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_allergy_type" model="ir.actions.act_window">
+        <field name="name">Allergy Types</field>
+        <field name="res_model">employee.healthcare.allergy.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add an allergy type</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Allergy Severities
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_allergy_severity_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.allergy.severity.list</field>
+        <field name="model">employee.healthcare.allergy.severity</field>
+        <field name="arch" type="xml">
+            <list string="Allergy Severities">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="color" widget="color" string=" " nolabel="1"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_allergy_severity_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.allergy.severity.form</field>
+        <field name="model">employee.healthcare.allergy.severity</field>
+        <field name="arch" type="xml">
+            <form string="Allergy Severity">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Severity level name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="color" widget="color_picker"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_allergy_severity" model="ir.actions.act_window">
+        <field name="name">Allergy Severities</field>
+        <field name="res_model">employee.healthcare.allergy.severity</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add an allergy severity level</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Health Alert Types
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_alert_type_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.alert.type.list</field>
+        <field name="model">employee.healthcare.alert.type</field>
+        <field name="arch" type="xml">
+            <list string="Health Alert Types">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="months_to_review"/>
+                <field name="require_care_plan"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_alert_type_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.alert.type.form</field>
+        <field name="model">employee.healthcare.alert.type</field>
+        <field name="arch" type="xml">
+            <form string="Health Alert Type">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Alert type name..."/></h1>
+                    </div>
+                    <group>
+                        <group string="Settings">
+                            <field name="months_to_review"/>
+                            <field name="require_care_plan"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_alert_type" model="ir.actions.act_window">
+        <field name="name">Health Alert Types</field>
+        <field name="res_model">employee.healthcare.alert.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a health alert type</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Directive Types
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_directive_type_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.directive.type.list</field>
+        <field name="model">employee.healthcare.directive.type</field>
+        <field name="arch" type="xml">
+            <list string="Directive Types">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_directive_type_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.directive.type.form</field>
+        <field name="model">employee.healthcare.directive.type</field>
+        <field name="arch" type="xml">
+            <form string="Directive / Proxy Type">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Directive type name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_directive_type" model="ir.actions.act_window">
+        <field name="name">Directive / Proxy Types</field>
+        <field name="res_model">employee.healthcare.directive.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a directive type</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Private Health Insurers
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_insurer_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.insurer.list</field>
+        <field name="model">employee.healthcare.insurer</field>
+        <field name="arch" type="xml">
+            <list string="Private Health Insurers">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_insurer_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.insurer.form</field>
+        <field name="model">employee.healthcare.insurer</field>
+        <field name="arch" type="xml">
+            <form string="Private Health Insurer">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Insurer name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_insurer" model="ir.actions.act_window">
+        <field name="name">Private Health Insurers</field>
+        <field name="res_model">employee.healthcare.insurer</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a private health insurer</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Ambulance Providers
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_ambulance_provider_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.ambulance.provider.list</field>
+        <field name="model">employee.healthcare.ambulance.provider</field>
+        <field name="arch" type="xml">
+            <list string="Ambulance Providers">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_ambulance_provider_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.ambulance.provider.form</field>
+        <field name="model">employee.healthcare.ambulance.provider</field>
+        <field name="arch" type="xml">
+            <form string="Ambulance Provider">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Provider name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_ambulance_provider" model="ir.actions.act_window">
+        <field name="name">Ambulance Providers</field>
+        <field name="res_model">employee.healthcare.ambulance.provider</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add an ambulance provider</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Health Alert Severities
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_alert_severity_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.alert.severity.list</field>
+        <field name="model">employee.healthcare.alert.severity</field>
+        <field name="arch" type="xml">
+            <list string="Alert Severities">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="color" widget="color" string=" " nolabel="1"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_healthcare_alert_severity_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.alert.severity.form</field>
+        <field name="model">employee.healthcare.alert.severity</field>
+        <field name="arch" type="xml">
+            <form string="Alert Severity">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Severity level name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="color" widget="color_picker"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_healthcare_alert_severity" model="ir.actions.act_window">
+        <field name="name">Alert Severities</field>
+        <field name="res_model">employee.healthcare.alert.severity</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add an alert severity level</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Indicators
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_healthcare_indicator_form" model="ir.ui.view">
+        <field name="name">employee.healthcare.indicator.form</field>
+        <field name="model">employee.healthcare.indicator</field>
+        <field name="arch" type="xml">
+            <form string="Healthcare Indicator">
+                <header>
+                    <button name="action_reeval_all_employees"
+                            type="object"
+                            string="Re-evaluate All Employees"
+                            icon="fa-refresh"
+                            class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Indicator name..."/></h1>
+                    </div>
+                    <group>
+                        <group string="Settings">
+                            <field name="sequence"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="match_mode"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Summary">
+                            <field name="employee_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group col="1">
+                        <field name="description" placeholder="What does this indicator mean?"/>
+                    </group>
+                    <separator string="Rules"/>
+                    <p class="text-muted" style="margin: 0 0 8px;">
+                        Each rule is evaluated against the employee's healthcare record.
+                        The <strong>Match Mode</strong> controls whether all rules or any single
+                        rule must be satisfied to activate this indicator.
+                    </p>
+                    <field name="rule_ids" nolabel="1">
+                        <list string="Rules" editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="rule_type"/>
+                            <field name="relation_field"
+                                   invisible="rule_type != 'relation'"/>
+                            <field name="relation_condition"
+                                   invisible="rule_type != 'relation'"/>
+                            <field name="relation_domain"
+                                   invisible="rule_type != 'relation'"/>
+                            <field name="relation_count_threshold"
+                                   invisible="rule_type != 'relation' or relation_condition not in ['count_gt','count_gte','count_eq','count_lt']"
+                                   string="Threshold"/>
+                            <field name="employee_field"
+                                   invisible="rule_type != 'field'"/>
+                            <field name="field_operator"
+                                   invisible="rule_type != 'field'"/>
+                            <field name="field_value"
+                                   invisible="rule_type != 'field' or field_operator in ['set','not_set']"
+                                   string="Value"/>
+                            <field name="date_field"
+                                   invisible="rule_type != 'date'"/>
+                            <field name="date_condition"
+                                   invisible="rule_type != 'date'"/>
+                            <field name="date_threshold_days"
+                                   invisible="rule_type != 'date' or date_condition in ['is_set','is_not_set']"
+                                   string="Days"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_healthcare_indicator_list" model="ir.ui.view">
+        <field name="name">employee.healthcare.indicator.list</field>
+        <field name="model">employee.healthcare.indicator</field>
+        <field name="arch" type="xml">
+            <list string="Healthcare Indicators">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="match_mode"/>
+                <field name="rule_ids" string="Rules" widget="many2many_tags"/>
+                <field name="employee_count" string="Employees"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_healthcare_indicator" model="ir.actions.act_window">
+        <field name="name">Healthcare Indicators</field>
+        <field name="res_model">employee.healthcare.indicator</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No indicators defined yet — create one to start flagging employees automatically.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Top-level app menu — visible to all internal users -->
+    <menuitem
+        id="menu_wf_app_root"
+        name="Workflow Engine"
+        sequence="90"
+        web_icon="workflow_automation,static/description/icon.png"
+        groups="base.group_user"/>
+
+    <menuitem
+        id="menu_wf_automations"
+        name="Workflows"
+        parent="menu_wf_app_root"
+        action="action_wf_automation"
+        sequence="10"
+        groups="base.group_user"/>
+
+    <menuitem
+        id="menu_wf_execution_logs"
+        name="Execution Logs"
+        parent="menu_wf_app_root"
+        action="action_wf_execution_log"
+        sequence="20"
+        groups="base.group_user"/>
+
+    <!-- API Call Logs — visible to managers and system admins -->
+    <menuitem
+        id="menu_wf_api_call_logs"
+        name="API Call Logs"
+        parent="menu_wf_app_root"
+        action="action_wf_api_call_log"
+        sequence="30"
+        groups="workflow_automation.group_workflow_manager,base.group_system"/>
+
+    <!-- Configuration submenu — visible to managers and system admins -->
+    <menuitem
+        id="menu_wf_configuration"
+        name="Configuration"
+        parent="menu_wf_app_root"
+        sequence="90"
+        groups="workflow_automation.group_workflow_manager,base.group_system"/>
+
+    <menuitem
+        id="menu_wf_service_platforms"
+        name="Services &amp; Platforms"
+        parent="menu_wf_configuration"
+        action="action_wf_service_platform"
+        sequence="10"
+        groups="workflow_automation.group_workflow_manager,base.group_system"/>
+
+    <!-- Also under Settings > Technical for sysadmins in developer mode -->
+    <menuitem
+        id="menu_wf_root_technical"
+        name="Workflow Engine"
+        parent="base.menu_administration"
+        sequence="50"
+        groups="base.group_system"/>
+
+    <menuitem
+        id="menu_wf_automations_technical"
+        name="Workflows"
+        parent="menu_wf_root_technical"
+        action="action_wf_automation"
+        sequence="10"
+        groups="base.group_system"/>
+
+    <menuitem
+        id="menu_wf_execution_logs_technical"
+        name="Execution Logs"
+        parent="menu_wf_root_technical"
+        action="action_wf_execution_log"
+        sequence="20"
+        groups="base.group_system"/>
+
+</odoo>

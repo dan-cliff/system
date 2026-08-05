@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_meeting_send_notification_wizard_form" model="ir.ui.view">
+        <field name="name">meeting.send.notification.wizard.form</field>
+        <field name="model">meeting.send.notification.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send Meeting Notification">
+                <group>
+                    <field name="meeting_id" readonly="1"/>
+                    <field name="notification_template_id"
+                           domain="[('active','=',True)]"/>
+                    <field name="recipient_names" readonly="1"
+                           invisible="not notification_template_id"/>
+                </group>
+                <group string="Preview" invisible="not notification_template_id">
+                    <field name="preview_subject" readonly="1" string="Subject"/>
+                    <field name="preview_body" widget="html" readonly="1" string="Body"/>
+                </group>
+                <footer>
+                    <button name="action_send" string="Send" type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

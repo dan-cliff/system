@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TRAINING NEEDS ANALYSIS — Search View
+    ════════════════════════════════════════════════════════════ -->
+    <record id="view_lms_tna_search" model="ir.ui.view">
+        <field name="name">lms.tna.search</field>
+        <field name="model">lms.employee.record</field>
+        <field name="arch" type="xml">
+            <search string="Training Needs Analysis">
+
+                <!-- ── Search bar fields ── -->
+                <field name="employee_id"/>
+                <field name="course_id" string="Course"/>
+                <field name="course_type" string="Type"/>
+                <field name="delivery_mode" string="Delivery"/>
+                <field name="assignment_id" string="Package Assignment"/>
+                <field name="session_enrollment_id" string="Session Enrolment"/>
+
+                <!-- Absolute date search (type a date; Odoo offers is/before/after/between operators) -->
+                <field name="completion_date" string="Completed On" options='{"format": "dd/MM/yyyy"}'/>
+                <field name="expiry_date" string="Expires On" options='{"format": "dd/MM/yyyy"}'/>
+
+                <!-- ── Completed On — Relative Date Filters ── -->
+                <separator/>
+                <filter name="completed_today"
+                        string="Completed Today"
+                        domain="[('completion_date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_yesterday"
+                        string="Completed Yesterday"
+                        domain="[('completion_date', '=', (context_today() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_last_7_days"
+                        string="Completed Last 7 Days"
+                        domain="[('completion_date', '&gt;=', (context_today() + datetime.timedelta(days=-7)).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_wtd"
+                        string="Completed Week to Date"
+                        domain="[('completion_date', '&gt;=', (context_today() + datetime.timedelta(days=-context_today().weekday())).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_last_cal_week"
+                        string="Completed Last Calendar Week"
+                        domain="[('completion_date', '&gt;=', (context_today() + datetime.timedelta(days=-(context_today().weekday() + 7))).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', (context_today() + datetime.timedelta(days=-(context_today().weekday() + 1))).strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_mtd"
+                        string="Completed Month to Date"
+                        domain="[('completion_date', '&gt;=', context_today().replace(day=1).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_last_month"
+                        string="Completed in the Last Month"
+                        domain="[('completion_date', '&gt;=', (context_today() + datetime.timedelta(days=-30)).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_last_cal_month"
+                        string="Completed Last Calendar Month"
+                        domain="[('completion_date', '&gt;=', (context_today().replace(day=1) + datetime.timedelta(days=-1)).replace(day=1).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', (context_today().replace(day=1) + datetime.timedelta(days=-1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_ytd"
+                        string="Completed Year to Date"
+                        domain="[('completion_date', '&gt;=', context_today().replace(month=1, day=1).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="completed_last_year"
+                        string="Completed in the Last Year"
+                        domain="[('completion_date', '&gt;=', (context_today() + datetime.timedelta(days=-365)).strftime('%Y-%m-%d')),
+                                 ('completion_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+
+                <!-- ── Expires On — Relative Date Filters ── -->
+                <separator/>
+                <filter name="expires_today"
+                        string="Expires Today"
+                        domain="[('expiry_date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="expires_tomorrow"
+                        string="Expires Tomorrow"
+                        domain="[('expiry_date', '=', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="expires_next_7_days"
+                        string="Expires in the Next 7 Days"
+                        domain="[('expiry_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                                 ('expiry_date', '&lt;=', (context_today() + datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="expires_next_month"
+                        string="Expires in the Next Month"
+                        domain="[('expiry_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                                 ('expiry_date', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <filter name="expires_next_year"
+                        string="Expires in the Next Year"
+                        domain="[('expiry_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                                 ('expiry_date', '&lt;=', (context_today() + datetime.timedelta(days=365)).strftime('%Y-%m-%d'))]"/>
+                <filter name="expires_this_year"
+                        string="Expires This Year"
+                        domain="[('expiry_date', '&gt;=', context_today().replace(month=1, day=1).strftime('%Y-%m-%d')),
+                                 ('expiry_date', '&lt;=', context_today().replace(month=12, day=31).strftime('%Y-%m-%d'))]"/>
+
+                <!-- ── Group By ── -->
+                <group>
+                    <filter name="group_employee" string="Employee"
+                            context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_course" string="Course"
+                            context="{'group_by': 'course_id'}"/>
+                    <filter name="group_type" string="Type"
+                            context="{'group_by': 'course_type'}"/>
+                    <filter name="group_delivery" string="Delivery Mode"
+                            context="{'group_by': 'delivery_mode'}"/>
+                    <filter name="group_assignment" string="Package Assignment"
+                            context="{'group_by': 'assignment_id'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_completion_month" string="Completion Month"
+                            context="{'group_by': 'completion_date:month'}"/>
+                    <filter name="group_expiry_month" string="Expiry Month"
+                            context="{'group_by': 'expiry_date:month'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TRAINING NEEDS ANALYSIS — List View
+    ════════════════════════════════════════════════════════════ -->
+    <record id="view_lms_tna_list" model="ir.ui.view">
+        <field name="name">lms.tna.list</field>
+        <field name="model">lms.employee.record</field>
+        <field name="arch" type="xml">
+            <list string="Training Needs Analysis"
+                  create="0" delete="0"
+                  decoration-success="state == 'completed'"
+                  decoration-warning="state in ('in_progress', 'pending_upload', 'pending_verification')"
+                  decoration-danger="state in ('failed', 'expired')"
+                  decoration-muted="state == 'not_started'">
+                <field name="id" optional="show"/>
+                <field name="employee_id"/>
+                <field name="course_id" string="Course"/>
+                <field name="course_type" string="Type"/>
+                <field name="delivery_mode" string="Delivery"/>
+                <field name="assignment_id" string="Package Assignment" optional="show"/>
+                <field name="session_enrollment_id" string="Session Enrolment" optional="show"/>
+                <field name="state" string="Status"/>
+                <field name="completion_date" string="Completed On" options='{"format": "dd/MM/yyyy"}'/>
+                <field name="expiry_date" string="Expires On" options='{"format": "dd/MM/yyyy"}'/>
+                <field name="start_date" optional="hide" options='{"format": "dd/MM/yyyy"}'/>
+                <field name="score" optional="hide"/>
+                <field name="passed" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TRAINING NEEDS ANALYSIS — Pivot View
+    ════════════════════════════════════════════════════════════ -->
+    <record id="view_lms_tna_pivot" model="ir.ui.view">
+        <field name="name">lms.tna.pivot</field>
+        <field name="model">lms.employee.record</field>
+        <field name="arch" type="xml">
+            <pivot string="Training Needs Analysis" display_quantity="true">
+                <field name="employee_id" type="row"/>
+                <field name="course_type" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TRAINING NEEDS ANALYSIS — Graph View
+    ════════════════════════════════════════════════════════════ -->
+    <record id="view_lms_tna_graph" model="ir.ui.view">
+        <field name="name">lms.tna.graph</field>
+        <field name="model">lms.employee.record</field>
+        <field name="arch" type="xml">
+            <graph string="Training Needs Analysis" type="bar" stacked="1">
+                <field name="course_type" type="row"/>
+                <field name="state" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TRAINING NEEDS ANALYSIS — Client Action (matrix view)
+         Delete the old act_window so the XML ID can be reused.
+    ════════════════════════════════════════════════════════════ -->
+    <record id="action_lms_tna" model="ir.actions.client">
+        <field name="name">Training Needs Analysis</field>
+        <field name="tag">lms_tna_matrix</field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TRAINING RECORDS EXPIRING — Client Action
+    ════════════════════════════════════════════════════════════ -->
+    <record id="action_lms_expiring" model="ir.actions.client">
+        <field name="name">Training Records Expiring</field>
+        <field name="tag">lms_expiring_report</field>
+    </record>
+
+    <!-- ════════════════════════════════════════════════════════════
+         TRAINING SESSIONS REPORT — Client Action
+    ════════════════════════════════════════════════════════════ -->
+    <record id="action_lms_sessions_report" model="ir.actions.client">
+        <field name="name">Training Sessions</field>
+        <field name="tag">lms_sessions_report</field>
+    </record>
+
+</odoo>
