@@ -22,24 +22,6 @@
                         <field name="delivery" widget="radio" nolabel="1"/>
                     </group>
 
-                    <!-- IoT fields — shown only when delivery == iot -->
-                    <group string="IoT Display" invisible="delivery != 'iot'">
-                        <group>
-                            <field name="iot_box_id"
-                                   options="{'no_create': True, 'no_edit': True}"
-                                   placeholder="Select IoT box…"/>
-                        </group>
-                        <group>
-                            <field name="display_id"
-                                   options="{'no_create': True, 'no_edit': True}"
-                                   placeholder="Select display…"
-                                   invisible="not iot_box_id"/>
-                            <div invisible="iot_box_id" class="text-muted fst-italic">
-                                Select an IoT box first.
-                            </div>
-                        </group>
-                    </group>
-
                 </sheet>
                 <footer>
                     <button name="action_confirm"

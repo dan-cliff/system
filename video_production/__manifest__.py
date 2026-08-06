@@ -27,7 +27,6 @@ Manage the full lifecycle of YouTube video production:
         'mail',
         'sale',
         'purchase',
-        'iot',
     ],
     'data': [
         # Security (load first)
