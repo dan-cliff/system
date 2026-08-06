@@ -183,8 +183,19 @@ class VideoScript(models.Model):
         }
 
     def action_open_teleprompter(self):
-        """Open the teleprompter wizard (choose new window or IoT display)."""
+        """Open the teleprompter.
+
+        When the IoT app is installed, open the delivery-choice wizard
+        (new browser tab or IoT-connected display). Otherwise, skip the
+        wizard entirely and just open the teleprompter in a new tab.
+        """
         self.ensure_one()
+        if 'iot.box' not in self.env:
+            return {
+                'type': 'ir.actions.act_url',
+                'url': '/video/script/%d/teleprompter' % self.id,
+                'target': 'new',
+            }
         return {
             'type': 'ir.actions.act_window',
             'name': _('Teleprompter'),

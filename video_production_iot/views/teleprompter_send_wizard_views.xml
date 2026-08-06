@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_teleprompter_send_wizard_form_iot" model="ir.ui.view">
+        <field name="name">teleprompter.send.wizard.form.iot</field>
+        <field name="model">teleprompter.send.wizard</field>
+        <field name="inherit_id" ref="video_production.view_teleprompter_send_wizard_form"/>
+        <field name="arch" type="xml">
+            <group string="How would you like to open it?" position="after">
+                <group string="IoT Display" invisible="delivery != 'iot'">
+                    <group>
+                        <field name="iot_box_id"
+                               options="{'no_create': True, 'no_edit': True}"
+                               placeholder="Select IoT box…"/>
+                    </group>
+                    <group>
+                        <field name="display_id"
+                               options="{'no_create': True, 'no_edit': True}"
+                               placeholder="Select display…"
+                               invisible="not iot_box_id"/>
+                        <div invisible="iot_box_id" class="text-muted fst-italic">
+                            Select an IoT box first.
+                        </div>
+                    </group>
+                </group>
+            </group>
+        </field>
+    </record>
+
+</odoo>
