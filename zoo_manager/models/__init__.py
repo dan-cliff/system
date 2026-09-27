@@ -9,6 +9,7 @@ from . import zoo_diet
 from . import zoo_animal
 from . import zoo_animal_move
 from . import zoo_animal_weight
+from . import zoo_animal_note
 from . import zoo_feeding
 from . import zoo_health_record
 from . import res_config_settings

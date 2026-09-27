@@ -67,7 +67,10 @@ class ZooAnimal(models.Model):
     feeding_ids = fields.Many2many(
         'zoo.feeding', 'zoo_animal_feeding_rel', 'animal_id', 'feeding_id', string='Feedings',
     )
-    notes = fields.Html()
+    note_ids = fields.One2many('zoo.animal.note', 'animal_id', string='Notes')
+    feeding_count = fields.Integer(compute='_compute_counts')
+    move_count = fields.Integer(compute='_compute_counts')
+    note_count = fields.Integer(compute='_compute_counts')
     active = fields.Boolean(default=True)
 
     _reference_uniq = models.Constraint('UNIQUE (reference)', 'Animal reference must be unique.')
@@ -101,6 +104,13 @@ class ZooAnimal(models.Model):
         for animal in self:
             animal.health_record_count = len(animal.health_record_ids)
             animal.open_health_record_count = len(animal.health_record_ids.filtered(lambda r: r.state == 'open'))
+
+    @api.depends('feeding_ids', 'move_ids', 'note_ids')
+    def _compute_counts(self):
+        for animal in self:
+            animal.feeding_count = len(animal.feeding_ids)
+            animal.move_count = len(animal.move_ids)
+            animal.note_count = len(animal.note_ids)
 
     @api.depends('name', 'reference')
     def _compute_display_name(self):
@@ -192,7 +202,39 @@ class ZooAnimal(models.Model):
             'type': 'ir.actions.act_window',
             'name': self.env._('Weights'),
             'res_model': 'zoo.animal.weight',
-            'view_mode': 'graph,list,form',
+            'view_mode': 'list,graph,form',
+            'domain': [('animal_id', '=', self.id)],
+            'context': {'default_animal_id': self.id},
+        }
+
+    def action_view_feedings(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.env._('Feedings'),
+            'res_model': 'zoo.feeding',
+            'view_mode': 'list,form',
+            'domain': [('animal_ids', 'in', self.id)],
+            'context': {'default_enclosure_id': self.enclosure_id.id},
+        }
+
+    def action_view_moves(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.env._('Moves'),
+            'res_model': 'zoo.animal.move',
+            'view_mode': 'list,form',
+            'domain': [('animal_id', '=', self.id)],
+        }
+
+    def action_view_notes(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.env._('Notes'),
+            'res_model': 'zoo.animal.note',
+            'view_mode': 'list,form',
             'domain': [('animal_id', '=', self.id)],
             'context': {'default_animal_id': self.id},
         }
