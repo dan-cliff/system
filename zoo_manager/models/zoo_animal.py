@@ -14,8 +14,15 @@ class ZooAnimal(models.Model):
         required=True, copy=False, readonly=True, index=True, default=lambda self: self.env._('New'),
     )
     name = fields.Char(required=True, tracking=True)
-    species_id = fields.Many2one('zoo.species', required=True, tracking=True, index=True)
-    class_id = fields.Many2one(related='species_id.class_id', store=True)
+    class_id = fields.Many2one(
+        'zoo.animal.class', string='Class', index=True,
+        compute='_compute_class_id', store=True, readonly=False,
+        help='Pick a class to narrow the species list.',
+    )
+    species_id = fields.Many2one(
+        'zoo.species', required=True, tracking=True, index=True,
+        domain="[('class_id', '=', class_id)] if class_id else []",
+    )
     sex = fields.Selection(
         [('male', 'Male'), ('female', 'Female'), ('unknown', 'Unknown')],
         default='unknown', required=True, tracking=True,
@@ -126,6 +133,16 @@ class ZooAnimal(models.Model):
         for animal in self:
             if animal.date_of_birth and animal.departure_date and animal.departure_date < animal.date_of_birth:
                 raise ValidationError(self.env._('%s: departure date cannot be before the date of birth.', animal.name))
+
+    @api.depends('species_id.class_id')
+    def _compute_class_id(self):
+        for animal in self:
+            animal.class_id = animal.species_id.class_id or animal.class_id
+
+    @api.onchange('class_id')
+    def _onchange_class_id(self):
+        if self.species_id and self.class_id and self.species_id.class_id != self.class_id:
+            self.species_id = False
 
     @api.onchange('species_id')
     def _onchange_species_id(self):

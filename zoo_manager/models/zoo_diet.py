@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ZooDiet(models.Model):
@@ -7,10 +7,28 @@ class ZooDiet(models.Model):
     _order = 'name'
 
     name = fields.Char(required=True)
-    species_id = fields.Many2one('zoo.species', help='Species this diet is intended for.')
+    class_id = fields.Many2one(
+        'zoo.animal.class', string='Class', index=True,
+        compute='_compute_class_id', store=True, readonly=False,
+        help='Pick a class to narrow the species list.',
+    )
+    species_id = fields.Many2one(
+        'zoo.species', help='Species this diet is intended for.',
+        domain="[('class_id', '=', class_id)] if class_id else []",
+    )
     line_ids = fields.One2many('zoo.diet.line', 'diet_id', string='Food Items', copy=True)
     instructions = fields.Html()
     active = fields.Boolean(default=True)
+
+    @api.depends('species_id.class_id')
+    def _compute_class_id(self):
+        for diet in self:
+            diet.class_id = diet.species_id.class_id or diet.class_id
+
+    @api.onchange('class_id')
+    def _onchange_class_id(self):
+        if self.species_id and self.class_id and self.species_id.class_id != self.class_id:
+            self.species_id = False
 
 
 class ZooDietLine(models.Model):

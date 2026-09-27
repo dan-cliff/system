@@ -4,8 +4,9 @@ from psycopg2 import IntegrityError
 
 from odoo import fields
 from odoo.exceptions import AccessError, ValidationError
-from odoo.tests import TransactionCase, new_test_user, tagged
+from odoo.tests import Form, TransactionCase, new_test_user, tagged
 from odoo.tools import mute_logger
+from odoo.tools.safe_eval import safe_eval
 
 
 @tagged('post_install', '-at_install')
@@ -76,6 +77,26 @@ class TestZooManager(TransactionCase):
 
     def test_animal_class_from_species(self):
         self.assertEqual(self._animal().class_id, self.mammals)
+
+    def test_class_narrows_species(self):
+        birds = self.env['zoo.animal.class'].create({'name': 'Test Birds', 'prefix_code': 'QB'})
+        parrot = self.env['zoo.species'].create({'name': 'Test Parrot', 'prefix_code': 'QPT', 'class_id': birds.id})
+        for model in ('zoo.animal', 'zoo.diet'):
+            with self.subTest(model=model):
+                form = Form(self.env[model])
+                form.name = 'Test'
+                # Choosing a species fills in its class.
+                form.species_id = self.species
+                self.assertEqual(form.class_id, self.mammals)
+                # Switching to another class clears a species that doesn't belong to it.
+                form.class_id = birds
+                self.assertFalse(form.species_id)
+                form.species_id = parrot
+                record = form.save()
+                self.assertEqual(record.class_id, birds)
+                # The species list only offers species of the chosen class.
+                domain = safe_eval(record._fields['species_id'].domain, {'class_id': record.class_id.id})
+                self.assertEqual(self.env['zoo.species'].search(domain), birds.species_ids)
 
     def _animal(self, **vals):
         return self.env['zoo.animal'].create({'name': 'Kira', 'species_id': self.species.id, **vals})
