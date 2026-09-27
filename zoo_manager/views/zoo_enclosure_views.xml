@@ -56,6 +56,22 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Environmental Options" name="environment">
+                            <group>
+                                <group>
+                                    <field name="climate_control_ids" widget="many2many_tags"
+                                           options="{'no_create': True}"/>
+                                    <field name="water_source_ids" widget="many2many_tags"
+                                           options="{'no_create': True}"/>
+                                </group>
+                                <group>
+                                    <field name="central_monitoring"/>
+                                    <field name="livestream"/>
+                                    <field name="electric_fencing"/>
+                                    <field name="observation_space"/>
+                                </group>
+                            </group>
+                        </page>
                         <page string="Description" name="description">
                             <field name="description"/>
                         </page>

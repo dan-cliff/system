@@ -436,6 +436,22 @@ class TestZooManager(TransactionCase):
         self.assertTrue(line[0].get_family_tree())
         self.assertEqual(line[0].action_view_family_tree()['context'], {'active_id': line[0].id})
 
+    def test_enclosure_environmental_options(self):
+        heating = self.env.ref('zoo_manager.zoo_climate_control_type_heating')
+        bore = self.env.ref('zoo_manager.zoo_water_source_type_bore')
+        enclosure = self.env['zoo.enclosure'].create({
+            'name': 'Test Reptile House', 'code': 'TRH',
+            'climate_control_ids': [(6, 0, heating.ids)], 'water_source_ids': [(6, 0, bore.ids)],
+            'central_monitoring': True, 'livestream': True, 'electric_fencing': False, 'observation_space': True,
+        })
+        self.assertEqual(enclosure.climate_control_ids, heating)
+        self.assertEqual(enclosure.water_source_ids, bore)
+        for xml_id in ('menu_zoo_climate_control_type', 'menu_zoo_water_source_type'):
+            menu = self.env.ref(f'zoo_manager.{xml_id}')
+            self.assertEqual(menu.parent_id, self.env.ref('zoo_manager.menu_zoo_config'))
+        self.assertEqual(self.env.ref('zoo_manager.menu_zoo_climate_control_type').name, 'Types of Climate Control')
+        self.assertEqual(self.env.ref('zoo_manager.menu_zoo_water_source_type').name, 'Types of Water Sources')
+
     def _fake_get(self, payload):
         response = MagicMock()
         response.json.return_value = payload

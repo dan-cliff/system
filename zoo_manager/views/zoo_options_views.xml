@@ -31,6 +31,66 @@
         <field name="context">{'active_test': False}</field>
     </record>
 
+    <record id="zoo_climate_control_type_view_list" model="ir.ui.view">
+        <field name="name">zoo.climate.control.type.list</field>
+        <field name="model">zoo.climate.control.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_climate_control_type_view_search" model="ir.ui.view">
+        <field name="name">zoo.climate.control.type.search</field>
+        <field name="model">zoo.climate.control.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_climate_control_type_action" model="ir.actions.act_window">
+        <field name="name">Types of Climate Control</field>
+        <field name="res_model">zoo.climate.control.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="zoo_water_source_type_view_list" model="ir.ui.view">
+        <field name="name">zoo.water.source.type.list</field>
+        <field name="model">zoo.water.source.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_water_source_type_view_search" model="ir.ui.view">
+        <field name="name">zoo.water.source.type.search</field>
+        <field name="model">zoo.water.source.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_water_source_type_action" model="ir.actions.act_window">
+        <field name="name">Types of Water Sources</field>
+        <field name="res_model">zoo.water.source.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
     <record id="zoo_animal_origin_view_list" model="ir.ui.view">
         <field name="name">zoo.animal.origin.list</field>
         <field name="model">zoo.animal.origin</field>

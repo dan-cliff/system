@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.6.0',
+    'version': '19.0.1.7.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -9,7 +9,9 @@ Zoo Manager
 * Animal register: every animal with its species, sex, tag/microchip,
   date of birth and age, parents, origin, photo and status (in
   collection, transferred out, deceased).
-* Enclosures with capacity; every change of an animal's enclosure is
+* Enclosures with capacity and environmental options (climate control,
+  water sources, central monitoring, livestream, electric fencing and
+  observation space); every change of an animal's enclosure is
   logged as a move, building a full location history.
 * Classes and species, each with a unique Prefix Code (2 letters for a
   class, 3 for a species) suggested from the name. Species carry the

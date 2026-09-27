@@ -13,6 +13,20 @@ class ZooEnclosure(models.Model):
     capacity = fields.Integer(help='Maximum number of animals. Leave at 0 for no limit.', tracking=True)
     area = fields.Float(string='Area (m²)')
     description = fields.Html()
+
+    # Environmental options
+    climate_control_ids = fields.Many2many(
+        'zoo.climate.control.type', string='Climate Controlled',
+        help='How the climate in this enclosure is controlled.',
+    )
+    water_source_ids = fields.Many2many(
+        'zoo.water.source.type', string='Water Source',
+        help='Where the water in this enclosure comes from.',
+    )
+    central_monitoring = fields.Boolean(tracking=True, help='Monitored from the central monitoring system.')
+    livestream = fields.Boolean(tracking=True, help='Has a livestream camera.')
+    electric_fencing = fields.Boolean(tracking=True)
+    observation_space = fields.Boolean(tracking=True, help='Has a space for visitors or staff to observe the animals.')
     animal_ids = fields.One2many('zoo.animal', 'enclosure_id', string='Animals')
     animal_count = fields.Integer(compute='_compute_animal_count', store=True)
     over_capacity = fields.Boolean(compute='_compute_animal_count', store=True)
