@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.8.0',
+    'version': '19.0.1.9.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -12,7 +12,8 @@ Zoo Manager
 * Facilities, each divided into Locations (Configuration menu).
 * Enclosures, each in a facility and a location within it, with capacity
   and environmental options (climate control, water sources, central
-  monitoring, livestream, electric fencing and observation space); every change of an animal's enclosure is
+  monitoring, livestream, electric fencing and observation space), and
+  an optional Parent Enclosure to group them for bulk actions; every change of an animal's enclosure is
   logged as a move, building a full location history.
 * Classes and species, each with a unique Prefix Code (2 letters for a
   class, 3 for a species) suggested from the name. Species carry the

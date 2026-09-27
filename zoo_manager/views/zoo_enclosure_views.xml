@@ -9,6 +9,7 @@
                 <field name="enclosure_type_id"/>
                 <field name="facility_id" optional="show"/>
                 <field name="location_id" optional="show" context="{'show_facility': False}"/>
+                <field name="parent_id" optional="show"/>
                 <field name="animal_count" string="Animals"/>
                 <field name="capacity"/>
                 <field name="area" optional="hide"/>
@@ -24,6 +25,10 @@
             <form>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_view_children" type="object" class="oe_stat_button" icon="fa-sitemap"
+                                invisible="not child_count">
+                            <field name="child_count" widget="statinfo" string="Sub-enclosures"/>
+                        </button>
                         <button name="action_view_moves" type="object" class="oe_stat_button" icon="fa-exchange" string="Moves"/>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -39,6 +44,7 @@
                             <field name="enclosure_type_id" options="{'no_create': True}"/>
                             <field name="facility_id" options="{'no_create': True}"/>
                             <field name="location_id" options="{'no_create': True}" context="{'show_facility': False}"/>
+                            <field name="parent_id" options="{'no_create': True}"/>
                             <field name="active" invisible="1"/>
                         </group>
                         <group>
@@ -94,6 +100,7 @@
                 <field name="name" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
                 <field name="facility_id"/>
                 <field name="location_id"/>
+                <field name="parent_id" string="Within Enclosure" operator="child_of"/>
                 <filter string="Over Capacity" name="over_capacity" domain="[('over_capacity', '=', True)]"/>
                 <filter string="Empty" name="empty" domain="[('animal_count', '=', 0)]"/>
                 <separator/>
@@ -101,6 +108,7 @@
                 <group>
                     <filter string="Facility" name="group_facility" context="{'group_by': 'facility_id'}"/>
                     <filter string="Location" name="group_location" context="{'group_by': 'location_id'}"/>
+                    <filter string="Parent Enclosure" name="group_parent" context="{'group_by': 'parent_id'}"/>
                     <filter string="Type" name="group_type" context="{'group_by': 'enclosure_type_id'}"/>
                 </group>
             </search>
