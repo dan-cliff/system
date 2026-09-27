@@ -208,6 +208,12 @@ class TestZooManager(TransactionCase):
         with self._fake_get(dict(match, confidence=80)):
             self.assertEqual(taxonomy_lookup.lookup_classification('Dromaius novaehollandiae'), {})
         self.assertEqual(taxonomy_lookup.lookup_classification('Phasianus spp'), {})
+        python = {'matchType': 'EXACT', 'confidence': 99, 'class': 'Squamata', 'family': 'Pythonidae'}
+        with self._fake_get(python):
+            self.assertEqual(taxonomy_lookup.lookup_classification('Morelia spilota'),
+                             {'class': 'Reptilia', 'order': 'Squamata', 'family': 'Pythonidae'})
+        with self._fake_get(dict(python, order='Testudines', **{'class': 'Testudines'})):
+            self.assertEqual(taxonomy_lookup.lookup_classification('Chelodina longicollis')['class'], 'Reptilia')
         self.assertEqual(taxonomy_lookup.clean_name('Calyptorhynchus banksii (except graptogyne)'), 'Calyptorhynchus banksii')
 
     def test_distribution_map_is_image_after_binomial_name(self):

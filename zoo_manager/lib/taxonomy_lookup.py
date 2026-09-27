@@ -25,6 +25,10 @@ TIMEOUT = 20
 RANKS = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
 MIN_CONFIDENCE = 90
 _RANGE_SECTIONS = ('binomial name', 'trinomial name', 'subspecies')
+# GBIF's backbone has no class Reptilia: it files reptiles under their orders
+# as if those were classes (class Squamata, no order). Put them back under
+# Reptilia with the order where it belongs.
+REPTILE_ORDERS = ('Squamata', 'Testudines', 'Crocodylia', 'Rhynchocephalia', 'Sphenodontia')
 
 
 def _get(url, **params):
@@ -47,7 +51,16 @@ def lookup_classification(scientific_name):
     data = _get('https://api.gbif.org/v1/species/match', name=name, strict='true').json()
     if data.get('matchType') != 'EXACT' or data.get('confidence', 0) < MIN_CONFIDENCE:
         return {}
-    return {rank: data[rank] for rank in RANKS if data.get(rank)}
+    return fix_reptile_class({rank: data[rank] for rank in RANKS if data.get(rank)})
+
+
+def fix_reptile_class(taxonomy):
+    """{'class': 'Squamata'} -> {'class': 'Reptilia', 'order': 'Squamata'}."""
+    if taxonomy.get('class') in REPTILE_ORDERS:
+        taxonomy = dict(taxonomy)
+        taxonomy.setdefault('order', taxonomy['class'])
+        taxonomy['class'] = 'Reptilia'
+    return taxonomy
 
 
 def _wikipedia_title(scientific_name):
