@@ -368,6 +368,30 @@ class TestZooManager(TransactionCase):
         local = pytz.utc.localize(cron.nextcall).astimezone(pytz.timezone('Australia/Melbourne'))
         self.assertEqual((local.hour, local.minute), (4, 0))
 
+    def test_animal_smart_buttons(self):
+        enclosure = self.env['zoo.enclosure'].create({'name': 'Test Paddock', 'code': 'TPD'})
+        other = self.env['zoo.enclosure'].create({'name': 'Test Yard', 'code': 'TYD'})
+        species = self.env['zoo.species'].create({'name': 'Test Wombat', 'prefix_code': 'QWB'})
+        animal = self.env['zoo.animal'].create({'name': 'Wally', 'species_id': species.id, 'enclosure_id': enclosure.id})
+        animal.enclosure_id = other
+        feeding = self.env['zoo.feeding'].create({'enclosure_id': other.id})
+        self.env['zoo.animal.note'].create({'animal_id': animal.id, 'summary': 'Settled in well'})
+        self.assertEqual((animal.feeding_count, animal.move_count, animal.note_count),
+                         (1, len(animal.move_ids), 1))
+        self.assertTrue(animal.move_count)
+        for method, model in (('action_view_feedings', 'zoo.feeding'), ('action_view_moves', 'zoo.animal.move'),
+                              ('action_view_notes', 'zoo.animal.note'),
+                              ('action_view_health_records', 'zoo.health.record'),
+                              ('action_view_weights', 'zoo.animal.weight')):
+            action = getattr(animal, method)()
+            self.assertEqual(action['res_model'], model)
+            records = self.env[model].search(action['domain'])
+            self.assertEqual(len(records), {'zoo.feeding': 1, 'zoo.animal.note': 1}.get(model, len(records)))
+        self.assertEqual(self.env['zoo.feeding'].search(animal.action_view_feedings()['domain']), feeding)
+        note = self.env['zoo.animal.note'].with_context(animal.action_view_notes()['context']).create({'summary': 'x'})
+        self.assertEqual(note.animal_id, animal)
+        self.assertEqual(note.user_id, self.env.user)
+
     def _fake_get(self, payload):
         response = MagicMock()
         response.json.return_value = payload

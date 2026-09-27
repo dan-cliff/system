@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.4.0',
+    'version': '19.0.1.5.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -39,6 +39,8 @@ Zoo Manager
 * Health records: vet visits, vaccinations, treatments and injuries,
   with follow-up dates and activities.
 * Weight history per animal, with a graph.
+* The animal form links to its health records, weights, feedings, moves
+  and notes through smart buttons. Notes are dated entries with an author.
 * Keepers are ordinary Odoo users given the Zoo Manager / Keeper
   access level; Zoo Manager / Administrator adds configuration and
   deleting records.
