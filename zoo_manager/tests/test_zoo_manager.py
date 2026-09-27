@@ -392,6 +392,50 @@ class TestZooManager(TransactionCase):
         self.assertEqual(note.animal_id, animal)
         self.assertEqual(note.user_id, self.env.user)
 
+    def test_family_tree(self):
+        species = self.env['zoo.species'].create({'name': 'Test Dingo', 'prefix_code': 'QDG'})
+        Animal = self.env['zoo.animal']
+
+        def animal(name, sex, sire=None, dam=None):
+            return Animal.create({'name': name, 'species_id': species.id, 'sex': sex,
+                                  'sire_id': sire and sire.id, 'dam_id': dam and dam.id})
+
+        # 12 generations of sires: g0 (oldest) ... g11 (youngest).
+        line = [animal('g0', 'male')]
+        for n in range(1, 12):
+            line.append(animal(f'g{n}', 'male', sire=line[-1]))
+        mum = animal('Mum', 'female')
+        pup = animal('Pup', 'female', sire=line[5], dam=mum)
+
+        tree = line[5].get_family_tree()
+        self.assertEqual(tree['animal']['name'], 'g5')
+
+        def depth(node):
+            return 1 + max((depth(b) for b in node['branches']), default=0)
+
+        self.assertEqual(depth(tree['ancestors']), 6)  # g5 back to g0
+        # Offspring of g5: g6 and Pup; the line goes down to g11 (6 more generations).
+        children = tree['descendants']['branches']
+        self.assertEqual({c['name'] for c in children}, {'g6', 'Pup'})
+        self.assertEqual(next(c for c in children if c['name'] == 'Pup')['role'], 'with Mum')
+        self.assertEqual(depth(tree['descendants']), 7)
+
+        # At most 10 generations each way, or fewer if asked.
+        self.assertEqual(depth(line[11].get_family_tree()['ancestors']), 11)
+        self.assertEqual(depth(line[0].get_family_tree()['descendants']), 11)
+        self.assertEqual(depth(line[11].get_family_tree(ancestor_generations=2)['ancestors']), 3)
+
+        # Dam side, dates day-first, archived relatives still shown.
+        mum.write({'date_of_birth': '2019-03-07', 'active': False})
+        parents = pup.get_family_tree()['ancestors']['branches']
+        self.assertEqual([(p['role'], p['name']) for p in parents], [('Sire', 'g5'), ('Dam', 'Mum')])
+        self.assertEqual(parents[1]['born'], '07/03/2019')
+
+        # A loop in the records (made by editing parents later) doesn't recurse forever.
+        line[0].sire_id = line[3]
+        self.assertTrue(line[0].get_family_tree())
+        self.assertEqual(line[0].action_view_family_tree()['context'], {'active_id': line[0].id})
+
     def _fake_get(self, payload):
         response = MagicMock()
         response.json.return_value = payload

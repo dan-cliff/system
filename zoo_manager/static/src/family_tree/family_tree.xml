@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="zoo_manager.FamilyTree">
+        <div class="o_action o_zoo_family_tree">
+            <Layout display="{ controlPanel: {} }">
+                <t t-set-slot="layout-actions">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <label class="d-flex align-items-center gap-2 mb-0">
+                            Parent generations
+                            <select class="form-select form-select-sm w-auto"
+                                    t-on-change="(ev) => this.setGenerations('ancestorGenerations', ev)">
+                                <t t-foreach="generationOptions" t-as="n" t-key="n">
+                                    <option t-att-value="n" t-att-selected="n === state.ancestorGenerations" t-esc="n"/>
+                                </t>
+                            </select>
+                        </label>
+                        <label class="d-flex align-items-center gap-2 mb-0">
+                            Child generations
+                            <select class="form-select form-select-sm w-auto"
+                                    t-on-change="(ev) => this.setGenerations('descendantGenerations', ev)">
+                                <t t-foreach="generationOptions" t-as="n" t-key="n">
+                                    <option t-att-value="n" t-att-selected="n === state.descendantGenerations" t-esc="n"/>
+                                </t>
+                            </select>
+                        </label>
+                    </div>
+                </t>
+                <div class="o_zoo_family_tree_content p-3" t-if="state.tree">
+                    <h2 class="mb-3" t-esc="title"/>
+                    <p class="text-muted">
+                        Click an animal to centre the tree on it; use <i class="fa fa-external-link"/> to open its record.
+                    </p>
+
+                    <section class="mb-4">
+                        <h4>Parents</h4>
+                        <div class="o_zoo_tree_scroll">
+                            <FamilyTreeBranch branch="state.tree.ancestors" rootId="state.tree.animal.id"
+                                              focus.bind="focus" open.bind="open"/>
+                        </div>
+                        <p class="text-muted fst-italic mt-2" t-if="!state.tree.ancestors.branches.length">
+                            No sire or dam recorded.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h4>Offspring</h4>
+                        <div class="o_zoo_tree_scroll">
+                            <FamilyTreeBranch branch="state.tree.descendants" rootId="state.tree.animal.id"
+                                              focus.bind="focus" open.bind="open"/>
+                        </div>
+                        <p class="text-muted fst-italic mt-2" t-if="!state.tree.descendants.branches.length">
+                            No offspring recorded.
+                        </p>
+                    </section>
+                </div>
+            </Layout>
+        </div>
+    </t>
+
+    <t t-name="zoo_manager.FamilyTreeBranch">
+        <div class="o_zoo_tree_branch">
+            <div t-attf-class="o_zoo_tree_node card o_zoo_tree_node_{{ props.branch.sex }} {{ props.branch.id === props.rootId ? 'o_zoo_tree_node_root' : '' }}"
+                 t-on-click="() => props.focus(props.branch.id)" role="button"
+                 t-att-title="props.branch.id === props.rootId ? '' : 'Centre the tree on ' + props.branch.name">
+                <div class="card-body d-flex align-items-center gap-2 p-2">
+                    <img t-if="props.branch.has_image" t-att-src="imageUrl" class="o_zoo_tree_avatar rounded" alt=""/>
+                    <div class="flex-grow-1 text-truncate">
+                        <div class="small text-muted text-truncate" t-if="props.branch.role" t-esc="props.branch.role"/>
+                        <div class="fw-bold text-truncate">
+                            <i t-attf-class="fa {{ sexIcon }} me-1"/>
+                            <t t-esc="props.branch.name"/>
+                        </div>
+                        <div class="small text-muted text-truncate">
+                            <t t-esc="props.branch.reference"/>
+                            <t t-if="props.branch.species"> · <t t-esc="props.branch.species"/></t>
+                        </div>
+                        <div class="small text-truncate">
+                            <t t-if="props.branch.born">b. <t t-if="props.branch.born_estimated">~</t><t t-esc="props.branch.born"/></t>
+                            <span t-if="props.branch.state !== 'present'" class="badge text-bg-secondary ms-1" t-esc="props.branch.state_label"/>
+                        </div>
+                    </div>
+                    <a href="#" class="text-muted align-self-start" title="Open record"
+                       t-on-click.prevent.stop="() => props.open(props.branch.id)">
+                        <i class="fa fa-external-link"/>
+                    </a>
+                </div>
+            </div>
+            <div class="o_zoo_tree_children" t-if="props.branch.branches.length">
+                <t t-foreach="props.branch.branches" t-as="child" t-key="child_index">
+                    <FamilyTreeBranch branch="child" rootId="props.rootId" focus="props.focus" open="props.open"/>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.5.0',
+    'version': '19.0.1.6.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -41,6 +41,8 @@ Zoo Manager
 * Weight history per animal, with a graph.
 * The animal form links to its health records, weights, feedings, moves
   and notes through smart buttons. Notes are dated entries with an author.
+* Family tree per animal from its Sire and Dam: up to 10 generations of
+  parents and 10 of offspring.
 * Keepers are ordinary Odoo users given the Zoo Manager / Keeper
   access level; Zoo Manager / Administrator adds configuration and
   deleting records.
@@ -66,6 +68,11 @@ Zoo Manager
         'views/res_config_settings_views.xml',
         'views/zoo_manager_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'zoo_manager/static/src/family_tree/*',
+        ],
+    },
     'installable': True,
     'application': True,
 }

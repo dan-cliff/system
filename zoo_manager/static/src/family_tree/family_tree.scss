@@ -1,0 +1,104 @@
+.o_zoo_family_tree {
+    .o_zoo_family_tree_content {
+        overflow: auto;
+    }
+
+    .o_zoo_tree_scroll {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    // Trees grow to the right: each animal, then a column of its parents or offspring.
+    .o_zoo_tree_branch {
+        display: flex;
+        align-items: center;
+    }
+
+    .o_zoo_tree_node {
+        flex: 0 0 auto;
+        width: 15rem;
+        cursor: pointer;
+        border-left-width: 4px;
+
+        &:hover {
+            box-shadow: $box-shadow-sm;
+        }
+    }
+
+    .o_zoo_tree_node_male {
+        border-left-color: $info;
+    }
+
+    .o_zoo_tree_node_female {
+        border-left-color: $danger;
+    }
+
+    .o_zoo_tree_node_root {
+        cursor: default;
+        border-color: $primary;
+        border-width: 2px 2px 2px 4px;
+    }
+
+    .o_zoo_tree_avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        object-fit: cover;
+    }
+
+    $connector: 1px solid $border-color;
+    $gap: 1.25rem;
+
+    .o_zoo_tree_children {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        margin-left: $gap;
+
+        // Line from the animal to its column of relatives.
+        &::before {
+            content: "";
+            position: absolute;
+            left: -$gap;
+            top: 50%;
+            width: $gap;
+            border-top: $connector;
+        }
+
+        > .o_zoo_tree_branch {
+            position: relative;
+            padding: 0.25rem 0 0.25rem $gap;
+
+            // Horizontal line into each relative...
+            &::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: $gap;
+                border-top: $connector;
+            }
+
+            // ...joined by a vertical line.
+            &::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                border-left: $connector;
+            }
+
+            &:first-child::after {
+                top: 50%;
+            }
+
+            &:last-child::after {
+                bottom: 50%;
+            }
+
+            &:only-child::after {
+                display: none;
+            }
+        }
+    }
+}
