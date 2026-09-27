@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -11,8 +11,13 @@ Zoo Manager
   collection, transferred out, deceased).
 * Enclosures with capacity; every change of an animal's enclosure is
   logged as a move, building a full location history.
-* Species (class, IUCN conservation status) and diets (food items,
-  quantities and frequency), with a default diet per species.
+* Classes and species, each with a unique Prefix Code (2 letters for a
+  class, 3 for a species) suggested from the name. Species carry the
+  regulatory Species Code and whether they are included on the annual
+  wildlife return, plus IUCN status and a default diet. Ships with the
+  classes and species of the Victorian wildlife schedule (species codes
+  and common names), all marked for the annual wildlife return.
+* Diets (food items, quantities and frequency).
 * Feeding rounds: plan feeds per enclosure, mark them fed and record
   how much was eaten.
 * Health records: vet visits, vaccinations, treatments and injuries,
@@ -29,6 +34,7 @@ Zoo Manager
         'security/zoo_manager_security.xml',
         'security/ir.model.access.csv',
         'data/zoo_manager_sequence.xml',
+        'data/zoo_species_data.xml',
         'views/zoo_species_views.xml',
         'views/zoo_diet_views.xml',
         'views/zoo_enclosure_views.xml',

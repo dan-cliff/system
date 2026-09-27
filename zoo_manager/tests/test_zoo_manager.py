@@ -1,8 +1,11 @@
 from datetime import date
 
+from psycopg2 import IntegrityError
+
 from odoo import fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
+from odoo.tools import mute_logger
 
 
 @tagged('post_install', '-at_install')
@@ -15,15 +18,64 @@ class TestZooManager(TransactionCase):
             'name': 'Adult Meerkat',
             'line_ids': [(0, 0, {'food': 'Insects', 'quantity': 0.05, 'unit': 'kg'})],
         })
+        cls.mammals = cls.env['zoo.animal.class'].create({'name': 'Test Mammals', 'prefix_code': 'QM'})
         cls.species = cls.env['zoo.species'].create({
             'name': 'Meerkat',
             'scientific_name': 'Suricata suricatta',
-            'animal_class': 'mammal',
+            'class_id': cls.mammals.id,
+            'prefix_code': 'QMK',
             'default_diet_id': cls.diet.id,
         })
         cls.mound = cls.env['zoo.enclosure'].create({'name': 'Meerkat Mound', 'code': 'MM', 'capacity': 2})
         cls.quarantine = cls.env['zoo.enclosure'].create({'name': 'Quarantine', 'code': 'Q1'})
         cls.keeper = new_test_user(cls.env, login='zoo_keeper', groups='zoo_manager.group_zoo_keeper')
+
+    def test_prefix_code_suggestions(self):
+        Class = self.env['zoo.animal.class']
+        Species = self.env['zoo.species']
+        # Initials of the words, else the start of the name.
+        self.assertEqual(Species._suggest_prefix_code('Zebra Yak Xerus'), 'ZYX')
+        self.assertEqual(Species._suggest_prefix_code('Qed Panda'), 'QPA')
+        self.assertEqual(len(Class._suggest_prefix_code('Qwertyfish')), 2)
+        # Suggestions skip codes already in use, archived records included.
+        Species.create({'name': 'Qxz One', 'prefix_code': 'QXZ', 'active': False})
+        self.assertNotEqual(Species._suggest_prefix_code('Qxz'), 'QXZ')
+        self.assertTrue(Species._suggest_prefix_code('Qxz').startswith('Q'))
+
+    def test_prefix_code_assigned_on_create(self):
+        first, second = self.env['zoo.species'].create([{'name': 'Qqq Alpha'}, {'name': 'Qqq Alpha Two'}])
+        self.assertEqual(len(first.prefix_code), 3)
+        self.assertEqual(len(second.prefix_code), 3)
+        self.assertNotEqual(first.prefix_code, second.prefix_code)
+        animal_class = self.env['zoo.animal.class'].create({'name': 'Qqq Class', 'prefix_code': 'qz'})
+        self.assertEqual(animal_class.prefix_code, 'QZ')
+
+    def test_prefix_code_validation(self):
+        with self.assertRaises(ValidationError):
+            self.env['zoo.animal.class'].create({'name': 'Bad', 'prefix_code': 'ABC'})
+        with self.assertRaises(ValidationError):
+            self.env['zoo.species'].create({'name': 'Bad', 'prefix_code': 'A1B'})
+        with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
+            self.env['zoo.species'].create({'name': 'Duplicate', 'prefix_code': 'QMK'})
+
+    def test_schedule_species_loaded(self):
+        Species = self.env['zoo.species']
+        scheduled = Species.search([('species_code', '!=', False)])
+        self.assertGreaterEqual(len(scheduled), 377)
+        self.assertTrue(all(scheduled.mapped('include_on_annual_return')))
+        self.assertEqual(len(set(scheduled.mapped('prefix_code'))), len(scheduled))
+        emu = self.env.ref('zoo_manager.zoo_species_1')
+        self.assertEqual(emu.name, 'Emu')
+        self.assertEqual(emu.class_id, self.env.ref('zoo_manager.zoo_class_birds'))
+        self.assertEqual(emu.display_name, '[1] Emu')
+        self.assertEqual(Species.name_search('Dromaius')[0][0], emu.id)
+        # Two schedule entries share a common name; the codes tell them apart.
+        self.assertEqual(Species.search_count([('name', '=', 'Blue Bonnet Parrot')]), 2)
+        class_codes = set(self.env['zoo.animal.class'].search([]).mapped('prefix_code'))
+        self.assertTrue(class_codes.issuperset({'AM', 'BI', 'MA', 'RE'}))
+
+    def test_animal_class_from_species(self):
+        self.assertEqual(self._animal().class_id, self.mammals)
 
     def _animal(self, **vals):
         return self.env['zoo.animal'].create({'name': 'Kira', 'species_id': self.species.id, **vals})

@@ -15,7 +15,7 @@ class ZooAnimal(models.Model):
     )
     name = fields.Char(required=True, tracking=True)
     species_id = fields.Many2one('zoo.species', required=True, tracking=True, index=True)
-    animal_class = fields.Selection(related='species_id.animal_class', store=True)
+    class_id = fields.Many2one(related='species_id.class_id', store=True)
     sex = fields.Selection(
         [('male', 'Male'), ('female', 'Female'), ('unknown', 'Unknown')],
         default='unknown', required=True, tracking=True,

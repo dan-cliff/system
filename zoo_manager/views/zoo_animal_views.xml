@@ -193,7 +193,7 @@
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
                 <group>
                     <filter string="Species" name="group_species" context="{'group_by': 'species_id'}"/>
-                    <filter string="Class" name="group_class" context="{'group_by': 'animal_class'}"/>
+                    <filter string="Class" name="group_class" context="{'group_by': 'class_id'}"/>
                     <filter string="Enclosure" name="group_enclosure" context="{'group_by': 'enclosure_id'}"/>
                     <filter string="Sex" name="group_sex" context="{'group_by': 'sex'}"/>
                     <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
