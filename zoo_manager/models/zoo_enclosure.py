@@ -9,21 +9,7 @@ class ZooEnclosure(models.Model):
 
     name = fields.Char(required=True, tracking=True)
     code = fields.Char()
-    enclosure_type = fields.Selection(
-        [
-            ('paddock', 'Paddock'),
-            ('pen', 'Pen'),
-            ('aviary', 'Aviary'),
-            ('house', 'Animal House'),
-            ('vivarium', 'Vivarium'),
-            ('aquarium', 'Aquarium'),
-            ('pond', 'Pond'),
-            ('quarantine', 'Quarantine'),
-            ('other', 'Other'),
-        ],
-        string='Type',
-        tracking=True,
-    )
+    enclosure_type_id = fields.Many2one('zoo.enclosure.type', string='Type', tracking=True)
     capacity = fields.Integer(help='Maximum number of animals. Leave at 0 for no limit.', tracking=True)
     area = fields.Float(string='Area (m²)')
     description = fields.Html()

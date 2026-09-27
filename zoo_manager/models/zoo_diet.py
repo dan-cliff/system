@@ -38,17 +38,22 @@ class ZooDietLine(models.Model):
 
     diet_id = fields.Many2one('zoo.diet', required=True, ondelete='cascade', index=True)
     sequence = fields.Integer(default=10)
-    food = fields.Char(required=True)
-    quantity = fields.Float(digits=(16, 3))
-    unit = fields.Char(help='e.g. kg, g, pieces, scoops')
-    frequency = fields.Selection(
-        [
-            ('twice_daily', 'Twice Daily'),
-            ('daily', 'Daily'),
-            ('alternate_days', 'Alternate Days'),
-            ('weekly', 'Weekly'),
-            ('as_needed', 'As Needed'),
-        ],
-        default='daily',
+    product_id = fields.Many2one(
+        'product.product', string='Food', index=True,
+        domain="product_domain",
+        help='Feed product. Only products matching the Feeds settings are offered.',
+    )
+    product_domain = fields.Binary(compute='_compute_product_domain')
+    quantity = fields.Float(digits='Product Unit', help='Quantity per feed, in the product\'s unit.')
+    uom_id = fields.Many2one(related='product_id.uom_id', string='Unit')
+    frequency_id = fields.Many2one(
+        'zoo.diet.frequency', string='Frequency',
+        default=lambda self: self.env.ref('zoo_manager.zoo_diet_frequency_daily', raise_if_not_found=False),
     )
     notes = fields.Char()
+
+    @api.depends_context('company')
+    def _compute_product_domain(self):
+        domain = self.env.company._zoo_feed_product_domain()
+        for line in self:
+            line.product_domain = domain

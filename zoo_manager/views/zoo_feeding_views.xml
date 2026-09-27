@@ -3,13 +3,14 @@
         <field name="name">zoo.feeding.list</field>
         <field name="model">zoo.feeding</field>
         <field name="arch" type="xml">
-            <list decoration-muted="state == 'cancelled'" decoration-danger="consumption == 'none'">
-                <field name="scheduled_datetime"/>
+            <list decoration-muted="state == 'cancelled'" decoration-danger="consumption_refused">
+                <field name="scheduled_datetime" options="{'numeric': True}"/>
                 <field name="enclosure_id"/>
                 <field name="animal_ids" widget="many2many_tags" optional="show"/>
                 <field name="user_id"/>
-                <field name="fed_datetime" optional="hide"/>
-                <field name="consumption"/>
+                <field name="fed_datetime" options="{'numeric': True}" optional="hide"/>
+                <field name="consumption_refused" column_invisible="1"/>
+                <field name="consumption_id"/>
                 <field name="state" widget="badge" decoration-info="state == 'planned'"
                        decoration-success="state == 'done'"/>
                 <button name="action_mark_fed" type="object" string="Mark Fed" icon="fa-check"
@@ -44,15 +45,24 @@
                     <field name="state" widget="statusbar" statusbar_visible="planned,done"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_moves" type="object" class="oe_stat_button" icon="fa-cubes"
+                                invisible="not move_count">
+                            <field name="move_count" widget="statinfo" string="Stock Moves"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="enclosure_id" readonly="state != 'planned'"/>
-                            <field name="scheduled_datetime" readonly="state != 'planned'"/>
-                            <field name="fed_datetime" invisible="state != 'done'"/>
+                            <field name="scheduled_datetime" options="{'numeric': True}" readonly="state != 'planned'"/>
+                            <field name="fed_datetime" options="{'numeric': True}" invisible="state != 'done'"/>
                             <field name="user_id"/>
                         </group>
                         <group>
-                            <field name="consumption"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="feed_warehouse_ids" invisible="1"/>
+                            <field name="warehouse_id" readonly="state != 'planned'" options="{'no_create': True}"/>
+                            <field name="consumption_id" options="{'no_create': True}"/>
                         </group>
                     </group>
                     <field name="animal_ids">
@@ -62,8 +72,23 @@
                             <field name="diet_id"/>
                         </list>
                     </field>
+                    <separator string="Food Given"/>
+                    <div class="text-muted mb-2" invisible="state != 'planned'">
+                        Filled in from the animals' diets. Adjust to what was actually given; marking the
+                        round Fed takes tracked products out of stock at the Feed From warehouse.
+                        <button name="action_fill_from_diets" type="object" string="Reload from Diets"
+                                class="btn-link p-0" icon="fa-refresh"/>
+                    </div>
+                    <field name="line_ids" readonly="state != 'planned'">
+                        <list editable="bottom">
+                            <field name="product_domain" column_invisible="1"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                            <field name="quantity"/>
+                            <field name="uom_id"/>
+                            <field name="is_storable" optional="show"/>
+                        </list>
+                    </field>
                     <group>
-                        <field name="food_given"/>
                         <field name="notes"/>
                     </group>
                 </sheet>
@@ -84,7 +109,7 @@
                 <filter string="Fed" name="done" domain="[('state', '=', 'done')]"/>
                 <separator/>
                 <filter string="My Feedings" name="mine" domain="[('user_id', '=', uid)]"/>
-                <filter string="Food Refused" name="refused" domain="[('consumption', '=', 'none')]"/>
+                <filter string="Food Refused" name="refused" domain="[('consumption_id.refused', '=', True)]"/>
                 <separator/>
                 <filter string="Scheduled" name="filter_scheduled" date="scheduled_datetime"/>
                 <group>
@@ -112,7 +137,7 @@
         <field name="model">zoo.animal.weight</field>
         <field name="arch" type="xml">
             <list editable="top">
-                <field name="date"/>
+                <field name="date" options="{'numeric': True}"/>
                 <field name="animal_id"/>
                 <field name="species_id" optional="show"/>
                 <field name="weight"/>
@@ -130,7 +155,7 @@
                 <sheet>
                     <group>
                         <field name="animal_id"/>
-                        <field name="date"/>
+                        <field name="date" options="{'numeric': True}"/>
                         <field name="weight"/>
                         <field name="user_id"/>
                         <field name="notes"/>

@@ -6,7 +6,7 @@
             <list decoration-danger="over_capacity">
                 <field name="code"/>
                 <field name="name"/>
-                <field name="enclosure_type"/>
+                <field name="enclosure_type_id"/>
                 <field name="animal_count" string="Animals"/>
                 <field name="capacity"/>
                 <field name="area" optional="hide"/>
@@ -34,7 +34,7 @@
                     <group>
                         <group>
                             <field name="code"/>
-                            <field name="enclosure_type"/>
+                            <field name="enclosure_type_id" options="{'no_create': True}"/>
                             <field name="active" invisible="1"/>
                         </group>
                         <group>
@@ -77,7 +77,7 @@
                 <separator/>
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
                 <group>
-                    <filter string="Type" name="group_type" context="{'group_by': 'enclosure_type'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'enclosure_type_id'}"/>
                 </group>
             </search>
         </field>

@@ -38,16 +38,7 @@ class ZooAnimal(models.Model):
     sire_id = fields.Many2one('zoo.animal', string='Sire', domain="[('sex', '=', 'male')]")
     dam_id = fields.Many2one('zoo.animal', string='Dam', domain="[('sex', '=', 'female')]")
 
-    origin = fields.Selection(
-        [
-            ('born_here', 'Born Here'),
-            ('transfer', 'Transfer from Another Collection'),
-            ('rescue', 'Rescue'),
-            ('purchase', 'Purchase'),
-            ('other', 'Other'),
-        ],
-        tracking=True,
-    )
+    origin_id = fields.Many2one('zoo.animal.origin', string='Origin', tracking=True)
     origin_details = fields.Char(help='Where the animal came from, e.g. the sending zoo or rescue organisation.')
     arrival_date = fields.Date(default=fields.Date.context_today, tracking=True)
 
