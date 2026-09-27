@@ -452,6 +452,34 @@ class TestZooManager(TransactionCase):
         self.assertEqual(self.env.ref('zoo_manager.menu_zoo_climate_control_type').name, 'Types of Climate Control')
         self.assertEqual(self.env.ref('zoo_manager.menu_zoo_water_source_type').name, 'Types of Water Sources')
 
+    def test_enclosure_facility_and_location(self):
+        park = self.env['zoo.facility'].create({'name': 'Test Park', 'code': 'TP'})
+        farm = self.env['zoo.facility'].create({'name': 'Test Farm', 'code': 'TF'})
+        nocturnal = self.env['zoo.location'].create({'name': 'Nocturnal House', 'facility_id': park.id})
+        barn = self.env['zoo.location'].create({'name': 'Barn', 'facility_id': farm.id})
+        self.assertEqual(nocturnal.display_name, 'Test Park / Nocturnal House')
+        self.assertEqual(nocturnal.with_context(show_facility=False).display_name, 'Nocturnal House')
+
+        # Picking a location fills in its facility.
+        enclosure = self.env['zoo.enclosure'].create({'name': 'Test Glider Room', 'code': 'TGR', 'location_id': nocturnal.id})
+        self.assertEqual(enclosure.facility_id, park)
+        self.assertEqual((park.location_count, park.enclosure_count, nocturnal.enclosure_count), (1, 1, 1))
+        self.assertEqual(self.env['zoo.enclosure'].search(park.action_view_enclosures()['domain']), enclosure)
+
+        # Changing the facility in the form clears a location from another facility.
+        with Form(enclosure) as form:
+            form.facility_id = farm
+            self.assertFalse(form.location_id)
+            form.location_id = barn
+        self.assertEqual((enclosure.facility_id, enclosure.location_id), (farm, barn))
+
+        # A location must belong to the enclosure's facility.
+        with self.assertRaises(ValidationError):
+            enclosure.write({'facility_id': park.id, 'location_id': barn.id})
+        with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
+            self.env['zoo.location'].create({'name': 'Barn', 'facility_id': farm.id})
+            self.env.flush_all()
+
     def _fake_get(self, payload):
         response = MagicMock()
         response.json.return_value = payload

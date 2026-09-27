@@ -4,6 +4,7 @@ from . import zoo_options
 from . import zoo_prefix_code_mixin
 from . import zoo_animal_class
 from . import zoo_species
+from . import zoo_facility
 from . import zoo_enclosure
 from . import zoo_diet
 from . import zoo_animal
