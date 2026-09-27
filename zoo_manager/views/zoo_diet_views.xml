@@ -5,6 +5,7 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
+                <field name="class_id"/>
                 <field name="species_id"/>
             </list>
         </field>
@@ -21,6 +22,7 @@
                         <h1><field name="name" placeholder="e.g. Adult Meerkat"/></h1>
                     </div>
                     <group>
+                        <field name="class_id"/>
                         <field name="species_id"/>
                         <field name="active" invisible="1"/>
                     </group>
@@ -52,6 +54,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
+                <field name="class_id"/>
                 <field name="species_id"/>
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
                 <group>
