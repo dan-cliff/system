@@ -18,6 +18,18 @@ class ZooEnclosureType(models.Model):
     _inherit = ['zoo.option.mixin']
 
 
+class ZooClimateControlType(models.Model):
+    _name = 'zoo.climate.control.type'
+    _description = 'Type of Climate Control'
+    _inherit = ['zoo.option.mixin']
+
+
+class ZooWaterSourceType(models.Model):
+    _name = 'zoo.water.source.type'
+    _description = 'Type of Water Source'
+    _inherit = ['zoo.option.mixin']
+
+
 class ZooAnimalOrigin(models.Model):
     _name = 'zoo.animal.origin'
     _description = 'Animal Origin'

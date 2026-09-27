@@ -35,8 +35,10 @@ class ZooAnimal(models.Model):
     enclosure_id = fields.Many2one('zoo.enclosure', tracking=True, index=True)
     move_ids = fields.One2many('zoo.animal.move', 'animal_id', string='Moves')
 
-    sire_id = fields.Many2one('zoo.animal', string='Sire', domain="[('sex', '=', 'male')]")
-    dam_id = fields.Many2one('zoo.animal', string='Dam', domain="[('sex', '=', 'female')]")
+    sire_id = fields.Many2one('zoo.animal', string='Sire', domain="[('sex', '=', 'male')]", index=True)
+    dam_id = fields.Many2one('zoo.animal', string='Dam', domain="[('sex', '=', 'female')]", index=True)
+    sired_ids = fields.One2many('zoo.animal', 'sire_id', string='Offspring (as Sire)')
+    mothered_ids = fields.One2many('zoo.animal', 'dam_id', string='Offspring (as Dam)')
 
     origin_id = fields.Many2one('zoo.animal.origin', string='Origin', tracking=True)
     origin_details = fields.Char(help='Where the animal came from, e.g. the sending zoo or rescue organisation.')
@@ -237,4 +239,69 @@ class ZooAnimal(models.Model):
             'view_mode': 'list,form',
             'domain': [('animal_id', '=', self.id)],
             'context': {'default_animal_id': self.id},
+        }
+
+    def action_view_family_tree(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'zoo_manager.family_tree',
+            'name': self.env._('Family Tree'),
+            'context': {'active_id': self.id},
+        }
+
+    def _family_tree_node(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'reference': self.reference,
+            'sex': self.sex,
+            'species': self.species_id.name,
+            'born': self.date_of_birth.strftime('%d/%m/%Y') if self.date_of_birth else False,
+            'born_estimated': self.birth_date_estimated,
+            'state': self.state,
+            'state_label': dict(self._fields['state']._description_selection(self.env)).get(self.state),
+            'has_image': bool(self.image_128),
+        }
+
+    def _family_tree_ancestors(self, depth, path):
+        """Pedigree: this animal with its sire and dam, recursively."""
+        node = self._family_tree_node()
+        node['branches'] = []
+        if depth > 0:
+            for parent, role in ((self.sire_id, self.env._('Sire')), (self.dam_id, self.env._('Dam'))):
+                if parent and parent.id not in path:
+                    branch = parent._family_tree_ancestors(depth - 1, path | {parent.id})
+                    branch['role'] = role
+                    node['branches'].append(branch)
+        return node
+
+    def _family_tree_descendants(self, depth, path):
+        """Offspring, recursively; each child shows its other parent."""
+        node = self._family_tree_node()
+        node['branches'] = []
+        if depth > 0:
+            children = (self.sired_ids | self.mothered_ids).sorted(
+                lambda a: (a.date_of_birth or fields.Date.today(), a.name or '', a.id))
+            for child in children:
+                if child.id in path:
+                    continue
+                branch = child._family_tree_descendants(depth - 1, path | {child.id})
+                other = child.dam_id if child.sire_id == self else child.sire_id
+                branch['role'] = self.env._('with %s', other.name) if other else False
+                node['branches'].append(branch)
+        return node
+
+    def get_family_tree(self, ancestor_generations=10, descendant_generations=10):
+        """Family tree for the family tree view: up to 10 generations of
+        parents and 10 of offspring. Archived animals are included so the
+        lineage stays complete."""
+        self.ensure_one()
+        animal = self.with_context(active_test=False)
+        ancestor_generations = max(0, min(int(ancestor_generations), 10))
+        descendant_generations = max(0, min(int(descendant_generations), 10))
+        return {
+            'animal': animal._family_tree_node(),
+            'ancestors': animal._family_tree_ancestors(ancestor_generations, {animal.id}),
+            'descendants': animal._family_tree_descendants(descendant_generations, {animal.id}),
         }

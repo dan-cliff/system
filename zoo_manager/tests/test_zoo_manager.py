@@ -392,6 +392,94 @@ class TestZooManager(TransactionCase):
         self.assertEqual(note.animal_id, animal)
         self.assertEqual(note.user_id, self.env.user)
 
+    def test_family_tree(self):
+        species = self.env['zoo.species'].create({'name': 'Test Dingo', 'prefix_code': 'QDG'})
+        Animal = self.env['zoo.animal']
+
+        def animal(name, sex, sire=None, dam=None):
+            return Animal.create({'name': name, 'species_id': species.id, 'sex': sex,
+                                  'sire_id': sire and sire.id, 'dam_id': dam and dam.id})
+
+        # 12 generations of sires: g0 (oldest) ... g11 (youngest).
+        line = [animal('g0', 'male')]
+        for n in range(1, 12):
+            line.append(animal(f'g{n}', 'male', sire=line[-1]))
+        mum = animal('Mum', 'female')
+        pup = animal('Pup', 'female', sire=line[5], dam=mum)
+
+        tree = line[5].get_family_tree()
+        self.assertEqual(tree['animal']['name'], 'g5')
+
+        def depth(node):
+            return 1 + max((depth(b) for b in node['branches']), default=0)
+
+        self.assertEqual(depth(tree['ancestors']), 6)  # g5 back to g0
+        # Offspring of g5: g6 and Pup; the line goes down to g11 (6 more generations).
+        children = tree['descendants']['branches']
+        self.assertEqual({c['name'] for c in children}, {'g6', 'Pup'})
+        self.assertEqual(next(c for c in children if c['name'] == 'Pup')['role'], 'with Mum')
+        self.assertEqual(depth(tree['descendants']), 7)
+
+        # At most 10 generations each way, or fewer if asked.
+        self.assertEqual(depth(line[11].get_family_tree()['ancestors']), 11)
+        self.assertEqual(depth(line[0].get_family_tree()['descendants']), 11)
+        self.assertEqual(depth(line[11].get_family_tree(ancestor_generations=2)['ancestors']), 3)
+
+        # Dam side, dates day-first, archived relatives still shown.
+        mum.write({'date_of_birth': '2019-03-07', 'active': False})
+        parents = pup.get_family_tree()['ancestors']['branches']
+        self.assertEqual([(p['role'], p['name']) for p in parents], [('Sire', 'g5'), ('Dam', 'Mum')])
+        self.assertEqual(parents[1]['born'], '07/03/2019')
+
+        # A loop in the records (made by editing parents later) doesn't recurse forever.
+        line[0].sire_id = line[3]
+        self.assertTrue(line[0].get_family_tree())
+        self.assertEqual(line[0].action_view_family_tree()['context'], {'active_id': line[0].id})
+
+    def test_enclosure_environmental_options(self):
+        heating = self.env.ref('zoo_manager.zoo_climate_control_type_heating')
+        bore = self.env.ref('zoo_manager.zoo_water_source_type_bore')
+        enclosure = self.env['zoo.enclosure'].create({
+            'name': 'Test Reptile House', 'code': 'TRH',
+            'climate_control_ids': [(6, 0, heating.ids)], 'water_source_ids': [(6, 0, bore.ids)],
+            'central_monitoring': True, 'livestream': True, 'electric_fencing': False, 'observation_space': True,
+        })
+        self.assertEqual(enclosure.climate_control_ids, heating)
+        self.assertEqual(enclosure.water_source_ids, bore)
+        for xml_id in ('menu_zoo_climate_control_type', 'menu_zoo_water_source_type'):
+            menu = self.env.ref(f'zoo_manager.{xml_id}')
+            self.assertEqual(menu.parent_id, self.env.ref('zoo_manager.menu_zoo_config'))
+        self.assertEqual(self.env.ref('zoo_manager.menu_zoo_climate_control_type').name, 'Types of Climate Control')
+        self.assertEqual(self.env.ref('zoo_manager.menu_zoo_water_source_type').name, 'Types of Water Sources')
+
+    def test_enclosure_facility_and_location(self):
+        park = self.env['zoo.facility'].create({'name': 'Test Park', 'code': 'TP'})
+        farm = self.env['zoo.facility'].create({'name': 'Test Farm', 'code': 'TF'})
+        nocturnal = self.env['zoo.location'].create({'name': 'Nocturnal House', 'facility_id': park.id})
+        barn = self.env['zoo.location'].create({'name': 'Barn', 'facility_id': farm.id})
+        self.assertEqual(nocturnal.display_name, 'Test Park / Nocturnal House')
+        self.assertEqual(nocturnal.with_context(show_facility=False).display_name, 'Nocturnal House')
+
+        # Picking a location fills in its facility.
+        enclosure = self.env['zoo.enclosure'].create({'name': 'Test Glider Room', 'code': 'TGR', 'location_id': nocturnal.id})
+        self.assertEqual(enclosure.facility_id, park)
+        self.assertEqual((park.location_count, park.enclosure_count, nocturnal.enclosure_count), (1, 1, 1))
+        self.assertEqual(self.env['zoo.enclosure'].search(park.action_view_enclosures()['domain']), enclosure)
+
+        # Changing the facility in the form clears a location from another facility.
+        with Form(enclosure) as form:
+            form.facility_id = farm
+            self.assertFalse(form.location_id)
+            form.location_id = barn
+        self.assertEqual((enclosure.facility_id, enclosure.location_id), (farm, barn))
+
+        # A location must belong to the enclosure's facility.
+        with self.assertRaises(ValidationError):
+            enclosure.write({'facility_id': park.id, 'location_id': barn.id})
+        with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
+            self.env['zoo.location'].create({'name': 'Barn', 'facility_id': farm.id})
+            self.env.flush_all()
+
     def _fake_get(self, payload):
         response = MagicMock()
         response.json.return_value = payload

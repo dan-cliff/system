@@ -1,0 +1,148 @@
+<odoo>
+    <!-- Facilities -->
+    <record id="zoo_facility_view_list" model="ir.ui.view">
+        <field name="name">zoo.facility.list</field>
+        <field name="model">zoo.facility</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="location_count" string="Locations"/>
+                <field name="enclosure_count" string="Enclosures"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_facility_view_form" model="ir.ui.view">
+        <field name="name">zoo.facility.form</field>
+        <field name="model">zoo.facility</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_locations" type="object" class="oe_stat_button" icon="fa-map-marker">
+                            <field name="location_count" widget="statinfo" string="Locations"/>
+                        </button>
+                        <button name="action_view_enclosures" type="object" class="oe_stat_button" icon="fa-home">
+                            <field name="enclosure_count" widget="statinfo" string="Enclosures"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Main Wildlife Park"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Locations" name="locations">
+                            <field name="location_ids" context="{'default_facility_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="enclosure_count" string="Enclosures"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="zoo_facility_view_search" model="ir.ui.view">
+        <field name="name">zoo.facility.search</field>
+        <field name="model">zoo.facility</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_facility_action" model="ir.actions.act_window">
+        <field name="name">Facilities</field>
+        <field name="res_model">zoo.facility</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first facility</p>
+            <p>A facility is a site, such as the wildlife park, that is divided into locations holding enclosures.</p>
+        </field>
+    </record>
+
+    <!-- Locations -->
+    <record id="zoo_location_view_list" model="ir.ui.view">
+        <field name="name">zoo.location.list</field>
+        <field name="model">zoo.location</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="facility_id"/>
+                <field name="name"/>
+                <field name="enclosure_count" string="Enclosures"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_location_view_form" model="ir.ui.view">
+        <field name="name">zoo.location.form</field>
+        <field name="model">zoo.location</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_enclosures" type="object" class="oe_stat_button" icon="fa-home">
+                            <field name="enclosure_count" widget="statinfo" string="Enclosures"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Nocturnal House"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="facility_id" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Description..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="zoo_location_view_search" model="ir.ui.view">
+        <field name="name">zoo.location.search</field>
+        <field name="model">zoo.location</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="facility_id"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Facility" name="group_facility" context="{'group_by': 'facility_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_location_action" model="ir.actions.act_window">
+        <field name="name">Locations</field>
+        <field name="res_model">zoo.location</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first location</p>
+            <p>Locations are areas within a facility, such as a zone or building, that hold enclosures.</p>
+        </field>
+    </record>
+</odoo>

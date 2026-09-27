@@ -52,4 +52,21 @@
     <record id="zoo_feeding_consumption_most" model="zoo.feeding.consumption"><field name="name">Mostly Eaten</field><field name="sequence">20</field></record>
     <record id="zoo_feeding_consumption_some" model="zoo.feeding.consumption"><field name="name">Partly Eaten</field><field name="sequence">30</field></record>
     <record id="zoo_feeding_consumption_none" model="zoo.feeding.consumption"><field name="name">Refused</field><field name="refused" eval="True"/><field name="sequence">40</field></record>
+
+    <!-- Types of climate control -->
+    <record id="zoo_climate_control_type_heating" model="zoo.climate.control.type"><field name="name">Heating</field><field name="sequence">10</field></record>
+    <record id="zoo_climate_control_type_cooling" model="zoo.climate.control.type"><field name="name">Cooling / Air Conditioning</field><field name="sequence">20</field></record>
+    <record id="zoo_climate_control_type_humidity" model="zoo.climate.control.type"><field name="name">Humidity Control</field><field name="sequence">30</field></record>
+    <record id="zoo_climate_control_type_misting" model="zoo.climate.control.type"><field name="name">Misting System</field><field name="sequence">40</field></record>
+    <record id="zoo_climate_control_type_ventilation" model="zoo.climate.control.type"><field name="name">Ventilation</field><field name="sequence">50</field></record>
+    <record id="zoo_climate_control_type_uv" model="zoo.climate.control.type"><field name="name">UV Lighting</field><field name="sequence">60</field></record>
+
+    <!-- Types of water sources -->
+    <record id="zoo_water_source_type_mains" model="zoo.water.source.type"><field name="name">Mains Water</field><field name="sequence">10</field></record>
+    <record id="zoo_water_source_type_rainwater" model="zoo.water.source.type"><field name="name">Rainwater Tank</field><field name="sequence">20</field></record>
+    <record id="zoo_water_source_type_bore" model="zoo.water.source.type"><field name="name">Bore</field><field name="sequence">30</field></record>
+    <record id="zoo_water_source_type_dam" model="zoo.water.source.type"><field name="name">Dam</field><field name="sequence">40</field></record>
+    <record id="zoo_water_source_type_creek" model="zoo.water.source.type"><field name="name">Creek / River</field><field name="sequence">50</field></record>
+    <record id="zoo_water_source_type_pond" model="zoo.water.source.type"><field name="name">Pond</field><field name="sequence">60</field></record>
+    <record id="zoo_water_source_type_drinker" model="zoo.water.source.type"><field name="name">Automatic Drinker</field><field name="sequence">70</field></record>
 </odoo>

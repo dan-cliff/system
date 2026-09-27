@@ -79,6 +79,8 @@
                         <button name="action_view_notes" type="object" class="oe_stat_button" icon="fa-sticky-note-o">
                             <field name="note_count" widget="statinfo" string="Notes"/>
                         </button>
+                        <button name="action_view_family_tree" type="object" class="oe_stat_button" icon="fa-sitemap"
+                                string="Family Tree"/>
                     </div>
                     <widget name="web_ribbon" title="Deceased" bg_color="text-bg-danger" invisible="state != 'deceased'"/>
                     <widget name="web_ribbon" title="Transferred" bg_color="text-bg-info" invisible="state != 'transferred'"/>
