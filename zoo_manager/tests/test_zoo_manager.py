@@ -7,7 +7,7 @@ import requests
 from psycopg2 import IntegrityError
 
 from odoo import fields
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, new_test_user, tagged
 from odoo.tools import mute_logger
 from odoo.tools.safe_eval import safe_eval
@@ -479,6 +479,25 @@ class TestZooManager(TransactionCase):
         with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
             self.env['zoo.location'].create({'name': 'Barn', 'facility_id': farm.id})
             self.env.flush_all()
+
+    def test_parent_enclosure(self):
+        Enclosure = self.env['zoo.enclosure']
+        complex_ = Enclosure.create({'name': 'Test Primate Complex', 'code': 'TPC'})
+        wing = Enclosure.create({'name': 'Test Lemur Wing', 'code': 'TLW', 'parent_id': complex_.id})
+        cage = Enclosure.create({'name': 'Test Lemur Cage', 'code': 'TLC', 'parent_id': wing.id})
+        other = Enclosure.create({'name': 'Test Barn', 'code': 'TBN'})
+        self.assertEqual(complex_.child_ids, wing)
+        self.assertEqual(complex_.child_count, 1)
+        # Searching within a parent finds it and its sub-enclosures at every level (for bulk actions);
+        # the Sub-enclosures button lists only those underneath.
+        self.assertEqual(Enclosure.search([('parent_id', 'child_of', complex_.id)]), complex_ | wing | cage)
+        self.assertEqual(Enclosure.search(complex_.action_view_children()['domain']), wing | cage)
+        self.assertNotIn(other, Enclosure.search([('id', 'child_of', complex_.id)]))
+        # No loops (refused by Odoo's parent path, or by our constraint).
+        with self.assertRaises(UserError):
+            complex_.parent_id = cage
+        with self.assertRaises(UserError):
+            wing.parent_id = wing
 
     def _fake_get(self, payload):
         response = MagicMock()
