@@ -35,12 +35,20 @@ class ZooAnimal(models.Model):
     enclosure_id = fields.Many2one('zoo.enclosure', tracking=True, index=True)
     move_ids = fields.One2many('zoo.animal.move', 'animal_id', string='Moves')
 
-    sire_id = fields.Many2one('zoo.animal', string='Sire', domain="[('sex', '=', 'male')]", index=True)
-    dam_id = fields.Many2one('zoo.animal', string='Dam', domain="[('sex', '=', 'female')]", index=True)
+    sire_id = fields.Many2one(
+        'zoo.animal', string='Sire', index=True,
+        domain="[('sex', '=', 'male'), ('id', '!=', id), ('id', '!=', dam_id)]",
+    )
+    dam_id = fields.Many2one(
+        'zoo.animal', string='Dam', index=True,
+        domain="[('sex', '=', 'female'), ('id', '!=', id), ('id', '!=', sire_id)]",
+    )
     sired_ids = fields.One2many('zoo.animal', 'sire_id', string='Offspring (as Sire)')
     mothered_ids = fields.One2many('zoo.animal', 'dam_id', string='Offspring (as Dam)')
 
     origin_id = fields.Many2one('zoo.animal.origin', string='Origin', tracking=True)
+    seller_id = fields.Many2one('res.partner', string='Seller', tracking=True, index=True,
+                                help='Who the animal was bought or acquired from.')
     origin_details = fields.Char(help='Where the animal came from, e.g. the sending zoo or rescue organisation.')
     arrival_date = fields.Date(default=fields.Date.context_today, tracking=True)
 
@@ -129,7 +137,18 @@ class ZooAnimal(models.Model):
     def _check_parents(self):
         for animal in self:
             if animal in (animal.sire_id | animal.dam_id):
-                raise ValidationError(self.env._('An animal cannot be its own parent.'))
+                raise ValidationError(self.env._('%s cannot be its own sire or dam.', animal.name))
+            if animal.sire_id and animal.sire_id == animal.dam_id:
+                raise ValidationError(self.env._('%s: the sire and dam must be different animals.', animal.name))
+            # Walk up the family tree: the animal mustn't turn up among its own ancestors
+            # (e.g. one of its offspring picked as its sire).
+            ancestors = seen = animal.sire_id | animal.dam_id
+            while ancestors:
+                if animal in ancestors:
+                    raise ValidationError(self.env._(
+                        '%s cannot be its own ancestor: check its sire and dam.', animal.name))
+                ancestors = (ancestors.sire_id | ancestors.dam_id) - seen
+                seen |= ancestors
 
     @api.constrains('date_of_birth', 'arrival_date', 'departure_date')
     def _check_dates(self):

@@ -1,13 +1,13 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.10.0',
+    'version': '19.0.1.11.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
 Zoo Manager
 ===========
 * Animal register: every animal with its species, sex, tag/microchip,
-  date of birth and age, parents, origin, photo and status (in
+  date of birth and age, parents, origin, seller, photo and status (in
   collection, transferred out, deceased).
 * Facilities, each divided into Locations (Configuration menu).
 * Enclosures, each in a facility and a location within it, with capacity
@@ -47,6 +47,7 @@ Zoo Manager
   and notes through smart buttons. Notes are dated entries with an author.
 * Family tree per animal from its Sire and Dam: up to 10 generations of
   parents and 10 of offspring.
+* Contacts get a Wildlife License Number and Jurisdiction (states).
 * Keepers are ordinary Odoo users given the Zoo Manager / Keeper
   access level; Zoo Manager / Administrator adds configuration and
   deleting records.
@@ -71,6 +72,7 @@ Zoo Manager
         'views/zoo_feeding_views.xml',
         'views/zoo_health_record_views.xml',
         'views/res_config_settings_views.xml',
+        'views/res_partner_views.xml',
         'views/zoo_manager_menus.xml',
     ],
     'assets': {
