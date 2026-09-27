@@ -2,7 +2,7 @@
 
 {
     'name': 'Workflow Automation Engine',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'summary': 'Complex multi-step workflow automation triggered by model events or schedules',
     'description': """
 Workflow Automation Engine

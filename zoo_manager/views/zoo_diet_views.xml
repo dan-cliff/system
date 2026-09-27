@@ -1,0 +1,69 @@
+<odoo>
+    <record id="zoo_diet_view_list" model="ir.ui.view">
+        <field name="name">zoo.diet.list</field>
+        <field name="model">zoo.diet</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="species_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_diet_view_form" model="ir.ui.view">
+        <field name="name">zoo.diet.form</field>
+        <field name="model">zoo.diet</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Adult Meerkat"/></h1>
+                    </div>
+                    <group>
+                        <field name="species_id"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Food Items" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="food"/>
+                                    <field name="quantity"/>
+                                    <field name="unit"/>
+                                    <field name="frequency"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Instructions" name="instructions">
+                            <field name="instructions"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="zoo_diet_view_search" model="ir.ui.view">
+        <field name="name">zoo.diet.search</field>
+        <field name="model">zoo.diet</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="species_id"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Species" name="group_species" context="{'group_by': 'species_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_diet_action" model="ir.actions.act_window">
+        <field name="name">Diets</field>
+        <field name="res_model">zoo.diet</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

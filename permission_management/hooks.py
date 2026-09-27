@@ -108,6 +108,25 @@ ROLE_DEFINITIONS = [
         'Digital Signage – Administrator',
         'Full administration of digital signage screens and configuration.',
     ),
+    # ── Employee Healthcare ───────────────────────────────────────────
+    (
+        'employee_healthcare.privilege_employee_healthcare',
+        'employee_healthcare.group_employee_healthcare_employee',
+        'Employee Healthcare – Employee',
+        'View and edit their own healthcare information.',
+    ),
+    (
+        'employee_healthcare.privilege_employee_healthcare',
+        'employee_healthcare.group_employee_healthcare_manager',
+        'Employee Healthcare – Manager',
+        'View and manage all employee healthcare records, without configuration access.',
+    ),
+    (
+        'employee_healthcare.privilege_employee_healthcare',
+        'employee_healthcare.group_employee_healthcare_administrator',
+        'Employee Healthcare – Administrator',
+        'Full access including lookup table configuration and indicator rule management.',
+    ),
     # ── Employees ─────────────────────────────────────────────────────
     (
         'hr.res_groups_privilege_employees',
@@ -474,6 +493,13 @@ ROLE_DEFINITIONS = [
         'Sales – Administrator',
         'Full sales administration including pricelists, teams, and configuration.',
     ),
+    # ── Technical Configuration ───────────────────────────────────────
+    (
+        'url_slug_manager.privilege_technical_configuration',
+        'url_slug_manager.group_technical_config_admin',
+        'Technical Configuration – Administrator',
+        'Manage technical configuration such as URL slugs.',
+    ),
     # ── Tour Ticketing & Bookings ─────────────────────────────────────
     (
         'tour_booking.privilege_tour_booking',
@@ -543,6 +569,32 @@ ROLE_DEFINITIONS = [
         'website.group_website_designer',
         'Website – Editor & Designer',
         'Full website editing, design, and theme customisation access.',
+    ),
+    # ── Workflow Automation ───────────────────────────────────────────
+    (
+        'workflow_automation.privilege_workflow_automation',
+        'workflow_automation.group_workflow_user',
+        'Workflow Automation – User',
+        'Read-only access to workflows and execution logs.',
+    ),
+    (
+        'workflow_automation.privilege_workflow_automation',
+        'workflow_automation.group_workflow_manager',
+        'Workflow Automation – Manager',
+        'Create, edit and delete workflows, steps and logs.',
+    ),
+    # ── Zoo Manager ───────────────────────────────────────────────────
+    (
+        'zoo_manager.res_groups_privilege_zoo_manager',
+        'zoo_manager.group_zoo_keeper',
+        'Zoo Manager – Keeper',
+        'Register and move animals; log feedings, weights and health records.',
+    ),
+    (
+        'zoo_manager.res_groups_privilege_zoo_manager',
+        'zoo_manager.group_zoo_manager',
+        'Zoo Manager – Administrator',
+        'Full zoo administration: species, diets, enclosures and deleting records.',
     ),
 ]
 

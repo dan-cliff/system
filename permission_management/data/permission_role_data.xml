@@ -6,11 +6,15 @@
     each privilege/group XML ID with raise_if_not_found=False and silently
     skips any whose module is not installed on this build.
 
+    noupdate="0" so the library is also refreshed on every module upgrade:
+    roles for modules installed since are added, existing roles are left
+    alone (the hook is idempotent).
+
     Keeping this file prevents git merge conflicts from restoring an older
     version of the file that contained hard ref() calls to optional modules.
 -->
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <function model="permission.role" name="_load_role_library"/>
     </data>
 </odoo>

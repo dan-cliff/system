@@ -1,0 +1,31 @@
+<odoo>
+    <menuitem id="menu_zoo_manager_root"
+              name="Zoo Manager"
+              web_icon="zoo_manager,static/description/icon.png"
+              groups="group_zoo_keeper"
+              sequence="70"/>
+
+    <menuitem id="menu_zoo_animals" name="Animals" parent="menu_zoo_manager_root" sequence="10"/>
+    <menuitem id="menu_zoo_animal" name="Animals" parent="menu_zoo_animals"
+              action="zoo_animal_action" sequence="10"/>
+    <menuitem id="menu_zoo_animal_move" name="Moves" parent="menu_zoo_animals"
+              action="zoo_animal_move_action" sequence="20"/>
+
+    <menuitem id="menu_zoo_enclosure" name="Enclosures" parent="menu_zoo_manager_root"
+              action="zoo_enclosure_action" sequence="20"/>
+
+    <menuitem id="menu_zoo_care" name="Care" parent="menu_zoo_manager_root" sequence="30"/>
+    <menuitem id="menu_zoo_feeding" name="Feeding Rounds" parent="menu_zoo_care"
+              action="zoo_feeding_action" sequence="10"/>
+    <menuitem id="menu_zoo_health_record" name="Health Records" parent="menu_zoo_care"
+              action="zoo_health_record_action" sequence="20"/>
+    <menuitem id="menu_zoo_weight" name="Weights" parent="menu_zoo_care"
+              action="zoo_animal_weight_action" sequence="30"/>
+
+    <menuitem id="menu_zoo_config" name="Configuration" parent="menu_zoo_manager_root"
+              groups="group_zoo_manager" sequence="90"/>
+    <menuitem id="menu_zoo_species" name="Species" parent="menu_zoo_config"
+              action="zoo_species_action" sequence="10"/>
+    <menuitem id="menu_zoo_diet" name="Diets" parent="menu_zoo_config"
+              action="zoo_diet_action" sequence="20"/>
+</odoo>

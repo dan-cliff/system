@@ -1,0 +1,94 @@
+<odoo>
+    <record id="zoo_health_record_view_list" model="ir.ui.view">
+        <field name="name">zoo.health.record.list</field>
+        <field name="model">zoo.health.record</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="state == 'open'">
+                <field name="date"/>
+                <field name="animal_id"/>
+                <field name="species_id" optional="hide"/>
+                <field name="record_type"/>
+                <field name="summary"/>
+                <field name="veterinarian" optional="show"/>
+                <field name="follow_up_date"/>
+                <field name="activity_ids" widget="list_activity" optional="hide"/>
+                <field name="state" widget="badge" decoration-warning="state == 'open'"
+                       decoration-success="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_health_record_view_form" model="ir.ui.view">
+        <field name="name">zoo.health.record.form</field>
+        <field name="model">zoo.health.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_close" type="object" string="Mark Resolved" class="btn-primary"
+                            invisible="state != 'open'"/>
+                    <button name="action_reopen" type="object" string="Reopen" invisible="state != 'closed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="summary" placeholder="e.g. Annual check-up"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="animal_id"/>
+                            <field name="enclosure_id"/>
+                            <field name="record_type"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="veterinarian"/>
+                            <field name="user_id"/>
+                            <field name="follow_up_date"/>
+                        </group>
+                    </group>
+                    <group string="Details">
+                        <field name="diagnosis"/>
+                        <field name="treatment"/>
+                        <field name="medication"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="zoo_health_record_view_search" model="ir.ui.view">
+        <field name="name">zoo.health.record.search</field>
+        <field name="model">zoo.health.record</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="summary"/>
+                <field name="animal_id"/>
+                <field name="species_id"/>
+                <field name="veterinarian"/>
+                <filter string="Ongoing" name="open" domain="[('state', '=', 'open')]"/>
+                <filter string="Resolved" name="closed" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter string="Follow-up Due" name="follow_up_due"
+                        domain="[('state', '=', 'open'), ('follow_up_date', '&lt;=', 'today')]"/>
+                <separator/>
+                <filter string="Date" name="filter_date" date="date"/>
+                <group>
+                    <filter string="Animal" name="group_animal" context="{'group_by': 'animal_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'record_type'}"/>
+                    <filter string="Species" name="group_species" context="{'group_by': 'species_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_health_record_action" model="ir.actions.act_window">
+        <field name="name">Health Records</field>
+        <field name="res_model">zoo.health.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Log a vet visit or treatment</p>
+            <p>Check-ups, vaccinations, treatments and injuries, with follow-up dates.</p>
+        </field>
+    </record>
+</odoo>
