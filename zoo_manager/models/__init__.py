@@ -1,4 +1,5 @@
 from . import res_company
+from . import res_partner
 from . import stock_move
 from . import zoo_options
 from . import zoo_prefix_code_mixin

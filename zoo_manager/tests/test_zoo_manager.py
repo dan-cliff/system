@@ -431,8 +431,11 @@ class TestZooManager(TransactionCase):
         self.assertEqual([(p['role'], p['name']) for p in parents], [('Sire', 'g5'), ('Dam', 'Mum')])
         self.assertEqual(parents[1]['born'], '07/03/2019')
 
-        # A loop in the records (made by editing parents later) doesn't recurse forever.
-        line[0].sire_id = line[3]
+        # A loop can't be saved, but if one got into the data the tree still stops.
+        with self.assertRaises(ValidationError):
+            line[0].sire_id = line[3]
+        self.env.cr.execute('UPDATE zoo_animal SET sire_id = %s WHERE id = %s', [line[3].id, line[0].id])
+        line[0].invalidate_recordset(['sire_id'])
         self.assertTrue(line[0].get_family_tree())
         self.assertEqual(line[0].action_view_family_tree()['context'], {'active_id': line[0].id})
 
@@ -510,6 +513,46 @@ class TestZooManager(TransactionCase):
         with self.assertRaises(ValidationError):
             enclosure.livestream_url = False
         enclosure.write({'livestream': False, 'livestream_url': False})  # not needed without a livestream
+
+    def test_seller_and_wildlife_license(self):
+        victoria = self.env['res.country.state'].search([('code', '=', 'VIC'), ('country_id.code', '=', 'AU')], limit=1)
+        seller = self.env['res.partner'].create({
+            'name': 'Test Reptile Breeder', 'wildlife_license_number': 'WL-12345',
+            'jurisdiction_ids': [(6, 0, victoria.ids)],
+        })
+        self.assertEqual(seller.jurisdiction_ids, victoria)
+        species = self.env['zoo.species'].create({'name': 'Test Python', 'prefix_code': 'QPT'})
+        with Form(self.env['zoo.animal']) as form:
+            form.name = 'Monty'
+            form.species_id = species
+            form.seller_id = seller
+        animal = form.record
+        self.assertEqual(animal.seller_id, seller)
+        self.assertEqual(seller.zoo_animal_sold_ids, animal)
+
+    def test_sire_and_dam_checks(self):
+        species = self.env['zoo.species'].create({'name': 'Test Koala', 'prefix_code': 'QKO'})
+        Animal = self.env['zoo.animal']
+        sire = Animal.create({'name': 'Big K', 'species_id': species.id, 'sex': 'male'})
+        dam = Animal.create({'name': 'Kylie', 'species_id': species.id, 'sex': 'female'})
+        joey = Animal.create({'name': 'Joey', 'species_id': species.id, 'sex': 'male',
+                              'sire_id': sire.id, 'dam_id': dam.id})
+        grandjoey = Animal.create({'name': 'Grandjoey', 'species_id': species.id, 'sex': 'male', 'sire_id': joey.id})
+        # The drop-downs don't offer the animal itself (or the other parent).
+        sire_domain = joey._fields['sire_id'].domain
+        self.assertIn("('id', '!=', id)", sire_domain)
+        self.assertIn("('id', '!=', dam_id)", sire_domain)
+        # Saving is refused too.
+        with self.assertRaises(ValidationError):
+            joey.sire_id = joey
+        unknown = Animal.create({'name': 'Mystery', 'species_id': species.id, 'sex': 'unknown'})
+        with self.assertRaises(ValidationError):
+            Animal.create({'name': 'Odd', 'species_id': species.id, 'sire_id': unknown.id, 'dam_id': unknown.id})
+        # No animal can be its own ancestor, however far back.
+        with self.assertRaises(ValidationError):
+            sire.sire_id = grandjoey
+        with self.assertRaises(ValidationError):
+            dam.sire_id = joey
 
     def _fake_get(self, payload):
         response = MagicMock()
