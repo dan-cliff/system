@@ -191,22 +191,27 @@ class ZooSpecies(models.Model):
     def _cron_lookup_classification(self, limit=25):
         """Scheduled action: look up species waiting for classification or
         pictures, a few at a time. A species that fails is retried on later
-        runs, up to 3 times."""
-        todo = self.search([('lookup_pending', '=', True), ('lookup_failures', '<', 3)], limit=limit)
-        for species in todo:
+        runs, up to 3 times. Progress is reported after each species so Odoo
+        can stop the run in time (instead of killing it after 120s) and carry
+        on with the rest straight away."""
+        domain = [('lookup_pending', '=', True), ('lookup_failures', '<', 3)]
+        cron = self.env['ir.cron']
+        cron._commit_progress(remaining=self.search_count(domain))
+        for species in self.search(domain, limit=limit):
             try:
                 species._lookup_classification()
-                self.env.cr.commit()
             except taxonomy_lookup.RateLimited:
                 # Not the species' fault: leave the rest for the next run.
                 self.env.cr.rollback()
                 _logger.info('Species lookup rate limited; carrying on at the next run')
+                cron._commit_progress(remaining=0)
                 break
             except Exception:  # noqa: BLE001 - one failing species mustn't stop the rest
                 self.env.cr.rollback()
                 species.lookup_failures += 1
-                self.env.cr.commit()
                 _logger.warning('Species lookup failed for %s', species.scientific_name, exc_info=True)
+            if not cron._commit_progress(1):
+                break
 
     @api.model
     def _cron_nightly_classification_check(self):
