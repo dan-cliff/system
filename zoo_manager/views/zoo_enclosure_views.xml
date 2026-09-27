@@ -1,0 +1,95 @@
+<odoo>
+    <record id="zoo_enclosure_view_list" model="ir.ui.view">
+        <field name="name">zoo.enclosure.list</field>
+        <field name="model">zoo.enclosure</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="over_capacity">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="enclosure_type"/>
+                <field name="animal_count" string="Animals"/>
+                <field name="capacity"/>
+                <field name="area" optional="hide"/>
+                <field name="over_capacity" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_enclosure_view_form" model="ir.ui.view">
+        <field name="name">zoo.enclosure.form</field>
+        <field name="model">zoo.enclosure</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_moves" type="object" class="oe_stat_button" icon="fa-exchange" string="Moves"/>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="alert alert-danger" role="alert" invisible="not over_capacity">
+                        This enclosure holds more animals than its capacity.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Meerkat Mound"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="enclosure_type"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="capacity"/>
+                            <field name="animal_count"/>
+                            <field name="area"/>
+                            <field name="over_capacity" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Animals" name="animals">
+                            <field name="animal_ids" readonly="1">
+                                <list>
+                                    <field name="reference"/>
+                                    <field name="name"/>
+                                    <field name="species_id"/>
+                                    <field name="sex"/>
+                                    <field name="age"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="zoo_enclosure_view_search" model="ir.ui.view">
+        <field name="name">zoo.enclosure.search</field>
+        <field name="model">zoo.enclosure</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <filter string="Over Capacity" name="over_capacity" domain="[('over_capacity', '=', True)]"/>
+                <filter string="Empty" name="empty" domain="[('animal_count', '=', 0)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Type" name="group_type" context="{'group_by': 'enclosure_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_enclosure_action" model="ir.actions.act_window">
+        <field name="name">Enclosures</field>
+        <field name="res_model">zoo.enclosure</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first enclosure</p>
+            <p>Paddocks, aviaries, houses and tanks the animals live in.</p>
+        </field>
+    </record>
+</odoo>
