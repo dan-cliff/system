@@ -1,4 +1,6 @@
+import json
 import logging
+import time as systime
 from datetime import datetime, time, timedelta
 
 import pytz
@@ -20,6 +22,8 @@ TAXON_FIELDS = {
     'genus': 'taxon_genus',
     'species': 'taxon_species',
 }
+# Access token fetched with the Wikimedia client ID/secret, and when it expires.
+WIKIMEDIA_TOKEN_CACHE = 'zoo_manager.wikimedia_token_cache'
 LOOKUP_FIELDS = list(TAXON_FIELDS.values()) + ['image', 'distribution_image']
 
 
@@ -106,7 +110,14 @@ class ZooSpecies(models.Model):
             found = taxonomy_lookup.lookup_classification(name)
             vals.update({TAXON_FIELDS[rank]: found[rank] for rank in missing_taxa if found.get(rank)})
         if not self.image or not self.distribution_image:
-            pictures = taxonomy_lookup.lookup_images(name)
+            token = self._wikimedia_token()
+            try:
+                pictures = taxonomy_lookup.lookup_images(name, token=token)
+            except taxonomy_lookup.AuthenticationFailed:
+                # Token revoked or expired early: forget it and carry on without.
+                _logger.warning('Wikimedia rejected the OAuth token; looking up %s without it', name)
+                self.env['ir.config_parameter'].sudo().set_param(WIKIMEDIA_TOKEN_CACHE, False)
+                pictures = taxonomy_lookup.lookup_images(name)
             if not self.image and pictures.get('image'):
                 vals['image'] = pictures['image']
             if not self.distribution_image and pictures.get('distribution'):
@@ -136,6 +147,36 @@ class ZooSpecies(models.Model):
             'params': {'message': message, 'type': 'success' if filled else 'warning', 'sticky': False,
                        'next': {'type': 'ir.actions.act_window_close'}},
         }
+
+    @api.model
+    def _wikimedia_token(self, raise_errors=False):
+        """Wikimedia OAuth access token from Settings > Integrations, or None
+        to look things up anonymously (500 requests an hour instead of 5,000).
+        Tokens fetched with the client ID/secret are kept until they expire."""
+        params = self.env['ir.config_parameter'].sudo()
+        token = params.get_param('zoo_manager.wikimedia_access_token')
+        if token:
+            return token.strip()
+        client_id = (params.get_param('zoo_manager.wikimedia_client_id') or '').strip()
+        client_secret = (params.get_param('zoo_manager.wikimedia_client_secret') or '').strip()
+        if not (client_id and client_secret):
+            return None
+        try:
+            cache = json.loads(params.get_param(WIKIMEDIA_TOKEN_CACHE) or '{}')
+        except ValueError:
+            cache = {}
+        if cache.get('client_id') == client_id and cache.get('expires', 0) > systime.time() + 60:
+            return cache['token']
+        try:
+            token, expires_in = taxonomy_lookup.fetch_wikimedia_token(client_id, client_secret)
+        except Exception:
+            if raise_errors:
+                raise
+            _logger.warning('Could not get a Wikimedia OAuth token; looking up anonymously', exc_info=True)
+            return None
+        params.set_param(WIKIMEDIA_TOKEN_CACHE, json.dumps(
+            {'client_id': client_id, 'token': token, 'expires': systime.time() + expires_in}))
+        return token
 
     @api.model
     def _cron_lookup_classification(self, limit=25):

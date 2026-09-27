@@ -73,7 +73,7 @@ def main():
         entry = {'name': name}
         try:
             entry['taxa'] = lookup.lookup_classification(name)
-            found = lookup.lookup_images(name)
+            found = lookup.lookup_images(name, token=os.environ.get('WIKIMEDIA_TOKEN'))
             entry['url'] = found.get('url')
             if found.get('image'):
                 save_picture(found['image'], os.path.join(pictures_dir, f'{code}.jpg'), 'JPEG')

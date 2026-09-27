@@ -12,6 +12,7 @@ from odoo.tools import mute_logger
 from odoo.tools.safe_eval import safe_eval
 
 from ..lib import taxonomy_lookup
+from ..models.zoo_species import WIKIMEDIA_TOKEN_CACHE
 
 PIXEL_PNG = b'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 
@@ -230,6 +231,58 @@ class TestZooManager(TransactionCase):
         Species._schedule_nightly_classification_check()
         local = pytz.utc.localize(cron.nextcall).astimezone(pytz.timezone('Australia/Melbourne'))
         self.assertEqual((local.hour, local.minute), (3, 0))
+
+    def test_wikimedia_oauth(self):
+        params = self.env['ir.config_parameter'].sudo()
+        Species = self.env['zoo.species']
+        self.assertIsNone(Species._wikimedia_token())  # nothing set up: anonymous
+
+        # Client credentials: fetched once, then reused until it expires.
+        params.set_param('zoo_manager.wikimedia_client_id', 'client')
+        params.set_param('zoo_manager.wikimedia_client_secret', 'secret')
+        with patch.object(taxonomy_lookup, 'fetch_wikimedia_token', return_value=('tok1', 14400)) as fetch:
+            self.assertEqual(Species._wikimedia_token(), 'tok1')
+            self.assertEqual(Species._wikimedia_token(), 'tok1')
+        fetch.assert_called_once_with('client', 'secret')
+        # Saving the settings forgets the fetched token.
+        self.env['res.config.settings'].create({}).execute()
+        with patch.object(taxonomy_lookup, 'fetch_wikimedia_token', return_value=('tok2', 14400)):
+            self.assertEqual(Species._wikimedia_token(), 'tok2')
+        # Bad credentials: carry on anonymously.
+        params.set_param(WIKIMEDIA_TOKEN_CACHE, False)
+        with patch.object(taxonomy_lookup, 'fetch_wikimedia_token',
+                          side_effect=taxonomy_lookup.AuthenticationFailed('invalid_client')), \
+             mute_logger('odoo.addons.zoo_manager.models.zoo_species'):
+            self.assertIsNone(Species._wikimedia_token())
+        # An owner-only access token wins over the client ID/secret.
+        params.set_param('zoo_manager.wikimedia_access_token', 'owner-token')
+        self.assertEqual(Species._wikimedia_token(), 'owner-token')
+
+        # The token goes to Wikipedia/Wikimedia only, never to GBIF.
+        ok = MagicMock(status_code=200)
+        with patch.object(taxonomy_lookup.requests, 'get', return_value=ok) as get, \
+             patch.object(taxonomy_lookup.time, 'sleep'):
+            for url in ('https://en.wikipedia.org/w/api.php', 'https://upload.wikimedia.org/a.jpg',
+                        'https://api.gbif.org/v1/species/match', 'https://evilwikipedia.org/x'):
+                taxonomy_lookup._get(url, token='owner-token')
+        sent = {c.args[0]: c.kwargs['headers'].get('Authorization') for c in get.call_args_list}
+        self.assertEqual(sent, {
+            'https://en.wikipedia.org/w/api.php': 'Bearer owner-token',
+            'https://upload.wikimedia.org/a.jpg': 'Bearer owner-token',
+            'https://api.gbif.org/v1/species/match': None,
+            'https://evilwikipedia.org/x': None,
+        })
+
+        # A rejected token is dropped and the lookup retried without it.
+        species = Species.create({'name': 'Test Owl', 'prefix_code': 'QOW', 'scientific_name': 'Ninox strenua'})
+        pictures = {'image': PIXEL_PNG, 'url': 'https://en.wikipedia.org/wiki/Powerful_owl'}
+        with patch.object(taxonomy_lookup, 'lookup_classification', return_value={}), \
+             patch.object(taxonomy_lookup, 'lookup_images',
+                          side_effect=[taxonomy_lookup.AuthenticationFailed('x'), pictures]) as images, \
+             mute_logger('odoo.addons.zoo_manager.models.zoo_species'):
+            species._lookup_classification()
+        self.assertEqual(images.call_args_list, [call('Ninox strenua', token='owner-token'), call('Ninox strenua')])
+        self.assertTrue(species.image)
 
     def _fake_get(self, payload):
         response = MagicMock()

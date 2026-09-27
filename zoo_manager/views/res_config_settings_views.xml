@@ -20,6 +20,31 @@
                                    options="{'no_create': True}"/>
                         </setting>
                     </block>
+                    <block title="Integrations" id="zoo_integrations" groups="base.group_system">
+                        <setting id="zoo_wikimedia_oauth" string="Wikipedia (Wikimedia OAuth)"
+                                 help="Authenticated access raises the Wikipedia picture lookups from 500 to 5,000 requests an hour. Register an OAuth 2.0 client (client credentials, or owner-only) on Meta-Wiki, then enter its details here.">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="zoo_wikimedia_client_id" class="col-lg-4 o_light_label"/>
+                                    <field name="zoo_wikimedia_client_id" class="col-lg-8"/>
+                                </div>
+                                <div class="row">
+                                    <label for="zoo_wikimedia_client_secret" class="col-lg-4 o_light_label"/>
+                                    <field name="zoo_wikimedia_client_secret" password="True" class="col-lg-8"/>
+                                </div>
+                                <div class="row">
+                                    <label for="zoo_wikimedia_access_token" class="col-lg-4 o_light_label"/>
+                                    <field name="zoo_wikimedia_access_token" password="True" class="col-lg-8"/>
+                                </div>
+                                <div class="mt8">
+                                    <a href="https://meta.wikimedia.org/wiki/Special:OAuthConsumerRegistration/propose/oauth2"
+                                       target="_blank" class="me-3"><i class="oi oi-arrow-right"/> Register a client</a>
+                                    <button name="action_zoo_test_wikimedia" type="object" string="Test Connection"
+                                            class="btn-link" icon="fa-plug"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
