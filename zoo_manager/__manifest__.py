@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.3.1',
+    'version': '19.0.1.4.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -23,6 +23,10 @@ Zoo Manager
   English Wikipedia article for the pictures); existing values are kept.
   Every night at 3am (the administrator's timezone) any species still
   missing classification fields is looked up again.
+* Every night at 4am each species' conservation status is checked against
+  the IUCN Red List (via GBIF) and updated if it has changed; new Red List
+  categories are added to the Conservation Statuses list. Species have a
+  chatter, where every change of conservation status is logged.
 * Diets: feed products, quantities and frequency. Settings > Feeds sets
   which warehouses and product categories hold feed; only those products
   are offered on diets and feeding rounds.

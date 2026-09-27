@@ -27,6 +27,9 @@
                     <button name="action_lookup_classification" type="object" string="Look Up Classification"
                             icon="fa-search" invisible="not scientific_name" groups="zoo_manager.group_zoo_manager"
                             help="Fill in empty classification fields and pictures from the scientific name (GBIF and Wikipedia)."/>
+                    <button name="action_check_conservation_status" type="object" string="Check Conservation Status"
+                            icon="fa-leaf" invisible="not scientific_name" groups="zoo_manager.group_zoo_manager"
+                            help="Update the conservation status from the IUCN Red List (via GBIF)."/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -44,6 +47,7 @@
                             <field name="species_code"/>
                             <field name="include_on_annual_return"/>
                             <field name="conservation_status_id" options="{'no_create': True}"/>
+                            <field name="conservation_checked" options="{'numeric': True}" invisible="not conservation_checked"/>
                         </group>
                         <group>
                             <field name="default_diet_id"/>
@@ -77,6 +81,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

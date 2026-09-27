@@ -103,15 +103,60 @@ def clean_name(scientific_name):
     return ' '.join(name.split())
 
 
-def lookup_classification(scientific_name):
-    """{rank: name} from GBIF, or {} when GBIF has no exact, confident match."""
+def _gbif_match(scientific_name):
+    """GBIF's backbone entry for the name, or None without an exact, confident match."""
     name = clean_name(scientific_name)
     if not name or name.endswith(' spp') or name.endswith(' sp'):
-        return {}
+        return None
     data = _get('https://api.gbif.org/v1/species/match', name=name, strict='true').json()
     if data.get('matchType') != 'EXACT' or data.get('confidence', 0) < MIN_CONFIDENCE:
+        return None
+    return data
+
+
+def lookup_classification(scientific_name):
+    """{rank: name} from GBIF, or {} when GBIF has no exact, confident match."""
+    data = _gbif_match(scientific_name)
+    if not data:
         return {}
     return fix_reptile_class({rank: data[rank] for rank in RANKS if data.get(rank)})
+
+
+# IUCN Red List categories as GBIF names them, with their codes.
+IUCN_CODES = {
+    'EXTINCT': 'EX', 'EXTINCT_IN_THE_WILD': 'EW', 'CRITICALLY_ENDANGERED': 'CR', 'ENDANGERED': 'EN',
+    'VULNERABLE': 'VU', 'NEAR_THREATENED': 'NT', 'LEAST_CONCERN': 'LC', 'DATA_DEFICIENT': 'DD',
+    'NOT_EVALUATED': 'NE',
+}
+
+
+def lookup_conservation_status(scientific_name):
+    """The IUCN Red List category of the species, from GBIF's copy of the Red
+    List: {'code': 'VU', 'name': 'Vulnerable', 'url': GBIF page}, or {} when
+    it can't be confirmed. A subspecies without its own assessment gets its
+    species' category."""
+    data = _gbif_match(scientific_name)
+    if not data:
+        return {}
+    for key in dict.fromkeys(filter(None, (data.get('usageKey'), data.get('speciesKey')))):
+        try:
+            response = _get(f'https://api.gbif.org/v1/species/{key}/iucnRedListCategory')
+        except requests.HTTPError as error:
+            if error.response is not None and error.response.status_code == 404:
+                continue
+            raise
+        if not response.content:
+            continue
+        category = response.json().get('category')
+        if not category:
+            continue
+        code = response.json().get('code') or IUCN_CODES.get(category) or category
+        return {
+            'code': code.upper(),
+            'name': category.replace('_', ' ').title().replace(' In ', ' in ').replace(' The ', ' the '),
+            'url': f'https://www.gbif.org/species/{key}',
+        }
+    return {}
 
 
 def fix_reptile_class(taxonomy):

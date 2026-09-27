@@ -2,6 +2,7 @@ from datetime import date
 from unittest.mock import MagicMock, call, patch
 
 import pytz
+import requests
 
 from psycopg2 import IntegrityError
 
@@ -228,7 +229,7 @@ class TestZooManager(TransactionCase):
 
         cron = self.env.ref('zoo_manager.ir_cron_zoo_species_nightly_check')
         cron.user_id.tz = 'Australia/Melbourne'
-        Species._schedule_nightly_classification_check()
+        Species._schedule_cron_at('zoo_manager.ir_cron_zoo_species_nightly_check', 3)
         local = pytz.utc.localize(cron.nextcall).astimezone(pytz.timezone('Australia/Melbourne'))
         self.assertEqual((local.hour, local.minute), (3, 0))
 
@@ -283,6 +284,89 @@ class TestZooManager(TransactionCase):
             species._lookup_classification()
         self.assertEqual(images.call_args_list, [call('Ninox strenua', token='owner-token'), call('Ninox strenua')])
         self.assertTrue(species.image)
+
+    def _gbif_responses(self, *payloads):
+        """Patch taxonomy_lookup._get to answer with these payloads in turn;
+        None stands for a 404."""
+        def response(payload):
+            if payload is None:
+                return requests.HTTPError(response=MagicMock(status_code=404))
+            mock = MagicMock(content=b'{}')
+            mock.json.return_value = payload
+            return mock
+        return patch.object(taxonomy_lookup, '_get', side_effect=[response(p) for p in payloads])
+
+    def test_conservation_status_lookup(self):
+        match = {'matchType': 'EXACT', 'confidence': 99, 'usageKey': 11, 'speciesKey': 10}
+        # A subspecies without its own assessment gets its species' category.
+        with self._gbif_responses(match, None, {'category': 'VULNERABLE', 'code': 'VU'}) as get:
+            found = taxonomy_lookup.lookup_conservation_status('Calyptorhynchus banksii graptogyne')
+        self.assertEqual(found, {'code': 'VU', 'name': 'Vulnerable', 'url': 'https://www.gbif.org/species/10'})
+        self.assertEqual([c.args[0] for c in get.call_args_list[1:]], [
+            'https://api.gbif.org/v1/species/11/iucnRedListCategory',
+            'https://api.gbif.org/v1/species/10/iucnRedListCategory'])
+        with self._gbif_responses(dict(match, speciesKey=11), {'category': 'EXTINCT_IN_THE_WILD'}):
+            self.assertEqual(taxonomy_lookup.lookup_conservation_status('Elusor macrurus')['name'], 'Extinct in the Wild')
+        with self._gbif_responses(dict(match, matchType='FUZZY')):
+            self.assertEqual(taxonomy_lookup.lookup_conservation_status('Elusor macrurs'), {})
+        with self._gbif_responses(match, None, None):
+            self.assertEqual(taxonomy_lookup.lookup_conservation_status('Elusor macrurus'), {})
+
+    def test_conservation_status_update_is_logged(self):
+        Status = self.env['zoo.conservation.status']
+        least_concern = self.env.ref('zoo_manager.zoo_conservation_status_lc')
+        vulnerable = self.env.ref('zoo_manager.zoo_conservation_status_vu')
+        species = self.env['zoo.species'].create({
+            'name': 'Test Cockatoo', 'prefix_code': 'QCK', 'scientific_name': 'Calyptorhynchus banksii',
+            'conservation_status_id': least_concern.id,
+        })
+        # Odoo doesn't track changes to a record created in the same transaction.
+        self.env.flush_all()
+        self.env.cr.flush()
+        found = {'code': 'VU', 'name': 'Vulnerable', 'url': 'https://www.gbif.org/species/10'}
+        with patch.object(taxonomy_lookup, 'lookup_conservation_status', return_value=found):
+            self.assertEqual(species._update_conservation_status(), vulnerable)
+            self.assertFalse(species._update_conservation_status())  # already up to date
+        self.env.flush_all()
+        self.env.cr.flush()
+        message = species.message_ids.filtered('tracking_value_ids')[:1]
+        self.assertTrue(message, 'the change is logged in the chatter')
+        self.assertIn('IUCN Red List', message.body)
+        tracking = message.tracking_value_ids
+        self.assertEqual(tracking.field_id.name, 'conservation_status_id')
+        self.assertEqual((tracking.old_value_char, tracking.new_value_char),
+                         (least_concern.display_name, vulnerable.display_name))
+
+        # No assessment: the status is left alone.
+        with patch.object(taxonomy_lookup, 'lookup_conservation_status', return_value={}):
+            self.assertFalse(species._update_conservation_status())
+        self.assertEqual(species.conservation_status_id, vulnerable)
+
+        # An archived status is brought back; a category we don't have is added.
+        vulnerable.active = False
+        self.assertEqual(Status._get_or_create_iucn('vu', 'Vulnerable'), vulnerable)
+        self.assertTrue(vulnerable.active)
+        new = Status._get_or_create_iucn('LR/CD', 'Lower Risk Conservation Dependent')
+        self.assertEqual((new.name, new.code), ('Lower Risk Conservation Dependent', 'LR/CD'))
+        self.assertGreater(new.sequence, self.env.ref('zoo_manager.zoo_conservation_status_ex').sequence)
+
+    def test_nightly_conservation_check(self):
+        Species = self.env['zoo.species']
+        species = Species.create({'name': 'Test Quoll', 'prefix_code': 'QQL', 'scientific_name': 'Dasyurus maculatus'})
+        found = {'code': 'NT', 'name': 'Near Threatened', 'url': 'https://www.gbif.org/species/1'}
+        with patch.object(type(self.env['ir.cron']), '_commit_progress', return_value=60.0), \
+             patch.object(taxonomy_lookup, 'lookup_conservation_status', return_value=found) as lookup:
+            Species._cron_nightly_conservation_check()
+            self.assertEqual(species.conservation_status_id, self.env.ref('zoo_manager.zoo_conservation_status_nt'))
+            self.assertTrue(species.conservation_checked)
+            lookup.reset_mock()
+            Species._cron_nightly_conservation_check()  # checked tonight already
+            self.assertNotIn(call('Dasyurus maculatus'), lookup.call_args_list)
+        cron = self.env.ref('zoo_manager.ir_cron_zoo_species_conservation_check')
+        cron.user_id.tz = 'Australia/Melbourne'
+        Species._schedule_cron_at('zoo_manager.ir_cron_zoo_species_conservation_check', 4)
+        local = pytz.utc.localize(cron.nextcall).astimezone(pytz.timezone('Australia/Melbourne'))
+        self.assertEqual((local.hour, local.minute), (4, 0))
 
     def _fake_get(self, payload):
         response = MagicMock()

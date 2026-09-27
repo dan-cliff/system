@@ -5,6 +5,8 @@ from datetime import datetime, time, timedelta
 
 import pytz
 
+from markupsafe import Markup
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
@@ -30,7 +32,7 @@ LOOKUP_FIELDS = list(TAXON_FIELDS.values()) + ['image', 'distribution_image']
 class ZooSpecies(models.Model):
     _name = 'zoo.species'
     _description = 'Species'
-    _inherit = ['zoo.prefix.code.mixin']
+    _inherit = ['zoo.prefix.code.mixin', 'mail.thread', 'mail.activity.mixin']
     _order = 'name'
 
     _prefix_code_length = 3
@@ -46,7 +48,14 @@ class ZooSpecies(models.Model):
         string='Include on Annual Wildlife Return',
         help='Should this Species be included on the annual wildlife return?',
     )
-    conservation_status_id = fields.Many2one('zoo.conservation.status', string='Conservation Status (IUCN)')
+    conservation_status_id = fields.Many2one(
+        'zoo.conservation.status', string='Conservation Status (IUCN)', tracking=True,
+        help='IUCN Red List category. Checked against the Red List every night; changes are logged below.',
+    )
+    conservation_checked = fields.Datetime(
+        string='Conservation Status Checked', copy=False, readonly=True,
+        help='When the conservation status was last checked against the IUCN Red List.',
+    )
     default_diet_id = fields.Many2one(
         'zoo.diet',
         string='Default Diet',
@@ -201,45 +210,100 @@ class ZooSpecies(models.Model):
 
     @api.model
     def _cron_nightly_classification_check(self):
-        """Scheduled action (nightly): look up every species that still has an
-        empty scientific classification field. Each species is tried once per
-        night; if the run runs out of time it carries on straight away."""
+        """Scheduled action (3am): look up every species that still has an
+        empty scientific classification field."""
         missing = ['|'] * (len(TAXON_FIELDS) - 1) + [(field, '=', False) for field in TAXON_FIELDS.values()]
+        self._run_nightly('lookup_checked', missing, lambda species: species._lookup_classification())
+
+    @api.model
+    def _cron_nightly_conservation_check(self):
+        """Scheduled action (4am): check every species' conservation status
+        against the IUCN Red List and update it where it has changed."""
+        self._run_nightly('conservation_checked', [], lambda species: species._update_conservation_status())
+
+    @api.model
+    def _run_nightly(self, checked_field, domain, method):
+        """Run `method` on each species with a scientific name, once a night
+        (`checked_field` records when). If the run runs out of time it carries
+        on straight away; if the online sources ask us to slow down, what's
+        left waits until tomorrow."""
         todo = self.search([
             ('scientific_name', '!=', False),
-            '|', ('lookup_checked', '=', False), ('lookup_checked', '<', fields.Datetime.now() - timedelta(hours=12)),
-        ] + missing)
+            '|', (checked_field, '=', False), (checked_field, '<', fields.Datetime.now() - timedelta(hours=12)),
+        ] + domain)
         cron = self.env['ir.cron']
         cron._commit_progress(remaining=len(todo))
         for species in todo:
             try:
-                species._lookup_classification()
-                species.lookup_checked = fields.Datetime.now()
+                method(species)
+                species[checked_field] = fields.Datetime.now()
             except taxonomy_lookup.RateLimited:
-                # Stop for tonight; what's left is picked up tomorrow.
                 self.env.cr.rollback()
-                _logger.info('Nightly species lookup rate limited; stopping until tomorrow')
+                _logger.info('Nightly species check rate limited; stopping until tomorrow')
                 cron._commit_progress(remaining=0)
                 break
             except Exception:  # noqa: BLE001 - one failing species mustn't stop the rest
                 self.env.cr.rollback()
-                species.lookup_checked = fields.Datetime.now()
-                _logger.warning('Nightly species lookup failed for %s', species.scientific_name, exc_info=True)
+                species[checked_field] = fields.Datetime.now()
+                _logger.warning('Nightly species check failed for %s', species.scientific_name, exc_info=True)
             if not cron._commit_progress(1):
                 break
 
+    def _update_conservation_status(self):
+        """Set the conservation status from the IUCN Red List (via GBIF).
+        Returns the new status if it changed; nothing is changed when the Red
+        List has no assessment for the species."""
+        self.ensure_one()
+        found = taxonomy_lookup.lookup_conservation_status(self.scientific_name)
+        if not found:
+            return False
+        status = self.env['zoo.conservation.status']._get_or_create_iucn(found['code'], found['name'])
+        if status == self.conservation_status_id:
+            return False
+        self._track_set_log_message(Markup('<p>%s <a href="%s" target="_blank">%s</a></p>') % (
+            self.env._('Conservation status updated from the IUCN Red List:'), found['url'], found['url']))
+        self.conservation_status_id = status
+        return status
+
+    def action_check_conservation_status(self):
+        changed = []
+        for species in self.filtered('scientific_name'):
+            try:
+                if species._update_conservation_status():
+                    changed.append(species)
+                species.conservation_checked = fields.Datetime.now()
+            except taxonomy_lookup.RateLimited as error:
+                raise UserError(self.env._(
+                    'The IUCN Red List lookup is limiting how fast we can check. Please try again in a few '
+                    'minutes; the nightly check will also update it automatically.')) from error
+            except Exception as error:  # noqa: BLE001 - report network/parse errors to the user
+                raise UserError(self.env._('Could not check %(name)s: %(error)s',
+                                           name=species.scientific_name, error=error)) from error
+        if changed:
+            message = self.env._('Conservation status updated to %s.',
+                                 ', '.join(changed[0].conservation_status_id.mapped('display_name')))
+        else:
+            message = self.env._('No change: the conservation status matches the IUCN Red List '
+                                 '(or the Red List has no assessment for this species).')
+        return {
+            'type': 'ir.actions.client', 'tag': 'display_notification',
+            'params': {'message': message, 'type': 'success' if changed else 'info', 'sticky': False,
+                       'next': {'type': 'ir.actions.act_window_close'}},
+        }
+
     @api.model
-    def _schedule_nightly_classification_check(self):
-        """Point the nightly check at the next 3am in its user's timezone.
-        Odoo keeps it at 3am from then on, through daylight saving changes."""
-        cron = self.env.ref('zoo_manager.ir_cron_zoo_species_nightly_check', raise_if_not_found=False)
+    def _schedule_cron_at(self, cron_xmlid, hour):
+        """Point a nightly scheduled action at the next `hour` o'clock in its
+        user's timezone. Odoo keeps it at that hour from then on, through
+        daylight saving changes."""
+        cron = self.env.ref(cron_xmlid, raise_if_not_found=False)
         if not cron:
             return
         tz = pytz.timezone(cron.user_id.tz or 'UTC')
         now = datetime.now(tz)
-        next_run = tz.localize(datetime.combine(now.date(), time(3)))
+        next_run = tz.localize(datetime.combine(now.date(), time(hour)))
         if next_run <= now:
-            next_run = tz.localize(datetime.combine(now.date() + timedelta(days=1), time(3)))
+            next_run = tz.localize(datetime.combine(now.date() + timedelta(days=1), time(hour)))
         cron.nextcall = next_run.astimezone(pytz.utc).replace(tzinfo=None)
 
     @api.depends('name', 'species_code')
