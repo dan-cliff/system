@@ -17,6 +17,10 @@ Zoo Manager
   wildlife return, plus IUCN status and a default diet. Ships with the
   classes and species of the Victorian wildlife schedule (species codes
   and common names), all marked for the annual wildlife return.
+* Species scientific classification (kingdom to species), a picture and a
+  geographic distribution map. Anything left empty is looked up from the
+  scientific name in the background (GBIF for the classification, the
+  English Wikipedia article for the pictures); existing values are kept.
 * Diets: feed products, quantities and frequency. Settings > Feeds sets
   which warehouses and product categories hold feed; only those products
   are offered on diets and feeding rounds.
@@ -43,6 +47,7 @@ Zoo Manager
         'data/zoo_options_data.xml',
         'data/zoo_manager_sequence.xml',
         'data/zoo_species_data.xml',
+        'data/zoo_cron_data.xml',
         'views/zoo_options_views.xml',
         'views/zoo_species_views.xml',
         'views/zoo_diet_views.xml',

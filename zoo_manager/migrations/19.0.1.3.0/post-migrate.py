@@ -8,6 +8,7 @@
   product's unit: keep any old unit that differs in the notes.
 - Feeding round "Food Given" (free text) is now food lines; keep the old text
   in the round's notes.
+- Queue every species for the classification and picture lookup.
 - Show dates as dd/mm/yyyy: the language data only applies on install, so set
   English's date format here for existing databases.
 """
@@ -38,6 +39,9 @@ def _join(*parts, sep=' - '):
 
 def migrate(cr, version):
     env = api.Environment(cr, SUPERUSER_ID, {})
+
+    species = env['zoo.species'].with_context(active_test=False).search([('scientific_name', '!=', False)])
+    species.filtered(lambda s: s._missing_lookup_fields()).write({'lookup_pending': True})
 
     lang_en = env.ref('base.lang_en', raise_if_not_found=False)
     if lang_en and lang_en.date_format != '%d/%m/%Y':

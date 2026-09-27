@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import MagicMock, patch
 
 from psycopg2 import IntegrityError
 
@@ -7,6 +8,10 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import Form, TransactionCase, new_test_user, tagged
 from odoo.tools import mute_logger
 from odoo.tools.safe_eval import safe_eval
+
+from ..lib import taxonomy_lookup
+
+PIXEL_PNG = b'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 
 
 @tagged('post_install', '-at_install')
@@ -157,6 +162,69 @@ class TestZooManager(TransactionCase):
         self.assertEqual(record.record_type_id, self.env.ref('zoo_manager.zoo_health_record_type_checkup'))
         self.assertEqual(self.diet.line_ids[:1].frequency_id, self.env.ref('zoo_manager.zoo_diet_frequency_daily'))
         self.assertTrue(self.env.ref('zoo_manager.zoo_feeding_consumption_none').refused)
+
+    def test_species_lookup_fills_only_empty_fields(self):
+        classification = {'kingdom': 'Animalia', 'phylum': 'Chordata', 'class': 'Mammalia', 'order': 'Diprotodontia',
+                          'family': 'Macropodidae', 'genus': 'Macropus', 'species': 'Macropus giganteus'}
+        pictures = {'image': PIXEL_PNG, 'distribution': PIXEL_PNG, 'url': 'https://en.wikipedia.org/wiki/Eastern_grey_kangaroo'}
+        species = self.env['zoo.species'].create({
+            'name': 'Test Kangaroo', 'prefix_code': 'QKG', 'scientific_name': 'Macropus giganteus',
+            'taxon_genus': 'Kept Genus',
+        })
+        self.assertTrue(species.lookup_pending)
+        with patch.object(taxonomy_lookup, 'lookup_classification', return_value=classification), \
+             patch.object(taxonomy_lookup, 'lookup_images', return_value=pictures):
+            species._lookup_classification()
+        self.assertFalse(species.lookup_pending)
+        self.assertEqual(species.taxon_class, 'Mammalia')
+        self.assertEqual(species.taxon_species, 'Macropus giganteus')
+        self.assertEqual(species.taxon_genus, 'Kept Genus')  # never overwritten
+        self.assertTrue(species.image and species.distribution_image)
+        self.assertEqual(species.reference_url, pictures['url'])
+
+        # A complete species isn't queued; changing the scientific name re-queues a partial one.
+        self.assertFalse(self.env['zoo.species'].create({
+            'name': 'Complete', 'prefix_code': 'QCP', 'scientific_name': 'Macropus giganteus', 'reference_url': 'x',
+            **{field: 'x' for field in ('taxon_kingdom', 'taxon_phylum', 'taxon_class', 'taxon_order',
+                                        'taxon_family', 'taxon_genus', 'taxon_species')},
+            'image': PIXEL_PNG, 'distribution_image': PIXEL_PNG,
+        }).lookup_pending)
+        species.image = False
+        species.scientific_name = 'Macropus fuliginosus'
+        self.assertTrue(species.lookup_pending)
+
+    def _fake_get(self, payload):
+        response = MagicMock()
+        response.json.return_value = payload
+        return patch.object(taxonomy_lookup, '_get', return_value=response)
+
+    def test_classification_needs_exact_gbif_match(self):
+        match = {'matchType': 'EXACT', 'confidence': 99, 'kingdom': 'Animalia', 'class': 'Aves', 'species': 'Dromaius novaehollandiae'}
+        with self._fake_get(match):
+            self.assertEqual(taxonomy_lookup.lookup_classification('Dromaius novaehollandiae'),
+                             {'kingdom': 'Animalia', 'class': 'Aves', 'species': 'Dromaius novaehollandiae'})
+        with self._fake_get(dict(match, matchType='FUZZY')):
+            self.assertEqual(taxonomy_lookup.lookup_classification('Dromaius novaehollandae'), {})
+        with self._fake_get(dict(match, confidence=80)):
+            self.assertEqual(taxonomy_lookup.lookup_classification('Dromaius novaehollandiae'), {})
+        self.assertEqual(taxonomy_lookup.lookup_classification('Phasianus spp'), {})
+        self.assertEqual(taxonomy_lookup.clean_name('Calyptorhynchus banksii (except graptogyne)'), 'Calyptorhynchus banksii')
+
+    def test_distribution_map_is_image_after_binomial_name(self):
+        infobox = '''<table class="infobox biota">
+            <tr><td><img src="//upload.wikimedia.org/thumb/a/ab/Kangaroo.jpg/250px-Kangaroo.jpg"/></td></tr>
+            <tr><th>Scientific classification</th></tr>
+            <tr><th>Binomial name</th></tr>
+            <tr><td><i>Macropus giganteus</i></td></tr>
+            <tr><td><img src="//upload.wikimedia.org/thumb/c/cd/Range.png/220px-Range.png"/></td></tr>
+            <tr><th>Synonyms</th></tr>
+        </table>'''
+        with self._fake_get({'parse': {'text': infobox}}):
+            src = taxonomy_lookup._distribution_map_src('Eastern grey kangaroo')
+        self.assertEqual(src, '//upload.wikimedia.org/thumb/c/cd/Range.png/220px-Range.png')
+        self.assertEqual(taxonomy_lookup._larger_thumbnail(src, 800), '//upload.wikimedia.org/thumb/c/cd/Range.png/800px-Range.png')
+        with self._fake_get({'parse': {'text': '<table class="infobox biota"><tr><th>Binomial name</th></tr></table>'}}):
+            self.assertIsNone(taxonomy_lookup._distribution_map_src('No map'))
 
     def test_schedule_species_loaded(self):
         Species = self.env['zoo.species']
