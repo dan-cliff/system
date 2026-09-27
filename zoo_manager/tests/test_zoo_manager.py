@@ -15,9 +15,10 @@ class TestZooManager(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.insects = cls.env['product.product'].create({'name': 'Test Insects', 'is_storable': True})
         cls.diet = cls.env['zoo.diet'].create({
             'name': 'Adult Meerkat',
-            'line_ids': [(0, 0, {'food': 'Insects', 'quantity': 0.05, 'unit': 'kg'})],
+            'line_ids': [(0, 0, {'product_id': cls.insects.id, 'quantity': 0.05})],
         })
         cls.mammals = cls.env['zoo.animal.class'].create({'name': 'Test Mammals', 'prefix_code': 'QM'})
         cls.species = cls.env['zoo.species'].create({
@@ -58,6 +59,104 @@ class TestZooManager(TransactionCase):
             self.env['zoo.species'].create({'name': 'Bad', 'prefix_code': 'A1B'})
         with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
             self.env['zoo.species'].create({'name': 'Duplicate', 'prefix_code': 'QMK'})
+
+    def test_feed_products_follow_settings(self):
+        company = self.env.company
+        Product = self.env['product.product']
+        feed_categ = self.env['product.category'].create({'name': 'Test Feed'})
+        pellets_categ = self.env['product.category'].create({'name': 'Test Pellets', 'parent_id': feed_categ.id})
+        other_categ = self.env['product.category'].create({'name': 'Test Not Feed'})
+        feed_wh = self.env['stock.warehouse'].create({'name': 'Test Feed Store', 'code': 'TFS'})
+        other_wh = self.env['stock.warehouse'].create({'name': 'Test Shop', 'code': 'TSH'})
+
+        def product(name, categ, warehouse):
+            record = Product.create({'name': name, 'categ_id': categ.id, 'is_storable': True})
+            self.env['stock.quant']._update_available_quantity(record, warehouse.lot_stock_id, 10)
+            return record
+
+        hay = product('Test Hay', feed_categ, feed_wh)
+        pellets = product('Test Pellets', pellets_categ, feed_wh)  # sub-category counts
+        feed_elsewhere = product('Test Seed', feed_categ, other_wh)
+        not_feed = product('Test Mug', other_categ, feed_wh)
+        mine = hay | pellets | feed_elsewhere | not_feed
+
+        company.write({'zoo_feed_warehouse_ids': [(6, 0, feed_wh.ids)], 'zoo_feed_categ_ids': [(6, 0, feed_categ.ids)]})
+        for record in (self.env['zoo.diet.line'].new({}), self.env['zoo.feeding.line'].new({})):
+            with self.subTest(model=record._name):
+                offered = Product.search(record.product_domain) & mine
+                self.assertEqual(offered, hay | pellets)
+
+        # Only categories set: any warehouse.
+        company.zoo_feed_warehouse_ids = False
+        offered = Product.search(self.env['zoo.diet.line'].new({}).product_domain) & mine
+        self.assertEqual(offered, hay | pellets | feed_elsewhere)
+
+        # Nothing set: no filtering.
+        company.zoo_feed_categ_ids = False
+        self.assertEqual(self.env['zoo.feeding.line'].new({}).product_domain, [])
+
+    def test_dates_are_day_first(self):
+        self.assertEqual(self.env.ref('base.lang_en').date_format, '%d/%m/%Y')
+        feeding = self.env['zoo.feeding'].create({
+            'enclosure_id': self.mound.id,
+            'scheduled_datetime': '2026-03-04 09:30:00',
+        })
+        # 4 March, day first (09:30 UTC is 4 March in any timezone within ±9h).
+        self.assertIn('04/03/2026', feeding.display_name)
+
+    def test_feeding_takes_feed_out_of_stock(self):
+        warehouse = self.env['stock.warehouse'].create({'name': 'Test Feed Barn', 'code': 'TFB'})
+        stock = warehouse.lot_stock_id
+        Quant = self.env['stock.quant']
+        crickets = self.env['product.product'].create({'name': 'Test Crickets', 'is_storable': True})
+        water = self.env['product.product'].create({'name': 'Test Water', 'type': 'consu'})  # not tracked
+        Quant._update_available_quantity(self.insects, stock, 10)
+        Quant._update_available_quantity(crickets, stock, 100)
+        self.diet.line_ids = [(0, 0, {'product_id': crickets.id, 'quantity': 5}),
+                              (0, 0, {'product_id': water.id, 'quantity': 1})]
+        self._animal(name='A', enclosure_id=self.mound.id)
+        self._animal(name='B', enclosure_id=self.mound.id)
+
+        feeding = self.env['zoo.feeding'].create({'enclosure_id': self.mound.id, 'warehouse_id': warehouse.id})
+        # Food lines come from both animals' diets, added up per product.
+        given = {line.product_id: line.quantity for line in feeding.line_ids}
+        self.assertEqual(given, {self.insects: 0.1, crickets: 10, water: 2})
+
+        feeding.line_ids.filtered(lambda l: l.product_id == crickets).quantity = 12  # what was actually given
+        feeding.action_mark_fed()
+        self.assertEqual(feeding.state, 'done')
+        self.assertAlmostEqual(Quant._get_available_quantity(self.insects, stock), 9.9)
+        self.assertEqual(Quant._get_available_quantity(crickets, stock), 88)
+        self.assertEqual(len(feeding.move_ids), 2)  # water isn't tracked in inventory
+        self.assertTrue(all(m.state == 'done' for m in feeding.move_ids))
+        self.assertEqual(feeding.move_ids.location_dest_id, self.env.company.zoo_feed_location_id)
+
+        # Resetting puts the stock back; marking fed again takes it out again.
+        feeding.action_reset_to_planned()
+        self.assertAlmostEqual(Quant._get_available_quantity(self.insects, stock), 10)
+        self.assertEqual(Quant._get_available_quantity(crickets, stock), 100)
+        feeding.action_mark_fed()
+        self.assertEqual(Quant._get_available_quantity(crickets, stock), 88)
+        feeding.action_cancel()
+        self.assertEqual(feeding.state, 'cancelled')
+        self.assertEqual(Quant._get_available_quantity(crickets, stock), 100)
+
+    def test_keeper_can_mark_fed(self):
+        warehouse = self.env['stock.warehouse'].create({'name': 'Test Keeper Barn', 'code': 'TKB'})
+        self.env['stock.quant']._update_available_quantity(self.insects, warehouse.lot_stock_id, 5)
+        self._animal(enclosure_id=self.mound.id)
+        feeding = self.env['zoo.feeding'].with_user(self.keeper).create(
+            {'enclosure_id': self.mound.id, 'warehouse_id': warehouse.id})
+        feeding.action_mark_fed()
+        self.assertEqual(self.env['stock.quant']._get_available_quantity(self.insects, warehouse.lot_stock_id), 4.95)
+
+    def test_choice_lists_are_records(self):
+        emu = self.env.ref('zoo_manager.zoo_species_1')
+        self.assertEqual(emu.conservation_status_id, self.env.ref('zoo_manager.zoo_conservation_status_lc'))
+        record = self.env['zoo.health.record'].create({'animal_id': self._animal().id, 'summary': 'Check'})
+        self.assertEqual(record.record_type_id, self.env.ref('zoo_manager.zoo_health_record_type_checkup'))
+        self.assertEqual(self.diet.line_ids[:1].frequency_id, self.env.ref('zoo_manager.zoo_diet_frequency_daily'))
+        self.assertTrue(self.env.ref('zoo_manager.zoo_feeding_consumption_none').refused)
 
     def test_schedule_species_loaded(self):
         Species = self.env['zoo.species']

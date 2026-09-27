@@ -20,19 +20,7 @@ class ZooSpecies(models.Model):
         string='Include on Annual Wildlife Return',
         help='Should this Species be included on the annual wildlife return?',
     )
-    conservation_status = fields.Selection(
-        [
-            ('ne', 'Not Evaluated'),
-            ('dd', 'Data Deficient'),
-            ('lc', 'Least Concern'),
-            ('nt', 'Near Threatened'),
-            ('vu', 'Vulnerable'),
-            ('en', 'Endangered'),
-            ('cr', 'Critically Endangered'),
-            ('ew', 'Extinct in the Wild'),
-        ],
-        string='Conservation Status (IUCN)',
-    )
+    conservation_status_id = fields.Many2one('zoo.conservation.status', string='Conservation Status (IUCN)')
     default_diet_id = fields.Many2one(
         'zoo.diet',
         string='Default Diet',

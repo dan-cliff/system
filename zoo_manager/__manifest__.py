@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -17,9 +17,15 @@ Zoo Manager
   wildlife return, plus IUCN status and a default diet. Ships with the
   classes and species of the Victorian wildlife schedule (species codes
   and common names), all marked for the annual wildlife return.
-* Diets (food items, quantities and frequency).
-* Feeding rounds: plan feeds per enclosure, mark them fed and record
-  how much was eaten.
+* Diets: feed products, quantities and frequency. Settings > Feeds sets
+  which warehouses and product categories hold feed; only those products
+  are offered on diets and feeding rounds.
+* Feeding rounds: plan feeds per enclosure; the food given is filled in
+  from the animals' diets. Marking a round Fed takes tracked feed out of
+  stock at the chosen warehouse (and resetting puts it back).
+* Choice lists (enclosure types, origins, conservation statuses, health
+  record types, diet frequencies, food consumption) are managed under
+  Configuration.
 * Health records: vet visits, vaccinations, treatments and injuries,
   with follow-up dates and activities.
 * Weight history per animal, with a graph.
@@ -29,18 +35,22 @@ Zoo Manager
 """,
     'author': 'Cliffs',
     'license': 'LGPL-3',
-    'depends': ['mail'],
+    'depends': ['mail', 'stock'],
     'data': [
         'security/zoo_manager_security.xml',
         'security/ir.model.access.csv',
+        'data/res_lang_data.xml',
+        'data/zoo_options_data.xml',
         'data/zoo_manager_sequence.xml',
         'data/zoo_species_data.xml',
+        'views/zoo_options_views.xml',
         'views/zoo_species_views.xml',
         'views/zoo_diet_views.xml',
         'views/zoo_enclosure_views.xml',
         'views/zoo_animal_views.xml',
         'views/zoo_feeding_views.xml',
         'views/zoo_health_record_views.xml',
+        'views/res_config_settings_views.xml',
         'views/zoo_manager_menus.xml',
     ],
     'installable': True,

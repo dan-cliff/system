@@ -4,13 +4,13 @@
         <field name="model">zoo.health.record</field>
         <field name="arch" type="xml">
             <list decoration-warning="state == 'open'">
-                <field name="date"/>
+                <field name="date" options="{'numeric': True}"/>
                 <field name="animal_id"/>
                 <field name="species_id" optional="hide"/>
-                <field name="record_type"/>
+                <field name="record_type_id"/>
                 <field name="summary"/>
                 <field name="veterinarian" optional="show"/>
-                <field name="follow_up_date"/>
+                <field name="follow_up_date" options="{'numeric': True}"/>
                 <field name="activity_ids" widget="list_activity" optional="hide"/>
                 <field name="state" widget="badge" decoration-warning="state == 'open'"
                        decoration-success="state == 'closed'"/>
@@ -37,13 +37,13 @@
                         <group>
                             <field name="animal_id"/>
                             <field name="enclosure_id"/>
-                            <field name="record_type"/>
+                            <field name="record_type_id" options="{'no_create': True}"/>
                         </group>
                         <group>
-                            <field name="date"/>
+                            <field name="date" options="{'numeric': True}"/>
                             <field name="veterinarian"/>
                             <field name="user_id"/>
-                            <field name="follow_up_date"/>
+                            <field name="follow_up_date" options="{'numeric': True}"/>
                         </group>
                     </group>
                     <group string="Details">
@@ -75,7 +75,7 @@
                 <filter string="Date" name="filter_date" date="date"/>
                 <group>
                     <filter string="Animal" name="group_animal" context="{'group_by': 'animal_id'}"/>
-                    <filter string="Type" name="group_type" context="{'group_by': 'record_type'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'record_type_id'}"/>
                     <filter string="Species" name="group_species" context="{'group_by': 'species_id'}"/>
                 </group>
             </search>

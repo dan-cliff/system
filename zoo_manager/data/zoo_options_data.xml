@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Starting options for the Configuration lists. noupdate so edits are kept. -->
+<odoo noupdate="1">
+    <!-- Enclosure types -->
+    <record id="zoo_enclosure_type_paddock" model="zoo.enclosure.type"><field name="name">Paddock</field><field name="sequence">10</field></record>
+    <record id="zoo_enclosure_type_pen" model="zoo.enclosure.type"><field name="name">Pen</field><field name="sequence">20</field></record>
+    <record id="zoo_enclosure_type_aviary" model="zoo.enclosure.type"><field name="name">Aviary</field><field name="sequence">30</field></record>
+    <record id="zoo_enclosure_type_house" model="zoo.enclosure.type"><field name="name">Animal House</field><field name="sequence">40</field></record>
+    <record id="zoo_enclosure_type_vivarium" model="zoo.enclosure.type"><field name="name">Vivarium</field><field name="sequence">50</field></record>
+    <record id="zoo_enclosure_type_aquarium" model="zoo.enclosure.type"><field name="name">Aquarium</field><field name="sequence">60</field></record>
+    <record id="zoo_enclosure_type_pond" model="zoo.enclosure.type"><field name="name">Pond</field><field name="sequence">70</field></record>
+    <record id="zoo_enclosure_type_quarantine" model="zoo.enclosure.type"><field name="name">Quarantine</field><field name="sequence">80</field></record>
+    <record id="zoo_enclosure_type_other" model="zoo.enclosure.type"><field name="name">Other</field><field name="sequence">90</field></record>
+
+    <!-- Animal origins -->
+    <record id="zoo_animal_origin_born_here" model="zoo.animal.origin"><field name="name">Born Here</field><field name="sequence">10</field></record>
+    <record id="zoo_animal_origin_transfer" model="zoo.animal.origin"><field name="name">Transfer from Another Collection</field><field name="sequence">20</field></record>
+    <record id="zoo_animal_origin_rescue" model="zoo.animal.origin"><field name="name">Rescue</field><field name="sequence">30</field></record>
+    <record id="zoo_animal_origin_purchase" model="zoo.animal.origin"><field name="name">Purchase</field><field name="sequence">40</field></record>
+    <record id="zoo_animal_origin_other" model="zoo.animal.origin"><field name="name">Other</field><field name="sequence">90</field></record>
+
+    <!-- Conservation statuses (IUCN Red List categories) -->
+    <record id="zoo_conservation_status_ne" model="zoo.conservation.status"><field name="name">Not Evaluated</field><field name="code">NE</field><field name="sequence">10</field></record>
+    <record id="zoo_conservation_status_dd" model="zoo.conservation.status"><field name="name">Data Deficient</field><field name="code">DD</field><field name="sequence">20</field></record>
+    <record id="zoo_conservation_status_lc" model="zoo.conservation.status"><field name="name">Least Concern</field><field name="code">LC</field><field name="sequence">30</field></record>
+    <record id="zoo_conservation_status_nt" model="zoo.conservation.status"><field name="name">Near Threatened</field><field name="code">NT</field><field name="sequence">40</field></record>
+    <record id="zoo_conservation_status_vu" model="zoo.conservation.status"><field name="name">Vulnerable</field><field name="code">VU</field><field name="sequence">50</field></record>
+    <record id="zoo_conservation_status_en" model="zoo.conservation.status"><field name="name">Endangered</field><field name="code">EN</field><field name="sequence">60</field></record>
+    <record id="zoo_conservation_status_cr" model="zoo.conservation.status"><field name="name">Critically Endangered</field><field name="code">CR</field><field name="sequence">70</field></record>
+    <record id="zoo_conservation_status_ew" model="zoo.conservation.status"><field name="name">Extinct in the Wild</field><field name="code">EW</field><field name="sequence">80</field></record>
+    <record id="zoo_conservation_status_ex" model="zoo.conservation.status"><field name="name">Extinct</field><field name="code">EX</field><field name="sequence">90</field></record>
+
+    <!-- Health record types -->
+    <record id="zoo_health_record_type_checkup" model="zoo.health.record.type"><field name="name">Check-up</field><field name="sequence">10</field></record>
+    <record id="zoo_health_record_type_vaccination" model="zoo.health.record.type"><field name="name">Vaccination</field><field name="sequence">20</field></record>
+    <record id="zoo_health_record_type_treatment" model="zoo.health.record.type"><field name="name">Treatment</field><field name="sequence">30</field></record>
+    <record id="zoo_health_record_type_injury" model="zoo.health.record.type"><field name="name">Injury</field><field name="sequence">40</field></record>
+    <record id="zoo_health_record_type_illness" model="zoo.health.record.type"><field name="name">Illness</field><field name="sequence">50</field></record>
+    <record id="zoo_health_record_type_surgery" model="zoo.health.record.type"><field name="name">Surgery</field><field name="sequence">60</field></record>
+    <record id="zoo_health_record_type_parasite" model="zoo.health.record.type"><field name="name">Parasite Control</field><field name="sequence">70</field></record>
+    <record id="zoo_health_record_type_other" model="zoo.health.record.type"><field name="name">Other</field><field name="sequence">90</field></record>
+
+    <!-- Diet frequencies -->
+    <record id="zoo_diet_frequency_twice_daily" model="zoo.diet.frequency"><field name="name">Twice Daily</field><field name="sequence">10</field></record>
+    <record id="zoo_diet_frequency_daily" model="zoo.diet.frequency"><field name="name">Daily</field><field name="sequence">20</field></record>
+    <record id="zoo_diet_frequency_alternate_days" model="zoo.diet.frequency"><field name="name">Alternate Days</field><field name="sequence">30</field></record>
+    <record id="zoo_diet_frequency_weekly" model="zoo.diet.frequency"><field name="name">Weekly</field><field name="sequence">40</field></record>
+    <record id="zoo_diet_frequency_as_needed" model="zoo.diet.frequency"><field name="name">As Needed</field><field name="sequence">50</field></record>
+
+    <!-- Food consumption -->
+    <record id="zoo_feeding_consumption_all" model="zoo.feeding.consumption"><field name="name">All Eaten</field><field name="sequence">10</field></record>
+    <record id="zoo_feeding_consumption_most" model="zoo.feeding.consumption"><field name="name">Mostly Eaten</field><field name="sequence">20</field></record>
+    <record id="zoo_feeding_consumption_some" model="zoo.feeding.consumption"><field name="name">Partly Eaten</field><field name="sequence">30</field></record>
+    <record id="zoo_feeding_consumption_none" model="zoo.feeding.consumption"><field name="name">Refused</field><field name="refused" eval="True"/><field name="sequence">40</field></record>
+</odoo>

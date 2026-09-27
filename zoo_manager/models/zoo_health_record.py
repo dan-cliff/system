@@ -12,18 +12,9 @@ class ZooHealthRecord(models.Model):
     species_id = fields.Many2one(related='animal_id.species_id', store=True)
     enclosure_id = fields.Many2one(related='animal_id.enclosure_id')
     date = fields.Date(required=True, default=fields.Date.context_today, tracking=True)
-    record_type = fields.Selection(
-        [
-            ('checkup', 'Check-up'),
-            ('vaccination', 'Vaccination'),
-            ('treatment', 'Treatment'),
-            ('injury', 'Injury'),
-            ('illness', 'Illness'),
-            ('surgery', 'Surgery'),
-            ('parasite', 'Parasite Control'),
-            ('other', 'Other'),
-        ],
-        string='Type', required=True, default='checkup', tracking=True,
+    record_type_id = fields.Many2one(
+        'zoo.health.record.type', string='Type', required=True, tracking=True,
+        default=lambda self: self.env.ref('zoo_manager.zoo_health_record_type_checkup', raise_if_not_found=False),
     )
     summary = fields.Char(required=True, tracking=True)
     veterinarian = fields.Char(help='Vet who carried out the visit or treatment.')

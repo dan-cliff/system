@@ -1,3 +1,7 @@
+from . import res_company
+from . import res_config_settings
+from . import stock_move
+from . import zoo_options
 from . import zoo_prefix_code_mixin
 from . import zoo_animal_class
 from . import zoo_species

@@ -1,0 +1,185 @@
+<odoo>
+    <!-- Editable lists for the configurable choice lists under Configuration. -->
+
+    <record id="zoo_enclosure_type_view_list" model="ir.ui.view">
+        <field name="name">zoo.enclosure.type.list</field>
+        <field name="model">zoo.enclosure.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_enclosure_type_view_search" model="ir.ui.view">
+        <field name="name">zoo.enclosure.type.search</field>
+        <field name="model">zoo.enclosure.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_enclosure_type_action" model="ir.actions.act_window">
+        <field name="name">Enclosure Types</field>
+        <field name="res_model">zoo.enclosure.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="zoo_animal_origin_view_list" model="ir.ui.view">
+        <field name="name">zoo.animal.origin.list</field>
+        <field name="model">zoo.animal.origin</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_animal_origin_view_search" model="ir.ui.view">
+        <field name="name">zoo.animal.origin.search</field>
+        <field name="model">zoo.animal.origin</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_animal_origin_action" model="ir.actions.act_window">
+        <field name="name">Animal Origins</field>
+        <field name="res_model">zoo.animal.origin</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="zoo_conservation_status_view_list" model="ir.ui.view">
+        <field name="name">zoo.conservation.status.list</field>
+        <field name="model">zoo.conservation.status</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_conservation_status_view_search" model="ir.ui.view">
+        <field name="name">zoo.conservation.status.search</field>
+        <field name="model">zoo.conservation.status</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_conservation_status_action" model="ir.actions.act_window">
+        <field name="name">Conservation Statuses</field>
+        <field name="res_model">zoo.conservation.status</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="zoo_health_record_type_view_list" model="ir.ui.view">
+        <field name="name">zoo.health.record.type.list</field>
+        <field name="model">zoo.health.record.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_health_record_type_view_search" model="ir.ui.view">
+        <field name="name">zoo.health.record.type.search</field>
+        <field name="model">zoo.health.record.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_health_record_type_action" model="ir.actions.act_window">
+        <field name="name">Health Record Types</field>
+        <field name="res_model">zoo.health.record.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="zoo_diet_frequency_view_list" model="ir.ui.view">
+        <field name="name">zoo.diet.frequency.list</field>
+        <field name="model">zoo.diet.frequency</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_diet_frequency_view_search" model="ir.ui.view">
+        <field name="name">zoo.diet.frequency.search</field>
+        <field name="model">zoo.diet.frequency</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_diet_frequency_action" model="ir.actions.act_window">
+        <field name="name">Diet Frequencies</field>
+        <field name="res_model">zoo.diet.frequency</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="zoo_feeding_consumption_view_list" model="ir.ui.view">
+        <field name="name">zoo.feeding.consumption.list</field>
+        <field name="model">zoo.feeding.consumption</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="refused"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zoo_feeding_consumption_view_search" model="ir.ui.view">
+        <field name="name">zoo.feeding.consumption.search</field>
+        <field name="model">zoo.feeding.consumption</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="zoo_feeding_consumption_action" model="ir.actions.act_window">
+        <field name="name">Food Consumption</field>
+        <field name="res_model">zoo.feeding.consumption</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+</odoo>

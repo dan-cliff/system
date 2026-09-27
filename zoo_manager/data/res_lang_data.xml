@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Show dates as dd/mm/yyyy. Odoo formats every date and timestamp from the
+         user's language, so this applies to all dates in Zoo Manager (timestamps
+         become dd/mm/yyyy HH:MM:SS). English (Australia) already uses this
+         format. noupdate so a later change made in Settings is kept. -->
+    <data noupdate="1">
+        <record id="base.lang_en" model="res.lang">
+            <field name="date_format">%d/%m/%Y</field>
+        </record>
+    </data>
+</odoo>

@@ -24,10 +24,24 @@
 
     <menuitem id="menu_zoo_config" name="Configuration" parent="menu_zoo_manager_root"
               groups="group_zoo_manager" sequence="90"/>
+    <menuitem id="menu_zoo_settings" name="Settings" parent="menu_zoo_config"
+              action="zoo_manager_config_settings_action" groups="base.group_system" sequence="0"/>
     <menuitem id="menu_zoo_animal_class" name="Classes" parent="menu_zoo_config"
               action="zoo_animal_class_action" sequence="5"/>
     <menuitem id="menu_zoo_species" name="Species" parent="menu_zoo_config"
               action="zoo_species_action" sequence="10"/>
     <menuitem id="menu_zoo_diet" name="Diets" parent="menu_zoo_config"
               action="zoo_diet_action" sequence="20"/>
+    <menuitem id="menu_zoo_enclosure_type" name="Enclosure Types" parent="menu_zoo_config"
+              action="zoo_enclosure_type_action" sequence="40"/>
+    <menuitem id="menu_zoo_animal_origin" name="Animal Origins" parent="menu_zoo_config"
+              action="zoo_animal_origin_action" sequence="50"/>
+    <menuitem id="menu_zoo_conservation_status" name="Conservation Statuses" parent="menu_zoo_config"
+              action="zoo_conservation_status_action" sequence="60"/>
+    <menuitem id="menu_zoo_health_record_type" name="Health Record Types" parent="menu_zoo_config"
+              action="zoo_health_record_type_action" sequence="70"/>
+    <menuitem id="menu_zoo_diet_frequency" name="Diet Frequencies" parent="menu_zoo_config"
+              action="zoo_diet_frequency_action" sequence="80"/>
+    <menuitem id="menu_zoo_feeding_consumption" name="Food Consumption" parent="menu_zoo_config"
+              action="zoo_feeding_consumption_action" sequence="90"/>
 </odoo>
