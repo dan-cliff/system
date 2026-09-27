@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.StocktakeScanScreen">
+        <div class="o_scanner_screen">
+            <p class="o_scanner_subtitle" t-if="!state.loading"><t t-esc="state.name"/></p>
+
+            <ScanInput placeholder="inputPlaceholder" onSubmit.bind="onScan" disabled="state.done"/>
+
+            <div class="o_scanner_lines" t-if="!state.loading">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Lot/Serial</th>
+                            <th class="text-end">Counted</th>
+                            <th class="text-end">On Hand</th>
+                            <th class="text-end">Difference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.lines" t-as="line" t-key="line.id"
+                            t-att-class="{ o_scanner_line_active: line.id === state.activeLineId }">
+                            <td><t t-esc="line.product_id[1]"/></td>
+                            <td><t t-esc="line.lot_id ? line.lot_id[1] : ''"/></td>
+                            <td class="text-end o_scanner_qty_flag"><t t-esc="line.counted_qty"/></td>
+                            <td class="text-end"><t t-esc="line.theoretical_qty"/></td>
+                            <td class="text-end"><t t-esc="line.difference_qty"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="o_scanner_footer" t-if="!state.done">
+                <button class="btn btn-primary btn-lg" t-on-click="onComplete">
+                    Stocktake Complete
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

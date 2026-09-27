@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.ScanInput">
+        <div class="o_scanner_scan_input" t-on-click="focus">
+            <input type="text"
+                   class="o_scanner_input form-control form-control-lg"
+                   t-ref="input"
+                   t-att-placeholder="props.placeholder"
+                   t-att-disabled="props.disabled"
+                   t-on-keydown="onKeydown"
+                   autocomplete="off"/>
+        </div>
+    </t>
+</templates>

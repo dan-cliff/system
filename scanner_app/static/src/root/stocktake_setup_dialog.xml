@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.StocktakeSetupDialog">
+        <Dialog title="'New Stocktake'" size="'sm'">
+            <div class="o_scanner_setup_dialog">
+                <div class="mb-3" t-if="props.needWarehouse">
+                    <label class="form-label">Warehouse</label>
+                    <select class="form-select form-select-lg" t-on-change="onWarehouseChange">
+                        <t t-foreach="props.warehouses" t-as="wh" t-key="wh.id">
+                            <option t-att-value="wh.id" t-att-selected="wh.id === state.warehouseId">
+                                <t t-esc="wh.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div class="mb-3" t-if="props.needLocation">
+                    <label class="form-label">Location</label>
+                    <select class="form-select form-select-lg" t-on-change="onLocationChange">
+                        <t t-foreach="state.locations" t-as="loc" t-key="loc.id">
+                            <option t-att-value="loc.id" t-att-selected="loc.id === state.locationId">
+                                <t t-esc="loc.display_name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-att-disabled="!canConfirm" t-on-click="onConfirm">
+                    Start Counting
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

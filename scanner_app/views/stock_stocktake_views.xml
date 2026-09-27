@@ -1,0 +1,13 @@
+<odoo>
+    <record id="view_stock_stocktake_form_inherit_scanner" model="ir.ui.view">
+        <field name="name">stock.stocktake.form.inherit.scanner</field>
+        <field name="model">stock.stocktake</field>
+        <field name="inherit_id" ref="stock_stocktake.view_stock_stocktake_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_barcode_scan" type="object" string="Scan Products"
+                        class="oe_highlight" invisible="state != 'draft'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

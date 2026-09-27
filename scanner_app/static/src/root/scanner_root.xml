@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.ScannerRoot">
+        <div class="o_scanner_root">
+            <div class="o_scanner_topbar">
+                <button class="btn btn-lg o_scanner_odoo_home" t-on-click="goToOdooHome" title="Back to Odoo">
+                    <i class="fa fa-home"/>
+                </button>
+                <button class="btn btn-lg o_scanner_back" t-if="state.screen !== 'home'" t-on-click="goHome">
+                    <i class="fa fa-chevron-left"/> Home
+                </button>
+                <h4 class="o_scanner_title" t-esc="title"/>
+                <button class="btn btn-lg btn-outline-light o_scanner_install"
+                        t-if="state.screen === 'home' and state.installPrompt" t-on-click="onInstall">
+                    <i class="fa fa-download"/> Install App
+                </button>
+            </div>
+
+            <div class="o_scanner_body">
+                <HomeScreen t-if="state.screen === 'home'" onNavigate.bind="goTo"/>
+                <ReceivePOPicker t-if="state.screen === 'receive_picker'"
+                    onSelect="(pickingId) => this.goTo('receive_scan', { pickingId })"/>
+                <ReceivePOScreen t-if="state.screen === 'receive_scan'"
+                    pickingId="state.pickingId" onBack.bind="goHome"/>
+                <CreatePOScreen t-if="state.screen === 'create_po'" onBack.bind="goHome"/>
+                <StocktakePicker t-if="state.screen === 'stocktake_picker'"
+                    onSelect="(stocktakeId) => this.goTo('stocktake_scan', { stocktakeId })"/>
+                <StocktakeScanScreen t-if="state.screen === 'stocktake_scan'"
+                    stocktakeId="state.stocktakeId" onBack.bind="goHome"/>
+            </div>
+        </div>
+    </t>
+</templates>
