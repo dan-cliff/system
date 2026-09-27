@@ -1,5 +1,5 @@
 """Configurable choice lists, managed under Zoo Manager > Configuration."""
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ZooOptionMixin(models.AbstractModel):
@@ -30,6 +30,18 @@ class ZooConservationStatus(models.Model):
     _inherit = ['zoo.option.mixin']
 
     code = fields.Char(help='Short code, e.g. the IUCN Red List category (LC, VU, EN).')
+
+    @api.model
+    def _get_or_create_iucn(self, code, name):
+        """The status with this IUCN code. An archived one is brought back, and
+        a category we don't have yet (e.g. a new Red List category) is added."""
+        status = self.with_context(active_test=False).search([('code', '=ilike', code)], order='active desc', limit=1)
+        if not status:
+            last = self.with_context(active_test=False).search([], order='sequence desc', limit=1)
+            return self.sudo().create({'name': name, 'code': code, 'sequence': (last.sequence or 0) + 10})
+        if not status.active:
+            status.sudo().active = True
+        return status
 
     def _compute_display_name(self):
         for status in self:
