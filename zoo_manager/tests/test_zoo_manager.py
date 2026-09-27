@@ -442,7 +442,8 @@ class TestZooManager(TransactionCase):
         enclosure = self.env['zoo.enclosure'].create({
             'name': 'Test Reptile House', 'code': 'TRH',
             'climate_control_ids': [(6, 0, heating.ids)], 'water_source_ids': [(6, 0, bore.ids)],
-            'central_monitoring': True, 'livestream': True, 'electric_fencing': False, 'observation_space': True,
+            'central_monitoring': True, 'livestream': True, 'livestream_url': 'https://example.com/reptiles',
+            'electric_fencing': False, 'observation_space': True,
         })
         self.assertEqual(enclosure.climate_control_ids, heating)
         self.assertEqual(enclosure.water_source_ids, bore)
@@ -498,6 +499,17 @@ class TestZooManager(TransactionCase):
             complex_.parent_id = cage
         with self.assertRaises(UserError):
             wing.parent_id = wing
+
+    def test_livestream_url_required(self):
+        with self.assertRaises(ValidationError):
+            self.env['zoo.enclosure'].create({'name': 'Test Otter Pool', 'code': 'TOP', 'livestream': True})
+        enclosure = self.env['zoo.enclosure'].create({
+            'name': 'Test Otter Pool', 'code': 'TOP', 'livestream': True,
+            'livestream_url': 'https://example.com/otters',
+        })
+        with self.assertRaises(ValidationError):
+            enclosure.livestream_url = False
+        enclosure.write({'livestream': False, 'livestream_url': False})  # not needed without a livestream
 
     def _fake_get(self, payload):
         response = MagicMock()

@@ -77,6 +77,8 @@
                                 <group>
                                     <field name="central_monitoring"/>
                                     <field name="livestream"/>
+                                    <field name="livestream_url" widget="url" invisible="not livestream"
+                                           required="livestream" placeholder="https://..."/>
                                     <field name="electric_fencing"/>
                                     <field name="observation_space"/>
                                 </group>

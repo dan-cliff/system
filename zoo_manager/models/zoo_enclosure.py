@@ -44,6 +44,7 @@ class ZooEnclosure(models.Model):
     )
     central_monitoring = fields.Boolean(tracking=True, help='Monitored from the central monitoring system.')
     livestream = fields.Boolean(tracking=True, help='Has a livestream camera.')
+    livestream_url = fields.Char(string='Livestream URL', tracking=True, help='Link to the livestream.')
     electric_fencing = fields.Boolean(tracking=True)
     observation_space = fields.Boolean(tracking=True, help='Has a space for visitors or staff to observe the animals.')
     animal_ids = fields.One2many('zoo.animal', 'enclosure_id', string='Animals')
@@ -58,6 +59,12 @@ class ZooEnclosure(models.Model):
         for enclosure in self:
             enclosure.animal_count = len(enclosure.animal_ids)
             enclosure.over_capacity = bool(enclosure.capacity) and enclosure.animal_count > enclosure.capacity
+
+    @api.constrains('livestream', 'livestream_url')
+    def _check_livestream_url(self):
+        for enclosure in self:
+            if enclosure.livestream and not (enclosure.livestream_url or '').strip():
+                raise ValidationError(self.env._('%s: enter the Livestream URL.', enclosure.display_name))
 
     @api.depends('child_ids')
     def _compute_child_count(self):
