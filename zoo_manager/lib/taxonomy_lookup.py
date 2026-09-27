@@ -13,6 +13,7 @@ code runs inside Odoo and in the script that builds the species data file.
 import base64
 import logging
 import re
+import time
 from urllib.parse import quote
 
 import requests
@@ -20,8 +21,18 @@ from lxml import html
 
 _logger = logging.getLogger(__name__)
 
-USER_AGENT = 'ZooManager/1.0 (Odoo module; wildlife park species records)'
+# Wikimedia throttles clients that don't say who they are and how to reach
+# them (https://meta.wikimedia.org/wiki/User-Agent_policy).
+USER_AGENT = ('ZooManager/1.1 (https://system.cliffscountrycrafts.com; wildlife park species records) '
+              f'python-requests/{requests.__version__}')
 TIMEOUT = 20
+# Wikimedia serves thumbnails at set widths; other widths are rendered on
+# demand and throttled much harder.
+IMAGE_WIDTH = 960
+# Pause between requests and how long to wait when asked to slow down.
+REQUEST_DELAY = 1.0
+MAX_RETRY_WAIT = 30
+RETRIES = 2
 RANKS = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
 MIN_CONFIDENCE = 90
 _RANGE_SECTIONS = ('binomial name', 'trinomial name', 'subspecies')
@@ -31,10 +42,24 @@ _RANGE_SECTIONS = ('binomial name', 'trinomial name', 'subspecies')
 REPTILE_ORDERS = ('Squamata', 'Testudines', 'Crocodylia', 'Rhynchocephalia', 'Sphenodontia')
 
 
+class RateLimited(Exception):
+    """The server asked us to slow down (HTTP 429) and kept doing so."""
+
+
 def _get(url, **params):
-    response = requests.get(url, params=params or None, timeout=TIMEOUT, headers={'User-Agent': USER_AGENT})
-    response.raise_for_status()
-    return response
+    for attempt in range(RETRIES + 1):
+        time.sleep(REQUEST_DELAY)
+        response = requests.get(url, params=params or None, timeout=TIMEOUT, headers={'User-Agent': USER_AGENT})
+        if response.status_code != 429:
+            response.raise_for_status()
+            return response
+        if attempt < RETRIES:
+            try:
+                wait = int(response.headers.get('Retry-After', 0))
+            except ValueError:
+                wait = 0
+            time.sleep(min(max(wait, 5 * (attempt + 1)), MAX_RETRY_WAIT))
+    raise RateLimited(url)
 
 
 def clean_name(scientific_name):
@@ -81,7 +106,7 @@ def _download(url):
     return base64.b64encode(_get(url).content)
 
 
-def lookup_images(scientific_name, width=800):
+def lookup_images(scientific_name, width=IMAGE_WIDTH):
     """{'image': b64, 'distribution': b64, 'url': article URL}, with only the
     pictures that were found."""
     title = _wikipedia_title(scientific_name)

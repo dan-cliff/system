@@ -1,4 +1,7 @@
 import logging
+from datetime import datetime, time, timedelta
+
+import pytz
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError
@@ -64,6 +67,7 @@ class ZooSpecies(models.Model):
         help='Missing classification or pictures will be looked up from the scientific name.',
     )
     lookup_failures = fields.Integer(copy=False, help='Failed lookup attempts; retried up to 3 times.')
+    lookup_checked = fields.Datetime(copy=False, help='When the nightly check last looked this species up.')
     animal_ids = fields.One2many('zoo.animal', 'species_id', string='Animals')
     animal_count = fields.Integer(compute='_compute_animal_count')
     active = fields.Boolean(default=True)
@@ -118,6 +122,10 @@ class ZooSpecies(models.Model):
         for species in self.filtered('scientific_name'):
             try:
                 filled += species._lookup_classification()
+            except taxonomy_lookup.RateLimited as error:
+                raise UserError(self.env._(
+                    'Wikipedia/GBIF are limiting how fast we can look things up. Please try again in a few '
+                    'minutes; the scheduled lookup will also fill this in automatically.')) from error
             except Exception as error:  # noqa: BLE001 - report network/parse errors to the user
                 raise UserError(self.env._('Could not look up %(name)s: %(error)s',
                                            name=species.scientific_name, error=error)) from error
@@ -139,11 +147,59 @@ class ZooSpecies(models.Model):
             try:
                 species._lookup_classification()
                 self.env.cr.commit()
+            except taxonomy_lookup.RateLimited:
+                # Not the species' fault: leave the rest for the next run.
+                self.env.cr.rollback()
+                _logger.info('Species lookup rate limited; carrying on at the next run')
+                break
             except Exception:  # noqa: BLE001 - one failing species mustn't stop the rest
                 self.env.cr.rollback()
                 species.lookup_failures += 1
                 self.env.cr.commit()
                 _logger.warning('Species lookup failed for %s', species.scientific_name, exc_info=True)
+
+    @api.model
+    def _cron_nightly_classification_check(self):
+        """Scheduled action (nightly): look up every species that still has an
+        empty scientific classification field. Each species is tried once per
+        night; if the run runs out of time it carries on straight away."""
+        missing = ['|'] * (len(TAXON_FIELDS) - 1) + [(field, '=', False) for field in TAXON_FIELDS.values()]
+        todo = self.search([
+            ('scientific_name', '!=', False),
+            '|', ('lookup_checked', '=', False), ('lookup_checked', '<', fields.Datetime.now() - timedelta(hours=12)),
+        ] + missing)
+        cron = self.env['ir.cron']
+        cron._commit_progress(remaining=len(todo))
+        for species in todo:
+            try:
+                species._lookup_classification()
+                species.lookup_checked = fields.Datetime.now()
+            except taxonomy_lookup.RateLimited:
+                # Stop for tonight; what's left is picked up tomorrow.
+                self.env.cr.rollback()
+                _logger.info('Nightly species lookup rate limited; stopping until tomorrow')
+                cron._commit_progress(remaining=0)
+                break
+            except Exception:  # noqa: BLE001 - one failing species mustn't stop the rest
+                self.env.cr.rollback()
+                species.lookup_checked = fields.Datetime.now()
+                _logger.warning('Nightly species lookup failed for %s', species.scientific_name, exc_info=True)
+            if not cron._commit_progress(1):
+                break
+
+    @api.model
+    def _schedule_nightly_classification_check(self):
+        """Point the nightly check at the next 3am in its user's timezone.
+        Odoo keeps it at 3am from then on, through daylight saving changes."""
+        cron = self.env.ref('zoo_manager.ir_cron_zoo_species_nightly_check', raise_if_not_found=False)
+        if not cron:
+            return
+        tz = pytz.timezone(cron.user_id.tz or 'UTC')
+        now = datetime.now(tz)
+        next_run = tz.localize(datetime.combine(now.date(), time(3)))
+        if next_run <= now:
+            next_run = tz.localize(datetime.combine(now.date() + timedelta(days=1), time(3)))
+        cron.nextcall = next_run.astimezone(pytz.utc).replace(tzinfo=None)
 
     @api.depends('name', 'species_code')
     def _compute_display_name(self):

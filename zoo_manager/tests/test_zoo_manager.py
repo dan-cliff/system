@@ -1,5 +1,7 @@
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
+
+import pytz
 
 from psycopg2 import IntegrityError
 
@@ -193,6 +195,42 @@ class TestZooManager(TransactionCase):
         species.scientific_name = 'Macropus fuliginosus'
         self.assertTrue(species.lookup_pending)
 
+    def test_nightly_check_looks_up_missing_classification(self):
+        classification = {'kingdom': 'Animalia', 'class': 'Reptilia', 'order': 'Squamata', 'family': 'Pythonidae',
+                          'phylum': 'Chordata', 'genus': 'Morelia', 'species': 'Morelia spilota'}
+        Species = self.env['zoo.species']
+        python = Species.create({'name': 'Test Python', 'prefix_code': 'QPY', 'scientific_name': 'Morelia spilota',
+                                 'taxon_class': 'Reptilia'})
+        no_name = Species.create({'name': 'Unnamed', 'prefix_code': 'QUN'})
+        no_commit = patch.object(type(self.env['ir.cron']), '_commit_progress', return_value=60.0)
+        with no_commit, patch.object(taxonomy_lookup, 'lookup_images', return_value={}), \
+             patch.object(taxonomy_lookup, 'lookup_classification', return_value=classification) as lookup:
+            Species._cron_nightly_classification_check()
+            self.assertIn(call('Morelia spilota'), lookup.call_args_list)
+            self.assertEqual(python.taxon_order, 'Squamata')
+            self.assertTrue(python.lookup_checked)
+            self.assertFalse(no_name.lookup_checked)
+            # Already checked tonight: a rerun leaves it alone.
+            python.taxon_family = False
+            lookup.reset_mock()
+            Species._cron_nightly_classification_check()
+            self.assertNotIn(call('Morelia spilota'), lookup.call_args_list)
+
+        # Rate limited: the species isn't counted as a failure and is tried again later.
+        python.write({'lookup_pending': True, 'lookup_failures': 0})
+        with no_commit, patch.object(self.env.cr, 'rollback'), \
+             patch.object(taxonomy_lookup, 'lookup_classification', side_effect=taxonomy_lookup.RateLimited('x')):
+            Species.search([('id', '!=', python.id)]).lookup_pending = False
+            Species._cron_lookup_classification()
+        self.assertEqual(python.lookup_failures, 0)
+        self.assertTrue(python.lookup_pending)
+
+        cron = self.env.ref('zoo_manager.ir_cron_zoo_species_nightly_check')
+        cron.user_id.tz = 'Australia/Melbourne'
+        Species._schedule_nightly_classification_check()
+        local = pytz.utc.localize(cron.nextcall).astimezone(pytz.timezone('Australia/Melbourne'))
+        self.assertEqual((local.hour, local.minute), (3, 0))
+
     def _fake_get(self, payload):
         response = MagicMock()
         response.json.return_value = payload
@@ -214,6 +252,11 @@ class TestZooManager(TransactionCase):
                              {'class': 'Reptilia', 'order': 'Squamata', 'family': 'Pythonidae'})
         with self._fake_get(dict(python, order='Testudines', **{'class': 'Testudines'})):
             self.assertEqual(taxonomy_lookup.lookup_classification('Chelodina longicollis')['class'], 'Reptilia')
+        response = MagicMock(status_code=429, headers={'Retry-After': '1'})
+        with patch.object(taxonomy_lookup.requests, 'get', return_value=response) as get, \
+             patch.object(taxonomy_lookup.time, 'sleep'), self.assertRaises(taxonomy_lookup.RateLimited):
+            taxonomy_lookup._get('https://upload.wikimedia.org/x.jpg')
+        self.assertEqual(get.call_count, taxonomy_lookup.RETRIES + 1)
         self.assertEqual(taxonomy_lookup.clean_name('Calyptorhynchus banksii (except graptogyne)'), 'Calyptorhynchus banksii')
 
     def test_distribution_map_is_image_after_binomial_name(self):
