@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.CreatePOScreen">
+        <div class="o_scanner_screen">
+            <ScanInput placeholder="'Scan or enter a product barcode…'" onSubmit.bind="onScan"/>
+
+            <div class="o_scanner_lines">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Vendor</th>
+                            <th>Package</th>
+                            <th class="text-end">Packages</th>
+                            <th class="text-end">Total Qty</th>
+                            <th/>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.cart" t-as="line" t-key="line.key">
+                            <td><t t-esc="line.productName"/></td>
+                            <td>
+                                <select class="form-select" t-on-change="(ev) => this.onVendorChange(line, ev)">
+                                    <t t-foreach="line.vendors" t-as="vendor" t-key="vendor.id">
+                                        <option t-att-value="vendor.id" t-att-selected="vendor.id === line.vendorId">
+                                            <t t-esc="vendor.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" t-on-change="(ev) => this.onPackagingChange(line, ev)">
+                                    <option value="0" selected="line.packagingId === 0">Units</option>
+                                    <t t-foreach="line.packagings" t-as="packaging" t-key="packaging.id">
+                                        <option t-att-value="packaging.id"
+                                                t-att-selected="packaging.id === line.packagingId">
+                                            <t t-esc="packaging.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </td>
+                            <td class="text-end">
+                                <input type="number" min="0" step="1" class="form-control text-end"
+                                       t-att-value="line.packageQty"
+                                       t-on-change="(ev) => this.onPackageQtyChange(line, ev)"/>
+                            </td>
+                            <td class="text-end o_scanner_qty_flag">
+                                <t t-esc="this.totalQty(line)"/> <t t-esc="line.uom"/>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-link text-danger"
+                                        t-on-click="() => this.removeLine(line)">✕</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="o_scanner_footer">
+                <button class="btn btn-primary btn-lg"
+                        t-att-disabled="!state.cart.length or state.creating"
+                        t-on-click="onCreateOrders">
+                    Create Purchase Order(s)
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.ReceivePOScreen">
+        <div class="o_scanner_screen">
+            <p class="o_scanner_subtitle" t-if="!state.loading"><t t-esc="state.pickingName"/></p>
+
+            <ScanInput placeholder="'Scan or enter a product barcode…'" onSubmit.bind="onScan"/>
+
+            <div class="o_scanner_lines" t-if="!state.loading">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Barcode</th>
+                            <th class="text-end">Scanned / Ordered</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.lines" t-as="line" t-key="line.id"
+                            t-att-class="{
+                                o_scanner_line_active: line.id === state.activeLineId,
+                                o_scanner_line_complete: line.done >= line.ordered,
+                            }">
+                            <td><t t-esc="line.productName"/></td>
+                            <td><t t-esc="line.barcode"/></td>
+                            <td class="text-end o_scanner_qty_flag">
+                                <t t-esc="line.done"/> / <t t-esc="line.ordered"/> <t t-esc="line.uom"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="o_scanner_footer">
+                <button class="btn btn-primary btn-lg"
+                        t-att-disabled="!isFullyReceived or state.validating"
+                        t-on-click="onMarkReceived">
+                    Mark as Received
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

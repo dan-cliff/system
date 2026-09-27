@@ -1,0 +1,41 @@
+<odoo>
+    <!-- Verified against Odoo 19's actual mail/views/res_config_settings_views.xml source
+         (github.com/odoo/odoo, 19.0 branch) before writing this: the "Emails" section on
+         Settings > General Settings is a <block id="emails" title="Emails"> added by the
+         mail module's own inherit of base_setup.res_config_settings_view_form, so this
+         module targets that same block via //block[@id='emails'] rather than inventing a
+         new section. The conditional-fields layout (row/label/field pairs inside a
+         content-group div, shown only when the toggle is on) mirrors the existing
+         "Custom ICE Server with Twilio" setting in that same file. -->
+    <record id="view_twilio_notifications_settings_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.twilio.notifications</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='emails']" position="inside">
+                <setting id="twilio_notifications_email_setting" string="Enable Twilio Emails"
+                         help="Setup your notifications to route via your Twilio email domain using the API">
+                    <field name="twilio_email_enabled"/>
+                    <div class="content-group mb-3" invisible="not twilio_email_enabled">
+                        <div class="row mt16" id="twilio_notifications_sid">
+                            <label for="twilio_sid" class="col-lg-3"/>
+                            <field name="twilio_sid" placeholder="e.g. SKd5543a0b450ar4c7t95f1b6e8a39t543"/>
+                        </div>
+                        <div class="row mt8" id="twilio_notifications_secret">
+                            <label for="twilio_secret" class="col-lg-3"/>
+                            <field name="twilio_secret" password="True"/>
+                        </div>
+                        <div class="row mt8" id="twilio_notifications_from_email">
+                            <label for="twilio_from_email" class="col-lg-3"/>
+                            <field name="twilio_from_email" placeholder="e.g. notifications@example.com"/>
+                        </div>
+                        <div class="row mt8" id="twilio_notifications_from_name">
+                            <label for="twilio_from_name" class="col-lg-3"/>
+                            <field name="twilio_from_name" placeholder="e.g. Cliffs"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

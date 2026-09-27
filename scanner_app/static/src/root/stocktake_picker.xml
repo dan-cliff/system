@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.StocktakePicker">
+        <div class="o_scanner_picker">
+            <button class="o_scanner_picker_row o_scanner_picker_new" t-on-click="onNew">
+                <i class="fa fa-plus o_scanner_tile_icon"/>
+                <span class="o_scanner_picker_title">New Stocktake</span>
+            </button>
+            <t t-foreach="state.stocktakes" t-as="stocktake" t-key="stocktake.id">
+                <button class="o_scanner_picker_row" t-on-click="() => this.props.onSelect(stocktake.id)">
+                    <span class="o_scanner_picker_title" t-esc="stocktake.name"/>
+                    <span class="o_scanner_picker_subtitle">
+                        <t t-if="stocktake.warehouse_id" t-esc="stocktake.warehouse_id[1]"/>
+                        <t t-if="stocktake.location_id"> - <t t-esc="stocktake.location_id[1]"/></t>
+                        (<t t-esc="stocktake.line_count"/> lines)
+                    </span>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

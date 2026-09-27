@@ -16,10 +16,12 @@ export class HomeScreen extends Component {
     }
 
     get apps() {
+        // getApps() already returns apps in ir.ui.menu sequence order; keep
+        // that order instead of re-sorting alphabetically so the home
+        // screen matches the menu model's ordering.
         const apps = this.menuService.getApps();
         const term = this.state.searchTerm.trim().toLowerCase();
-        const filtered = term ? apps.filter((app) => app.name.toLowerCase().includes(term)) : apps;
-        return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+        return term ? apps.filter((app) => app.name.toLowerCase().includes(term)) : apps;
     }
 
     onSearchInput(ev) {

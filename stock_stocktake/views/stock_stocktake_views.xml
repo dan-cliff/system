@@ -1,0 +1,87 @@
+<odoo>
+    <record id="view_stock_stocktake_list" model="ir.ui.view">
+        <field name="name">stock.stocktake.list</field>
+        <field name="model">stock.stocktake</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" readonly="1"/>
+                <field name="name"/>
+                <field name="date"/>
+                <field name="warehouse_id" groups="stock.group_stock_multi_warehouses"/>
+                <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                <field name="user_id"/>
+                <field name="line_count"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_stocktake_form" model="ir.ui.view">
+        <field name="name">stock.stocktake.form</field>
+        <field name="model">stock.stocktake</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm_complete" type="object" string="Stocktake Complete"
+                            class="oe_highlight" invisible="state != 'draft'"
+                            confirm="This will update the inventory quantity on hand for every counted product at the selected Warehouse/Location. Are you sure the stocktake is complete?"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="warehouse_id" groups="stock.group_stock_multi_warehouses"
+                                   readonly="state != 'draft'"/>
+                            <field name="location_id" groups="stock.group_stock_multi_locations"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="id" readonly="1"/>
+                                    <field name="product_id"/>
+                                    <field name="barcode"/>
+                                    <field name="tracking" column_invisible="1"/>
+                                    <field name="lot_id" invisible="tracking == 'none'"
+                                           required="tracking != 'none'"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="counted_qty"/>
+                                    <field name="theoretical_qty" readonly="1"/>
+                                    <field name="difference_qty" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_stocktake" model="ir.actions.act_window">
+        <field name="name">Stocktakes</field>
+        <field name="res_model">stock.stocktake</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">Start a stocktake</p>
+            <p>Count products by scanning or entering quantities. Stock on hand is only
+               updated once you mark the stocktake as Complete.</p>
+        </field>
+    </record>
+</odoo>

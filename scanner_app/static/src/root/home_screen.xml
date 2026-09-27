@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.HomeScreen">
+        <div class="o_scanner_home">
+            <t t-foreach="tiles" t-as="tile" t-key="tile.screen">
+                <button class="o_scanner_tile" t-on-click="() => this.props.onNavigate(tile.screen)">
+                    <i t-attf-class="fa {{tile.icon}} o_scanner_tile_icon"/>
+                    <span class="o_scanner_tile_label" t-esc="tile.label"/>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

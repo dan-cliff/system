@@ -1,0 +1,20 @@
+<odoo>
+    <!-- The Scanner app has exactly one action: a full-screen kiosk-style client action
+         that handles its own internal navigation (home tiles, pickers, scan screens)
+         rather than exposing separate items on Odoo's top menu. `path` gives it a
+         stable, pretty URL (/odoo/scanner) used as the installed PWA's start_url -
+         confirm the `path` field is available on ir.actions.client in the live 19
+         instance and adjust if it isn't. -->
+    <record id="action_scanner_home" model="ir.actions.client">
+        <field name="name">Scanner</field>
+        <field name="tag">scanner_app.home</field>
+        <field name="target">fullscreen</field>
+        <field name="path">scanner</field>
+    </record>
+
+    <menuitem id="menu_scanner_root"
+              name="Scanner"
+              web_icon="scanner_app,static/description/icon.png"
+              action="action_scanner_home"
+              sequence="60"/>
+</odoo>

@@ -1,0 +1,10 @@
+<odoo>
+    <!-- Placed at the Inventory app root; verify against the live instance whether it should
+         instead sit under the app's "Operations" submenu (exact xmlid not available to check
+         from this repo) and move it there if so. -->
+    <menuitem id="menu_stock_stocktake"
+              name="Stocktakes"
+              parent="stock.menu_stock_root"
+              action="action_stock_stocktake"
+              sequence="45"/>
+</odoo>

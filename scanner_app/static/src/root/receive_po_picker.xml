@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="scanner_app.ReceivePOPicker">
+        <div class="o_scanner_picker">
+            <p class="o_scanner_subtitle" t-if="!state.loading and !state.orders.length">
+                No purchase orders are waiting to be received.
+            </p>
+            <t t-foreach="state.orders" t-as="order" t-key="order.id">
+                <button class="o_scanner_picker_row" t-on-click="() => this.onSelect(order)">
+                    <span class="o_scanner_picker_title" t-esc="order.name"/>
+                    <span class="o_scanner_picker_subtitle" t-esc="order.partner_id[1]"/>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

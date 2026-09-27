@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="pos_sms.sms_template_data_point_of_sale" model="sms.template">
+        <field name="body">Thank you for your order with {{ object.company_id.name }}, your receipt of {{ object.currency_id.format(object.amount_total) }} can be downloaded from:
+
+{{ object.receipt_download_url }}
+
+
+Yours in Scouting,
+{{ object.company_id.name }}</field>
+    </record>
+</odoo>
