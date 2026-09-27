@@ -1,5 +1,7 @@
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
+
+import pytz
 
 from psycopg2 import IntegrityError
 
@@ -10,6 +12,7 @@ from odoo.tools import mute_logger
 from odoo.tools.safe_eval import safe_eval
 
 from ..lib import taxonomy_lookup
+from ..models.zoo_species import WIKIMEDIA_TOKEN_CACHE
 
 PIXEL_PNG = b'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 
@@ -193,6 +196,94 @@ class TestZooManager(TransactionCase):
         species.scientific_name = 'Macropus fuliginosus'
         self.assertTrue(species.lookup_pending)
 
+    def test_nightly_check_looks_up_missing_classification(self):
+        classification = {'kingdom': 'Animalia', 'class': 'Reptilia', 'order': 'Squamata', 'family': 'Pythonidae',
+                          'phylum': 'Chordata', 'genus': 'Morelia', 'species': 'Morelia spilota'}
+        Species = self.env['zoo.species']
+        python = Species.create({'name': 'Test Python', 'prefix_code': 'QPY', 'scientific_name': 'Morelia spilota',
+                                 'taxon_class': 'Reptilia'})
+        no_name = Species.create({'name': 'Unnamed', 'prefix_code': 'QUN'})
+        no_commit = patch.object(type(self.env['ir.cron']), '_commit_progress', return_value=60.0)
+        with no_commit, patch.object(taxonomy_lookup, 'lookup_images', return_value={}), \
+             patch.object(taxonomy_lookup, 'lookup_classification', return_value=classification) as lookup:
+            Species._cron_nightly_classification_check()
+            self.assertIn(call('Morelia spilota'), lookup.call_args_list)
+            self.assertEqual(python.taxon_order, 'Squamata')
+            self.assertTrue(python.lookup_checked)
+            self.assertFalse(no_name.lookup_checked)
+            # Already checked tonight: a rerun leaves it alone.
+            python.taxon_family = False
+            lookup.reset_mock()
+            Species._cron_nightly_classification_check()
+            self.assertNotIn(call('Morelia spilota'), lookup.call_args_list)
+
+        # Rate limited: the species isn't counted as a failure and is tried again later.
+        python.write({'lookup_pending': True, 'lookup_failures': 0})
+        with no_commit, patch.object(self.env.cr, 'rollback'), \
+             patch.object(taxonomy_lookup, 'lookup_classification', side_effect=taxonomy_lookup.RateLimited('x')):
+            Species.search([('id', '!=', python.id)]).lookup_pending = False
+            Species._cron_lookup_classification()
+        self.assertEqual(python.lookup_failures, 0)
+        self.assertTrue(python.lookup_pending)
+
+        cron = self.env.ref('zoo_manager.ir_cron_zoo_species_nightly_check')
+        cron.user_id.tz = 'Australia/Melbourne'
+        Species._schedule_nightly_classification_check()
+        local = pytz.utc.localize(cron.nextcall).astimezone(pytz.timezone('Australia/Melbourne'))
+        self.assertEqual((local.hour, local.minute), (3, 0))
+
+    def test_wikimedia_oauth(self):
+        params = self.env['ir.config_parameter'].sudo()
+        Species = self.env['zoo.species']
+        self.assertIsNone(Species._wikimedia_token())  # nothing set up: anonymous
+
+        # Client credentials: fetched once, then reused until it expires.
+        params.set_param('zoo_manager.wikimedia_client_id', 'client')
+        params.set_param('zoo_manager.wikimedia_client_secret', 'secret')
+        with patch.object(taxonomy_lookup, 'fetch_wikimedia_token', return_value=('tok1', 14400)) as fetch:
+            self.assertEqual(Species._wikimedia_token(), 'tok1')
+            self.assertEqual(Species._wikimedia_token(), 'tok1')
+        fetch.assert_called_once_with('client', 'secret')
+        # Saving the settings forgets the fetched token.
+        self.env['res.config.settings'].create({}).execute()
+        with patch.object(taxonomy_lookup, 'fetch_wikimedia_token', return_value=('tok2', 14400)):
+            self.assertEqual(Species._wikimedia_token(), 'tok2')
+        # Bad credentials: carry on anonymously.
+        params.set_param(WIKIMEDIA_TOKEN_CACHE, False)
+        with patch.object(taxonomy_lookup, 'fetch_wikimedia_token',
+                          side_effect=taxonomy_lookup.AuthenticationFailed('invalid_client')), \
+             mute_logger('odoo.addons.zoo_manager.models.zoo_species'):
+            self.assertIsNone(Species._wikimedia_token())
+        # An owner-only access token wins over the client ID/secret.
+        params.set_param('zoo_manager.wikimedia_access_token', 'owner-token')
+        self.assertEqual(Species._wikimedia_token(), 'owner-token')
+
+        # The token goes to Wikipedia/Wikimedia only, never to GBIF.
+        ok = MagicMock(status_code=200)
+        with patch.object(taxonomy_lookup.requests, 'get', return_value=ok) as get, \
+             patch.object(taxonomy_lookup.time, 'sleep'):
+            for url in ('https://en.wikipedia.org/w/api.php', 'https://upload.wikimedia.org/a.jpg',
+                        'https://api.gbif.org/v1/species/match', 'https://evilwikipedia.org/x'):
+                taxonomy_lookup._get(url, token='owner-token')
+        sent = {c.args[0]: c.kwargs['headers'].get('Authorization') for c in get.call_args_list}
+        self.assertEqual(sent, {
+            'https://en.wikipedia.org/w/api.php': 'Bearer owner-token',
+            'https://upload.wikimedia.org/a.jpg': 'Bearer owner-token',
+            'https://api.gbif.org/v1/species/match': None,
+            'https://evilwikipedia.org/x': None,
+        })
+
+        # A rejected token is dropped and the lookup retried without it.
+        species = Species.create({'name': 'Test Owl', 'prefix_code': 'QOW', 'scientific_name': 'Ninox strenua'})
+        pictures = {'image': PIXEL_PNG, 'url': 'https://en.wikipedia.org/wiki/Powerful_owl'}
+        with patch.object(taxonomy_lookup, 'lookup_classification', return_value={}), \
+             patch.object(taxonomy_lookup, 'lookup_images',
+                          side_effect=[taxonomy_lookup.AuthenticationFailed('x'), pictures]) as images, \
+             mute_logger('odoo.addons.zoo_manager.models.zoo_species'):
+            species._lookup_classification()
+        self.assertEqual(images.call_args_list, [call('Ninox strenua', token='owner-token'), call('Ninox strenua')])
+        self.assertTrue(species.image)
+
     def _fake_get(self, payload):
         response = MagicMock()
         response.json.return_value = payload
@@ -208,6 +299,17 @@ class TestZooManager(TransactionCase):
         with self._fake_get(dict(match, confidence=80)):
             self.assertEqual(taxonomy_lookup.lookup_classification('Dromaius novaehollandiae'), {})
         self.assertEqual(taxonomy_lookup.lookup_classification('Phasianus spp'), {})
+        python = {'matchType': 'EXACT', 'confidence': 99, 'class': 'Squamata', 'family': 'Pythonidae'}
+        with self._fake_get(python):
+            self.assertEqual(taxonomy_lookup.lookup_classification('Morelia spilota'),
+                             {'class': 'Reptilia', 'order': 'Squamata', 'family': 'Pythonidae'})
+        with self._fake_get(dict(python, order='Testudines', **{'class': 'Testudines'})):
+            self.assertEqual(taxonomy_lookup.lookup_classification('Chelodina longicollis')['class'], 'Reptilia')
+        response = MagicMock(status_code=429, headers={'Retry-After': '1'})
+        with patch.object(taxonomy_lookup.requests, 'get', return_value=response) as get, \
+             patch.object(taxonomy_lookup.time, 'sleep'), self.assertRaises(taxonomy_lookup.RateLimited):
+            taxonomy_lookup._get('https://upload.wikimedia.org/x.jpg')
+        self.assertEqual(get.call_count, taxonomy_lookup.RETRIES + 1)
         self.assertEqual(taxonomy_lookup.clean_name('Calyptorhynchus banksii (except graptogyne)'), 'Calyptorhynchus banksii')
 
     def test_distribution_map_is_image_after_binomial_name(self):

@@ -9,4 +9,17 @@
         <field name="interval_type">minutes</field>
         <field name="active" eval="True"/>
     </record>
+
+    <!-- Runs as the administrator so 3am is in their timezone. -->
+    <record id="ir_cron_zoo_species_nightly_check" model="ir.cron">
+        <field name="name">Zoo Manager: Nightly check for missing species classification</field>
+        <field name="model_id" ref="model_zoo_species"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_nightly_classification_check()</field>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+    <function model="zoo.species" name="_schedule_nightly_classification_check"/>
 </odoo>

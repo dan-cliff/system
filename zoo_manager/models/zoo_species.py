@@ -1,4 +1,9 @@
+import json
 import logging
+import time as systime
+from datetime import datetime, time, timedelta
+
+import pytz
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError
@@ -17,6 +22,8 @@ TAXON_FIELDS = {
     'genus': 'taxon_genus',
     'species': 'taxon_species',
 }
+# Access token fetched with the Wikimedia client ID/secret, and when it expires.
+WIKIMEDIA_TOKEN_CACHE = 'zoo_manager.wikimedia_token_cache'
 LOOKUP_FIELDS = list(TAXON_FIELDS.values()) + ['image', 'distribution_image']
 
 
@@ -64,6 +71,7 @@ class ZooSpecies(models.Model):
         help='Missing classification or pictures will be looked up from the scientific name.',
     )
     lookup_failures = fields.Integer(copy=False, help='Failed lookup attempts; retried up to 3 times.')
+    lookup_checked = fields.Datetime(copy=False, help='When the nightly check last looked this species up.')
     animal_ids = fields.One2many('zoo.animal', 'species_id', string='Animals')
     animal_count = fields.Integer(compute='_compute_animal_count')
     active = fields.Boolean(default=True)
@@ -102,7 +110,14 @@ class ZooSpecies(models.Model):
             found = taxonomy_lookup.lookup_classification(name)
             vals.update({TAXON_FIELDS[rank]: found[rank] for rank in missing_taxa if found.get(rank)})
         if not self.image or not self.distribution_image:
-            pictures = taxonomy_lookup.lookup_images(name)
+            token = self._wikimedia_token()
+            try:
+                pictures = taxonomy_lookup.lookup_images(name, token=token)
+            except taxonomy_lookup.AuthenticationFailed:
+                # Token revoked or expired early: forget it and carry on without.
+                _logger.warning('Wikimedia rejected the OAuth token; looking up %s without it', name)
+                self.env['ir.config_parameter'].sudo().set_param(WIKIMEDIA_TOKEN_CACHE, False)
+                pictures = taxonomy_lookup.lookup_images(name)
             if not self.image and pictures.get('image'):
                 vals['image'] = pictures['image']
             if not self.distribution_image and pictures.get('distribution'):
@@ -118,6 +133,10 @@ class ZooSpecies(models.Model):
         for species in self.filtered('scientific_name'):
             try:
                 filled += species._lookup_classification()
+            except taxonomy_lookup.RateLimited as error:
+                raise UserError(self.env._(
+                    'Wikipedia/GBIF are limiting how fast we can look things up. Please try again in a few '
+                    'minutes; the scheduled lookup will also fill this in automatically.')) from error
             except Exception as error:  # noqa: BLE001 - report network/parse errors to the user
                 raise UserError(self.env._('Could not look up %(name)s: %(error)s',
                                            name=species.scientific_name, error=error)) from error
@@ -130,6 +149,36 @@ class ZooSpecies(models.Model):
         }
 
     @api.model
+    def _wikimedia_token(self, raise_errors=False):
+        """Wikimedia OAuth access token from Settings > Integrations, or None
+        to look things up anonymously (500 requests an hour instead of 5,000).
+        Tokens fetched with the client ID/secret are kept until they expire."""
+        params = self.env['ir.config_parameter'].sudo()
+        token = params.get_param('zoo_manager.wikimedia_access_token')
+        if token:
+            return token.strip()
+        client_id = (params.get_param('zoo_manager.wikimedia_client_id') or '').strip()
+        client_secret = (params.get_param('zoo_manager.wikimedia_client_secret') or '').strip()
+        if not (client_id and client_secret):
+            return None
+        try:
+            cache = json.loads(params.get_param(WIKIMEDIA_TOKEN_CACHE) or '{}')
+        except ValueError:
+            cache = {}
+        if cache.get('client_id') == client_id and cache.get('expires', 0) > systime.time() + 60:
+            return cache['token']
+        try:
+            token, expires_in = taxonomy_lookup.fetch_wikimedia_token(client_id, client_secret)
+        except Exception:
+            if raise_errors:
+                raise
+            _logger.warning('Could not get a Wikimedia OAuth token; looking up anonymously', exc_info=True)
+            return None
+        params.set_param(WIKIMEDIA_TOKEN_CACHE, json.dumps(
+            {'client_id': client_id, 'token': token, 'expires': systime.time() + expires_in}))
+        return token
+
+    @api.model
     def _cron_lookup_classification(self, limit=25):
         """Scheduled action: look up species waiting for classification or
         pictures, a few at a time. A species that fails is retried on later
@@ -139,11 +188,59 @@ class ZooSpecies(models.Model):
             try:
                 species._lookup_classification()
                 self.env.cr.commit()
+            except taxonomy_lookup.RateLimited:
+                # Not the species' fault: leave the rest for the next run.
+                self.env.cr.rollback()
+                _logger.info('Species lookup rate limited; carrying on at the next run')
+                break
             except Exception:  # noqa: BLE001 - one failing species mustn't stop the rest
                 self.env.cr.rollback()
                 species.lookup_failures += 1
                 self.env.cr.commit()
                 _logger.warning('Species lookup failed for %s', species.scientific_name, exc_info=True)
+
+    @api.model
+    def _cron_nightly_classification_check(self):
+        """Scheduled action (nightly): look up every species that still has an
+        empty scientific classification field. Each species is tried once per
+        night; if the run runs out of time it carries on straight away."""
+        missing = ['|'] * (len(TAXON_FIELDS) - 1) + [(field, '=', False) for field in TAXON_FIELDS.values()]
+        todo = self.search([
+            ('scientific_name', '!=', False),
+            '|', ('lookup_checked', '=', False), ('lookup_checked', '<', fields.Datetime.now() - timedelta(hours=12)),
+        ] + missing)
+        cron = self.env['ir.cron']
+        cron._commit_progress(remaining=len(todo))
+        for species in todo:
+            try:
+                species._lookup_classification()
+                species.lookup_checked = fields.Datetime.now()
+            except taxonomy_lookup.RateLimited:
+                # Stop for tonight; what's left is picked up tomorrow.
+                self.env.cr.rollback()
+                _logger.info('Nightly species lookup rate limited; stopping until tomorrow')
+                cron._commit_progress(remaining=0)
+                break
+            except Exception:  # noqa: BLE001 - one failing species mustn't stop the rest
+                self.env.cr.rollback()
+                species.lookup_checked = fields.Datetime.now()
+                _logger.warning('Nightly species lookup failed for %s', species.scientific_name, exc_info=True)
+            if not cron._commit_progress(1):
+                break
+
+    @api.model
+    def _schedule_nightly_classification_check(self):
+        """Point the nightly check at the next 3am in its user's timezone.
+        Odoo keeps it at 3am from then on, through daylight saving changes."""
+        cron = self.env.ref('zoo_manager.ir_cron_zoo_species_nightly_check', raise_if_not_found=False)
+        if not cron:
+            return
+        tz = pytz.timezone(cron.user_id.tz or 'UTC')
+        now = datetime.now(tz)
+        next_run = tz.localize(datetime.combine(now.date(), time(3)))
+        if next_run <= now:
+            next_run = tz.localize(datetime.combine(now.date() + timedelta(days=1), time(3)))
+        cron.nextcall = next_run.astimezone(pytz.utc).replace(tzinfo=None)
 
     @api.depends('name', 'species_code')
     def _compute_display_name(self):

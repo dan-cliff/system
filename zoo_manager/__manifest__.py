@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.3.1',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -21,6 +21,8 @@ Zoo Manager
   geographic distribution map. Anything left empty is looked up from the
   scientific name in the background (GBIF for the classification, the
   English Wikipedia article for the pictures); existing values are kept.
+  Every night at 3am (the administrator's timezone) any species still
+  missing classification fields is looked up again.
 * Diets: feed products, quantities and frequency. Settings > Feeds sets
   which warehouses and product categories hold feed; only those products
   are offered on diets and feeding rounds.
