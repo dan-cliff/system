@@ -47,6 +47,11 @@ class KennelYard(models.Model):
         for yard in self:
             yard.display_name = f'[{yard.code}] {yard.name}' if yard.code else yard.name
 
+    def action_open_control_plane(self):
+        """The yard's full-screen enclosure display, in a new tab (it can be installed as an app from there)."""
+        self.ensure_one()
+        return {'type': 'ir.actions.act_url', 'url': f'/kennel/control-plane/{self.id}', 'target': 'new'}
+
     def action_view_stays(self):
         self.ensure_one()
         return {

@@ -52,6 +52,14 @@ Boarding Kennel Manager
   as negative lines, or a credit note if the changes are negative
   overall); answering No holds the changes until the next change. The
   booking shows the invoices and their payment status.
+* Control Plane: each yard has its own full-screen enclosure display (an
+  installable web app, opened from the yard's Control Plane button):
+  the yard's name, type and company; its current residents with photo,
+  stay, food, medication, medical and behaviour notes (or "Yard
+  Vacant"); today's to-do tasks for the yard, completed right there; and
+  a toolbar to add Care records (Care Log entry, Medication to Give,
+  Medication Dose, Observation) on the screen. It reloads itself after
+  the Auto Refresh Interval (minutes idle; 0 turns it off).
 * Control Plane settings (for the interactive enclosure screens): theme
   (System, Light or Dark) and background (an image with a transparency
   slider, custom light/dark mode colours, or the company's branding: its
@@ -85,6 +93,7 @@ Boarding Kennel Manager
         'views/res_partner_views.xml',
         'views/res_config_settings_views.xml',
         'views/kennel_portal_templates.xml',
+        'views/kennel_control_plane_templates.xml',
         'wizard/kennel_custom_diet_wizard_views.xml',
         'views/kennel_menus.xml',
     ],

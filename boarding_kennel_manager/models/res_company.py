@@ -39,6 +39,17 @@ class ResCompany(models.Model):
     )
     kennel_cp_colour_light = fields.Char(string='Light Mode Colour', default='#F5F5F5')
     kennel_cp_colour_dark = fields.Char(string='Dark Mode Colour', default='#1E1E1E')
+    kennel_cp_refresh_minutes = fields.Integer(
+        string='Auto Refresh Interval', default=5,
+        help='How many minutes should the Control Plane be idle before it\'s automatically refreshed? '
+             'To disable auto refresh, set the interval to 0.',
+    )
+
+    @api.constrains('kennel_cp_refresh_minutes')
+    def _check_kennel_cp_refresh_minutes(self):
+        for company in self:
+            if company.kennel_cp_refresh_minutes < 0:
+                raise ValidationError(self.env._('The auto refresh interval can\'t be negative. Use 0 to turn it off.'))
 
     @api.constrains('kennel_cp_image_transparency')
     def _check_kennel_cp_image_transparency(self):

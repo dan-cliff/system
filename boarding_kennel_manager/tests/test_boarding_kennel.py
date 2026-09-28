@@ -273,9 +273,11 @@ class TestBoardingKennel(TransactionCase):
         self.assertEqual(bridge.state == 'installed', installed)
 
     def test_control_plane_settings(self):
+        new_company = self.env['res.company'].create({'name': 'Control Plane Defaults'})
+        self.assertEqual(new_company.kennel_cp_theme, 'system')
+        self.assertEqual(new_company.kennel_cp_background, 'branding')
+        self.assertEqual(new_company.kennel_cp_refresh_minutes, 5)
         settings = self.env['res.config.settings'].create({})
-        self.assertEqual(settings.kennel_cp_theme, 'system')
-        self.assertEqual(settings.kennel_cp_background, 'branding')
         settings.write({
             'kennel_cp_theme': 'dark', 'kennel_cp_background': 'colour',
             'kennel_cp_colour_light': '#FFFFFF', 'kennel_cp_colour_dark': '#000000',

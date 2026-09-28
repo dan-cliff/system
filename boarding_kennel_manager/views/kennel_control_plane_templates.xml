@@ -1,0 +1,29 @@
+<odoo>
+    <!-- The Control Plane: a standalone, installable full-screen page for a yard's enclosure screen.
+         The page is drawn by control_plane.js from the JSON in #cp-data. -->
+    <template id="control_plane_page" name="Kennel Control Plane">&lt;!DOCTYPE html&gt;
+        <html lang="en" t-att-data-theme="theme['theme']" t-att-data-background="theme['background']"
+              t-attf-style="--cp-bg-light: #{theme['light']}; --cp-bg-dark: #{theme['dark']}; --cp-image-opacity: #{(100 - theme['transparency']) / 100.0};">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+                <meta name="theme-color" content="#2e7d6e"/>
+                <meta name="mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+                <title t-out="'%s - Control Plane' % yard.name"/>
+                <link rel="manifest" t-attf-href="/kennel/control-plane/#{yard.id}/manifest.webmanifest"/>
+                <link rel="icon" type="image/png" href="/boarding_kennel_manager/static/src/control_plane/icon-192.png"/>
+                <link rel="apple-touch-icon" href="/boarding_kennel_manager/static/src/control_plane/icon-192.png"/>
+                <link rel="stylesheet" t-attf-href="/boarding_kennel_manager/static/src/control_plane/control_plane.css?v=#{version}"/>
+            </head>
+            <body>
+                <div t-if="theme['background'] == 'image' and theme['image_url']" class="cp-bg-image"
+                     t-attf-style="background-image: url('#{theme['image_url']}');"/>
+                <div id="cp-root" class="cp-root"/>
+                <script id="cp-data" type="application/json" t-out="data_json"/>
+                <script t-attf-src="/boarding_kennel_manager/static/src/control_plane/control_plane.js?v=#{version}"/>
+            </body>
+        </html>
+    </template>
+</odoo>

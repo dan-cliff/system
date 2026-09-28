@@ -17,6 +17,7 @@ class ResConfigSettings(models.TransientModel):
     kennel_cp_image_transparency = fields.Integer(related='company_id.kennel_cp_image_transparency', readonly=False)
     kennel_cp_colour_light = fields.Char(related='company_id.kennel_cp_colour_light', readonly=False)
     kennel_cp_colour_dark = fields.Char(related='company_id.kennel_cp_colour_dark', readonly=False)
+    kennel_cp_refresh_minutes = fields.Integer(related='company_id.kennel_cp_refresh_minutes', readonly=False)
     kennel_cp_company_logo = fields.Binary(related='company_id.logo', string='Company Logo')
 
     @api.depends('company_id')
