@@ -230,8 +230,8 @@
                             </div>
                             <dl class="row small mb-0">
                                 <t t-foreach="[
-                                    ('Yard', line.yard_id.name), ('Diet', line.diet_id.name), ('Food', line.food),
-                                    ('Quantity per Feed', line.quantity), ('Frequency', line.frequency_id.name),
+                                    ('Yard', line.yard_id.name), ('Diet', line.diet_id.name), ('Food', line._feed_description()),
+                                    ('Frequency', not line.use_feed_items and line.frequency_id.name),
                                     ('Food Supplied By', line.owner_supplied_food and 'You'),
                                     ('Feeding Instructions', line.feeding_instructions),
                                     ('Medical Care', line.medical_notes)]" t-as="row">

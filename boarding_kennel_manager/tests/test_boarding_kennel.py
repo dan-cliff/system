@@ -19,7 +19,7 @@ class TestBoardingKennel(TransactionCase):
         cls.jones = cls.env['res.partner'].create({'name': 'Test Jones'})
         cls.dry_food = cls.env['kennel.diet'].create({
             'name': 'Adult Dog - Dry', 'species_id': cls.dog.id,
-            'food': 'Dry biscuits', 'quantity': '1 cup', 'frequency_id': cls.twice_daily.id,
+            'food': '1 cup Dry biscuits', 'frequency_id': cls.twice_daily.id,
             'instructions': 'Soak in warm water.',
         })
         cls.rex = cls.env['kennel.resident'].create({
@@ -78,8 +78,8 @@ class TestBoardingKennel(TransactionCase):
         self.assertEqual(booking.line_ids.resident_id, self.rex | self.bella)
         rex_line = booking.line_ids.filtered(lambda line: line.resident_id == self.rex)
         self.assertEqual(rex_line.diet_id, self.dry_food)
-        self.assertEqual(rex_line.food, 'Dry biscuits')
-        self.assertEqual(rex_line.quantity, '1 cup')
+        self.assertEqual(rex_line.food, '1 cup Dry biscuits')
+        self.assertFalse(rex_line.use_feed_items)
         self.assertEqual(rex_line.frequency_id, self.twice_daily)
         self.assertEqual(rex_line.feeding_instructions, 'Soak in warm water.')
         self.assertEqual(rex_line.medical_notes, 'Allergic to chicken.')
@@ -93,18 +93,18 @@ class TestBoardingKennel(TransactionCase):
 
     def test_changing_a_diet_keeps_existing_stays(self):
         booking = self._book(self.smith, self.rex)
-        self.dry_food.quantity = '2 cups'
-        self.assertEqual(booking.line_ids.quantity, '1 cup')
+        self.dry_food.food = '2 cups Dry biscuits'
+        self.assertEqual(booking.line_ids.food, '1 cup Dry biscuits')
         # Feed details can be adjusted for the stay without touching the diet.
         booking.line_ids.food = 'Owner\'s food'
-        self.assertEqual(self.dry_food.food, 'Dry biscuits')
+        self.assertEqual(self.dry_food.food, '2 cups Dry biscuits')
 
     def test_custom_diet(self):
         booking = self._book(self.smith, self.rex)
         line = booking.line_ids
         action = line.action_custom_diet()
         wizard_form = Form(self.env[action['res_model']].with_context(action['context']))
-        self.assertEqual(wizard_form.food, 'Dry biscuits')
+        self.assertEqual(wizard_form.food, '1 cup Dry biscuits')
         wizard_form.food = 'Raw mince'
         wizard_form.owner_supplied_food = True
         wizard_form.save().action_create()

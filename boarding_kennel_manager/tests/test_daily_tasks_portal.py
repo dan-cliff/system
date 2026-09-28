@@ -28,7 +28,7 @@ class KennelTaskCommon(TransactionCase):
         cls.smith = cls.env['res.partner'].create({'name': 'Test Smith', 'email': 'smith@example.com'})
         cls.jones = cls.env['res.partner'].create({'name': 'Test Jones', 'email': 'jones@example.com'})
         cls.diet = cls.env['kennel.diet'].create({
-            'name': 'Dry', 'food': 'Biscuits', 'quantity': '1 cup', 'frequency_id': cls.twice_daily.id,
+            'name': 'Dry', 'food': '1 cup Biscuits', 'frequency_id': cls.twice_daily.id,
         })
         cls.rex = cls.env['kennel.resident'].create({
             'name': 'Rex', 'partner_id': cls.smith.id, 'species_id': cls.dog.id, 'default_diet_id': cls.diet.id,
@@ -69,7 +69,8 @@ class TestDailyTasks(KennelTaskCommon):
             ['08:00', '17:00'])
         self.assertTrue(all(task.date == DAY and task.resident_id == self.rex for task in tasks))
         feed = tasks.filtered(lambda t: t.task_type == 'feed')[:1]
-        self.assertEqual(feed.quantity_given, '1 cup')
+        self.assertEqual(feed.quantity_given, '1 cup Biscuits')
+        self.assertEqual(feed.food, '1 cup Biscuits')
         self.assertIn('1 cup Biscuits', feed.instructions)
         # Running it again adds nothing.
         self.assertFalse(self._generate(booking))

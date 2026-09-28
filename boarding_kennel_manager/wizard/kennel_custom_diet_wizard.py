@@ -9,8 +9,8 @@ class KennelCustomDietWizard(models.TransientModel):
     line_id = fields.Many2one('kennel.booking.line', required=True, ondelete='cascade')
     resident_id = fields.Many2one(related='line_id.resident_id')
     name = fields.Char(compute='_compute_from_line', store=True, readonly=False)
-    food = fields.Char(compute='_compute_from_line', store=True, readonly=False)
-    quantity = fields.Char(string='Quantity per Feed', compute='_compute_from_line', store=True, readonly=False)
+    food = fields.Text(string='Food Required', compute='_compute_from_line', store=True, readonly=False)
+    use_feed_items = fields.Boolean(related='line_id.use_feed_items')
     frequency_id = fields.Many2one('kennel.frequency', string='Frequency', compute='_compute_from_line',
                                    store=True, readonly=False)
     owner_supplied_food = fields.Boolean(compute='_compute_from_line', store=True, readonly=False)
@@ -27,7 +27,6 @@ class KennelCustomDietWizard(models.TransientModel):
             line = wizard.line_id
             wizard.name = self.env._('%s - Custom Diet', line.resident_id.name)
             wizard.food = line.food
-            wizard.quantity = line.quantity
             wizard.frequency_id = line.frequency_id
             wizard.owner_supplied_food = line.owner_supplied_food
             wizard.instructions = line.feeding_instructions
@@ -41,7 +40,6 @@ class KennelCustomDietWizard(models.TransientModel):
             'species_id': resident.species_id.id,
             'company_id': resident.company_id.id,
             'food': self.food,
-            'quantity': self.quantity,
             'frequency_id': self.frequency_id.id,
             'owner_supplied_food': self.owner_supplied_food,
             'instructions': self.instructions,

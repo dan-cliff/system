@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
+from .kennel_diet import feed_items_enabled
+
 
 class KennelBookingLine(models.Model):
     """One animal's stay within a booking: its yard, diet and feed details."""
@@ -32,8 +34,8 @@ class KennelBookingLine(models.Model):
         domain="[('resident_id', 'in', [False, resident_id]), ('species_id', 'in', [False, species_id])]",
         help='Standard diets, and custom diets made for this animal. Picking one fills in the feed details.',
     )
-    food = fields.Char(compute='_compute_feed', store=True, readonly=False)
-    quantity = fields.Char(string='Quantity per Feed', compute='_compute_feed', store=True, readonly=False)
+    food = fields.Text(string='Food Required', compute='_compute_feed', store=True, readonly=False)
+    use_feed_items = fields.Boolean(compute='_compute_use_feed_items')
     frequency_id = fields.Many2one(
         'kennel.frequency', string='Frequency', check_company=True,
         compute='_compute_feed', store=True, readonly=False,
@@ -66,9 +68,25 @@ class KennelBookingLine(models.Model):
     def _compute_feed(self):
         for line in self:
             values = line.diet_id._feed_values() if line.diet_id else dict.fromkeys(
-                ('food', 'quantity', 'frequency_id', 'owner_supplied_food', 'feeding_instructions'), False,
+                ('food', 'frequency_id', 'owner_supplied_food', 'feeding_instructions'), False,
             )
             line.update(values)
+
+    @api.depends('booking_id.company_id')
+    @api.depends_context('company')
+    def _compute_use_feed_items(self):
+        for line in self:
+            line.use_feed_items = feed_items_enabled(line.booking_id.company_id or self.env.company)
+
+    def _feed_times(self):
+        """[(hour, minute), ...] when this animal is fed, each one a feed on the daily to-do list."""
+        self.ensure_one()
+        return self.frequency_id._get_times()
+
+    def _feed_description(self, slot=None):
+        """What to feed; `slot` is the (hour, minute) of one feed, for when that depends on the time."""
+        self.ensure_one()
+        return self.food or ''
 
     @api.depends('resident_id')
     def _compute_medical_notes(self):

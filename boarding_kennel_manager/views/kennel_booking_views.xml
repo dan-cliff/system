@@ -107,9 +107,9 @@
                                     <field name="resident_id" readonly="1" force_save="1"/>
                                     <field name="yard_id" options="{'no_create': True}"/>
                                     <field name="diet_id" options="{'no_create': True}"/>
-                                    <field name="food"/>
-                                    <field name="quantity"/>
-                                    <field name="frequency_id" options="{'no_create': True}"/>
+                                    <field name="use_feed_items" column_invisible="1"/>
+                                    <field name="food" string="Food" invisible="use_feed_items"/>
+                                    <field name="frequency_id" options="{'no_create': True}" invisible="use_feed_items"/>
                                     <field name="owner_supplied_food" optional="show"/>
                                     <field name="vaccination_expiry_date" options="{'numeric': True}" optional="show"
                                            decoration-danger="vaccination_expired"/>
@@ -130,11 +130,14 @@
                                         </group>
                                         <group string="Feeding">
                                             <field name="diet_id" options="{'no_create': True}"/>
-                                            <field name="food"/>
-                                            <field name="quantity"/>
-                                            <field name="frequency_id" options="{'no_create': True}"/>
+                                            <field name="use_feed_items" invisible="1"/>
+                                            <field name="frequency_id" options="{'no_create': True}" invisible="use_feed_items"/>
                                             <field name="owner_supplied_food"/>
                                         </group>
+                                    </group>
+                                    <group name="food">
+                                        <field name="food" invisible="use_feed_items"
+                                               placeholder="What to feed and how much, e.g. 1 cup of adult dry biscuits"/>
                                     </group>
                                     <group>
                                         <field name="feeding_instructions"/>
@@ -253,7 +256,6 @@
                 <field name="departure_datetime" options="{'numeric': True}"/>
                 <field name="diet_id"/>
                 <field name="food" optional="show"/>
-                <field name="quantity" optional="show"/>
                 <field name="frequency_id" optional="show"/>
                 <field name="vaccination_expired" column_invisible="1"/>
                 <field name="state" widget="badge"/>

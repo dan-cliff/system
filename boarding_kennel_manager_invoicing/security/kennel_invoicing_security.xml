@@ -5,4 +5,11 @@
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
     </record>
+
+    <record id="kennel_feed_item_rule_company" model="ir.rule">
+        <field name="name">Food Items: multi-company</field>
+        <field name="model_id" ref="model_kennel_feed_item"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
 </odoo>

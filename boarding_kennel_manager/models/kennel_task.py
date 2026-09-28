@@ -40,9 +40,9 @@ class KennelTask(models.Model):
     medical_notes = fields.Text(related='line_id.medical_notes', string='Medical Care Requirements')
 
     # Feed
-    food = fields.Char(related='line_id.food')
+    food = fields.Text(compute='_compute_instructions', string='Food')
     quantity_given = fields.Char(
-        string='Amount Given', compute='_compute_quantity_given', store=True, readonly=False,
+        string='Food Given', compute='_compute_quantity_given', store=True, readonly=False,
     )
     consumption_id = fields.Many2one('kennel.feed.consumption', string='Food Eaten', check_company=True)
     # Medication
@@ -82,13 +82,15 @@ class KennelTask(models.Model):
         for task in self:
             task.overdue = task.state == 'todo' and task.scheduled_datetime < now
 
-    @api.depends('task_type', 'line_id', 'medication_id')
+    @api.depends('task_type', 'line_id', 'medication_id', 'scheduled_datetime')
     def _compute_instructions(self):
         for task in self:
             line, medication = task.line_id, task.medication_id
+            task.food = False
             if task.task_type == 'feed':
+                task.food = line._feed_description(task._local_slot()) or False
                 parts = [
-                    ' '.join(part for part in (line.quantity, line.food) if part),
+                    task.food,
                     self.env._('Owner supplies the food.') if line.owner_supplied_food else '',
                     line.feeding_instructions,
                 ]
@@ -101,10 +103,20 @@ class KennelTask(models.Model):
                 parts = [line.resident_id.behaviour_notes]
             task.instructions = '\n'.join(part for part in parts if part) or False
 
-    @api.depends('line_id.quantity')
+    @api.depends('line_id.food')
     def _compute_quantity_given(self):
         for task in self:
-            task.quantity_given = task.line_id.quantity if task.task_type == 'feed' else False
+            task.quantity_given = task.line_id._feed_description(task._local_slot()) or False \
+                if task.task_type == 'feed' else False
+
+    def _local_slot(self):
+        """(hour, minute) of the task's due time in the kennel's timezone."""
+        self.ensure_one()
+        if not self.scheduled_datetime:
+            return None
+        tz = self.booking_id.company_id._kennel_tz() if self.booking_id else pytz.utc
+        local = pytz.utc.localize(self.scheduled_datetime).astimezone(tz)
+        return local.hour, local.minute
 
     @api.depends('medication_id.dose')
     def _compute_dose_given(self):
@@ -158,7 +170,7 @@ class KennelTask(models.Model):
                     })
 
             for line in booking.line_ids:
-                add('feed', line, line.frequency_id._get_times())
+                add('feed', line, line._feed_times())
                 add('observation', line, obs_times)
             for medication in booking.medication_ids:
                 if medication.start_date and booking_day < medication.start_date:
@@ -239,7 +251,7 @@ class KennelTask(models.Model):
         """What the keeper recorded, as (label, value) pairs for the animal's history."""
         self.ensure_one()
         rows = {
-            'feed': [(self.env._('Food'), self.food), (self.env._('Given'), self.quantity_given),
+            'feed': [(self.env._('Given'), self.quantity_given),
                      (self.env._('Eaten'), self.consumption_id.name)],
             'medication': [(self.env._('Dose'), self.dose_given), (self.env._('Outcome'), self.outcome_id.name)],
             'observation': [(self.env._('Type'), self.observation_type_id.name), (self.env._('Summary'), self.summary),
