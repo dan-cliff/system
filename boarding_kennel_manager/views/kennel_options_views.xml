@@ -1,0 +1,253 @@
+<odoo>
+    <!-- Editable lists for the configurable choice lists under Configuration. -->
+
+    <record id="kennel_species_view_list" model="ir.ui.view">
+        <field name="name">kennel.species.list</field>
+        <field name="model">kennel.species</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_species_view_search" model="ir.ui.view">
+        <field name="name">kennel.species.search</field>
+        <field name="model">kennel.species</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_species_action" model="ir.actions.act_window">
+        <field name="name">Species</field>
+        <field name="res_model">kennel.species</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_sex_view_list" model="ir.ui.view">
+        <field name="name">kennel.sex.list</field>
+        <field name="model">kennel.sex</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_sex_view_search" model="ir.ui.view">
+        <field name="name">kennel.sex.search</field>
+        <field name="model">kennel.sex</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_sex_action" model="ir.actions.act_window">
+        <field name="name">Sexes</field>
+        <field name="res_model">kennel.sex</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_yard_type_view_list" model="ir.ui.view">
+        <field name="name">kennel.yard.type.list</field>
+        <field name="model">kennel.yard.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_yard_type_view_search" model="ir.ui.view">
+        <field name="name">kennel.yard.type.search</field>
+        <field name="model">kennel.yard.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_yard_type_action" model="ir.actions.act_window">
+        <field name="name">Yard Types</field>
+        <field name="res_model">kennel.yard.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_yard_feature_view_list" model="ir.ui.view">
+        <field name="name">kennel.yard.feature.list</field>
+        <field name="model">kennel.yard.feature</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_yard_feature_view_search" model="ir.ui.view">
+        <field name="name">kennel.yard.feature.search</field>
+        <field name="model">kennel.yard.feature</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_yard_feature_action" model="ir.actions.act_window">
+        <field name="name">Yard Features</field>
+        <field name="res_model">kennel.yard.feature</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_frequency_view_list" model="ir.ui.view">
+        <field name="name">kennel.frequency.list</field>
+        <field name="model">kennel.frequency</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_frequency_view_search" model="ir.ui.view">
+        <field name="name">kennel.frequency.search</field>
+        <field name="model">kennel.frequency</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_frequency_action" model="ir.actions.act_window">
+        <field name="name">Frequencies</field>
+        <field name="res_model">kennel.frequency</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_medication_route_view_list" model="ir.ui.view">
+        <field name="name">kennel.medication.route.list</field>
+        <field name="model">kennel.medication.route</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_medication_route_view_search" model="ir.ui.view">
+        <field name="name">kennel.medication.route.search</field>
+        <field name="model">kennel.medication.route</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_medication_route_action" model="ir.actions.act_window">
+        <field name="name">Medication Routes</field>
+        <field name="res_model">kennel.medication.route</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_dose_outcome_view_list" model="ir.ui.view">
+        <field name="name">kennel.dose.outcome.list</field>
+        <field name="model">kennel.dose.outcome</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="problem"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_dose_outcome_view_search" model="ir.ui.view">
+        <field name="name">kennel.dose.outcome.search</field>
+        <field name="model">kennel.dose.outcome</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_dose_outcome_action" model="ir.actions.act_window">
+        <field name="name">Dose Outcomes</field>
+        <field name="res_model">kennel.dose.outcome</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_observation_type_view_list" model="ir.ui.view">
+        <field name="name">kennel.observation.type.list</field>
+        <field name="model">kennel.observation.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="concern"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_observation_type_view_search" model="ir.ui.view">
+        <field name="name">kennel.observation.type.search</field>
+        <field name="model">kennel.observation.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_observation_type_action" model="ir.actions.act_window">
+        <field name="name">Observation Types</field>
+        <field name="res_model">kennel.observation.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+</odoo>

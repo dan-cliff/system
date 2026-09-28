@@ -1,0 +1,107 @@
+<odoo>
+    <record id="res_groups_privilege_boarding_kennel" model="res.groups.privilege">
+        <field name="name">Boarding Kennel Manager</field>
+        <field name="category_id" ref="base.module_category_services"/>
+    </record>
+
+    <!-- Keepers: day-to-day care. Residents, bookings, medication and observations;
+         can make custom diets. Read-only on yards, standard diets and choice lists. -->
+    <record id="group_kennel_keeper" model="res.groups">
+        <field name="name">Keeper</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_boarding_kennel"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Administrators: everything keepers can do, plus configuration and deleting records. -->
+    <record id="group_kennel_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_boarding_kennel"/>
+        <field name="implied_ids" eval="[(4, ref('group_kennel_keeper'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Multi-company: users only see records of the companies they have selected.
+         Records without a company (shared diets and options) are visible to all. -->
+    <record id="kennel_resident_rule_company" model="ir.rule">
+        <field name="name">Residents: multi-company</field>
+        <field name="model_id" ref="model_kennel_resident"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="kennel_yard_rule_company" model="ir.rule">
+        <field name="name">Yards: multi-company</field>
+        <field name="model_id" ref="model_kennel_yard"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="kennel_booking_rule_company" model="ir.rule">
+        <field name="name">Bookings: multi-company</field>
+        <field name="model_id" ref="model_kennel_booking"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="kennel_booking_line_rule_company" model="ir.rule">
+        <field name="name">Booking Animals: multi-company</field>
+        <field name="model_id" ref="model_kennel_booking_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="kennel_medication_rule_company" model="ir.rule">
+        <field name="name">Medication: multi-company</field>
+        <field name="model_id" ref="model_kennel_medication"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="kennel_medication_administration_rule_company" model="ir.rule">
+        <field name="name">Medication Log: multi-company</field>
+        <field name="model_id" ref="model_kennel_medication_administration"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="kennel_observation_rule_company" model="ir.rule">
+        <field name="name">Observations: multi-company</field>
+        <field name="model_id" ref="model_kennel_observation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="kennel_diet_rule_company" model="ir.rule">
+        <field name="name">Diets: multi-company</field>
+        <field name="model_id" ref="model_kennel_diet"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_species_rule_company" model="ir.rule">
+        <field name="name">Species: multi-company</field>
+        <field name="model_id" ref="model_kennel_species"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_sex_rule_company" model="ir.rule">
+        <field name="name">Sexes: multi-company</field>
+        <field name="model_id" ref="model_kennel_sex"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_yard_type_rule_company" model="ir.rule">
+        <field name="name">Yard Types: multi-company</field>
+        <field name="model_id" ref="model_kennel_yard_type"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_yard_feature_rule_company" model="ir.rule">
+        <field name="name">Yard Features: multi-company</field>
+        <field name="model_id" ref="model_kennel_yard_feature"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_frequency_rule_company" model="ir.rule">
+        <field name="name">Frequencies: multi-company</field>
+        <field name="model_id" ref="model_kennel_frequency"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_medication_route_rule_company" model="ir.rule">
+        <field name="name">Medication Routes: multi-company</field>
+        <field name="model_id" ref="model_kennel_medication_route"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_dose_outcome_rule_company" model="ir.rule">
+        <field name="name">Dose Outcomes: multi-company</field>
+        <field name="model_id" ref="model_kennel_dose_outcome"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+    <record id="kennel_observation_type_rule_company" model="ir.rule">
+        <field name="name">Observation Types: multi-company</field>
+        <field name="model_id" ref="model_kennel_observation_type"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+</odoo>
