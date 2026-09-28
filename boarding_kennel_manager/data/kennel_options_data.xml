@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Starting options for the Configuration lists. noupdate so edits are kept. -->
+<odoo noupdate="1">
+    <!-- Species -->
+    <record id="kennel_species_dog" model="kennel.species"><field name="name">Dog</field><field name="sequence">10</field></record>
+    <record id="kennel_species_cat" model="kennel.species"><field name="name">Cat</field><field name="sequence">20</field></record>
+
+    <!-- Sexes -->
+    <record id="kennel_sex_male" model="kennel.sex"><field name="name">Male</field><field name="sequence">10</field></record>
+    <record id="kennel_sex_female" model="kennel.sex"><field name="name">Female</field><field name="sequence">20</field></record>
+
+    <!-- Yard types -->
+    <record id="kennel_yard_type_kennel" model="kennel.yard.type"><field name="name">Kennel</field><field name="sequence">10</field></record>
+    <record id="kennel_yard_type_cattery_pen" model="kennel.yard.type"><field name="name">Cattery Pen</field><field name="sequence">20</field></record>
+    <record id="kennel_yard_type_suite" model="kennel.yard.type"><field name="name">Suite</field><field name="sequence">30</field></record>
+    <record id="kennel_yard_type_isolation" model="kennel.yard.type"><field name="name">Isolation</field><field name="sequence">40</field></record>
+
+    <!-- Yard features -->
+    <record id="kennel_yard_feature_heated" model="kennel.yard.feature"><field name="name">Heated</field><field name="sequence">10</field></record>
+    <record id="kennel_yard_feature_air_conditioned" model="kennel.yard.feature"><field name="name">Air-Conditioned</field><field name="sequence">20</field></record>
+    <record id="kennel_yard_feature_covered_run" model="kennel.yard.feature"><field name="name">Covered Run</field><field name="sequence">30</field></record>
+    <record id="kennel_yard_feature_outdoor_run" model="kennel.yard.feature"><field name="name">Outdoor Run</field><field name="sequence">40</field></record>
+    <record id="kennel_yard_feature_raised_bed" model="kennel.yard.feature"><field name="name">Raised Bed</field><field name="sequence">50</field></record>
+    <record id="kennel_yard_feature_cctv" model="kennel.yard.feature"><field name="name">CCTV</field><field name="sequence">60</field></record>
+
+    <!-- Frequencies -->
+    <record id="kennel_frequency_once_daily" model="kennel.frequency"><field name="times">08:00</field><field name="name">Once a Day</field><field name="sequence">10</field></record>
+    <record id="kennel_frequency_twice_daily" model="kennel.frequency"><field name="times">08:00, 17:00</field><field name="name">Twice a Day</field><field name="sequence">20</field></record>
+    <record id="kennel_frequency_three_daily" model="kennel.frequency"><field name="times">07:00, 12:00, 17:00</field><field name="name">Three Times a Day</field><field name="sequence">30</field></record>
+    <record id="kennel_frequency_as_needed" model="kennel.frequency"><field name="name">As Needed</field><field name="sequence">40</field></record>
+
+    <!-- Food eaten -->
+    <record id="kennel_feed_consumption_all" model="kennel.feed.consumption"><field name="name">Ate All</field><field name="sequence">10</field></record>
+    <record id="kennel_feed_consumption_most" model="kennel.feed.consumption"><field name="name">Ate Most</field><field name="sequence">20</field></record>
+    <record id="kennel_feed_consumption_some" model="kennel.feed.consumption"><field name="name">Ate Some</field><field name="sequence">30</field><field name="problem" eval="True"/></record>
+    <record id="kennel_feed_consumption_none" model="kennel.feed.consumption"><field name="name">Refused</field><field name="sequence">40</field><field name="problem" eval="True"/></record>
+
+    <!-- Medication routes -->
+    <record id="kennel_medication_route_oral" model="kennel.medication.route"><field name="name">Oral</field><field name="sequence">10</field></record>
+    <record id="kennel_medication_route_topical" model="kennel.medication.route"><field name="name">Topical</field><field name="sequence">20</field></record>
+    <record id="kennel_medication_route_eye_drops" model="kennel.medication.route"><field name="name">Eye Drops</field><field name="sequence">30</field></record>
+    <record id="kennel_medication_route_ear_drops" model="kennel.medication.route"><field name="name">Ear Drops</field><field name="sequence">40</field></record>
+    <record id="kennel_medication_route_injection" model="kennel.medication.route"><field name="name">Injection</field><field name="sequence">50</field></record>
+    <record id="kennel_medication_route_other" model="kennel.medication.route"><field name="name">Other</field><field name="sequence">60</field></record>
+
+    <!-- Dose outcomes -->
+    <record id="kennel_dose_outcome_given" model="kennel.dose.outcome"><field name="name">Given</field><field name="sequence">10</field></record>
+    <record id="kennel_dose_outcome_partly_given" model="kennel.dose.outcome"><field name="name">Partly Given</field><field name="sequence">20</field><field name="problem" eval="True"/></record>
+    <record id="kennel_dose_outcome_refused" model="kennel.dose.outcome"><field name="name">Refused</field><field name="sequence">30</field><field name="problem" eval="True"/></record>
+    <record id="kennel_dose_outcome_missed" model="kennel.dose.outcome"><field name="name">Missed</field><field name="sequence">40</field><field name="problem" eval="True"/></record>
+    <record id="kennel_dose_outcome_vomited" model="kennel.dose.outcome"><field name="name">Vomited Up</field><field name="sequence">50</field><field name="problem" eval="True"/></record>
+
+    <!-- Observation types -->
+    <record id="kennel_observation_type_general" model="kennel.observation.type"><field name="name">General</field><field name="sequence">10</field></record>
+    <record id="kennel_observation_type_eating" model="kennel.observation.type"><field name="name">Eating</field><field name="sequence">20</field></record>
+    <record id="kennel_observation_type_toileting" model="kennel.observation.type"><field name="name">Toileting</field><field name="sequence">30</field></record>
+    <record id="kennel_observation_type_behaviour" model="kennel.observation.type"><field name="name">Behaviour</field><field name="sequence">40</field></record>
+    <record id="kennel_observation_type_exercise" model="kennel.observation.type"><field name="name">Exercise</field><field name="sequence">50</field></record>
+    <record id="kennel_observation_type_health_concern" model="kennel.observation.type"><field name="name">Health Concern</field><field name="sequence">60</field><field name="concern" eval="True"/></record>
+</odoo>

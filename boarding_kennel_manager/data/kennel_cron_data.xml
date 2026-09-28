@@ -1,0 +1,13 @@
+<odoo>
+    <!-- Hourly, so each day's list is ready soon after midnight in any timezone and picks up
+         anything checked in or changed since. Existing tasks are never duplicated. -->
+    <record id="ir_cron_kennel_generate_tasks" model="ir.cron">
+        <field name="name">Boarding Kennel Manager: Build the daily to-do list</field>
+        <field name="model_id" ref="model_kennel_task"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_generate_tasks()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

@@ -1,0 +1,34 @@
+<odoo>
+    <record id="kennel_custom_diet_wizard_view_form" model="ir.ui.view">
+        <field name="name">kennel.custom.diet.wizard.form</field>
+        <field name="model">kennel.custom.diet.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <p class="text-muted">
+                    Saved as a custom diet for <field name="resident_id" readonly="1" class="oe_inline"/>
+                    and used for this stay. It can be picked again on later bookings.
+                </p>
+                <group>
+                    <group>
+                        <field name="line_id" invisible="1"/>
+                        <field name="name" required="1"/>
+                        <field name="food"/>
+                        <field name="quantity"/>
+                    </group>
+                    <group>
+                        <field name="frequency_id" options="{'no_create': True}"/>
+                        <field name="owner_supplied_food"/>
+                        <field name="set_as_usual"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="instructions"/>
+                </group>
+                <footer>
+                    <button name="action_create" type="object" string="Create Diet" class="btn-primary"/>
+                    <button special="cancel" string="Discard"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

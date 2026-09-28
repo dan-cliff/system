@@ -1,0 +1,117 @@
+<odoo>
+    <record id="kennel_medication_view_list" model="ir.ui.view">
+        <field name="name">kennel.medication.list</field>
+        <field name="model">kennel.medication</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="booking_id"/>
+                <field name="resident_id"/>
+                <field name="name"/>
+                <field name="dose"/>
+                <field name="route_id"/>
+                <field name="frequency_id"/>
+                <field name="times"/>
+                <field name="start_date" options="{'numeric': True}" optional="show"/>
+                <field name="end_date" options="{'numeric': True}" optional="show"/>
+                <field name="last_given_datetime" options="{'numeric': True}"/>
+                <button name="action_record_dose" type="object" title="Record Dose" icon="fa-check" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_medication_view_search" model="ir.ui.view">
+        <field name="name">kennel.medication.search</field>
+        <field name="model">kennel.medication</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="resident_id"/>
+                <field name="booking_id"/>
+                <filter string="Checked In" name="filter_checked_in" domain="[('booking_id.state', '=', 'checked_in')]"/>
+                <group>
+                    <filter string="Animal" name="group_resident" context="{'group_by': 'resident_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_medication_action" model="ir.actions.act_window">
+        <field name="name">Medication to Give</field>
+        <field name="res_model">kennel.medication</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_filter_checked_in': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No medication for checked-in animals</p>
+            <p>Medication is added on each booking's Medical Care tab.</p>
+        </field>
+    </record>
+
+    <record id="kennel_medication_administration_view_list" model="ir.ui.view">
+        <field name="name">kennel.medication.administration.list</field>
+        <field name="model">kennel.medication.administration</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="problem">
+                <field name="administered_datetime" options="{'numeric': True}"/>
+                <field name="booking_id"/>
+                <field name="resident_id"/>
+                <field name="medication_id"/>
+                <field name="dose_given"/>
+                <field name="outcome_id"/>
+                <field name="problem" column_invisible="1"/>
+                <field name="user_id"/>
+                <field name="notes" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_medication_administration_view_form" model="ir.ui.view">
+        <field name="name">kennel.medication.administration.form</field>
+        <field name="model">kennel.medication.administration</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="booking_id" readonly="context.get('default_booking_id')"/>
+                            <field name="medication_id" options="{'no_create': True}"/>
+                            <field name="resident_id"/>
+                        </group>
+                        <group>
+                            <field name="administered_datetime" options="{'numeric': True}"/>
+                            <field name="dose_given"/>
+                            <field name="outcome_id" options="{'no_create': True}"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <field name="notes" placeholder="Notes, e.g. given in food"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="kennel_medication_administration_view_search" model="ir.ui.view">
+        <field name="name">kennel.medication.administration.search</field>
+        <field name="model">kennel.medication.administration</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="resident_id"/>
+                <field name="medication_id"/>
+                <field name="booking_id"/>
+                <field name="user_id"/>
+                <filter string="Needs Attention" name="filter_problem" domain="[('problem', '=', True)]"/>
+                <separator/>
+                <filter string="Date" name="filter_date" date="administered_datetime"/>
+                <group>
+                    <filter string="Animal" name="group_resident" context="{'group_by': 'resident_id'}"/>
+                    <filter string="Day" name="group_day" context="{'group_by': 'administered_datetime:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_medication_administration_action" model="ir.actions.act_window">
+        <field name="name">Medication Log</field>
+        <field name="res_model">kennel.medication.administration</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

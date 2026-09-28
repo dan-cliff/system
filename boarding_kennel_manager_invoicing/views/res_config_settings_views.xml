@@ -1,0 +1,21 @@
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.boarding_kennel_manager_invoicing</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="boarding_kennel_manager.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <div id="kennel_invoicing_options" position="inside">
+                <div class="row mt16">
+                    <label for="kennel_warehouse_ids" string="Warehouse/s" class="col-lg-4 o_light_label"/>
+                    <field name="kennel_warehouse_ids" widget="many2many_tags" class="col-lg-8"
+                           options="{'no_create': True}"/>
+                </div>
+                <div class="row">
+                    <label for="kennel_product_categ_ids" string="Product Categories" class="col-lg-4 o_light_label"/>
+                    <field name="kennel_product_categ_ids" widget="many2many_tags" class="col-lg-8"
+                           options="{'no_create': True}"/>
+                </div>
+            </div>
+        </field>
+    </record>
+</odoo>

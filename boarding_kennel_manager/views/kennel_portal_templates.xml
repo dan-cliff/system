@@ -1,0 +1,310 @@
+<odoo>
+    <!-- Portal home: My Animals and Kennel Bookings. -->
+    <template id="portal_my_home_kennel" name="Boarding Kennel" customize_show="True" inherit_id="portal.portal_my_home" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_client_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_client_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/boarding_kennel_manager/static/src/img/paw.svg'"/>
+                <t t-set="title">My Animals</t>
+                <t t-set="url" t-value="'/my/kennel/animals'"/>
+                <t t-set="text">Your animals' profiles, care log, photos and messages</t>
+                <t t-set="placeholder_count" t-value="'kennel_resident_count'"/>
+            </t>
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/boarding_kennel_manager/static/src/img/calendar.svg'"/>
+                <t t-set="title">Kennel Bookings</t>
+                <t t-set="url" t-value="'/my/kennel/bookings'"/>
+                <t t-set="text">Your stays with us: feeding, medication and daily updates</t>
+                <t t-set="placeholder_count" t-value="'kennel_booking_count'"/>
+            </t>
+        </div>
+    </template>
+
+    <template id="portal_breadcrumbs_kennel" inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'kennel_animals'" class="breadcrumb-item">My Animals</li>
+            <li t-if="page_name == 'kennel_animal'" class="breadcrumb-item"><a href="/my/kennel/animals">My Animals</a></li>
+            <li t-if="page_name == 'kennel_animal'" class="breadcrumb-item" t-out="resident.name"/>
+            <li t-if="page_name == 'kennel_bookings'" class="breadcrumb-item">Kennel Bookings</li>
+            <li t-if="page_name == 'kennel_booking'" class="breadcrumb-item"><a href="/my/kennel/bookings">Kennel Bookings</a></li>
+            <li t-if="page_name == 'kennel_booking'" class="breadcrumb-item" t-out="booking.name"/>
+        </xpath>
+    </template>
+
+    <template id="portal_kennel_state_badge">
+        <t t-set="badge_class" t-value="{
+            'draft': 'text-bg-info', 'confirmed': 'text-bg-primary', 'checked_in': 'text-bg-success',
+            'checked_out': 'text-bg-secondary', 'cancelled': 'text-bg-light'}.get(booking.state, 'text-bg-light')"/>
+        <span t-attf-class="badge rounded-pill #{badge_class}" t-field="booking.state"/>
+    </template>
+
+    <!-- Completed feeds, doses and observations with their photos. Expects `care_log` (kennel.task). -->
+    <template id="portal_kennel_care_log">
+        <p t-if="not care_log" class="text-muted">Nothing logged yet. Feeds, medication and keepers'
+            observations appear here as they are done.</p>
+        <ul t-else="" class="list-unstyled mb-0">
+            <li t-foreach="care_log" t-as="task" class="d-flex gap-3 py-3 border-bottom">
+                <t t-set="icon" t-value="{'feed': 'fa-cutlery', 'medication': 'fa-medkit', 'observation': 'fa-eye'}[task.task_type]"/>
+                <div t-attf-class="fs-4 #{'text-danger' if task.problem else 'text-o-color-1'}" style="width: 1.5em;">
+                    <i t-attf-class="fa #{icon}" t-att-title="task.task_type"/>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <strong t-out="task.name"/>
+                        <span class="text-muted small">
+                            <span t-field="task.done_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/>
+                            <t t-if="task.done_by_id"> · <t t-out="task.done_by_id.name"/></t>
+                        </span>
+                    </div>
+                    <div class="small">
+                        <t t-foreach="task._history_lines()" t-as="row">
+                            <span class="me-3"><span class="text-muted" t-out="row[0]"/>: <t t-out="row[1]"/></span>
+                        </t>
+                    </div>
+                    <div t-if="task.message_id.attachment_ids" class="d-flex flex-wrap gap-2 mt-2">
+                        <t t-foreach="task.message_id.attachment_ids.filtered(lambda a: (a.mimetype or '').startswith('image/'))" t-as="photo">
+                            <a t-attf-href="/web/image/#{photo.id}?access_token=#{photo.access_token}" target="_blank">
+                                <img t-attf-src="/web/image/#{photo.id}/160x160?access_token=#{photo.access_token}"
+                                     class="rounded border" style="width: 96px; height: 96px; object-fit: cover;"
+                                     t-att-alt="photo.name" loading="lazy"/>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </template>
+
+    <!-- My Animals -->
+    <template id="portal_my_kennel_animals" name="My Animals">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+            <div t-if="not residents" class="alert alert-info">You have no animals registered with us yet.</div>
+            <div t-else="" class="row g-3">
+                <div t-foreach="residents" t-as="resident" class="col-12 col-md-6 col-lg-4">
+                    <a t-att-href="resident.get_portal_url()" class="card h-100 text-decoration-none text-reset">
+                        <div class="card-body d-flex gap-3 align-items-center">
+                            <img t-if="resident.image_128" t-att-src="image_data_uri(resident.image_128)"
+                                 class="rounded-circle" style="width: 64px; height: 64px; object-fit: cover;" t-att-alt="resident.name"/>
+                            <div t-else="" class="rounded-circle bg-200 d-flex align-items-center justify-content-center fs-3"
+                                 style="width: 64px; height: 64px;"><i class="fa fa-paw"/></div>
+                            <div>
+                                <h5 class="mb-1" t-out="resident.name"/>
+                                <div class="text-muted small">
+                                    <t t-out="resident.species_id.name"/><t t-if="resident.breed"> · <t t-out="resident.breed"/></t>
+                                    <t t-if="resident.age"> · <t t-out="resident.age"/></t>
+                                </div>
+                                <t t-set="current" t-value="resident.booking_line_ids.filtered(lambda l: l.state == 'checked_in')[:1]"/>
+                                <span t-if="current" class="badge rounded-pill text-bg-success mt-1">Staying with us</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div t-if="pager" class="o_portal_pager d-flex justify-content-center my-3"><t t-call="portal.pager"/></div>
+        </t>
+    </template>
+
+    <template id="portal_my_kennel_animal" name="Animal Profile">
+        <t t-call="portal.portal_layout">
+            <div class="row g-4">
+                <div class="col-12 col-lg-4">
+                    <div class="card">
+                        <img t-if="resident.image_512" t-att-src="image_data_uri(resident.image_512)"
+                             class="card-img-top" style="max-height: 320px; object-fit: cover;" t-att-alt="resident.name"/>
+                        <div class="card-body">
+                            <h3 class="card-title mb-3" t-out="resident.name"/>
+                            <dl class="row small mb-0">
+                                <t t-foreach="[
+                                    ('Species', resident.species_id.name), ('Breed', resident.breed),
+                                    ('Sex', resident.sex_id.name), ('Desexed', resident.desexed and 'Yes'),
+                                    ('Age', resident.age), ('Colour / Markings', resident.colour),
+                                    ('Microchip', resident.microchip),
+                                    ('Weight', resident.weight and ('%s kg' % resident.weight)),
+                                    ('Veterinarian', resident.vet_id.name), ('Usual Diet', resident.default_diet_id.name)]" t-as="row">
+                                    <t t-if="row[1]">
+                                        <dt class="col-5 text-muted fw-normal" t-out="row[0]"/>
+                                        <dd class="col-7" t-out="row[1]"/>
+                                    </t>
+                                </t>
+                                <t t-if="resident.date_of_birth">
+                                    <dt class="col-5 text-muted fw-normal">Date of Birth</dt>
+                                    <dd class="col-7"><span t-field="resident.date_of_birth"/></dd>
+                                </t>
+                                <t t-if="resident.vaccination_expiry_date">
+                                    <dt class="col-5 text-muted fw-normal">Vaccinations Due</dt>
+                                    <dd class="col-7"><span t-field="resident.vaccination_expiry_date"/></dd>
+                                </t>
+                            </dl>
+                        </div>
+                    </div>
+                    <div t-if="resident.medical_notes or resident.behaviour_notes" class="card mt-3">
+                        <div class="card-body small">
+                            <t t-if="resident.medical_notes">
+                                <h6>Medical Notes</h6>
+                                <p style="white-space: pre-line;" t-out="resident.medical_notes"/>
+                            </t>
+                            <t t-if="resident.behaviour_notes">
+                                <h6>Behaviour</h6>
+                                <p class="mb-0" style="white-space: pre-line;" t-out="resident.behaviour_notes"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-8">
+                    <h4>Stays</h4>
+                    <p t-if="not stays" class="text-muted">No bookings yet.</p>
+                    <t t-else="" t-call="portal.portal_table">
+                        <thead><tr><th>Booking</th><th>Arrival</th><th>Departure</th><th>Yard</th><th class="text-end">Status</th></tr></thead>
+                        <tbody>
+                            <tr t-foreach="stays" t-as="stay">
+                                <td><a t-att-href="stay.booking_id.get_portal_url()" t-out="stay.booking_id.name"/></td>
+                                <td><span t-field="stay.arrival_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                                <td><span t-field="stay.departure_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                                <td t-out="stay.yard_id.name"/>
+                                <td class="text-end"><t t-call="boarding_kennel_manager.portal_kennel_state_badge"><t t-set="booking" t-value="stay.booking_id"/></t></td>
+                            </tr>
+                        </tbody>
+                    </t>
+
+                    <h4 class="mt-4">Care Log</h4>
+                    <t t-call="boarding_kennel_manager.portal_kennel_care_log"/>
+
+                    <h4 class="mt-4">Messages &amp; Photos</h4>
+                    <p class="text-muted small">Send a message to our keepers, or see their updates and photos.</p>
+                    <t t-call="portal.message_thread"/>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Kennel Bookings -->
+    <template id="portal_my_kennel_bookings" name="Kennel Bookings">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+            <div t-if="not bookings" class="alert alert-info">You have no bookings with us yet.</div>
+            <t t-else="" t-call="portal.portal_table">
+                <thead>
+                    <tr><th>Booking</th><th>Animals</th><th>Arrival</th><th>Departure</th><th class="text-end">Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="bookings" t-as="booking">
+                        <td><a t-att-href="booking.get_portal_url()" t-out="booking.name"/></td>
+                        <td t-out="', '.join(booking.resident_ids.mapped('name'))"/>
+                        <td><span t-field="booking.arrival_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                        <td><span t-field="booking.departure_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                        <td class="text-end"><t t-call="boarding_kennel_manager.portal_kennel_state_badge"/></td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_my_kennel_booking" name="Kennel Booking">
+        <t t-call="portal.portal_layout">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <h3 class="mb-0">Booking <t t-out="booking.name"/></h3>
+                <t t-call="boarding_kennel_manager.portal_kennel_state_badge"/>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3"><div class="text-muted small">Arrival</div>
+                    <span t-field="booking.arrival_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></div>
+                <div class="col-6 col-md-3"><div class="text-muted small">Departure</div>
+                    <span t-field="booking.departure_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></div>
+                <div class="col-6 col-md-3"><div class="text-muted small">Nights</div><t t-out="booking.nights"/></div>
+                <div class="col-6 col-md-3"><div class="text-muted small">Customer</div><t t-out="booking.partner_id.name"/></div>
+            </div>
+            <div t-if="booking.vaccination_warning" class="alert alert-warning" t-out="booking.vaccination_warning"/>
+
+            <h4>Animals</h4>
+            <div class="row g-3 mb-4">
+                <div t-foreach="booking.line_ids" t-as="line" class="col-12 col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex gap-3 align-items-center mb-2">
+                                <img t-if="line.resident_id.image_128" t-att-src="image_data_uri(line.resident_id.image_128)"
+                                     class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;" t-att-alt="line.resident_id.name"/>
+                                <h5 class="mb-0"><a t-att-href="line.resident_id.get_portal_url()" t-out="line.resident_id.name"/></h5>
+                            </div>
+                            <dl class="row small mb-0">
+                                <t t-foreach="[
+                                    ('Yard', line.yard_id.name), ('Diet', line.diet_id.name), ('Food', line.food),
+                                    ('Quantity per Feed', line.quantity), ('Frequency', line.frequency_id.name),
+                                    ('Food Supplied By', line.owner_supplied_food and 'You'),
+                                    ('Feeding Instructions', line.feeding_instructions),
+                                    ('Medical Care', line.medical_notes)]" t-as="row">
+                                    <t t-if="row[1]">
+                                        <dt class="col-5 text-muted fw-normal" t-out="row[0]"/>
+                                        <dd class="col-7" style="white-space: pre-line;" t-out="row[1]"/>
+                                    </t>
+                                </t>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <t t-if="booking.medication_ids">
+                <h4>Medication</h4>
+                <t t-call="portal.portal_table">
+                    <t t-set="classes" t-value="'mb-4'"/>
+                    <thead><tr><th>Animal</th><th>Medication</th><th>Dose</th><th>Route</th><th>How Often</th><th>Last Given</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="booking.medication_ids" t-as="medication">
+                            <td t-out="medication.resident_id.name"/>
+                            <td><t t-out="medication.name"/><div t-if="medication.instructions" class="small text-muted" t-out="medication.instructions"/></td>
+                            <td t-out="medication.dose"/>
+                            <td t-out="medication.route_id.name"/>
+                            <td><t t-out="medication.frequency_id.name"/><div t-if="medication.times" class="small text-muted" t-out="medication.times"/></td>
+                            <td><span t-if="medication.last_given_datetime" t-field="medication.last_given_datetime"
+                                      t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                        </tr>
+                    </tbody>
+                </t>
+            </t>
+
+            <t t-if="booking.administration_ids">
+                <h4>Medication Given</h4>
+                <t t-call="portal.portal_table">
+                    <t t-set="classes" t-value="'mb-4'"/>
+                    <thead><tr><th>When</th><th>Animal</th><th>Medication</th><th>Dose</th><th>Outcome</th><th>Notes</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="booking.administration_ids" t-as="dose" t-att-class="'table-danger' if dose.problem else ''">
+                            <td><span t-field="dose.administered_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                            <td t-out="dose.resident_id.name"/>
+                            <td t-out="dose.medication_id.name"/>
+                            <td t-out="dose.dose_given"/>
+                            <td t-out="dose.outcome_id.name"/>
+                            <td t-out="dose.notes"/>
+                        </tr>
+                    </tbody>
+                </t>
+            </t>
+
+            <t t-if="booking.observation_ids">
+                <h4>Keeper Observations</h4>
+                <t t-call="portal.portal_table">
+                    <t t-set="classes" t-value="'mb-4'"/>
+                    <thead><tr><th>When</th><th>Animal</th><th>Type</th><th>Observation</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="booking.observation_ids" t-as="observation" t-att-class="'table-warning' if observation.concern else ''">
+                            <td><span t-field="observation.observation_datetime" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                            <td t-out="observation.resident_id.name"/>
+                            <td t-out="observation.type_id.name"/>
+                            <td><strong t-out="observation.summary"/><div t-if="observation.details" class="small" style="white-space: pre-line;" t-out="observation.details"/></td>
+                        </tr>
+                    </tbody>
+                </t>
+            </t>
+
+            <h4>Care Log</h4>
+            <t t-call="boarding_kennel_manager.portal_kennel_care_log"/>
+
+            <h4 class="mt-4">Messages</h4>
+            <p class="text-muted small">Send a message to our keepers about this stay.</p>
+            <t t-call="portal.message_thread"/>
+        </t>
+    </template>
+</odoo>

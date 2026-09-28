@@ -1,0 +1,162 @@
+<odoo>
+    <record id="kennel_resident_view_list" model="ir.ui.view">
+        <field name="name">kennel.resident.list</field>
+        <field name="model">kennel.resident</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="species_id"/>
+                <field name="breed"/>
+                <field name="sex_id" optional="show"/>
+                <field name="desexed" optional="hide"/>
+                <field name="age" optional="show"/>
+                <field name="microchip" optional="hide"/>
+                <field name="vaccination_expiry_date" options="{'numeric': True}" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_resident_view_kanban" model="ir.ui.view">
+        <field name="name">kennel.resident.kanban</field>
+        <field name="model">kennel.resident</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="o_kanban_aside_full">
+                            <field name="image_128" widget="image" class="o_kanban_image_fill w-100"
+                                   options="{'img_class': 'object-fit-cover'}"/>
+                        </aside>
+                        <main class="ps-2">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <field name="partner_id"/>
+                            <div>
+                                <field name="species_id"/>
+                                <t t-if="record.breed.raw_value"> - <field name="breed"/></t>
+                            </div>
+                            <field name="age"/>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="kennel_resident_view_form" model="ir.ui.view">
+        <field name="name">kennel.resident.form</field>
+        <field name="model">kennel.resident</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_portal_invite" type="object" string="Invite Customer to Portal"
+                            groups="boarding_kennel_manager.group_kennel_portal_user"/>
+                    <button name="action_portal_preview" type="object" string="Customer Preview"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_bookings" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="booking_count" widget="statinfo" string="Bookings"/>
+                        </button>
+                        <button name="action_view_care_log" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                            <field name="care_count" widget="statinfo" string="Care Log"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Max"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="species_id" options="{'no_create': True}"/>
+                            <field name="breed"/>
+                            <field name="sex_id" options="{'no_create': True}"/>
+                            <field name="desexed"/>
+                            <field name="colour"/>
+                        </group>
+                        <group>
+                            <label for="date_of_birth"/>
+                            <div class="o_row">
+                                <field name="date_of_birth" options="{'numeric': True}"/>
+                                <span invisible="not age">(<field name="age" nolabel="1" class="oe_inline"/>)</span>
+                            </div>
+                            <field name="microchip"/>
+                            <field name="weight"/>
+                            <field name="vet_id"/>
+                            <field name="vaccination_expiry_date" options="{'numeric': True}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Care" name="care">
+                            <group>
+                                <field name="default_diet_id" context="{'default_resident_id': id, 'default_species_id': species_id}"/>
+                                <field name="medical_notes" placeholder="Conditions, allergies, medication..."/>
+                                <field name="behaviour_notes" placeholder="Temperament, handling, gets on with other animals..."/>
+                            </group>
+                        </page>
+                        <page string="Custom Diets" name="custom_diets">
+                            <field name="custom_diet_ids" context="{'default_species_id': species_id}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="food"/>
+                                    <field name="quantity"/>
+                                    <field name="frequency_id"/>
+                                    <field name="owner_supplied_food"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Stays" name="stays">
+                            <field name="booking_line_ids" readonly="1">
+                                <list>
+                                    <field name="booking_id"/>
+                                    <field name="arrival_datetime" options="{'numeric': True}"/>
+                                    <field name="departure_datetime" options="{'numeric': True}"/>
+                                    <field name="yard_id"/>
+                                    <field name="diet_id"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="kennel_resident_view_search" model="ir.ui.view">
+        <field name="name">kennel.resident.search</field>
+        <field name="model">kennel.resident</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('microchip', 'ilike', self)]"/>
+                <field name="partner_id"/>
+                <field name="species_id"/>
+                <field name="breed"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Species" name="group_species" context="{'group_by': 'species_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_resident_action" model="ir.actions.act_window">
+        <field name="name">Residents</field>
+        <field name="res_model">kennel.resident</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a resident</p>
+            <p>Every dog and cat that stays with us, linked to its customer.</p>
+        </field>
+    </record>
+</odoo>

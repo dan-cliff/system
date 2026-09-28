@@ -1,0 +1,82 @@
+<odoo>
+    <record id="kennel_diet_view_list" model="ir.ui.view">
+        <field name="name">kennel.diet.list</field>
+        <field name="model">kennel.diet</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="species_id"/>
+                <field name="resident_id" optional="show"/>
+                <field name="food"/>
+                <field name="quantity"/>
+                <field name="frequency_id"/>
+                <field name="owner_supplied_food" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_diet_view_form" model="ir.ui.view">
+        <field name="name">kennel.diet.form</field>
+        <field name="model">kennel.diet</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Adult Dog - Dry"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="species_id" options="{'no_create': True}"/>
+                            <field name="resident_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="food"/>
+                            <field name="quantity"/>
+                            <field name="frequency_id" options="{'no_create': True}"/>
+                            <field name="owner_supplied_food"/>
+                        </group>
+                    </group>
+                    <group string="Feeding Instructions">
+                        <field name="instructions" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="kennel_diet_view_search" model="ir.ui.view">
+        <field name="name">kennel.diet.search</field>
+        <field name="model">kennel.diet</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="food"/>
+                <field name="species_id"/>
+                <field name="resident_id"/>
+                <filter string="Standard" name="filter_standard" domain="[('resident_id', '=', False)]"/>
+                <filter string="Custom" name="filter_custom" domain="[('resident_id', '!=', False)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Species" name="group_species" context="{'group_by': 'species_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_diet_action" model="ir.actions.act_window">
+        <field name="name">Diets</field>
+        <field name="res_model">kennel.diet</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_standard': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a standard diet</p>
+            <p>Diets pre-fill the feed details on bookings. Custom diets for one animal
+               are made from its booking.</p>
+        </field>
+    </record>
+</odoo>

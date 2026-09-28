@@ -1,0 +1,39 @@
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.boarding_kennel_manager</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="91"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Boarding Kennel Manager" id="boarding_kennel_manager" string="Boarding Kennel Manager"
+                     name="boarding_kennel_manager" groups="boarding_kennel_manager.group_kennel_manager">
+                    <block title="Daily To-Do List" id="kennel_daily_tasks">
+                        <setting id="kennel_observation_times" string="Observation Rounds"
+                                 help="Times of day (24-hour, separated by commas) when every checked-in animal gets an observation task. Feed and medication times come from each Frequency.">
+                            <field name="kennel_observation_times" placeholder="e.g. 09:00, 16:00"/>
+                        </setting>
+                    </block>
+                    <block title="Integrations" id="kennel_integrations">
+                        <setting id="kennel_invoicing" string="Integrate Bookings with Invoicing"
+                                 help="When enabled, bookings will have the ability to raise an invoice in the Accounting app and reflect the payment status in the booking.">
+                            <field name="kennel_invoicing_available" invisible="1"/>
+                            <field name="kennel_invoicing" readonly="not kennel_invoicing_available"/>
+                            <div class="text-warning mt8" invisible="kennel_invoicing_available">
+                                <i class="fa fa-exclamation-triangle me-1"/>This feature needs the Accounting and Inventory apps installed.
+                            </div>
+                            <div class="content-group" id="kennel_invoicing_options" invisible="not kennel_invoicing"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="kennel_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'boarding_kennel_manager', 'bin_size': False}</field>
+    </record>
+</odoo>
