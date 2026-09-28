@@ -1,6 +1,6 @@
 {
     'name': 'Boarding Kennel Manager',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Services',
     'summary': 'Manage the dog and cat boarding kennels',
     'description': """
@@ -52,6 +52,10 @@ Boarding Kennel Manager
   as negative lines, or a credit note if the changes are negative
   overall); answering No holds the changes until the next change. The
   booking shows the invoices and their payment status.
+* Control Plane settings (for the interactive enclosure screens): theme
+  (System, Light or Dark) and background (an image with a transparency
+  slider, custom light/dark mode colours, or the company's branding: its
+  logo plus the light/dark mode colours).
 * Multi-company: every record belongs to a company and users only see
   records of the companies they have selected. Diets and choice-list
   options can be left without a company to share them.
@@ -84,6 +88,11 @@ Boarding Kennel Manager
         'wizard/kennel_custom_diet_wizard_views.xml',
         'views/kennel_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'boarding_kennel_manager/static/src/percent_slider/*',
+        ],
+    },
     'installable': True,
     'application': True,
 }

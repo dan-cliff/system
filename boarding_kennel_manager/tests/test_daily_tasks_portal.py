@@ -16,6 +16,7 @@ class KennelTaskCommon(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.env.company.partner_id.tz = 'UTC'
+        cls.env.company.kennel_invoicing = False  # food is typed in, not picked from inventory
         cls.env.company.kennel_observation_times = '09:00, 16:00'
         ref = lambda xmlid: cls.env.ref(f'boarding_kennel_manager.{xmlid}')
         cls.dog = ref('kennel_species_dog')
@@ -237,6 +238,7 @@ class TestPortalPages(HttpCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.env.company.partner_id.tz = 'UTC'
+        cls.env.company.kennel_invoicing = False
         smith = cls.env['res.partner'].create({'name': 'Portal Smith', 'email': 'psmith@example.com'})
         jones = cls.env['res.partner'].create({'name': 'Portal Jones'})
         cls.portal = new_test_user(cls.env, login='psmith', password='psmith-pass-1234', groups='base.group_portal',

@@ -11,6 +11,14 @@ class ResConfigSettings(models.TransientModel):
     kennel_invoicing = fields.Boolean(related='company_id.kennel_invoicing', readonly=False)
     kennel_invoicing_available = fields.Boolean(compute='_compute_kennel_invoicing_available')
 
+    kennel_cp_theme = fields.Selection(related='company_id.kennel_cp_theme', readonly=False)
+    kennel_cp_background = fields.Selection(related='company_id.kennel_cp_background', readonly=False)
+    kennel_cp_background_image = fields.Image(related='company_id.kennel_cp_background_image', readonly=False)
+    kennel_cp_image_transparency = fields.Integer(related='company_id.kennel_cp_image_transparency', readonly=False)
+    kennel_cp_colour_light = fields.Char(related='company_id.kennel_cp_colour_light', readonly=False)
+    kennel_cp_colour_dark = fields.Char(related='company_id.kennel_cp_colour_dark', readonly=False)
+    kennel_cp_company_logo = fields.Binary(related='company_id.logo', string='Company Logo')
+
     @api.depends('company_id')
     def _compute_kennel_invoicing_available(self):
         installed = self.env['ir.module.module'].sudo().search_count(

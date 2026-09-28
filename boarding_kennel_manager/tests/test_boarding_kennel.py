@@ -12,6 +12,7 @@ class TestBoardingKennel(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env.company.kennel_invoicing = False  # food is typed in, not picked from inventory
         cls.dog = cls.env.ref('boarding_kennel_manager.kennel_species_dog')
         cls.cat = cls.env.ref('boarding_kennel_manager.kennel_species_cat')
         cls.twice_daily = cls.env.ref('boarding_kennel_manager.kennel_frequency_twice_daily')
@@ -270,3 +271,20 @@ class TestBoardingKennel(TransactionCase):
         # The companion module installs itself exactly when both apps are there.
         bridge = self.env['ir.module.module'].search([('name', '=', 'boarding_kennel_manager_invoicing')])
         self.assertEqual(bridge.state == 'installed', installed)
+
+    def test_control_plane_settings(self):
+        settings = self.env['res.config.settings'].create({})
+        self.assertEqual(settings.kennel_cp_theme, 'system')
+        self.assertEqual(settings.kennel_cp_background, 'branding')
+        settings.write({
+            'kennel_cp_theme': 'dark', 'kennel_cp_background': 'colour',
+            'kennel_cp_colour_light': '#FFFFFF', 'kennel_cp_colour_dark': '#000000',
+            'kennel_cp_image_transparency': 40,
+        })
+        settings.execute()
+        company = self.env.company
+        self.assertEqual((company.kennel_cp_theme, company.kennel_cp_background), ('dark', 'colour'))
+        self.assertEqual((company.kennel_cp_colour_light, company.kennel_cp_colour_dark), ('#FFFFFF', '#000000'))
+        self.assertEqual(company.kennel_cp_image_transparency, 40)
+        with self.assertRaises(ValidationError):
+            company.kennel_cp_image_transparency = 101
