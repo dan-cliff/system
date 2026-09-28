@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Breadcrumbs -->
+    <template id="portal_breadcrumbs" name="Portal layout: tickets" inherit_id="portal.portal_breadcrumbs" priority="45">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'ticket'" t-attf-class="breadcrumb-item #{'active ' if not ticket else ''}">
+                <a t-if="ticket" href="/my/tickets">Tickets</a>
+                <t t-else="">Tickets</t>
+            </li>
+            <li t-if="page_name == 'ticket' and ticket" class="breadcrumb-item active text-break">
+                #<t t-out="ticket.ticket_ref"/> <t t-out="ticket.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <!-- Entry on /my -->
+    <template id="portal_my_home" name="Tickets" customize_show="True" inherit_id="portal.portal_my_home" priority="45">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_service_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_service_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/helpdesk_management/static/description/icon.png'"/>
+                <t t-set="title">Tickets</t>
+                <t t-set="url" t-value="'/my/tickets'"/>
+                <t t-set="text">Follow and reply to your support requests</t>
+                <t t-set="placeholder_count" t-value="'helpdesk_ticket_count'"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- /my/tickets -->
+    <template id="portal_my_tickets" name="My Tickets">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Tickets</t>
+            </t>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <form method="get" action="/my/tickets" class="d-flex gap-2">
+                    <input type="hidden" name="filterby" t-att-value="filterby"/>
+                    <input type="hidden" name="sortby" t-att-value="sortby"/>
+                    <input type="search" name="search" class="form-control" placeholder="Search tickets..."
+                           t-att-value="search or ''"/>
+                    <button type="submit" class="btn btn-light" title="Search" aria-label="Search">
+                        <i class="fa fa-search"/>
+                    </button>
+                </form>
+                <a href="/helpdesk" class="btn btn-primary">New Ticket</a>
+            </div>
+            <t t-if="not tickets">
+                <div class="alert alert-info" role="alert">There are no tickets to show.</div>
+            </t>
+            <t t-if="tickets" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Ticket</th>
+                        <th>Subject</th>
+                        <th class="d-none d-md-table-cell">Created On</th>
+                        <th class="d-none d-md-table-cell">Assigned to</th>
+                        <th class="text-end">Stage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="tickets" t-as="ticket">
+                        <td><a t-att-href="ticket.get_portal_url()">#<t t-out="ticket.ticket_ref"/></a></td>
+                        <td><a t-att-href="ticket.get_portal_url()"><span t-field="ticket.name"/></a></td>
+                        <td class="d-none d-md-table-cell"><span t-field="ticket.create_date" t-options="{'widget': 'date'}"/></td>
+                        <td class="d-none d-md-table-cell"><span t-out="ticket.user_id.sudo().name or ''"/></td>
+                        <td class="text-end">
+                            <span t-attf-class="badge #{'text-bg-success' if ticket.fold else 'text-bg-info'}"
+                                  t-out="ticket.stage_id.name"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <!-- /my/tickets/<id> -->
+    <template id="portal_my_ticket" name="My Ticket" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-set="o_portal_fullwidth_alert" groups="helpdesk_management.group_helpdesk_user">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/odoo/action-helpdesk_management.helpdesk_ticket_action_main/%s' % ticket.id"/>
+                </t>
+            </t>
+            <div class="row o_portal_helpdesk_sidebar">
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
+                    <t t-set="entries">
+                        <div class="d-flex flex-column gap-4 mt-3">
+                            <div>
+                                <h6 class="mb-1"><small class="text-muted">Stage</small></h6>
+                                <span t-attf-class="badge #{'text-bg-success' if ticket.fold else 'text-bg-info'}"
+                                      t-out="ticket.stage_id.name"/>
+                            </div>
+                            <div t-if="ticket.user_id">
+                                <h6 class="mb-1"><small class="text-muted">Assigned to</small></h6>
+                                <t t-call="portal.portal_my_contact">
+                                    <t t-set="_contactAvatar" t-value="image_data_uri(ticket.user_id.avatar_128)"/>
+                                    <t t-set="_contactName" t-value="ticket.user_id.name"/>
+                                    <t t-set="_contactLink" t-value="True"/>
+                                </t>
+                            </div>
+                            <form t-if="can_close" method="post" t-attf-action="/my/tickets/#{ticket.id}/close">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+                                <button type="submit" class="btn btn-secondary w-100">
+                                    <i class="fa fa-check me-1"/>Close this ticket
+                                </button>
+                            </form>
+                        </div>
+                    </t>
+                </t>
+                <div id="ticket_content" class="col-lg-8 col-xxl-9">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <span class="text-muted">#<t t-out="ticket.ticket_ref"/></span>
+                                <span t-field="ticket.name"/>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-6 col-md-3">
+                                    <strong>Created On</strong><br/>
+                                    <span t-field="ticket.create_date" t-options="{'widget': 'date'}"/>
+                                </div>
+                                <div class="col-6 col-md-3" t-if="ticket.team_id">
+                                    <strong>Team</strong><br/>
+                                    <span t-out="ticket.team_id.name"/>
+                                </div>
+                                <div class="col-6 col-md-3" t-if="ticket.ticket_type_id">
+                                    <strong>Type</strong><br/>
+                                    <span t-out="ticket.ticket_type_id.name"/>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <strong>Priority</strong><br/>
+                                    <span t-out="priority_labels.get(ticket.priority)"/>
+                                </div>
+                            </div>
+                            <div t-if="ticket.close_date" class="mb-3">
+                                <strong>Closed On</strong>
+                                <span t-field="ticket.close_date" t-options="{'widget': 'date'}"/>
+                            </div>
+                            <div t-if="not is_html_empty(ticket.description)" class="border-top pt-3" t-field="ticket.description"/>
+                        </div>
+                    </div>
+                    <div id="ticket_chat" data-anchor="true">
+                        <h3>Communication history</h3>
+                        <t t-call="portal.message_thread">
+                            <t t-set="token" t-value="ticket.access_token"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- /helpdesk: choose a team -->
+    <template id="helpdesk_team_select" name="Helpdesk: Choose a Team">
+        <t t-call="portal.frontend_layout">
+            <div class="container py-5">
+                <h1 class="mb-4">How can we help?</h1>
+                <t t-if="not teams">
+                    <div class="alert alert-info">Online support requests are not available at the moment.</div>
+                </t>
+                <div class="row g-3">
+                    <div t-foreach="teams" t-as="team" class="col-md-6 col-lg-4">
+                        <a t-attf-href="/helpdesk/#{team.id}" class="card h-100 text-decoration-none">
+                            <div class="card-body">
+                                <h4 class="card-title" t-out="team.name"/>
+                                <div class="card-text text-muted" t-if="not is_html_empty(team.description)"
+                                     t-out="team.description"/>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- /helpdesk/<team>: submit a ticket -->
+    <template id="helpdesk_ticket_form" name="Helpdesk: Submit a Ticket">
+        <t t-call="portal.frontend_layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <h1>Submit a Ticket</h1>
+                        <h5 class="text-muted mb-3" t-out="team.name"/>
+                        <div t-if="not is_html_empty(team.description)" class="mb-4" t-out="team.description"/>
+                        <form t-attf-action="/helpdesk/#{team.id}/submit" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="d-none" aria-hidden="true">
+                                <label for="website_url">Leave this field empty</label>
+                                <input type="text" name="website_url" id="website_url" tabindex="-1" autocomplete="off"/>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="partner_name">Your Name *</label>
+                                    <input type="text" name="partner_name" id="partner_name" required="required"
+                                           t-attf-class="form-control #{'is-invalid' if error.get('partner_name') else ''}"
+                                           t-att-value="partner_name"/>
+                                    <div class="invalid-feedback" t-out="error.get('partner_name')"/>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="partner_email">Your Email *</label>
+                                    <input type="email" name="partner_email" id="partner_email" required="required"
+                                           t-attf-class="form-control #{'is-invalid' if error.get('partner_email') else ''}"
+                                           t-att-value="partner_email"/>
+                                    <div class="invalid-feedback" t-out="error.get('partner_email')"/>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="partner_phone">Phone</label>
+                                    <input type="tel" name="partner_phone" id="partner_phone" class="form-control"
+                                           t-att-value="partner_phone"/>
+                                </div>
+                                <div class="col-md-6 mb-3" t-if="ticket_types">
+                                    <label class="form-label" for="ticket_type_id">Type</label>
+                                    <select name="ticket_type_id" id="ticket_type_id" class="form-select">
+                                        <option value="">Choose...</option>
+                                        <option t-foreach="ticket_types" t-as="ticket_type" t-att-value="ticket_type.id"
+                                                t-att-selected="str(ticket_type.id) == str(ticket_type_id)"
+                                                t-out="ticket_type.name"/>
+                                    </select>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label" for="name">Subject *</label>
+                                    <input type="text" name="name" id="name" required="required"
+                                           t-attf-class="form-control #{'is-invalid' if error.get('name') else ''}"
+                                           t-att-value="name"/>
+                                    <div class="invalid-feedback" t-out="error.get('name')"/>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label" for="description">Description</label>
+                                    <textarea name="description" id="description" rows="6" class="form-control"
+                                              t-out="description"/>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="helpdesk_ticket_submitted" name="Helpdesk: Ticket Submitted">
+        <t t-call="portal.frontend_layout">
+            <div class="container py-5 text-center">
+                <i class="fa fa-check-circle fa-4x text-success mb-3" role="img" aria-label="Submitted" title="Submitted"/>
+                <h1>Thank you!</h1>
+                <p class="lead">
+                    Your ticket <strong>#<t t-out="ticket.ticket_ref"/></strong> has been received.
+                    The <t t-out="team.name"/> team will be in touch by email.
+                </p>
+                <a t-if="is_logged_in" href="/my/tickets" class="btn btn-primary">View my tickets</a>
+                <a t-else="" href="/" class="btn btn-secondary">Back to the homepage</a>
+            </div>
+        </t>
+    </template>
+</odoo>

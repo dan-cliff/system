@@ -1,0 +1,10 @@
+<odoo noupdate="1">
+    <record id="ir_cron_auto_close_tickets" model="ir.cron">
+        <field name="name">Helpdesk: close inactive tickets</field>
+        <field name="model_id" ref="model_helpdesk_team"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_auto_close_tickets()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

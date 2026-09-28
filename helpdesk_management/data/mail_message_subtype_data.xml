@@ -1,0 +1,48 @@
+<odoo noupdate="1">
+    <!-- Ticket subtypes -->
+    <record id="mt_ticket_new" model="mail.message.subtype">
+        <field name="name">Ticket Created</field>
+        <field name="res_model">helpdesk.ticket</field>
+        <field name="default" eval="False"/>
+        <field name="hidden" eval="True"/>
+        <field name="description">Ticket created</field>
+    </record>
+    <record id="mt_ticket_stage" model="mail.message.subtype">
+        <field name="name">Stage Changed</field>
+        <field name="res_model">helpdesk.ticket</field>
+        <field name="default" eval="False"/>
+        <field name="description">Stage changed</field>
+    </record>
+    <record id="mt_ticket_rated" model="mail.message.subtype">
+        <field name="name">Ticket Rated</field>
+        <field name="res_model">helpdesk.ticket</field>
+        <field name="default" eval="True"/>
+        <field name="description">Ticket rated</field>
+    </record>
+
+    <!-- Team subtypes: following a team follows its tickets -->
+    <record id="mt_team_ticket_new" model="mail.message.subtype">
+        <field name="name">Ticket Created</field>
+        <field name="sequence">10</field>
+        <field name="res_model">helpdesk.team</field>
+        <field name="default" eval="True"/>
+        <field name="parent_id" ref="mt_ticket_new"/>
+        <field name="relation_field">team_id</field>
+    </record>
+    <record id="mt_team_ticket_stage" model="mail.message.subtype">
+        <field name="name">Ticket Stage Changed</field>
+        <field name="sequence">20</field>
+        <field name="res_model">helpdesk.team</field>
+        <field name="default" eval="False"/>
+        <field name="parent_id" ref="mt_ticket_stage"/>
+        <field name="relation_field">team_id</field>
+    </record>
+    <record id="mt_team_ticket_rated" model="mail.message.subtype">
+        <field name="name">Ticket Rated</field>
+        <field name="sequence">30</field>
+        <field name="res_model">helpdesk.team</field>
+        <field name="default" eval="True"/>
+        <field name="parent_id" ref="mt_ticket_rated"/>
+        <field name="relation_field">team_id</field>
+    </record>
+</odoo>
