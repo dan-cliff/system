@@ -1,0 +1,35 @@
+<odoo>
+    <!-- With invoicing on, food is picked from inventory instead of typed in. -->
+    <record id="kennel_diet_view_form" model="ir.ui.view">
+        <field name="name">kennel.diet.form.invoicing</field>
+        <field name="model">kennel.diet</field>
+        <field name="inherit_id" ref="boarding_kennel_manager.kennel_diet_view_form"/>
+        <field name="arch" type="xml">
+            <group name="food" position="inside">
+                <field name="feed_item_ids" invisible="not use_feed_items" colspan="2">
+                    <list editable="bottom">
+                        <field name="sequence" widget="handle"/>
+                        <field name="product_domain" column_invisible="1"/>
+                        <field name="product_id" options="{'no_create': True}"/>
+                        <field name="quantity"/>
+                        <field name="uom_id"/>
+                        <field name="frequency_id" options="{'no_create': True}"/>
+                    </list>
+                </field>
+            </group>
+        </field>
+    </record>
+
+    <record id="kennel_custom_diet_wizard_view_form" model="ir.ui.view">
+        <field name="name">kennel.custom.diet.wizard.form.invoicing</field>
+        <field name="model">kennel.custom.diet.wizard</field>
+        <field name="inherit_id" ref="boarding_kennel_manager.kennel_custom_diet_wizard_view_form"/>
+        <field name="arch" type="xml">
+            <group name="food" position="before">
+                <p class="text-muted" invisible="not use_feed_items">
+                    The stay's food items are saved with the diet.
+                </p>
+            </group>
+        </field>
+    </record>
+</odoo>

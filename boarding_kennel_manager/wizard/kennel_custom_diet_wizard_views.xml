@@ -12,16 +12,17 @@
                     <group>
                         <field name="line_id" invisible="1"/>
                         <field name="name" required="1"/>
-                        <field name="food"/>
-                        <field name="quantity"/>
                     </group>
                     <group>
-                        <field name="frequency_id" options="{'no_create': True}"/>
+                        <field name="use_feed_items" invisible="1"/>
+                        <field name="frequency_id" options="{'no_create': True}" invisible="use_feed_items"/>
                         <field name="owner_supplied_food"/>
                         <field name="set_as_usual"/>
                     </group>
                 </group>
-                <group>
+                <group name="food">
+                    <field name="food" invisible="use_feed_items"
+                           placeholder="What to feed and how much, e.g. 1 cup of adult dry biscuits"/>
                     <field name="instructions"/>
                 </group>
                 <footer>

@@ -8,7 +8,6 @@
                 <field name="species_id"/>
                 <field name="resident_id" optional="show"/>
                 <field name="food"/>
-                <field name="quantity"/>
                 <field name="frequency_id"/>
                 <field name="owner_supplied_food" optional="hide"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
@@ -34,11 +33,14 @@
                             <field name="active" invisible="1"/>
                         </group>
                         <group>
-                            <field name="food"/>
-                            <field name="quantity"/>
-                            <field name="frequency_id" options="{'no_create': True}"/>
+                            <field name="use_feed_items" invisible="1"/>
+                            <field name="frequency_id" options="{'no_create': True}" invisible="use_feed_items"/>
                             <field name="owner_supplied_food"/>
                         </group>
+                    </group>
+                    <group name="food">
+                        <field name="food" invisible="use_feed_items"
+                               placeholder="What to feed and how much, e.g. 1 cup of adult dry biscuits"/>
                     </group>
                     <group string="Feeding Instructions">
                         <field name="instructions" nolabel="1" colspan="2"/>

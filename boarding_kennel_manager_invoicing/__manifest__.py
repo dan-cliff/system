@@ -1,6 +1,6 @@
 {
     'name': 'Boarding Kennel Manager - Invoicing',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services',
     'summary': 'Invoice kennel bookings in Accounting',
     'description': """
@@ -11,6 +11,11 @@ are all installed. Switched on per company in Boarding Kennel Manager's
 Settings > Integrations > Integrate Bookings with Invoicing, where the
 Warehouse/s and Product Categories are chosen.
 
+* Food is picked from inventory: diets and each animal's stay have a
+  Food table of items (products in those categories, stocked in those
+  warehouses), each with its quantity and frequency, instead of the
+  Food Required text. Diets pre-fill the stay's items, and each feed on
+  the daily to-do list lists the items due at that time.
 * Bookings get a Products tab, offering products from those categories.
 * Create Invoice raises a draft invoice: a note with the booking details
   (animals, arrival, departure, nights), then the products. Keepers can
@@ -30,6 +35,7 @@ Warehouse/s and Product Categories are chosen.
         'security/kennel_invoicing_security.xml',
         'views/res_config_settings_views.xml',
         'views/kennel_booking_views.xml',
+        'views/kennel_diet_views.xml',
     ],
     'installable': True,
     'auto_install': True,

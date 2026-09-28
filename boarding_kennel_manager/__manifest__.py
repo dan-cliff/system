@@ -1,6 +1,6 @@
 {
     'name': 'Boarding Kennel Manager',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services',
     'summary': 'Manage the dog and cat boarding kennels',
     'description': """
@@ -15,7 +15,7 @@ Boarding Kennel Manager
 * Bookings: a customer's arrival and departure date/times and the
   animals they are booking in. Only the selected customer's residents are
   offered. Each animal gets its own line with its yard, diet and the feed
-  details (food, quantity, frequency, instructions, owner-supplied food)
+  details (food required, frequency, instructions, owner-supplied food)
   pre-filled from the diet; the details can be changed for the stay, or
   saved as a Custom Diet for that animal to reuse on later stays.
   An animal can't be in two overlapping bookings and a yard can't hold

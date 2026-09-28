@@ -100,7 +100,6 @@
 
                     <group string="Feed" invisible="task_type != 'feed'">
                         <group>
-                            <field name="food" readonly="1"/>
                             <field name="quantity_given" readonly="state != 'todo'"/>
                             <field name="consumption_id" options="{'no_create': True}"
                                    required="task_type == 'feed' and state == 'todo'" readonly="state != 'todo'"/>
