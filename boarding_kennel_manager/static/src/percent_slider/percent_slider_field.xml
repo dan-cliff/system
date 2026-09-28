@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="boarding_kennel_manager.PercentSliderField">
+        <div class="d-flex align-items-center gap-3">
+            <input type="range" class="form-range flex-grow-1" min="0" max="100" step="1"
+                   t-att-value="value" t-att-disabled="props.readonly" t-on-input="onInput"
+                   t-att-id="props.id" aria-label="Percentage"/>
+            <span class="text-nowrap" style="min-width: 3.5em;"><t t-out="value"/>%</span>
+        </div>
+    </t>
+</templates>

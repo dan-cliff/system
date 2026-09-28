@@ -25,6 +25,53 @@
                             <div class="content-group" id="kennel_invoicing_options" invisible="not kennel_invoicing"/>
                         </setting>
                     </block>
+                    <block title="Control Plane" id="kennel_control_plane"
+                           help="This section is used to manage interactive enclosure screens to display resident information and perform quick actions from the screen.">
+                        <setting id="kennel_cp_theme" string="Control Plane Theme"
+                                 help="Use light mode, dark mode, or the system settings of the device the Control Plane is on.">
+                            <field name="kennel_cp_theme"/>
+                        </setting>
+                        <setting id="kennel_cp_refresh" string="Auto Refresh Interval"
+                                 help="How many minutes should the Control Plane be idle before it's automatically refreshed? To disable auto refresh, set the interval to 0.">
+                            <div class="d-flex align-items-baseline gap-2">
+                                <field name="kennel_cp_refresh_minutes" class="o_field_short w-auto" style="max-width: 6em;"/>
+                                <span>minutes</span>
+                            </div>
+                        </setting>
+                        <setting id="kennel_cp_background" string="Background"
+                                 help="What the Control Plane shows behind its content.">
+                            <field name="kennel_cp_background"/>
+                            <div class="content-group" invisible="kennel_cp_background != 'image'">
+                                <div class="row mt16">
+                                    <label for="kennel_cp_background_image" string="Image" class="col-lg-4 o_light_label"/>
+                                    <field name="kennel_cp_background_image" widget="image" class="col-lg-8"
+                                           options="{'size': [180, 100]}"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="kennel_cp_image_transparency" string="Transparency" class="col-lg-4 o_light_label"/>
+                                    <field name="kennel_cp_image_transparency" widget="kennel_percent_slider" class="col-lg-8"/>
+                                </div>
+                            </div>
+                            <div class="content-group" invisible="kennel_cp_background not in ('colour', 'branding')">
+                                <div class="row mt16" invisible="kennel_cp_background != 'branding'">
+                                    <label for="kennel_cp_company_logo" string="Logo" class="col-lg-4 o_light_label"/>
+                                    <div class="col-lg-8">
+                                        <field name="kennel_cp_company_logo" widget="image" readonly="1"
+                                               options="{'size': [180, 60]}"/>
+                                        <div class="text-muted small">The logo of the company the Control Plane is set up for.</div>
+                                    </div>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="kennel_cp_colour_light" string="Light Mode" class="col-lg-4 o_light_label"/>
+                                    <field name="kennel_cp_colour_light" widget="color" class="col-lg-8"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="kennel_cp_colour_dark" string="Dark Mode" class="col-lg-4 o_light_label"/>
+                                    <field name="kennel_cp_colour_dark" widget="color" class="col-lg-8"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
