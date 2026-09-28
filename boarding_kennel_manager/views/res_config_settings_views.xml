@@ -17,19 +17,12 @@
                     <block title="Integrations" id="kennel_integrations">
                         <setting id="kennel_invoicing" string="Integrate Bookings with Invoicing"
                                  help="When enabled, bookings will have the ability to raise an invoice in the Accounting app and reflect the payment status in the booking.">
-                            <field name="kennel_invoicing"/>
-                            <div class="content-group" invisible="not kennel_invoicing">
-                                <div class="row mt16">
-                                    <label for="kennel_warehouse_ids" string="Warehouse/s" class="col-lg-4 o_light_label"/>
-                                    <field name="kennel_warehouse_ids" widget="many2many_tags" class="col-lg-8"
-                                           options="{'no_create': True}"/>
-                                </div>
-                                <div class="row">
-                                    <label for="kennel_product_categ_ids" string="Product Categories" class="col-lg-4 o_light_label"/>
-                                    <field name="kennel_product_categ_ids" widget="many2many_tags" class="col-lg-8"
-                                           options="{'no_create': True}"/>
-                                </div>
+                            <field name="kennel_invoicing_available" invisible="1"/>
+                            <field name="kennel_invoicing" readonly="not kennel_invoicing_available"/>
+                            <div class="text-warning mt8" invisible="kennel_invoicing_available">
+                                <i class="fa fa-exclamation-triangle me-1"/>This feature needs the Accounting and Inventory apps installed.
                             </div>
+                            <div class="content-group" id="kennel_invoicing_options" invisible="not kennel_invoicing"/>
                         </setting>
                     </block>
                 </app>

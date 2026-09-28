@@ -1,0 +1,76 @@
+<odoo>
+    <record id="kennel_booking_view_list" model="ir.ui.view">
+        <field name="name">kennel.booking.list.invoicing</field>
+        <field name="model">kennel.booking</field>
+        <field name="inherit_id" ref="boarding_kennel_manager.kennel_booking_view_list"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="payment_status" widget="badge" optional="hide"
+                       decoration-success="payment_status == 'paid'" decoration-danger="payment_status == 'not_paid'"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="kennel_booking_view_form" model="ir.ui.view">
+        <field name="name">kennel.booking.form.invoicing</field>
+        <field name="model">kennel.booking</field>
+        <field name="inherit_id" ref="boarding_kennel_manager.kennel_booking_view_form"/>
+        <field name="arch" type="xml">
+            <button name="action_confirm" position="after">
+                <button name="action_create_invoice" type="object" string="Create Invoice"
+                        invisible="not has_products_to_invoice or state == 'cancelled'"/>
+            </button>
+            <xpath expr="//div[hasclass('alert-warning')][field[@name='vaccination_warning']]" position="after">
+                <div class="alert alert-info mb-0 d-flex flex-wrap align-items-center gap-2" role="alert"
+                     invisible="not show_amendment_prompt">
+                    <span class="me-auto">The booking's products have changed since it was invoiced.
+                        Raise an amendment invoice to the customer for the changes?</span>
+                    <button name="action_create_amendment_invoice" type="object" string="Yes, raise it"
+                            class="btn btn-primary btn-sm"/>
+                    <button name="action_decline_amendment" type="object" string="No" class="btn btn-secondary btn-sm"/>
+                </div>
+                <field name="invoicing_enabled" invisible="1"/>
+                <field name="has_products_to_invoice" invisible="1"/>
+                <field name="show_amendment_prompt" invisible="1"/>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                        invisible="not invoicing_enabled or not invoice_count" groups="account.group_account_invoice">
+                    <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                </button>
+            </div>
+            <field name="nights" position="after">
+                <field name="payment_status" widget="badge" invisible="not invoicing_enabled"
+                       decoration-success="payment_status == 'paid'" decoration-warning="payment_status == 'partial'"
+                       decoration-danger="payment_status == 'not_paid'" decoration-info="payment_status == 'draft'"/>
+                <field name="amount_due" invisible="not invoicing_enabled or payment_status in ('not_invoiced', 'draft')"/>
+            </field>
+            <page name="notes" position="before">
+                <page string="Products" name="products" invisible="not invoicing_enabled">
+                    <field name="product_line_ids" context="{'default_booking_id': id}">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="product_domain" column_invisible="1"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                            <field name="name" optional="show"/>
+                            <field name="quantity"/>
+                            <field name="uom_id" optional="show"/>
+                            <field name="price_unit"/>
+                            <field name="price_subtotal"/>
+                            <field name="qty_invoiced" optional="hide"/>
+                            <field name="qty_to_invoice" column_invisible="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="amount_products"/>
+                    </group>
+                    <group string="Invoices" invisible="not invoice_summary">
+                        <field name="invoice_summary" nolabel="1" colspan="2"/>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

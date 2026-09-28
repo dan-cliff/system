@@ -261,3 +261,12 @@ class TestBoardingKennel(TransactionCase):
         })
         with self.assertRaises(Exception):
             booking_b.line_ids.sudo().yard_id = self.run1
+
+    def test_invoicing_setting_needs_accounting_and_inventory(self):
+        installed = self.env['ir.module.module'].search_count(
+            [('name', 'in', ('account', 'stock')), ('state', '=', 'installed')]) == 2
+        settings = self.env['res.config.settings'].create({})
+        self.assertEqual(settings.kennel_invoicing_available, installed)
+        # The companion module installs itself exactly when both apps are there.
+        bridge = self.env['ir.module.module'].search([('name', '=', 'boarding_kennel_manager_invoicing')])
+        self.assertEqual(bridge.state == 'installed', installed)

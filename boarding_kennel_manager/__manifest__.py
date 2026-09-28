@@ -42,7 +42,9 @@ Boarding Kennel Manager
   feeding, medication and doses given, observations, the care log with
   photos, and a chatter to message the keepers.
 * Invoicing (Settings > Integrations > Integrate Bookings with
-  Invoicing, per company): bookings get a Products tab (products from
+  Invoicing, per company; needs the Accounting and Inventory apps, and
+  is provided by Boarding Kennel Manager - Invoicing, which installs
+  itself once both are there): bookings get a Products tab (products from
   the chosen Product Categories) and keepers can raise the invoice in
   Accounting: a note with the booking details, then the products. When
   products are added or removed after invoicing, the booking asks
@@ -59,7 +61,7 @@ Boarding Kennel Manager
 """,
     'author': 'Cliffs',
     'license': 'LGPL-3',
-    'depends': ['mail', 'portal', 'account', 'stock'],
+    'depends': ['mail', 'portal'],
     'data': [
         'security/kennel_security.xml',
         'security/ir.model.access.csv',
