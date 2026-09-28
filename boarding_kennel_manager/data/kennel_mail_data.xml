@@ -1,0 +1,13 @@
+<odoo>
+    <!-- Completed daily tasks are logged on the animal with this subtype. It isn't internal, so
+         customers see the entries in the portal, and followers aren't subscribed to it by default,
+         so nobody is emailed about every feed. -->
+    <record id="mt_kennel_care" model="mail.message.subtype">
+        <field name="name">Care Activity</field>
+        <field name="res_model">kennel.resident</field>
+        <field name="description">Care activity logged</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="False"/>
+        <field name="sequence">20</field>
+    </record>
+</odoo>

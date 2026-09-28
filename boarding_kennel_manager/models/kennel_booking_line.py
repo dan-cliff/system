@@ -50,6 +50,8 @@ class KennelBookingLine(models.Model):
         help='The animal\'s vaccinations run out before departure (or no date is recorded).',
     )
 
+    task_ids = fields.One2many('kennel.task', 'line_id', string='Tasks')
+
     _resident_booking_uniq = models.Constraint(
         'UNIQUE (booking_id, resident_id)', 'An animal can only be on a booking once.',
     )
@@ -122,6 +124,14 @@ class KennelBookingLine(models.Model):
                 raise ValidationError(self.env._(
                     '%(yard)s is not suitable for %(species)s (%(animal)s).',
                     yard=yard.display_name, species=line.resident_id.species_id.name, animal=line.resident_id.name))
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'frequency_id' in vals:
+            # New feed times: swap the open feeds on the list for ones at the new times.
+            self.task_ids.filtered(lambda task: task.task_type == 'feed' and task.state == 'todo').sudo().unlink()
+            self.env['kennel.task']._generate_for_bookings(self.booking_id)
+        return res
 
     def action_custom_diet(self):
         self.ensure_one()

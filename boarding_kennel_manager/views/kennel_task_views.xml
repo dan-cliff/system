@@ -1,0 +1,191 @@
+<odoo>
+    <record id="kennel_task_view_list" model="ir.ui.view">
+        <field name="name">kennel.task.list</field>
+        <field name="model">kennel.task</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-danger="overdue or problem" decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'done' and not problem">
+                <header>
+                    <button name="action_refresh_today" type="object" string="Refresh Today's List"
+                            icon="fa-refresh" display="always"/>
+                </header>
+                <field name="overdue" column_invisible="1"/>
+                <field name="problem" column_invisible="1"/>
+                <field name="scheduled_datetime" string="Due" options="{'numeric': True}"/>
+                <field name="task_type" widget="badge" decoration-info="task_type == 'feed'"
+                       decoration-warning="task_type == 'medication'" decoration-primary="task_type == 'observation'"/>
+                <field name="resident_id"/>
+                <field name="yard_id"/>
+                <field name="instructions" string="What To Do"/>
+                <field name="partner_id" optional="hide"/>
+                <field name="done_by_id" optional="show"/>
+                <field name="done_datetime" options="{'numeric': True}" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'"
+                       decoration-warning="state == 'todo'" decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_task_view_kanban" model="ir.ui.view">
+        <field name="name">kennel.task.kanban</field>
+        <field name="model">kennel.task</field>
+        <field name="arch" type="xml">
+            <kanban create="0" default_group_by="task_type" group_create="0" group_delete="0" group_edit="0"
+                    records_draggable="0">
+                <field name="overdue"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="o_kanban_aside_full">
+                            <field name="image_128" widget="image" class="o_kanban_image_fill w-100"
+                                   options="{'img_class': 'object-fit-cover'}"/>
+                        </aside>
+                        <main class="ps-2">
+                            <div class="d-flex justify-content-between">
+                                <field name="resident_id" class="fw-bold fs-5"/>
+                                <field name="scheduled_datetime" widget="datetime" options="{'numeric': True}"
+                                       t-att-class="record.overdue.raw_value ? 'text-danger fw-bold' : 'text-muted'"/>
+                            </div>
+                            <field name="name"/>
+                            <field name="yard_id" class="text-muted"/>
+                            <field name="instructions" class="small text-muted text-truncate"/>
+                            <field name="state" widget="badge" class="mt-1" invisible="state == 'todo'"/>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="kennel_task_view_form" model="ir.ui.view">
+        <field name="name">kennel.task.form</field>
+        <field name="model">kennel.task</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_complete" type="object" string="Complete" class="btn-primary"
+                            invisible="state != 'todo'"/>
+                    <button name="action_not_required" type="object" string="Not Required"
+                            invisible="state != 'todo'"
+                            confirm="Take this task off the list without logging it?"/>
+                    <button name="action_reopen" type="object" string="Reopen" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="todo,done"/>
+                </header>
+                <div class="alert alert-danger mb-0" role="alert" invisible="not overdue">This task is overdue.</div>
+                <sheet>
+                    <field name="image_128" widget="image" class="oe_avatar" readonly="1"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="task_type" readonly="1"/>
+                            <field name="resident_id" readonly="1"/>
+                            <field name="yard_id" readonly="1"/>
+                            <field name="booking_id" readonly="1"/>
+                            <field name="overdue" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="scheduled_datetime" options="{'numeric': True}" readonly="1"/>
+                            <field name="done_by_id" invisible="state != 'done'"/>
+                            <field name="done_datetime" options="{'numeric': True}" invisible="state != 'done'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="What To Do" invisible="not instructions and not medical_notes">
+                        <field name="instructions" nolabel="1" colspan="2" readonly="1"/>
+                        <field name="medical_notes" readonly="1" invisible="not medical_notes"/>
+                    </group>
+
+                    <group string="Feed" invisible="task_type != 'feed'">
+                        <group>
+                            <field name="food" readonly="1"/>
+                            <field name="quantity_given" readonly="state != 'todo'"/>
+                            <field name="consumption_id" options="{'no_create': True}"
+                                   required="task_type == 'feed' and state == 'todo'" readonly="state != 'todo'"/>
+                        </group>
+                    </group>
+                    <group string="Medication" invisible="task_type != 'medication'">
+                        <group>
+                            <field name="medication_id" readonly="1"/>
+                            <field name="dose_given" readonly="state != 'todo'"/>
+                            <field name="outcome_id" options="{'no_create': True}"
+                                   required="task_type == 'medication' and state == 'todo'" readonly="state != 'todo'"/>
+                        </group>
+                        <group>
+                            <field name="administration_id" invisible="not administration_id"/>
+                        </group>
+                    </group>
+                    <group string="Observation" invisible="task_type != 'observation'">
+                        <group>
+                            <field name="observation_type_id" options="{'no_create': True}" readonly="state != 'todo'"/>
+                            <field name="summary" placeholder="e.g. Bright, playful, settled well"
+                                   required="task_type == 'observation' and state == 'todo'" readonly="state != 'todo'"/>
+                            <field name="concern" readonly="state != 'todo'"/>
+                        </group>
+                        <group>
+                            <field name="observation_id" invisible="not observation_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" placeholder="Anything else worth noting" readonly="state != 'todo'"/>
+                        <field name="photo_ids" widget="many2many_binary" readonly="state != 'todo'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="kennel_task_view_search" model="ir.ui.view">
+        <field name="name">kennel.task.search</field>
+        <field name="model">kennel.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="resident_id"/>
+                <field name="yard_id"/>
+                <field name="partner_id"/>
+                <field name="booking_id"/>
+                <filter string="To Do" name="filter_todo" domain="[('state', '=', 'todo')]"/>
+                <filter string="Done" name="filter_done" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter string="Today &amp; Earlier" name="filter_due"
+                        domain="[('date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Today" name="filter_today"
+                        domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Date" name="filter_date" date="date"/>
+                <separator/>
+                <filter string="Feeds" name="filter_feed" domain="[('task_type', '=', 'feed')]"/>
+                <filter string="Medication" name="filter_medication" domain="[('task_type', '=', 'medication')]"/>
+                <filter string="Observations" name="filter_observation" domain="[('task_type', '=', 'observation')]"/>
+                <separator/>
+                <filter string="Needs Attention" name="filter_problem" domain="[('problem', '=', True)]"/>
+                <group>
+                    <filter string="Type" name="group_type" context="{'group_by': 'task_type'}"/>
+                    <filter string="Yard" name="group_yard" context="{'group_by': 'yard_id'}"/>
+                    <filter string="Animal" name="group_resident" context="{'group_by': 'resident_id'}"/>
+                    <filter string="Day" name="group_date" context="{'group_by': 'date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_task_action_todo" model="ir.actions.act_window">
+        <field name="name">Daily To-Do</field>
+        <field name="res_model">kennel.task</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_filter_todo': 1, 'search_default_filter_due': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing left to do</p>
+            <p>Each checked-in animal's feeds, medication and observation rounds for the day are listed here.
+               Open a task, fill it in and press Complete; it is logged against the animal.</p>
+        </field>
+    </record>
+
+    <record id="kennel_task_action_all" model="ir.actions.act_window">
+        <field name="name">Care Log</field>
+        <field name="res_model">kennel.task</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_filter_done': 1}</field>
+    </record>
+</odoo>

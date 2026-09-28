@@ -6,9 +6,11 @@ from odoo.fields import Command
 class KennelBooking(models.Model):
     _name = 'kennel.booking'
     _description = 'Booking'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
     _order = 'arrival_datetime desc, id desc'
     _check_company_auto = True
+    # Customers can post in the chatter from the portal.
+    _mail_post_access = 'read'
 
     name = fields.Char(
         string='Reference', required=True, copy=False, readonly=True, index=True,
@@ -29,6 +31,8 @@ class KennelBooking(models.Model):
     medication_ids = fields.One2many('kennel.medication', 'booking_id', string='Medication', copy=True)
     administration_ids = fields.One2many('kennel.medication.administration', 'booking_id', string='Medication Log')
     observation_ids = fields.One2many('kennel.observation', 'booking_id', string='Observations')
+    task_ids = fields.One2many('kennel.task', 'booking_id', string='Daily Tasks')
+    task_todo_count = fields.Integer(compute='_compute_task_todo_count')
     medication_count = fields.Integer(compute='_compute_counts')
     observation_count = fields.Integer(compute='_compute_counts')
     concern_count = fields.Integer(compute='_compute_counts')
@@ -65,6 +69,16 @@ class KennelBooking(models.Model):
             booking.medication_count = len(booking.medication_ids)
             booking.observation_count = len(booking.observation_ids)
             booking.concern_count = len(booking.observation_ids.filtered('concern'))
+
+    @api.depends('task_ids.state')
+    def _compute_task_todo_count(self):
+        for booking in self:
+            booking.task_todo_count = len(booking.task_ids.filtered(lambda task: task.state == 'todo'))
+
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for booking in self:
+            booking.access_url = f'/my/kennel/bookings/{booking.id}'
 
     @api.depends('line_ids.vaccination_expired', 'line_ids.resident_id')
     def _compute_vaccination_warning(self):
@@ -110,10 +124,13 @@ class KennelBooking(models.Model):
                 vals['name'] = self.env['ir.sequence'].next_by_code('kennel.booking') or self.env._('New')
         bookings = super().create(vals_list)
         bookings._sync_lines()
+        bookings._subscribe_customer()
         return bookings
 
     def write(self, vals):
         res = super().write(vals)
+        if 'partner_id' in vals:
+            self._subscribe_customer()
         if 'resident_ids' in vals:
             self._sync_lines()
         elif 'line_ids' in vals:
@@ -134,6 +151,11 @@ class KennelBooking(models.Model):
             if commands:
                 super(KennelBooking, booking).write({'line_ids': commands})
 
+    def _subscribe_customer(self):
+        """The customer follows the booking, so they hear about keepers' messages (by email and in the portal)."""
+        for booking in self:
+            booking.message_subscribe(partner_ids=booking.partner_id.ids)
+
     def action_confirm(self):
         self._check_has_animals()
         self.write({'state': 'confirmed'})
@@ -141,15 +163,37 @@ class KennelBooking(models.Model):
     def action_check_in(self):
         self._check_has_animals()
         self.write({'state': 'checked_in', 'checked_in_datetime': fields.Datetime.now()})
+        self.env['kennel.task']._generate_for_bookings(self)
 
     def action_check_out(self):
         self.write({'state': 'checked_out', 'checked_out_datetime': fields.Datetime.now()})
+        self._cancel_open_tasks()
 
     def action_cancel(self):
         self.write({'state': 'cancelled'})
+        self._cancel_open_tasks()
 
     def action_draft(self):
         self.write({'state': 'draft', 'checked_in_datetime': False, 'checked_out_datetime': False})
+        self._cancel_open_tasks()
+
+    def _cancel_open_tasks(self):
+        self.task_ids.filtered(lambda task: task.state == 'todo').write({'state': 'cancelled'})
+
+    def action_view_tasks(self):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window']._for_xml_id('boarding_kennel_manager.kennel_task_action_all')
+        action['domain'] = [('booking_id', '=', self.id)]
+        action['context'] = {'search_default_filter_todo': 1}
+        return action
+
+    def action_portal_preview(self):
+        """Open the customer's portal page for this record."""
+        self.ensure_one()
+        return {'type': 'ir.actions.act_url', 'url': self.get_portal_url(), 'target': 'self'}
+
+    def action_portal_invite(self):
+        return self.partner_id.action_kennel_portal_invite()
 
     def _check_has_animals(self):
         for booking in self:

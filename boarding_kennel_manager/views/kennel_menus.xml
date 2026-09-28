@@ -5,6 +5,9 @@
               groups="group_kennel_keeper"
               sequence="71"/>
 
+    <menuitem id="menu_kennel_todo" name="Daily To-Do" parent="menu_kennel_root"
+              action="kennel_task_action_todo" sequence="5"/>
+
     <menuitem id="menu_kennel_bookings" name="Bookings" parent="menu_kennel_root" sequence="10"/>
     <menuitem id="menu_kennel_booking" name="Bookings" parent="menu_kennel_bookings"
               action="kennel_booking_action" sequence="10"/>
@@ -15,6 +18,8 @@
               action="kennel_resident_action" sequence="20"/>
 
     <menuitem id="menu_kennel_care" name="Care" parent="menu_kennel_root" sequence="30"/>
+    <menuitem id="menu_kennel_care_log" name="Care Log" parent="menu_kennel_care"
+              action="kennel_task_action_all" sequence="5"/>
     <menuitem id="menu_kennel_medication" name="Medication to Give" parent="menu_kennel_care"
               action="kennel_medication_action" sequence="10"/>
     <menuitem id="menu_kennel_medication_administration" name="Medication Log" parent="menu_kennel_care"
@@ -27,6 +32,8 @@
 
     <menuitem id="menu_kennel_config" name="Configuration" parent="menu_kennel_root"
               groups="group_kennel_manager" sequence="90"/>
+    <menuitem id="menu_kennel_settings" name="Settings" parent="menu_kennel_config"
+              action="kennel_config_settings_action" groups="base.group_system" sequence="0"/>
     <menuitem id="menu_kennel_diet" name="Diets" parent="menu_kennel_config"
               action="kennel_diet_action" sequence="10"/>
     <menuitem id="menu_kennel_species" name="Species" parent="menu_kennel_config"
@@ -39,6 +46,8 @@
               action="kennel_yard_feature_action" sequence="35"/>
     <menuitem id="menu_kennel_frequency" name="Frequencies" parent="menu_kennel_config"
               action="kennel_frequency_action" sequence="40"/>
+    <menuitem id="menu_kennel_feed_consumption" name="Food Eaten" parent="menu_kennel_config"
+              action="kennel_feed_consumption_action" sequence="45"/>
     <menuitem id="menu_kennel_medication_route" name="Medication Routes" parent="menu_kennel_config"
               action="kennel_medication_route_action" sequence="50"/>
     <menuitem id="menu_kennel_dose_outcome" name="Dose Outcomes" parent="menu_kennel_config"

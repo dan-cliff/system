@@ -1,4 +1,6 @@
 from . import kennel_options
+from . import res_company
+from . import res_config_settings
 from . import kennel_diet
 from . import kennel_yard
 from . import kennel_resident
@@ -6,4 +8,6 @@ from . import kennel_booking
 from . import kennel_booking_line
 from . import kennel_medication
 from . import kennel_observation
+from . import kennel_task
 from . import res_partner
+from . import portal_wizard

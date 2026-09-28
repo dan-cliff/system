@@ -132,6 +132,7 @@
             <list editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
+                <field name="times" placeholder="e.g. 08:00, 17:00"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
@@ -247,6 +248,38 @@
     <record id="kennel_observation_type_action" model="ir.actions.act_window">
         <field name="name">Observation Types</field>
         <field name="res_model">kennel.observation.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="kennel_feed_consumption_view_list" model="ir.ui.view">
+        <field name="name">kennel.feed.consumption.list</field>
+        <field name="model">kennel.feed.consumption</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="problem"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="kennel_feed_consumption_view_search" model="ir.ui.view">
+        <field name="name">kennel.feed.consumption.search</field>
+        <field name="model">kennel.feed.consumption</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="kennel_feed_consumption_action" model="ir.actions.act_window">
+        <field name="name">Food Eaten</field>
+        <field name="res_model">kennel.feed.consumption</field>
         <field name="view_mode">list</field>
         <field name="context">{'active_test': False}</field>
     </record>

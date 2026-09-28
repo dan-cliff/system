@@ -24,10 +24,16 @@
     <record id="kennel_yard_feature_cctv" model="kennel.yard.feature"><field name="name">CCTV</field><field name="sequence">60</field></record>
 
     <!-- Frequencies -->
-    <record id="kennel_frequency_once_daily" model="kennel.frequency"><field name="name">Once a Day</field><field name="sequence">10</field></record>
-    <record id="kennel_frequency_twice_daily" model="kennel.frequency"><field name="name">Twice a Day</field><field name="sequence">20</field></record>
-    <record id="kennel_frequency_three_daily" model="kennel.frequency"><field name="name">Three Times a Day</field><field name="sequence">30</field></record>
+    <record id="kennel_frequency_once_daily" model="kennel.frequency"><field name="times">08:00</field><field name="name">Once a Day</field><field name="sequence">10</field></record>
+    <record id="kennel_frequency_twice_daily" model="kennel.frequency"><field name="times">08:00, 17:00</field><field name="name">Twice a Day</field><field name="sequence">20</field></record>
+    <record id="kennel_frequency_three_daily" model="kennel.frequency"><field name="times">07:00, 12:00, 17:00</field><field name="name">Three Times a Day</field><field name="sequence">30</field></record>
     <record id="kennel_frequency_as_needed" model="kennel.frequency"><field name="name">As Needed</field><field name="sequence">40</field></record>
+
+    <!-- Food eaten -->
+    <record id="kennel_feed_consumption_all" model="kennel.feed.consumption"><field name="name">Ate All</field><field name="sequence">10</field></record>
+    <record id="kennel_feed_consumption_most" model="kennel.feed.consumption"><field name="name">Ate Most</field><field name="sequence">20</field></record>
+    <record id="kennel_feed_consumption_some" model="kennel.feed.consumption"><field name="name">Ate Some</field><field name="sequence">30</field><field name="problem" eval="True"/></record>
+    <record id="kennel_feed_consumption_none" model="kennel.feed.consumption"><field name="name">Refused</field><field name="sequence">40</field><field name="problem" eval="True"/></record>
 
     <!-- Medication routes -->
     <record id="kennel_medication_route_oral" model="kennel.medication.route"><field name="name">Oral</field><field name="sequence">10</field></record>

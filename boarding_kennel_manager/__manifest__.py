@@ -27,6 +27,20 @@ Boarding Kennel Manager
 * Standard diets under Configuration, plus the choice lists (species,
   sexes, yard types and features, frequencies, medication routes, dose
   outcomes and observation types).
+* Daily To-Do list: every checked-in animal's feeds (at its feed
+  Frequency's times), medication doses (at the medication Frequency's
+  times, between its start and end dates) and observation rounds (at the
+  times in Settings) for the day. Keepers open a task, record what was
+  eaten / the dose outcome / the observation, add notes and photos and
+  press Complete. Completing logs it against the animal: on its chatter
+  (with the photos), in its Care Log, and for medication and observations
+  in the booking's Medication Log and Observations. Tasks are added on
+  check-in and every hour; open ones are dropped on check-out or cancel.
+* Customer portal: users with the Customer Portal User permission can
+  invite customers from their contact, resident or booking. Customers
+  see My Animals and Kennel Bookings in their portal: profiles, stays,
+  feeding, medication and doses given, observations, the care log with
+  photos, and a chatter to message the keepers.
 * Multi-company: every record belongs to a company and users only see
   records of the companies they have selected. Diets and choice-list
   options can be left without a company to share them.
@@ -36,13 +50,15 @@ Boarding Kennel Manager
 """,
     'author': 'Cliffs',
     'license': 'LGPL-3',
-    'depends': ['mail'],
+    'depends': ['mail', 'portal'],
     'data': [
         'security/kennel_security.xml',
         'security/ir.model.access.csv',
         'data/res_lang_data.xml',
         'data/kennel_options_data.xml',
         'data/kennel_sequence_data.xml',
+        'data/kennel_mail_data.xml',
+        'data/kennel_cron_data.xml',
         'views/kennel_options_views.xml',
         'views/kennel_diet_views.xml',
         'views/kennel_yard_views.xml',
@@ -50,7 +66,10 @@ Boarding Kennel Manager
         'views/kennel_medication_views.xml',
         'views/kennel_observation_views.xml',
         'views/kennel_booking_views.xml',
+        'views/kennel_task_views.xml',
         'views/res_partner_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/kennel_portal_templates.xml',
         'wizard/kennel_custom_diet_wizard_views.xml',
         'views/kennel_menus.xml',
     ],

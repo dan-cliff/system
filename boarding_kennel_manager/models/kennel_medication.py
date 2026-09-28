@@ -25,6 +25,22 @@ class KennelMedication(models.Model):
     administration_ids = fields.One2many('kennel.medication.administration', 'medication_id', string='Doses')
     last_given_datetime = fields.Datetime(string='Last Given', compute='_compute_last_given')
 
+    task_ids = fields.One2many('kennel.task', 'medication_id', string='Tasks')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        medications = super().create(vals_list)
+        self.env['kennel.task']._generate_for_bookings(medications.booking_id)
+        return medications
+
+    def write(self, vals):
+        res = super().write(vals)
+        if {'frequency_id', 'start_date', 'end_date', 'resident_id'} & set(vals):
+            # Drop open doses that no longer apply, then re-add today's from the new schedule.
+            self.task_ids.filtered(lambda task: task.state == 'todo').sudo().unlink()
+            self.env['kennel.task']._generate_for_bookings(self.booking_id)
+        return res
+
     @api.depends('administration_ids.administered_datetime', 'administration_ids.outcome_id.problem')
     def _compute_last_given(self):
         for medication in self:

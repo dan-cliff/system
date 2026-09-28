@@ -6,9 +6,11 @@ from odoo import api, fields, models
 class KennelResident(models.Model):
     _name = 'kennel.resident'
     _description = 'Resident'
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'image.mixin']
+    _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin', 'image.mixin']
     _order = 'name, id'
     _check_company_auto = True
+    # Customers can post in the chatter from the portal.
+    _mail_post_access = 'read'
 
     name = fields.Char(required=True, tracking=True)
     partner_id = fields.Many2one(
@@ -44,6 +46,8 @@ class KennelResident(models.Model):
     notes = fields.Html()
     booking_line_ids = fields.One2many('kennel.booking.line', 'resident_id', string='Stays')
     booking_count = fields.Integer(compute='_compute_booking_count')
+    task_ids = fields.One2many('kennel.task', 'resident_id', string='Care Log')
+    care_count = fields.Integer(compute='_compute_care_count')
     active = fields.Boolean(default=True)
     company_id = fields.Many2one('res.company', required=True, index=True, default=lambda self: self.env.company)
 
@@ -67,6 +71,33 @@ class KennelResident(models.Model):
         for resident in self:
             resident.booking_count = len(resident.booking_line_ids.booking_id)
 
+    @api.depends('task_ids.state')
+    def _compute_care_count(self):
+        for resident in self:
+            resident.care_count = len(resident.task_ids.filtered(lambda task: task.state == 'done'))
+
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for resident in self:
+            resident.access_url = f'/my/kennel/animals/{resident.id}'
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        residents = super().create(vals_list)
+        residents._subscribe_customer()
+        return residents
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'partner_id' in vals:
+            self._subscribe_customer()
+        return res
+
+    def _subscribe_customer(self):
+        """The customer follows their animal, so they hear about keepers' messages (by email and in the portal)."""
+        for resident in self:
+            resident.message_subscribe(partner_ids=resident.partner_id.ids)
+
     @api.depends('name', 'partner_id')
     @api.depends_context('show_customer')
     def _compute_display_name(self):
@@ -86,3 +117,19 @@ class KennelResident(models.Model):
             'domain': [('resident_ids', 'in', self.ids)],
             'context': {'default_partner_id': self.partner_id.id, 'default_resident_ids': self.ids},
         }
+
+    def action_view_care_log(self):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window']._for_xml_id('boarding_kennel_manager.kennel_task_action_all')
+        action['name'] = self.env._('Care Log: %s', self.name)
+        action['domain'] = [('resident_id', '=', self.id)]
+        action['context'] = {'search_default_filter_done': 1}
+        return action
+
+    def action_portal_preview(self):
+        """Open the customer's portal page for this record."""
+        self.ensure_one()
+        return {'type': 'ir.actions.act_url', 'url': self.get_portal_url(), 'target': 'self'}
+
+    def action_portal_invite(self):
+        return self.partner_id.action_kennel_portal_invite()

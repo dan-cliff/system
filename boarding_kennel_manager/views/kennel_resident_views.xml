@@ -49,10 +49,18 @@
         <field name="model">kennel.resident</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_portal_invite" type="object" string="Invite Customer to Portal"
+                            groups="boarding_kennel_manager.group_kennel_portal_user"/>
+                    <button name="action_portal_preview" type="object" string="Customer Preview"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_bookings" type="object" class="oe_stat_button" icon="fa-calendar">
                             <field name="booking_count" widget="statinfo" string="Bookings"/>
+                        </button>
+                        <button name="action_view_care_log" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                            <field name="care_count" widget="statinfo" string="Care Log"/>
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
