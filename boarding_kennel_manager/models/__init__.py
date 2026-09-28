@@ -6,6 +6,9 @@ from . import kennel_yard
 from . import kennel_resident
 from . import kennel_booking
 from . import kennel_booking_line
+from . import kennel_booking_product
+from . import kennel_booking_invoice
+from . import account_move
 from . import kennel_medication
 from . import kennel_observation
 from . import kennel_task

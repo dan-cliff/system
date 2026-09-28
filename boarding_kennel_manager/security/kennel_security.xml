@@ -149,6 +149,12 @@
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
     </record>
+    <record id="kennel_booking_product_rule_company" model="ir.rule">
+        <field name="name">Booking Products: multi-company</field>
+        <field name="model_id" ref="model_kennel_booking_product"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
 
     <!-- Portal: customers see their own (and their company's) animals and bookings, read-only. -->
     <record id="kennel_resident_rule_portal" model="ir.rule">

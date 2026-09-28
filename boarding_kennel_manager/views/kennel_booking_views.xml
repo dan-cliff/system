@@ -13,6 +13,8 @@
                 <field name="user_id" optional="hide"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="activity_ids" widget="list_activity" optional="hide"/>
+                <field name="payment_status" widget="badge" optional="hide"
+                       decoration-success="payment_status == 'paid'" decoration-danger="payment_status == 'not_paid'"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'"
                        decoration-primary="state == 'confirmed'" decoration-success="state == 'checked_in'"
                        decoration-muted="state in ('checked_out', 'cancelled')"/>
@@ -41,6 +43,8 @@
                 <header>
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary"
                             invisible="state != 'draft'"/>
+                    <button name="action_create_invoice" type="object" string="Create Invoice"
+                            invisible="not has_products_to_invoice or state == 'cancelled'"/>
                     <button name="action_check_in" type="object" string="Check In" class="btn-primary"
                             invisible="state != 'confirmed'"/>
                     <button name="action_check_out" type="object" string="Check Out" class="btn-primary"
@@ -57,8 +61,23 @@
                 <div class="alert alert-warning mb-0" role="alert" invisible="not vaccination_warning">
                     <field name="vaccination_warning"/>
                 </div>
+                <div class="alert alert-info mb-0 d-flex flex-wrap align-items-center gap-2" role="alert"
+                     invisible="not show_amendment_prompt">
+                    <span class="me-auto">The booking's products have changed since it was invoiced.
+                        Raise an amendment invoice to the customer for the changes?</span>
+                    <button name="action_create_amendment_invoice" type="object" string="Yes, raise it"
+                            class="btn btn-primary btn-sm"/>
+                    <button name="action_decline_amendment" type="object" string="No" class="btn btn-secondary btn-sm"/>
+                </div>
+                <field name="invoicing_enabled" invisible="1"/>
+                <field name="has_products_to_invoice" invisible="1"/>
+                <field name="show_amendment_prompt" invisible="1"/>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                                invisible="not invoicing_enabled or not invoice_count" groups="account.group_account_invoice">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
                         <button name="action_view_tasks" type="object" class="oe_stat_button" icon="fa-check-square-o">
                             <field name="task_todo_count" widget="statinfo" string="To Do"/>
                         </button>
@@ -93,6 +112,10 @@
                             <field name="arrival_datetime" options="{'numeric': True}"/>
                             <field name="departure_datetime" options="{'numeric': True}"/>
                             <field name="nights"/>
+                            <field name="payment_status" widget="badge" invisible="not invoicing_enabled"
+                                   decoration-success="payment_status == 'paid'" decoration-warning="payment_status == 'partial'"
+                                   decoration-danger="payment_status == 'not_paid'" decoration-info="payment_status == 'draft'"/>
+                            <field name="amount_due" invisible="not invoicing_enabled or payment_status in ('not_invoiced', 'draft')"/>
                             <field name="checked_in_datetime" options="{'numeric': True}" invisible="not checked_in_datetime"/>
                             <field name="checked_out_datetime" options="{'numeric': True}" invisible="not checked_out_datetime"/>
                         </group>
@@ -194,6 +217,30 @@
                                     <field name="user_id"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Products" name="products" invisible="not invoicing_enabled">
+                            <field name="product_line_ids" context="{'default_booking_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_domain" column_invisible="1"/>
+                                    <field name="product_id" options="{'no_create': True}"/>
+                                    <field name="name" optional="show"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id" optional="show"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="qty_invoiced" optional="hide"/>
+                                    <field name="qty_to_invoice" column_invisible="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="currency_id" invisible="1"/>
+                                <field name="amount_products"/>
+                            </group>
+                            <group string="Invoices" invisible="not invoice_summary">
+                                <field name="invoice_summary" nolabel="1" colspan="2"/>
+                            </group>
                         </page>
                         <page string="Notes" name="notes">
                             <field name="notes"/>

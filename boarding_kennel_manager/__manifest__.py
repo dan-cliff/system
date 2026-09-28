@@ -41,6 +41,15 @@ Boarding Kennel Manager
   see My Animals and Kennel Bookings in their portal: profiles, stays,
   feeding, medication and doses given, observations, the care log with
   photos, and a chatter to message the keepers.
+* Invoicing (Settings > Integrations > Integrate Bookings with
+  Invoicing, per company): bookings get a Products tab (products from
+  the chosen Product Categories) and keepers can raise the invoice in
+  Accounting: a note with the booking details, then the products. When
+  products are added or removed after invoicing, the booking asks
+  whether to raise an amendment invoice with just the changes (removals
+  as negative lines, or a credit note if the changes are negative
+  overall); answering No holds the changes until the next change. The
+  booking shows the invoices and their payment status.
 * Multi-company: every record belongs to a company and users only see
   records of the companies they have selected. Diets and choice-list
   options can be left without a company to share them.
@@ -50,7 +59,7 @@ Boarding Kennel Manager
 """,
     'author': 'Cliffs',
     'license': 'LGPL-3',
-    'depends': ['mail', 'portal'],
+    'depends': ['mail', 'portal', 'account', 'stock'],
     'data': [
         'security/kennel_security.xml',
         'security/ir.model.access.csv',

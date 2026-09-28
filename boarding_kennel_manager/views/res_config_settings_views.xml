@@ -14,6 +14,24 @@
                             <field name="kennel_observation_times" placeholder="e.g. 09:00, 16:00"/>
                         </setting>
                     </block>
+                    <block title="Integrations" id="kennel_integrations">
+                        <setting id="kennel_invoicing" string="Integrate Bookings with Invoicing"
+                                 help="When enabled, bookings will have the ability to raise an invoice in the Accounting app and reflect the payment status in the booking.">
+                            <field name="kennel_invoicing"/>
+                            <div class="content-group" invisible="not kennel_invoicing">
+                                <div class="row mt16">
+                                    <label for="kennel_warehouse_ids" string="Warehouse/s" class="col-lg-4 o_light_label"/>
+                                    <field name="kennel_warehouse_ids" widget="many2many_tags" class="col-lg-8"
+                                           options="{'no_create': True}"/>
+                                </div>
+                                <div class="row">
+                                    <label for="kennel_product_categ_ids" string="Product Categories" class="col-lg-4 o_light_label"/>
+                                    <field name="kennel_product_categ_ids" widget="many2many_tags" class="col-lg-8"
+                                           options="{'no_create': True}"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
