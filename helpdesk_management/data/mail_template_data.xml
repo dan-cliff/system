@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ticket_received_email_template" model="mail.template">
+        <field name="name">Helpdesk: Ticket Received</field>
+        <field name="model_id" ref="model_helpdesk_ticket"/>
+        <field name="subject">{{ object.name }} (#{{ object.ticket_ref }})</field>
+        <field name="use_default_to" eval="True"/>
+        <field name="description">Set on a stage to acknowledge new tickets to the customer.</field>
+        <field name="body_html" type="html">
+<div>
+    Dear <t t-out="object.partner_id.name or object.partner_name or 'customer'">customer</t>,<br/><br/>
+    Your request has been received and is being reviewed by our
+    <t t-out="object.team_id.name or ''">Customer Care</t> team.
+    The reference for your ticket is <strong>#<t t-out="object.ticket_ref or ''">00001</t></strong>.<br/><br/>
+    To add information, simply reply to this email.<br/><br/>
+    <div style="margin: 16px 0px 16px 0px;">
+        <a t-att-href="object.get_portal_url()"
+           style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+            View the ticket
+        </a>
+    </div>
+    Best regards,<br/>
+    <t t-out="object.team_id.name or object.company_id.name or ''">Customer Care</t>
+</div>
+        </field>
+        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="rating_ticket_request_email_template" model="mail.template">
+        <field name="name">Helpdesk: Ticket Rating Request</field>
+        <field name="model_id" ref="model_helpdesk_ticket"/>
+        <field name="subject">{{ object.company_id.name or user.env.company.name }}: How did we do on #{{ object.ticket_ref }}?</field>
+        <field name="email_from">{{ (object._rating_get_operator().email_formatted if object._rating_get_operator() else user.email_formatted) }}</field>
+        <field name="partner_to">{{ object._rating_get_partner().id }}</field>
+        <field name="use_default_to" eval="False"/>
+        <field name="description">Set as the Rating Request of a stage to ask customers to rate the service. Enable Customer Ratings on the team.</field>
+        <field name="body_html" type="html">
+<div>
+    <t t-set="access_token" t-value="object._rating_get_access_token()"/>
+    <t t-set="partner" t-value="object._rating_get_partner()"/>
+    <table border="0" cellpadding="0" cellspacing="0" width="590" style="width:100%; margin:0px auto;">
+    <tbody>
+        <tr><td valign="top" style="font-size: 13px;">
+            <t t-if="partner.name">
+                Hello <t t-out="partner.name or ''">Brandon Freeman</t>,<br/><br/>
+            </t>
+            <t t-else="">
+                Hello,<br/><br/>
+            </t>
+            Please take a moment to rate our service on your ticket
+            "<strong t-out="object.name or ''">Printer jammed</strong>"
+            <t t-if="object._rating_get_operator().name">
+                handled by <strong t-out="object._rating_get_operator().name or ''">Mitchell Admin</strong>.
+            </t>
+            <t t-else="">.</t>
+            <br/>
+        </td></tr>
+        <tr><td style="text-align: center;">
+            <table border="0" cellpadding="0" cellspacing="0" width="590" style="width:100%; margin: 32px 0px 32px 0px; display: inline-table;">
+                <tr><td style="font-size: 13px; text-align:center;">
+                    <strong>Tell us how you feel about our service</strong><br/>
+                    <span style="font-size: 12px; opacity: 0.5; color: #454748;">(click on one of these smileys)</span>
+                </td></tr>
+                <tr><td style="font-size: 13px;">
+                    <table style="width:100%; text-align:center; margin-top:2rem;">
+                        <tr>
+                            <td>
+                                <a t-attf-href="/rate/{{ access_token }}/5">
+                                    <img alt="Happy" src="/rating/static/src/img/rating_5.png" title="Happy"/>
+                                </a>
+                            </td>
+                            <td>
+                                <a t-attf-href="/rate/{{ access_token }}/3">
+                                    <img alt="Neutral" src="/rating/static/src/img/rating_3.png" title="Neutral"/>
+                                </a>
+                            </td>
+                            <td>
+                                <a t-attf-href="/rate/{{ access_token }}/1">
+                                    <img alt="Unhappy" src="/rating/static/src/img/rating_1.png" title="Unhappy"/>
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                </td></tr>
+            </table>
+        </td></tr>
+        <tr><td valign="top" style="font-size: 13px;">
+            We appreciate your feedback. It helps us improve continuously.
+        </td></tr>
+        <tr><td><br/>Best regards,</td></tr>
+        <tr><td>
+            <t t-out="object.team_id.name or object.company_id.name or ''">Customer Care</t>
+        </td></tr>
+    </tbody>
+    </table>
+</div>
+        </field>
+        <field name="lang">{{ object._rating_get_partner().lang }}</field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>
