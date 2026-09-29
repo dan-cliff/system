@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List view -->
+    <record id="view_home_toolbox_list" model="ir.ui.view">
+        <field name="name">home.toolbox.list</field>
+        <field name="model">home.toolbox</field>
+        <field name="arch" type="xml">
+            <list string="Toolboxes">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="user_id" optional="show" placeholder="Global default"/>
+                <field name="icon"/>
+                <field name="color" widget="char"/>
+                <field name="app_count" string="# Apps"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view -->
+    <record id="view_home_toolbox_form" model="ir.ui.view">
+        <field name="name">home.toolbox.form</field>
+        <field name="model">home.toolbox</field>
+        <field name="arch" type="xml">
+            <form string="Toolbox">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Sales &amp; CRM"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="icon" placeholder="fa-folder"/>
+                            <field name="color" placeholder="#714B67"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="user_id"
+                                   placeholder="Empty = Global default (shown to everyone)"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Apps" name="apps">
+                            <field name="app_ids">
+                                <list string="Apps" editable="bottom">
+                                    <field name="id" string="ID"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="menu_id"/>
+                                    <field name="menu_xmlid" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="view_home_toolbox_search" model="ir.ui.view">
+        <field name="name">home.toolbox.search</field>
+        <field name="model">home.toolbox</field>
+        <field name="arch" type="xml">
+            <search string="Toolboxes">
+                <field name="name"/>
+                <field name="user_id"/>
+                <filter name="global_default" string="Global default"
+                        domain="[('user_id', '=', False)]"/>
+                <filter name="personal" string="Personal overrides"
+                        domain="[('user_id', '!=', False)]"/>
+                <separator/>
+                <filter name="inactive" string="Archived"
+                        domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="group_user" string="User"
+                        context="{'group_by': 'user_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_home_toolbox" model="ir.actions.act_window">
+        <field name="name">Home Layout</field>
+        <field name="res_model">home.toolbox</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_home_toolbox_search"/>
+        <field name="context">{'search_default_global_default': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first toolbox
+            </p>
+            <p>
+                Toolboxes group applications into folders on the /odoo home screen.
+                Leave the <b>User</b> field empty to define the global default layout
+                shown to everyone.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu item inside the Settings app (not on the home screen) -->
+    <menuitem id="menu_home_toolbox"
+              name="Home Layout"
+              parent="base.menu_administration"
+              action="action_home_toolbox"
+              groups="base.group_erp_manager"
+              sequence="100"/>
+
+</odoo>

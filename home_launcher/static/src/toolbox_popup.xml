@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="home_launcher.ToolboxPopup">
+    <div class="o_toolbox_popup_backdrop" t-on-click="() => props.onClose()">
+        <div class="o_toolbox_popup rounded-4 shadow-lg p-4" t-on-click.stop="">
+            <div class="o_toolbox_popup_header d-flex align-items-center mb-3">
+                <div class="o_toolbox_popup_badge d-flex justify-content-center align-items-center rounded-3 me-2"
+                     t-attf-style="background-color: {{toolbox.color}};">
+                    <i t-attf-class="fa {{toolbox.icon}} text-white"/>
+                </div>
+                <h4 class="m-0 flex-grow-1 text-truncate" t-esc="toolbox.name"/>
+                <button class="btn btn-light btn-sm rounded-circle" t-on-click="() => props.onClose()"
+                        aria-label="Close">
+                    <i class="fa fa-times"/>
+                </button>
+            </div>
+            <div t-if="apps.length" class="o_toolbox_popup_apps row mx-0">
+                <div t-foreach="apps" t-as="app" t-key="app.id"
+                     class="col-3 col-md-3 mb-3 px-1 d-flex">
+                    <a class="o_app o_menuitem d-flex flex-column align-items-center w-100 p-2 rounded-3"
+                       t-att-href="app.href"
+                       t-att-data-menu-xmlid="app.xmlid"
+                       t-on-click.prevent="() => this.onAppClick(app)">
+                        <img t-if="app.webIconData" class="o_app_icon rounded-3" t-attf-src="{{app.webIconData}}"/>
+                        <div t-else="" class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 rounded-3 ratio ratio-1x1"
+                             t-attf-style="background-color: {{app.webIcon.backgroundColor}};">
+                            <i t-attf-class="{{app.webIcon.iconClass}} position-relative w-auto h-auto"
+                               t-attf-style="color: {{app.webIcon.color}};"/>
+                        </div>
+                        <div class="o_caption w-100 text-center text-truncate mt-2" t-esc="app.label or app.name"/>
+                    </a>
+                </div>
+            </div>
+            <div t-else="" class="text-muted text-center py-4">
+                This toolbox is empty.
+            </div>
+        </div>
+    </div>
+</t>
+
+</templates>

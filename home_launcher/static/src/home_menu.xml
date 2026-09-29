@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="home_launcher.HomeMenu" t-inherit="web_enterprise.HomeMenu" t-inherit-mode="primary">
+
+    <!-- Replace the flat apps grid with the grouped tiles grid + edit toolbar -->
+    <xpath expr="//div[hasclass('o_apps')]" position="replace">
+
+        <!-- Edit-layout toolbar -->
+        <div class="o_home_launcher_toolbar d-flex justify-content-end align-items-center gap-2 mt-4"
+             t-if="!env.isSmall and launcher.layoutLoaded">
+            <t t-if="!launcher.editMode">
+                <button class="btn btn-sm btn-light o_home_launcher_edit_btn"
+                        t-on-click="() => this.toggleEditMode()">
+                    <i class="fa fa-pencil me-1"/>Edit layout
+                </button>
+            </t>
+            <t t-else="">
+                <span class="text-muted small me-auto">
+                    <i class="fa fa-info-circle me-1"/>Drag apps onto a folder, or back to the grid.
+                </span>
+                <button class="btn btn-sm btn-secondary" t-on-click="() => this.createFolder()">
+                    <i class="fa fa-folder-o me-1"/>New folder
+                </button>
+                <button class="btn btn-sm btn-link text-danger" t-on-click="() => this.resetLayout()">
+                    Reset to default
+                </button>
+                <button class="btn btn-sm btn-light" t-on-click="() => this.cancelEdit()">
+                    Cancel
+                </button>
+                <button class="btn btn-sm btn-primary" t-on-click="() => this.saveLayout()">
+                    <i class="fa fa-check me-1"/>Save
+                </button>
+            </t>
+        </div>
+
+        <!-- Tiles grid -->
+        <div t-if="tiles.length" role="listbox"
+             class="o_apps o_home_launcher_tiles row user-select-none mt-3 mx-0"
+             t-att-class="{ o_edit_mode: launcher.editMode }"
+             t-on-dragover="(ev) => this.onLooseDragOver(ev)"
+             t-on-drop="(ev) => this.onLooseDrop(ev)">
+            <div t-foreach="tiles" t-as="tile"
+                 t-key="tile.type === 'folder' ? 'f' + tile.toolbox.id : 'a' + tile.app.id"
+                 class="o_launcher_tile mb-3 px-0">
+
+                <!-- Folder tile -->
+                <div t-if="tile.type === 'folder'"
+                     class="o_app o_menuitem o_folder_tile d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
+                     t-att-class="{ o_drop_target: launcher.editMode }"
+                     t-on-click="() => this._onTileClick(tile)"
+                     t-on-dragover="(ev) => this.onFolderDragOver(ev)"
+                     t-on-drop.stop="(ev) => this.onFolderDrop(ev, tile.toolbox)">
+                    <div class="o_app_icon o_folder_icon position-relative p-1 rounded-3"
+                         t-att-class="{ o_folder_empty: !tile.apps.length }"
+                         t-attf-style="background-color: {{tile.toolbox.color}};">
+                        <t t-if="tile.apps.length">
+                            <div class="o_folder_grid">
+                                <t t-foreach="tile.apps.slice(0, 4)" t-as="fapp" t-key="fapp.id">
+                                    <img t-if="fapp.webIconData" class="o_folder_mini rounded-1"
+                                         t-attf-src="{{fapp.webIconData}}"/>
+                                    <div t-else=""
+                                         class="o_folder_mini rounded-1 d-flex justify-content-center align-items-center"
+                                         t-attf-style="background-color: {{fapp.webIcon.backgroundColor}};">
+                                        <i t-attf-class="{{fapp.webIcon.iconClass}}"
+                                           t-attf-style="color: {{fapp.webIcon.color}};"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <i t-else="" t-attf-class="fa {{tile.toolbox.icon}} text-white opacity-75 o_folder_empty_icon"/>
+                    </div>
+                    <div class="o_caption w-100 text-center text-truncate mt-2">
+                        <span t-esc="tile.toolbox.name"/>
+                    </div>
+                    <div t-if="launcher.editMode" class="o_folder_edit_controls d-flex gap-1 mt-1">
+                        <button class="btn btn-sm btn-light py-0 px-1"
+                                t-on-click.stop="() => this.renameFolder(tile.toolbox)"
+                                aria-label="Rename">
+                            <i class="fa fa-pencil"/>
+                        </button>
+                        <button class="btn btn-sm btn-light py-0 px-1 text-danger"
+                                t-on-click.stop="() => this.deleteFolder(tile.toolbox)"
+                                aria-label="Delete">
+                            <i class="fa fa-trash"/>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loose app tile -->
+                <a t-else=""
+                   class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
+                   t-att-class="{ o_draggable_app: launcher.editMode }"
+                   t-att-data-menu-xmlid="tile.app.xmlid"
+                   t-att-href="launcher.editMode ? undefined : tile.app.href"
+                   t-att-draggable="launcher.editMode ? 'true' : undefined"
+                   t-on-dragstart="(ev) => this.onAppDragStart(ev, tile.app)"
+                   t-on-click.prevent="() => this._onTileClick(tile)">
+                    <img t-if="tile.app.webIconData" class="o_app_icon rounded-3"
+                         t-attf-src="{{tile.app.webIconData}}"/>
+                    <div t-else=""
+                         class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 rounded-3 ratio ratio-1x1"
+                         t-attf-style="background-color: {{tile.app.webIcon.backgroundColor}};">
+                        <i t-attf-class="{{tile.app.webIcon.iconClass}} position-relative w-auto h-auto"
+                           t-attf-style="color: {{tile.app.webIcon.color}};"/>
+                    </div>
+                    <div class="o_caption w-100 text-center text-truncate mt-2"
+                         t-esc="tile.app.label or tile.app.name"/>
+                </a>
+            </div>
+        </div>
+
+        <!-- Folder popup overlay -->
+        <ToolboxPopup t-if="openFolder"
+                      folder="openFolder"
+                      onClose="() => this.closeFolder()"
+                      onAppClick="(app) => this._openMenu(app)"/>
+    </xpath>
+
+    <!-- Turn the original "No result" branch into a standalone condition -->
+    <xpath expr="//div[@id='result_menu_0']" position="attributes">
+        <attribute name="t-elif"/>
+        <attribute name="t-if">!tiles.length</attribute>
+    </xpath>
+
+</t>
+
+</templates>
