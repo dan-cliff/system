@@ -1,5 +1,5 @@
 /* Kennel Control Plane: draws a yard's enclosure screen from JSON, opens the task and Care forms on the
-   screen, saves them over JSON-RPC, and reloads the page after the configured idle time. */
+   screen, saves them over JSON-RPC, and reloads the page every Auto Refresh Interval (unless a form is open). */
 (function () {
     "use strict";
 
@@ -395,6 +395,7 @@
 
         function close() {
             backdrop.remove();
+            restartRefreshCountdown(); // give the keeper time to open the next form
         }
 
         function showError(message) {
@@ -448,25 +449,30 @@
     }
 
     // ------------------------------------------------------------------
-    // Auto refresh: reload once the screen has been idle for the configured minutes (0 = never).
+    // Auto refresh: reload every so many minutes (0 = never), but never while a form is open on the screen.
+    // Checked against the wall clock so it still happens after the device has slept or throttled timers.
     // ------------------------------------------------------------------
 
     const idleMinutes = Number(data.theme.refresh_minutes) || 0;
-    let idleTimer = null;
+    let refreshFrom = Date.now();
 
-    function resetIdle() {
-        if (!idleMinutes) {
-            return;
+    function restartRefreshCountdown() {
+        refreshFrom = Date.now();
+    }
+
+    function formOpen() {
+        return Boolean(document.querySelector(".cp-modal-backdrop"));
+    }
+
+    function refreshIfDue() {
+        if (idleMinutes && !formOpen() && Date.now() - refreshFrom >= idleMinutes * 60 * 1000) {
+            window.location.reload();
         }
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => window.location.reload(), idleMinutes * 60 * 1000);
     }
 
     if (idleMinutes) {
-        for (const event of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart", "input", "scroll"]) {
-            window.addEventListener(event, resetIdle, { passive: true, capture: true });
-        }
-        resetIdle();
+        setInterval(refreshIfDue, 5 * 1000);
+        document.addEventListener("visibilitychange", refreshIfDue);
     }
     window.kennelControlPlane = { idleMinutes, reloadData };
 
