@@ -1,6 +1,6 @@
 {
     'name': 'Boarding Kennel Manager',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.2.1',
     'category': 'Services',
     'summary': 'Manage the dog and cat boarding kennels',
     'description': """
@@ -32,7 +32,8 @@ Boarding Kennel Manager
   times, between its start and end dates) and observation rounds (at the
   times in Settings) for the day. Keepers open a task, record what was
   eaten / the dose outcome / the observation, add notes and photos and
-  press Complete. Completing logs it against the animal: on its chatter
+  press Complete, which closes the task and goes back to the list.
+  Completing logs it against the animal: on its chatter
   (with the photos), in its Care Log, and for medication and observations
   in the booking's Medication Log and Observations. Tasks are added on
   check-in and every hour; open ones are dropped on check-out or cancel.
@@ -100,6 +101,7 @@ Boarding Kennel Manager
     'assets': {
         'web.assets_backend': [
             'boarding_kennel_manager/static/src/percent_slider/*',
+            'boarding_kennel_manager/static/src/task_complete/*',
         ],
     },
     'installable': True,

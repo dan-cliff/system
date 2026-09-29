@@ -101,7 +101,9 @@ class TestDailyTasks(KennelTaskCommon):
         feed.photo_ids = [Command.create({
             'name': 'rex.png', 'datas': PIXEL_PNG, 'res_model': 'kennel.task', 'res_id': feed.id,
         })]
-        feed.action_complete()
+        action = feed.action_complete()
+        # The form closes and goes back to the list.
+        self.assertEqual(action, {'type': 'ir.actions.client', 'tag': 'kennel_back_to_list'})
         self.assertEqual(feed.state, 'done')
         self.assertEqual(feed.done_by_id, self.keeper)
         self.assertTrue(feed.problem)
