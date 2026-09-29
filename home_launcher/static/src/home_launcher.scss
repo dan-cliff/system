@@ -1,0 +1,135 @@
+// Home Launcher — folder tiles, popup and edit-mode affordances
+
+.o_home_menu {
+
+    // 5-column responsive tile grid (folders + loose apps share one size)
+    .o_home_launcher_tiles {
+        .o_launcher_tile {
+            flex: 0 0 auto;
+            width: 33.3333%; // 3 per row on phones
+
+            @include media-breakpoint-up(sm) {
+                width: 25%; // 4 per row on small tablets
+            }
+            @include media-breakpoint-up(md) {
+                width: 20%; // 5 per row from md up
+            }
+
+            // Folder icons and loose-app icons share one footprint: 60% of the
+            // tile, keeping both identical in size.
+            .o_app_icon {
+                width: 60%;
+                height: auto;
+                max-width: none;
+                aspect-ratio: 1 / 1;
+            }
+        }
+    }
+
+    .o_home_launcher_toolbar {
+        .o_home_launcher_edit_btn {
+            opacity: 0.85;
+            &:hover { opacity: 1; }
+        }
+    }
+
+    // Folder tile ----------------------------------------------------------
+    .o_folder_tile {
+        cursor: pointer;
+
+        .o_folder_icon {
+            // width / aspect-ratio come from the shared .o_app_icon rule above
+            overflow: hidden;
+
+            // 2x2 grid of the first four app icons
+            .o_folder_grid {
+                width: 100%;
+                height: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 8%;
+            }
+
+            .o_folder_mini {
+                width: 100%;
+                height: 100%;
+                min-width: 0;
+                min-height: 0;
+                object-fit: cover;
+                overflow: hidden;
+
+                i {
+                    font-size: 0.8rem;
+                    line-height: 1;
+                }
+            }
+
+            // Centre the fallback icon of an empty folder
+            &.o_folder_empty {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .o_folder_empty_icon {
+                font-size: 2rem;
+            }
+        }
+
+        &.o_drop_target {
+            outline: 2px dashed transparent;
+            outline-offset: 3px;
+            transition: outline-color 0.15s ease-in-out;
+        }
+    }
+
+    // Edit mode ------------------------------------------------------------
+    .o_home_launcher_tiles.o_edit_mode {
+        .o_folder_tile.o_drop_target:hover {
+            outline-color: var(--primary, #714b67);
+        }
+
+        .o_draggable_app {
+            cursor: grab;
+            &:active { cursor: grabbing; }
+        }
+    }
+
+    .o_folder_edit_controls {
+        .btn {
+            line-height: 1;
+        }
+    }
+}
+
+// Folder popup overlay -----------------------------------------------------
+.o_toolbox_popup_backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+
+    .o_toolbox_popup {
+        background-color: var(--o-view-background-color, #fff);
+        width: 92vw;
+        max-width: 680px;
+        max-height: 82vh;
+        overflow: auto;
+
+        .o_toolbox_popup_badge {
+            width: 36px;
+            height: 36px;
+            flex: 0 0 auto;
+            i { font-size: 1.1rem; }
+        }
+
+        .o_app_icon {
+            width: 100%;
+        }
+    }
+}

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── List ──────────────────────────────────────────────────────── -->
+    <record id="view_eb_channel_list" model="ir.ui.view">
+        <field name="name">emergency.broadcast.channel.list</field>
+        <field name="model">emergency.broadcast.channel</field>
+        <field name="arch" type="xml">
+            <list string="Delivery Channels">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="technical_type"/>
+                <field name="icon"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form ──────────────────────────────────────────────────────── -->
+    <record id="view_eb_channel_form" model="ir.ui.view">
+        <field name="name">emergency.broadcast.channel.form</field>
+        <field name="model">emergency.broadcast.channel</field>
+        <field name="arch" type="xml">
+            <form string="Delivery Channel">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Channel Name..."/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="technical_type"/>
+                            <field name="icon"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="Optional description..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────── -->
+    <record id="action_eb_channel" model="ir.actions.act_window">
+        <field name="name">Delivery Channels</field>
+        <field name="res_model">emergency.broadcast.channel</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

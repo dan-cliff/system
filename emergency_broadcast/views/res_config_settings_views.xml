@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_eb" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.emergency_broadcast</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Emergency Broadcast"
+                     string="Emergency Broadcast"
+                     name="emergency_broadcast"
+                     logo="/emergency_broadcast/static/description/icon.png"
+                     groups="emergency_broadcast.group_eb_admin">
+
+                    <block title="Emergency Assistance Button" name="eb_assistance_settings">
+                        <setting string="Default Status"
+                                 help="Status applied to the auto-generated Emergency Assistance broadcast.">
+                            <field name="eb_assistance_status_id"/>
+                        </setting>
+                        <setting string="Default Priority"
+                                 help="Priority applied to the auto-generated broadcast.">
+                            <field name="eb_assistance_priority"/>
+                        </setting>
+                        <setting string="Recipient Filter"
+                                 help="Who receives the auto-generated Emergency Assistance broadcast.">
+                            <field name="eb_assistance_recipient_filter"/>
+                        </setting>
+                        <setting string="Delivery Channels"
+                                 help="Channels used when the Emergency Assistance button is pressed.">
+                            <field name="eb_assistance_channel_ids" widget="many2many_tags"
+                                   options='{"no_create": true}'/>
+                        </setting>
+                        <setting string="Auto-Message"
+                                 help="Message body included in the auto-generated Emergency Assistance broadcast.">
+                            <field name="eb_assistance_message"/>
+                        </setting>
+                    </block>
+
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Settings shortcut action (menu is defined in menus.xml) -->
+    <record id="action_eb_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'emergency_broadcast', 'bin_size': False}</field>
+    </record>
+
+</odoo>

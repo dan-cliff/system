@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Extend the Incident Management form view to add an "Emergency Broadcasts"
+        smart button.  The button is only visible to users who hold the
+        "Generate Emergency Broadcast" security group, which is gated by the
+        group_eb_generate_from_incident privilege under Incident Management.
+    -->
+    <record id="view_incident_report_eb_smart_button" model="ir.ui.view">
+        <field name="name">incident.report.eb.smart.button</field>
+        <field name="model">incident.report</field>
+        <field name="inherit_id" ref="incident_management.view_incident_report_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_emergency_broadcasts"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-bullhorn"
+                        groups="emergency_broadcast.group_eb_generate_from_incident">
+                    <field name="emergency_broadcast_count"
+                           widget="statinfo"
+                           string="Emergency Broadcasts"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

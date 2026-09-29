@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="global_search.GlobalSearchDialog">
+        <Dialog title="'Global Search'" size="'xl'" close="props.close">
+
+            <!-- ── Search bar ──────────────────────────────────────────────── -->
+            <div class="gs-search-bar mb-3">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text gs-search-icon-wrap">
+                        <i class="fa fa-search" aria-hidden="true"/>
+                    </span>
+                    <input
+                        type="text"
+                        class="form-control gs-search-input"
+                        placeholder="Search all records — type at least 2 characters…"
+                        autocomplete="off"
+                        spellcheck="false"
+                        t-ref="searchInput"
+                        t-att-value="state.query"
+                        t-on-input="onQueryInput"
+                        t-on-keydown="onQueryKeydown"
+                    />
+                    <button t-if="state.query"
+                            class="btn btn-outline-secondary gs-clear-btn"
+                            title="Clear"
+                            t-on-click="clearQuery">
+                        <i class="fa fa-times" aria-hidden="true"/>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Filters row ─────────────────────────────────────────────── -->
+            <div class="gs-filters-row d-flex flex-wrap gap-2 align-items-end mb-3">
+
+                <!-- Model / App filter -->
+                <div class="gs-filter-group">
+                    <label class="gs-filter-label">App / Model</label>
+                    <select class="form-select form-select-sm gs-filter-select"
+                            t-on-change="onModelChange">
+                        <option value="">All Models</option>
+                        <t t-foreach="state.models" t-as="mdl" t-key="mdl.model">
+                            <option t-att-value="mdl.model"
+                                    t-att-selected="state.modelFilter === mdl.model">
+                                <t t-esc="mdl.label"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <!-- Date preset -->
+                <div class="gs-filter-group">
+                    <label class="gs-filter-label">Date Range</label>
+                    <select class="form-select form-select-sm gs-filter-select"
+                            t-on-change="onDatePresetChange">
+                        <t t-foreach="datePresets" t-as="preset" t-key="preset.value">
+                            <option t-att-value="preset.value"
+                                    t-att-selected="state.datePreset === preset.value">
+                                <t t-esc="preset.label"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <!-- Custom date range inputs -->
+                <t t-if="showCustomRange">
+                    <div class="gs-filter-group">
+                        <label class="gs-filter-label">From</label>
+                        <input type="date"
+                               class="form-control form-control-sm gs-date-input"
+                               t-att-value="state.dateFrom"
+                               t-on-change="onDateFromChange"/>
+                    </div>
+                    <div class="gs-filter-group">
+                        <label class="gs-filter-label">To</label>
+                        <input type="date"
+                               class="form-control form-control-sm gs-date-input"
+                               t-att-value="state.dateTo"
+                               t-on-change="onDateToChange"/>
+                    </div>
+                    <div class="gs-filter-group align-self-end">
+                        <button class="btn btn-primary btn-sm" t-on-click="applyCustomDate">
+                            <i class="fa fa-search me-1" aria-hidden="true"/> Search
+                        </button>
+                    </div>
+                </t>
+
+            </div>
+
+            <!-- ── Results area ────────────────────────────────────────────── -->
+            <div class="gs-results-area">
+
+                <!-- Loading spinner -->
+                <t t-if="state.loading">
+                    <div class="gs-state-block text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Searching…</span>
+                        </div>
+                        <p class="text-muted mb-0">Searching across all records…</p>
+                    </div>
+                </t>
+
+                <!-- Error -->
+                <t t-elif="state.error">
+                    <div class="alert alert-danger mx-1 mt-1">
+                        <i class="fa fa-exclamation-triangle me-2" aria-hidden="true"/>
+                        <t t-esc="state.error"/>
+                    </div>
+                </t>
+
+                <!-- Results table -->
+                <t t-elif="state.searched &amp;&amp; state.results.length">
+                    <div class="gs-results-summary mb-2">
+                        <t t-if="state.total > state.results.length">
+                            Showing <strong><t t-esc="state.results.length"/></strong> of
+                            <strong><t t-esc="state.total"/></strong> results
+                            <span class="text-muted small ms-1">(capped at 200 — refine your search to see more)</span>
+                        </t>
+                        <t t-else="">
+                            <strong><t t-esc="state.results.length"/></strong>
+                            <t t-if="state.results.length === 1"> result</t>
+                            <t t-else=""> results</t>
+                            found
+                        </t>
+                    </div>
+
+                    <div class="gs-table-wrap">
+                        <table class="table table-sm table-hover gs-results-table mb-0">
+                            <thead class="gs-thead">
+                                <tr>
+                                    <th class="gs-th gs-col-id">ID</th>
+                                    <th class="gs-th gs-col-title">Title</th>
+                                    <th class="gs-th gs-col-model">App / Model</th>
+                                    <th class="gs-th gs-col-date">Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.results"
+                                   t-as="result"
+                                   t-key="result.model + '-' + result.id">
+                                    <t t-set="url" t-value="getRecordUrl(result)"/>
+                                    <tr class="gs-result-row">
+
+                                        <!-- ID -->
+                                        <td class="gs-col-id">
+                                            <t t-if="url">
+                                                <a t-att-href="url"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
+                                                   class="gs-id-link">
+                                                    #<t t-esc="result.id"/>
+                                                </a>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="gs-id-plain">#<t t-esc="result.id"/></span>
+                                            </t>
+                                        </td>
+
+                                        <!-- Title + optional detail sub-line -->
+                                        <td class="gs-col-title">
+                                            <t t-if="url">
+                                                <a t-att-href="url"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
+                                                   class="gs-title-link">
+                                                    <t t-esc="result.title"/>
+                                                </a>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="gs-title-plain"><t t-esc="result.title"/></span>
+                                            </t>
+
+                                            <!-- Partner / reference / date detail row -->
+                                            <t t-if="result.details">
+                                                <div class="gs-result-details">
+                                                    <t t-if="result.details.partner">
+                                                        <span class="gs-detail-partner">
+                                                            <i class="fa fa-user-o gs-detail-icon" aria-hidden="true"/>
+                                                            <t t-esc="result.details.partner"/>
+                                                        </span>
+                                                    </t>
+                                                    <t t-if="result.details.reference">
+                                                        <span class="gs-detail-sep" aria-hidden="true">·</span>
+                                                        <span class="gs-detail-ref">
+                                                            <i class="fa fa-tag gs-detail-icon" aria-hidden="true"/>
+                                                            <t t-esc="result.details.reference"/>
+                                                        </span>
+                                                    </t>
+                                                    <t t-if="result.details.date">
+                                                        <span class="gs-detail-sep" aria-hidden="true">·</span>
+                                                        <span class="gs-detail-date">
+                                                            <i class="fa fa-calendar-o gs-detail-icon" aria-hidden="true"/>
+                                                            <t t-esc="result.details.date"/>
+                                                        </span>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </td>
+
+                                        <!-- App / Model badge -->
+                                        <td class="gs-col-model">
+                                            <span t-attf-class="gs-badge #{badgeClass(result.model)}">
+                                                <t t-esc="result.model_label"/>
+                                            </span>
+                                        </td>
+
+                                        <!-- Created date -->
+                                        <td class="gs-col-date">
+                                            <span class="gs-date-text">
+                                                <t t-esc="result.create_date"/>
+                                            </span>
+                                        </td>
+
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+
+                <!-- No results after searching -->
+                <t t-elif="state.searched &amp;&amp; !state.results.length">
+                    <div class="gs-state-block text-center py-5 text-muted">
+                        <i class="fa fa-search fa-3x mb-3 d-block opacity-25" aria-hidden="true"/>
+                        <p class="fw-semibold mb-1">
+                            No records found for "<t t-esc="state.query"/>"
+                        </p>
+                        <p class="small mb-0">
+                            Try different keywords, change the model filter, or widen the date range.
+                        </p>
+                    </div>
+                </t>
+
+                <!-- Initial / idle state -->
+                <t t-else="">
+                    <div class="gs-state-block text-center py-5 text-muted">
+                        <i class="fa fa-search fa-3x mb-3 d-block opacity-25" aria-hidden="true"/>
+                        <p class="fw-semibold mb-2">Search across all records</p>
+                        <p class="small mb-0">
+                            Type at least 2 characters to begin.
+                            Use the filters above to narrow by model or date.
+                        </p>
+                        <p class="small mt-2 mb-0">
+                            <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> — open from anywhere ·
+                            <kbd>Enter</kbd> — search immediately ·
+                            <kbd>Esc</kbd> — close
+                        </p>
+                    </div>
+                </t>
+
+            </div>
+
+            <!-- ── Footer ──────────────────────────────────────────────────── -->
+            <t t-set-slot="footer">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <span class="text-muted small">
+                        <t t-if="state.modelsLoaded &amp;&amp; state.models.length">
+                            <t t-esc="state.models.length"/> searchable models loaded
+                        </t>
+                        <t t-elif="!state.modelsLoaded">
+                            Loading model list…
+                        </t>
+                    </span>
+                    <button class="btn btn-secondary btn-sm" t-on-click="props.close">
+                        Close
+                    </button>
+                </div>
+            </t>
+
+        </Dialog>
+    </t>
+
+</templates>

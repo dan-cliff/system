@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_eb_status_user,eb.status.user,model_emergency_broadcast_status,base.group_user,1,0,0,0
+access_eb_status_admin,eb.status.admin,model_emergency_broadcast_status,emergency_broadcast.group_eb_admin,1,1,1,1
+access_eb_channel_user,eb.channel.user,model_emergency_broadcast_channel,base.group_user,1,0,0,0
+access_eb_channel_admin,eb.channel.admin,model_emergency_broadcast_channel,emergency_broadcast.group_eb_admin,1,1,1,1
+access_eb_broadcast_user,eb.broadcast.user,model_emergency_broadcast,emergency_broadcast.group_eb_user,1,0,0,0
+access_eb_broadcast_manager,eb.broadcast.manager,model_emergency_broadcast,emergency_broadcast.group_eb_manager,1,1,1,0
+access_eb_broadcast_admin,eb.broadcast.admin,model_emergency_broadcast,emergency_broadcast.group_eb_admin,1,1,1,1
+access_eb_recipient_user,eb.recipient.user,model_emergency_broadcast_recipient,base.group_user,1,1,0,0
+access_eb_recipient_manager,eb.recipient.manager,model_emergency_broadcast_recipient,emergency_broadcast.group_eb_manager,1,1,1,1
+access_eb_presence_user,eb.presence.user,model_emergency_broadcast_user_presence,base.group_user,1,1,1,0
+access_eb_presence_admin,eb.presence.admin,model_emergency_broadcast_user_presence,emergency_broadcast.group_eb_admin,1,1,1,1
+access_eb_statusbar_cfg_user,eb.statusbar.cfg.user,model_emergency_broadcast_statusbar_config,base.group_user,1,0,0,0
+access_eb_statusbar_cfg_admin,eb.statusbar.cfg.admin,model_emergency_broadcast_statusbar_config,emergency_broadcast.group_eb_admin,1,1,1,1

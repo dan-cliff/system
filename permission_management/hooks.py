@@ -217,6 +217,12 @@ ROLE_DEFINITIONS = [
         'Incident Management – Administrator',
         'Full incident management administration and configuration.',
     ),
+    (
+        'incident_management.privilege_incident_management',
+        'emergency_broadcast.group_eb_generate_from_incident',
+        'Incident Management – Generate Emergency Broadcast',
+        'Generate Emergency Broadcast records directly from an Incident Management report.',
+    ),
     # ── Injury Management ─────────────────────────────────────────────
     (
         'injury_management.res_groups_privilege_injury',

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ensure the "Incident Management – Generate Emergency Broadcast" role is
+    present in the Permission Management role library.
+
+    This function is intentionally called WITHOUT noupdate="1" so it runs on
+    every `odoo-bin -u emergency_broadcast`.  The underlying _load_role_library
+    implementation is idempotent (skips roles that already exist), so
+    re-running on updates is always safe.
+
+    The method is a no-op when permission_management is not installed.
+-->
+<odoo>
+    <data>
+        <function model="emergency.broadcast" name="_sync_permission_roles"/>
+    </data>
+</odoo>

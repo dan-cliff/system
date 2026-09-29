@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="emergency_broadcast.AssistanceButton">
+        <button
+            class="o_emergency_assistance_btn"
+            t-att-class="{ eb_pulsing: state.sending }"
+            t-att-title="state.sending ? 'Sending emergency broadcast…' : 'Emergency Assistance — Click to send an emergency broadcast to all users'"
+            t-on-click="onClick"
+            t-att-disabled="state.sending">
+            <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+        </button>
+    </t>
+
+</templates>
