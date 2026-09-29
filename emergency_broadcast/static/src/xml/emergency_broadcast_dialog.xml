@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Emergency Broadcast Dialog
+        Rendered when a 'dialog' type broadcast is received via the bus.
+        The user must click Acknowledge to dismiss it.
+    -->
+    <t t-name="emergency_broadcast.BroadcastDialog">
+        <Dialog title="'🚨 Emergency Broadcast'"
+                size="'md'"
+                technical="false">
+
+            <div class="o_emergency_dialog_body">
+                <!-- Priority badge -->
+                <div t-attf-class="eb_priority_badge priority_{{ props.payload.priority }}">
+                    <t t-esc="props.payload.priority_label || 'Alert'"/>
+                </div>
+
+                <!-- Broadcast title -->
+                <h5 class="mb-3">
+                    <t t-esc="props.payload.broadcast_name"/>
+                </h5>
+
+                <!-- Message body (rendered as HTML) -->
+                <div t-out="props.payload.message_html"/>
+            </div>
+
+            <t t-set-slot="footer">
+                <button class="btn btn-danger" t-on-click="onAcknowledge"
+                        t-att-disabled="state.acknowledged">
+                    <t t-if="state.acknowledged">
+                        <i class="fa fa-check me-1"/> Acknowledged
+                    </t>
+                    <t t-else="">
+                        <i class="fa fa-check me-1"/> I Acknowledge
+                    </t>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

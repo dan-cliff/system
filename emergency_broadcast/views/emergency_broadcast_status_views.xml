@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── List ──────────────────────────────────────────────────────── -->
+    <record id="view_eb_status_list" model="ir.ui.view">
+        <field name="name">emergency.broadcast.status.list</field>
+        <field name="model">emergency.broadcast.status</field>
+        <field name="arch" type="xml">
+            <list string="Emergency Broadcast Statuses">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="color"/>
+                <field name="description"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form ──────────────────────────────────────────────────────── -->
+    <record id="view_eb_status_form" model="ir.ui.view">
+        <field name="name">emergency.broadcast.status.form</field>
+        <field name="model">emergency.broadcast.status</field>
+        <field name="arch" type="xml">
+            <form string="Emergency Broadcast Status">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Status Name..."/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="color" widget="color_index"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="Optional description..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────── -->
+    <record id="action_eb_status" model="ir.actions.act_window">
+        <field name="name">Statuses</field>
+        <field name="res_model">emergency.broadcast.status</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

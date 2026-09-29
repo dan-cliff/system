@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Emergency Status Banner container.
+        Rendered between the NavBar and ActionContainer in the WebClient.
+        Shows one banner row per active emergency broadcast status that has
+        show_banner=True in the Statusbar Banner Configuration.
+    -->
+    <t t-name="emergency_broadcast.StatusBanner">
+        <div t-if="state.banners.length" class="o_emergency_banner_container">
+            <t t-foreach="state.banners" t-as="banner" t-key="banner.id">
+                <div t-if="!state.dismissed.has(banner.id)"
+                     t-attf-class="o_emergency_banner eb_type_{{ banner.banner_type }}"
+                     t-attf-style="{{ banner.banner_color ? 'background-color:' + banner.banner_color + ';' : '' }}">
+                    <i t-attf-class="fa {{ banner.banner_icon }} eb_banner_icon" aria-hidden="true"/>
+                    <span class="eb_banner_text">
+                        <a class="eb_banner_link"
+                           href="#"
+                           t-on-click.prevent="() => this.viewBroadcast(banner.id)"
+                           title="View emergency broadcast details">
+                            <t t-esc="banner.message"/>
+                        </a>
+                    </span>
+                    <button class="eb_banner_close"
+                            t-att-data-id="banner.id"
+                            t-on-click="() => this.dismiss(banner.id)"
+                            title="Dismiss banner">
+                        <i class="fa fa-times" aria-hidden="true"/>
+                    </button>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Extend the WebClient template to inject the banner before ActionContainer -->
+    <t t-inherit="web.WebClient" t-inherit-mode="extension">
+        <xpath expr="//ActionContainer" position="before">
+            <EmergencyStatusBanner/>
+        </xpath>
+    </t>
+
+</templates>

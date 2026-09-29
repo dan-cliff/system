@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="status_active" model="emergency.broadcast.status">
+            <field name="name">Active Emergency</field>
+            <field name="sequence">1</field>
+            <field name="color">1</field>
+        </record>
+
+        <record id="status_monitoring" model="emergency.broadcast.status">
+            <field name="name">Monitoring</field>
+            <field name="sequence">2</field>
+            <field name="color">3</field>
+        </record>
+
+        <record id="status_resolved" model="emergency.broadcast.status">
+            <field name="name">Resolved</field>
+            <field name="sequence">3</field>
+            <field name="color">10</field>
+        </record>
+
+        <record id="status_drill" model="emergency.broadcast.status">
+            <field name="name">Drill / Test</field>
+            <field name="sequence">4</field>
+            <field name="color">4</field>
+        </record>
+
+        <record id="status_informational" model="emergency.broadcast.status">
+            <field name="name">Informational</field>
+            <field name="sequence">5</field>
+            <field name="color">0</field>
+        </record>
+
+    </data>
+</odoo>
