@@ -1,0 +1,16 @@
+<odoo>
+    <record id="view_users_form_team_leader" model="ir.ui.view">
+        <field name="name">res.users.form.team.leader</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <!-- res.users.form has TWO field[@name='partner_id'] nodes: one inside a
+                 conditionally-hidden "contact still active" alert banner, and the real,
+                 normally-visible one inside a <group> (labelled "Related Partner"). Scope
+                 the xpath to the <group> so it targets only the latter. -->
+            <xpath expr="//group/field[@name='partner_id']" position="after">
+                <field name="team_leader_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

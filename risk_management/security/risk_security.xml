@@ -1,0 +1,99 @@
+<odoo>
+    <record id="module_category_risk_management" model="ir.module.category">
+        <field name="name">Risk Management</field>
+        <field name="sequence">25</field>
+    </record>
+
+    <!-- Odoo 19: res.groups no longer has category_id directly. A res.groups.privilege
+         is a single "access level" axis: ONE privilege per category, shared by ALL of
+         that category's groups via their privilege_id. Odoo then renders every group
+         under that one privilege as options in a single exclusive dropdown on the Users
+         form (ordered by following each group's implied_ids chain down from the top),
+         rather than as independent checkboxes. -->
+    <record id="privilege_risk_management" model="res.groups.privilege">
+        <field name="name">Risk Management</field>
+        <field name="category_id" ref="module_category_risk_management"/>
+        <field name="sequence">10</field>
+    </record>
+
+    <!-- Bottom rung of the chain: no ir.model.access rows, no menu, no ir.rule reference
+         anywhere - explicitly selecting this grants nothing in the Risk Management app. -->
+    <record id="group_risk_no_rights" model="res.groups">
+        <field name="name">No Rights User</field>
+        <field name="privilege_id" ref="privilege_risk_management"/>
+    </record>
+
+    <!-- Read-only access to Risk Assessments (incl. their Risks and Controls), no row restriction. -->
+    <record id="group_risk_read_only" model="res.groups">
+        <field name="name">Read Only</field>
+        <field name="privilege_id" ref="privilege_risk_management"/>
+        <field name="implied_ids" eval="[(4, ref('group_risk_no_rights'))]"/>
+    </record>
+
+    <!-- Creates/manages Risk Assessments they created or were added to as a Collaborator.
+         Can populate an assessment from Risk Templates and add Controls (new or from the library). -->
+    <record id="group_risk_leader_youth" model="res.groups">
+        <field name="name">Leader of Youth</field>
+        <field name="privilege_id" ref="privilege_risk_management"/>
+        <field name="implied_ids" eval="[(4, ref('group_risk_read_only'))]"/>
+    </record>
+
+    <!-- Everything Leader of Youth can do, extended to all Risk Assessments in their company,
+         plus the ability to archive existing Risk Assessments. -->
+    <record id="group_risk_leader_adults" model="res.groups">
+        <field name="name">Leader of Adults</field>
+        <field name="privilege_id" ref="privilege_risk_management"/>
+        <field name="implied_ids" eval="[(4, ref('group_risk_leader_youth'))]"/>
+    </record>
+
+    <!-- Full access: designs Risk Templates, manages every Configuration list, and can delete records. -->
+    <record id="group_risk_administrator" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_risk_management"/>
+        <field name="implied_ids" eval="[(4, ref('group_risk_leader_adults'))]"/>
+    </record>
+
+    <!-- Risk Assessment: row-level access -->
+    <record id="rule_risk_assessment_leader_youth" model="ir.rule">
+        <field name="name">Risk Assessment: Leader of Youth sees own/collaborated records</field>
+        <field name="model_id" ref="model_risk_assessment"/>
+        <field name="groups" eval="[(4, ref('group_risk_leader_youth'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('collaborator_ids', 'in', [user.id])]</field>
+    </record>
+    <record id="rule_risk_assessment_leader_adults" model="ir.rule">
+        <field name="name">Risk Assessment: Leader of Adults sees all records in their company</field>
+        <field name="model_id" ref="model_risk_assessment"/>
+        <field name="groups" eval="[(4, ref('group_risk_leader_adults'))]"/>
+        <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
+    </record>
+    <record id="rule_risk_assessment_administrator" model="ir.rule">
+        <field name="name">Risk Assessment: Administrator sees all records</field>
+        <field name="model_id" ref="model_risk_assessment"/>
+        <field name="groups" eval="[(4, ref('group_risk_administrator'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <!-- Risk Assessment Lines: mirror the same row-level access via their parent assessment,
+         so direct access to the sub-model can't bypass the assessment-level restriction. -->
+    <record id="rule_risk_assessment_line_leader_youth" model="ir.rule">
+        <field name="name">Risk Assessment Lines: Leader of Youth sees own/collaborated records</field>
+        <field name="model_id" ref="model_risk_assessment_line"/>
+        <field name="groups" eval="[(4, ref('group_risk_leader_youth'))]"/>
+        <field name="domain_force">
+            ['|', ('assessment_id.create_uid', '=', user.id), ('assessment_id.collaborator_ids', 'in', [user.id])]
+        </field>
+    </record>
+    <record id="rule_risk_assessment_line_leader_adults" model="ir.rule">
+        <field name="name">Risk Assessment Lines: Leader of Adults sees all records in their company</field>
+        <field name="model_id" ref="model_risk_assessment_line"/>
+        <field name="groups" eval="[(4, ref('group_risk_leader_adults'))]"/>
+        <field name="domain_force">[('assessment_id.company_id', 'in', user.company_ids.ids)]</field>
+    </record>
+    <record id="rule_risk_assessment_line_administrator" model="ir.rule">
+        <field name="name">Risk Assessment Lines: Administrator sees all records</field>
+        <field name="model_id" ref="model_risk_assessment_line"/>
+        <field name="groups" eval="[(4, ref('group_risk_administrator'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+</odoo>

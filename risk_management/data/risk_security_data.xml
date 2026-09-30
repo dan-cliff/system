@@ -1,0 +1,6 @@
+<odoo>
+    <!-- Ensure the database administrator has access after install -->
+    <record id="base.user_admin" model="res.users">
+        <field name="group_ids" eval="[(4, ref('group_risk_administrator'))]"/>
+    </record>
+</odoo>

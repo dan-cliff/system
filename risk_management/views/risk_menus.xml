@@ -1,0 +1,66 @@
+<odoo>
+    <menuitem id="menu_risk_root" name="Risk Management" sequence="90"
+              web_icon="risk_management,static/description/icon.png"
+              groups="risk_management.group_risk_read_only,risk_management.group_risk_leader_youth"/>
+
+    <menuitem id="menu_risk_assessments" name="Risk Assessments" parent="menu_risk_root"
+              action="action_risk_assessment" sequence="10"
+              groups="risk_management.group_risk_read_only,risk_management.group_risk_leader_youth"/>
+
+    <!-- Configuration houses the lookup-list source models, Risk Template design and the
+         Risk Matrix design models - Administrator only. Leaders still use Risk Templates and
+         Controls day-to-day, but do so via the fields on a Risk Assessment, not this menu. -->
+    <menuitem id="menu_risk_configuration" name="Configuration" parent="menu_risk_root"
+              sequence="100" groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_templates" name="Risk Templates" parent="menu_risk_configuration"
+              action="action_risk_template" sequence="10"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_categories" name="Risk Categories" parent="menu_risk_configuration"
+              action="action_risk_category" sequence="20"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_controls" name="Controls" parent="menu_risk_configuration"
+              action="action_risk_control" sequence="30"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_control_hierarchy" name="Hierarchy of Controls" parent="menu_risk_configuration"
+              action="action_risk_control_hierarchy" sequence="32"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_types" name="Risk Types" parent="menu_risk_configuration"
+              action="action_risk_type" sequence="35"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_subtypes" name="Risk Subtypes" parent="menu_risk_configuration"
+              action="action_risk_subtype" sequence="36"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_assessment_stages" name="Risk Assessment Stages" parent="menu_risk_configuration"
+              action="action_risk_assessment_stage" sequence="38"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_matrix_config" name="Risk Matrix" parent="menu_risk_configuration"
+              sequence="40" groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_likelihood" name="Likelihood" parent="menu_risk_matrix_config"
+              action="action_risk_likelihood" sequence="10"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_consequence" name="Consequence" parent="menu_risk_matrix_config"
+              action="action_risk_consequence" sequence="20"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_severity" name="Risk Severity" parent="menu_risk_matrix_config"
+              action="action_risk_severity" sequence="30"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_score" name="Risk Score" parent="menu_risk_matrix_config"
+              action="action_risk_score" sequence="40"
+              groups="risk_management.group_risk_administrator"/>
+
+    <menuitem id="menu_risk_matrix_view" name="View Risk Matrix" parent="menu_risk_matrix_config"
+              action="action_risk_matrix_wizard" sequence="50"
+              groups="risk_management.group_risk_administrator"/>
+</odoo>

@@ -1,0 +1,195 @@
+<odoo>
+    <record id="view_risk_assessment_list" model="ir.ui.view">
+        <field name="name">risk.assessment.list</field>
+        <field name="model">risk.assessment</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="stage_type == 'done'">
+                <field name="id" readonly="1"/>
+                <field name="name"/>
+                <field name="date" options="{'numeric': True}"/>
+                <field name="assessor_id"/>
+                <field name="risk_count"/>
+                <field name="highest_severity_id"/>
+                <field name="stage_type" column_invisible="1"/>
+                <field name="stage_id" widget="badge"
+                       decoration-info="stage_type == 'draft'"
+                       decoration-warning="stage_type in ('in_progress', 'submitted')"
+                       decoration-primary="stage_type == 'approved'"
+                       decoration-success="stage_type == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_assessment_form" model="ir.ui.view">
+        <field name="name">risk.assessment.form</field>
+        <field name="model">risk.assessment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="can_approve" invisible="1"/>
+                    <field name="stage_type" invisible="1"/>
+                    <button name="action_set_in_progress" type="object" string="Start"
+                            invisible="stage_type != 'draft'" class="oe_highlight"/>
+                    <button name="action_submit_for_approval" type="object" string="Submit for Approval"
+                            invisible="stage_type != 'in_progress'" class="oe_highlight"/>
+                    <button name="action_open_approval_wizard" type="object" string="Review Approval"
+                            invisible="stage_type != 'submitted' or not can_approve" class="oe_highlight"/>
+                    <button name="action_set_done" type="object" string="Mark Completed"
+                            invisible="stage_type != 'approved'" class="oe_highlight"/>
+                    <button name="action_set_draft" type="object" string="Reset to Draft"
+                            invisible="stage_type == 'draft'"/>
+                    <button name="action_export_pdf" type="object" string="Export to PDF" icon="fa-file-pdf-o"/>
+                    <field name="stage_id" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_todos" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                            <field name="todo_open_count" widget="statinfo" string="Open Actions"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. 2026 Cuboree Risk Assessment"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="review_due" options="{'numeric': True}"/>
+                            <field name="assessor_id"/>
+                            <field name="approver_id"/>
+                            <field name="category_id"/>
+                            <field name="collaborator_ids" widget="many2many_tags"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="highest_severity_id" readonly="1"/>
+                            <field name="risk_count" readonly="1"/>
+                            <field name="template_ids" widget="many2many_tags"/>
+                            <button name="action_load_template_risks" type="object"
+                                    string="Load Risks from Templates" class="btn-secondary"
+                                    invisible="not template_ids"/>
+                        </group>
+                    </group>
+                    <separator string="Summary of Activity"/>
+                    <field name="summary_of_activity" nolabel="1"
+                           placeholder="Describe the activity so AI can suggest relevant risks and controls..."/>
+                    <field name="ai_available" invisible="1"/>
+                    <widget name="risk_ai_generate_button"/>
+                    <notebook>
+                        <page string="Risks" name="risks">
+                            <field name="line_ids" class="o_risk_assessment_lines_list">
+                                <list>
+                                    <field name="id" readonly="1"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="inherent_bg_color" column_invisible="1"/>
+                                    <field name="inherent_text_color" column_invisible="1"/>
+                                    <field name="inherent_label" string="Inherent Risk" readonly="1"
+                                           widget="risk_score_badge"
+                                           options="{'bg_field': 'inherent_bg_color', 'text_field': 'inherent_text_color'}"/>
+                                    <field name="residual_bg_color" column_invisible="1"/>
+                                    <field name="residual_text_color" column_invisible="1"/>
+                                    <field name="residual_label" string="Residual Risk" readonly="1"
+                                           widget="risk_score_badge"
+                                           options="{'bg_field': 'residual_bg_color', 'text_field': 'residual_text_color'}"/>
+                                    <field name="control_ids" widget="many2many_tags"/>
+                                    <field name="todo_ids" widget="many2many_tags"/>
+                                    <field name="source_template_line_id" column_invisible="1"/>
+                                </list>
+                                <form>
+                                    <sheet>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="unwanted_event"/>
+                                            <field name="risk_type_id"/>
+                                            <field name="risk_subtype_id"/>
+                                            <field name="source_template_line_id" invisible="not source_template_line_id"/>
+                                        </group>
+                                        <label for="description" string="Describe this risk"/>
+                                        <field name="description" nolabel="1"/>
+                                        <separator string="Inherent Risk"/>
+                                        <field name="inherent_consequence_id" invisible="1"/>
+                                        <field name="inherent_bg_color" invisible="1"/>
+                                        <field name="inherent_text_color" invisible="1"/>
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span>Rating:</span>
+                                            <field name="inherent_label" nolabel="1" widget="risk_score_badge"
+                                                   options="{'bg_field': 'inherent_bg_color', 'text_field': 'inherent_text_color'}"/>
+                                        </div>
+                                        <field name="inherent_likelihood_id" nolabel="1" widget="risk_matrix_selector"
+                                               options="{'consequence_field': 'inherent_consequence_id'}"/>
+                                        <separator string="Controls"/>
+                                        <field name="control_ids">
+                                            <list>
+                                                <field name="id" readonly="1"/>
+                                                <field name="name"/>
+                                                <field name="hierarchy_id"/>
+                                                <field name="description"/>
+                                            </list>
+                                        </field>
+                                        <label for="control_summary" string="Controls Summary"/>
+                                        <field name="control_summary" nolabel="1"/>
+                                        <separator string="Residual Risk"/>
+                                        <field name="residual_consequence_id" invisible="1"/>
+                                        <field name="residual_bg_color" invisible="1"/>
+                                        <field name="residual_text_color" invisible="1"/>
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span>Rating:</span>
+                                            <field name="residual_label" nolabel="1" widget="risk_score_badge"
+                                                   options="{'bg_field': 'residual_bg_color', 'text_field': 'residual_text_color'}"/>
+                                        </div>
+                                        <field name="residual_likelihood_id" nolabel="1" widget="risk_matrix_selector"
+                                               options="{'consequence_field': 'residual_consequence_id'}"/>
+                                        <separator string="Actions"/>
+                                        <field name="todo_ids">
+                                            <list editable="bottom">
+                                                <field name="id" readonly="1"/>
+                                                <field name="name"/>
+                                                <field name="user_ids" widget="many2many_tags"/>
+                                                <field name="state"/>
+                                            </list>
+                                        </field>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_assessment_search" model="ir.ui.view">
+        <field name="name">risk.assessment.search</field>
+        <field name="model">risk.assessment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="assessor_id"/>
+                <filter name="draft" string="Draft" domain="[('stage_type', '=', 'draft')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('stage_type', '=', 'in_progress')]"/>
+                <filter name="submitted" string="Submitted for Approval" domain="[('stage_type', '=', 'submitted')]"/>
+                <filter name="approved" string="Approved" domain="[('stage_type', '=', 'approved')]"/>
+                <filter name="done" string="Completed" domain="[('stage_type', '=', 'done')]"/>
+                <group>
+                    <filter name="group_by_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_assessment" model="ir.actions.act_window">
+        <field name="name">Risk Assessments</field>
+        <field name="res_model">risk.assessment</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_draft': 1, 'search_default_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">Create a risk assessment</p>
+            <p>Select one or more Risk Templates to pull in their risks and controls, then
+               tailor the assessment to your event or activity.</p>
+        </field>
+    </record>
+</odoo>

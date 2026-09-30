@@ -1,0 +1,39 @@
+<odoo>
+    <record id="view_risk_category_list" model="ir.ui.view">
+        <field name="name">risk.category.list</field>
+        <field name="model">risk.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" readonly="1"/>
+                <field name="name"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_category_form" model="ir.ui.view">
+        <field name="name">risk.category.form</field>
+        <field name="model">risk.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_risk_category" model="ir.actions.act_window">
+        <field name="name">Risk Categories</field>
+        <field name="res_model">risk.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">Create a risk category</p>
+            <p>Categories group risks for reporting, e.g. "Water Safety", "Food Safety", "Travel".</p>
+        </field>
+    </record>
+</odoo>

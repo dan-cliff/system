@@ -1,0 +1,25 @@
+<odoo>
+    <record id="paperformat_risk_assessment" model="report.paperformat">
+        <field name="name">Risk Assessment A4 Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">36.5</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">33</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_risk_assessment" model="ir.actions.report">
+        <field name="name">Risk Assessment</field>
+        <field name="model">risk.assessment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">risk_management.report_risk_assessment_document</field>
+        <field name="report_file">risk_management.report_risk_assessment_document</field>
+        <field name="print_report_name">'Risk Assessment - %s' % (object.name or '')</field>
+        <field name="paperformat_id" ref="paperformat_risk_assessment"/>
+    </record>
+</odoo>

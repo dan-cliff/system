@@ -1,0 +1,128 @@
+<odoo>
+    <record id="view_risk_template_list" model="ir.ui.view">
+        <field name="name">risk.template.list</field>
+        <field name="model">risk.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" readonly="1"/>
+                <field name="name"/>
+                <field name="risk_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_template_form" model="ir.ui.view">
+        <field name="name">risk.template.form</field>
+        <field name="model">risk.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Scout Camp Activity Risk Template"/></h1>
+                    </div>
+                    <group>
+                        <field name="active"/>
+                        <field name="category_id"/>
+                        <field name="description"/>
+                    </group>
+                    <separator string="Summary of Activity"/>
+                    <field name="summary_of_activity" nolabel="1"
+                           placeholder="Describe the activity so AI can suggest relevant risks and controls..."/>
+                    <field name="ai_available" invisible="1"/>
+                    <widget name="risk_ai_generate_button"/>
+                    <notebook>
+                        <page string="Risks" name="risks">
+                            <field name="line_ids" class="o_risk_template_lines_list">
+                                <list>
+                                    <field name="id" readonly="1"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="inherent_bg_color" column_invisible="1"/>
+                                    <field name="inherent_text_color" column_invisible="1"/>
+                                    <field name="inherent_label" string="Inherent Risk" readonly="1"
+                                           widget="risk_score_badge"
+                                           options="{'bg_field': 'inherent_bg_color', 'text_field': 'inherent_text_color'}"/>
+                                    <field name="residual_bg_color" column_invisible="1"/>
+                                    <field name="residual_text_color" column_invisible="1"/>
+                                    <field name="residual_label" string="Residual Risk" readonly="1"
+                                           widget="risk_score_badge"
+                                           options="{'bg_field': 'residual_bg_color', 'text_field': 'residual_text_color'}"/>
+                                    <field name="control_ids" widget="many2many_tags"/>
+                                </list>
+                                <form>
+                                    <sheet>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="unwanted_event"/>
+                                            <field name="risk_type_id"/>
+                                            <field name="risk_subtype_id"/>
+                                        </group>
+                                        <label for="description" string="Describe this risk"/>
+                                        <field name="description" nolabel="1"/>
+                                        <separator string="Inherent Risk"/>
+                                        <field name="inherent_consequence_id" invisible="1"/>
+                                        <field name="inherent_bg_color" invisible="1"/>
+                                        <field name="inherent_text_color" invisible="1"/>
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span>Rating:</span>
+                                            <field name="inherent_label" nolabel="1" widget="risk_score_badge"
+                                                   options="{'bg_field': 'inherent_bg_color', 'text_field': 'inherent_text_color'}"/>
+                                        </div>
+                                        <field name="inherent_likelihood_id" nolabel="1" widget="risk_matrix_selector"
+                                               options="{'consequence_field': 'inherent_consequence_id'}"/>
+                                        <separator string="Controls"/>
+                                        <field name="control_ids">
+                                            <list>
+                                                <field name="id" readonly="1"/>
+                                                <field name="name"/>
+                                                <field name="hierarchy_id"/>
+                                                <field name="description"/>
+                                            </list>
+                                        </field>
+                                        <label for="control_summary" string="Controls Summary"/>
+                                        <field name="control_summary" nolabel="1"/>
+                                        <separator string="Residual Risk"/>
+                                        <field name="residual_consequence_id" invisible="1"/>
+                                        <field name="residual_bg_color" invisible="1"/>
+                                        <field name="residual_text_color" invisible="1"/>
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span>Rating:</span>
+                                            <field name="residual_label" nolabel="1" widget="risk_score_badge"
+                                                   options="{'bg_field': 'residual_bg_color', 'text_field': 'residual_text_color'}"/>
+                                        </div>
+                                        <field name="residual_likelihood_id" nolabel="1" widget="risk_matrix_selector"
+                                               options="{'consequence_field': 'residual_consequence_id'}"/>
+                                        <separator string="Standard Actions"/>
+                                        <p class="text-muted">
+                                            These actions are automatically turned into To-Dos, assigned to the
+                                            Risk Assessment Owner, whenever a Risk Assessment pulls this risk in from the template.
+                                        </p>
+                                        <field name="standard_action_ids">
+                                            <list editable="bottom">
+                                                <field name="id" readonly="1"/>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="name"/>
+                                                <field name="description"/>
+                                            </list>
+                                        </field>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_risk_template" model="ir.actions.act_window">
+        <field name="name">Risk Templates</field>
+        <field name="res_model">risk.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">Create a risk assessment template</p>
+            <p>Templates capture a reusable list of risks (and their controls) that can be pulled
+               into a Risk Assessment.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="risk_management.RiskAiGenerateButton">
+        <div class="o_risk_ai_generate_button_wrapper" t-if="isAvailable">
+            <button type="button" class="btn btn-secondary" t-on-click="onClick" t-att-disabled="state.loading">
+                <t t-if="state.loading">
+                    <i class="fa fa-spinner fa-spin me-1"/> Generating...
+                </t>
+                <t t-else="">
+                    Generate Risks and Controls by AI
+                </t>
+            </button>
+            <div class="o_risk_ai_generate_overlay" t-if="state.loading">
+                <div class="o_risk_ai_generate_overlay_content">
+                    <i class="fa fa-spinner fa-spin fa-3x"/>
+                    <p>Generating risks and controls with AI...<br/>This can take a few minutes.</p>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

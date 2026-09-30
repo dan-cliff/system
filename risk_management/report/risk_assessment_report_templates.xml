@@ -1,0 +1,115 @@
+<odoo>
+    <template id="report_risk_assessment_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="o.company_id.sudo()"/>
+                <div t-attf-class="header o_company_#{company.id}_layout">
+                    <div class="d-flex align-items-center">
+                        <div style="width: 33%;">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Logo"
+                                 style="height: 150px; width: auto; max-width: 100%;"/>
+                        </div>
+                        <div style="width: 67%;">
+                            <h2 class="mb-0 text-end"><t t-esc="o.name"/></h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="article">
+                    <div class="page">
+                        <style>
+                            .o_risk_report_table, .o_risk_report_table th, .o_risk_report_table td {
+                                font-size: 11pt;
+                            }
+                            .o_risk_report_thead th {
+                                background-color: #000000 !important;
+                                color: #ffffff !important;
+                                font-weight: bold !important;
+                                text-align: center !important;
+                            }
+                            .o_risk_report_score {
+                                text-align: center !important;
+                            }
+                        </style>
+                        <table class="table table-sm table-borderless mb-4 o_risk_report_table">
+                            <tr>
+                                <td><strong>Date:</strong> <span t-field="o.date"/></td>
+                                <td><strong>Review Due:</strong> <span t-field="o.review_due"/></td>
+                                <td><strong>Risk Assessment Owner:</strong> <span t-esc="o.assessor_id.name"/></td>
+                                <td><strong>Risk Approver:</strong> <span t-esc="o.approver_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Category:</strong> <span t-esc="o.category_id.name"/></td>
+                                <td><strong>Stage:</strong> <span t-esc="o.stage_id.name"/></td>
+                                <td><strong>Highest Residual Severity:</strong> <span t-esc="o.highest_severity_id.name"/></td>
+                                <td><strong>Risk Count:</strong> <span t-field="o.risk_count"/></td>
+                            </tr>
+                        </table>
+                        <div t-if="o.description" class="mb-4">
+                            <strong>Description</strong>
+                            <div t-field="o.description"/>
+                        </div>
+
+                        <h4>Risks</h4>
+                        <table class="table table-sm table-bordered o_risk_report_table">
+                            <thead class="o_risk_report_thead">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Risk</th>
+                                    <th>Unwanted Event</th>
+                                    <th>Inherent Risk</th>
+                                    <th>Residual Risk</th>
+                                    <th>Controls</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids" t-as="line">
+                                    <td><span t-esc="line_index + 1"/></td>
+                                    <td><span t-field="line.name"/></td>
+                                    <td><span t-field="line.unwanted_event"/></td>
+                                    <td class="o_risk_report_score" t-attf-style="background-color: #{line.inherent_bg_color or ''}; color: #{line.inherent_text_color or ''};">
+                                        <span t-esc="line.inherent_label"/>
+                                    </td>
+                                    <td class="o_risk_report_score" t-attf-style="background-color: #{line.residual_bg_color or ''}; color: #{line.residual_text_color or ''};">
+                                        <span t-esc="line.residual_label"/>
+                                    </td>
+                                    <td><span t-esc="', '.join(line.control_ids.mapped('name'))"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="page-break-before: always;">
+                            <h4>Actions</h4>
+                            <table class="table table-sm table-bordered o_risk_report_table">
+                                <thead class="o_risk_report_thead">
+                                    <tr>
+                                        <th>Risk</th>
+                                        <th>Action</th>
+                                        <th>Assigned To</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="o.line_ids" t-as="line">
+                                        <tr t-foreach="line.todo_ids" t-as="task">
+                                            <td><span t-esc="line.name"/></td>
+                                            <td><span t-field="task.name"/></td>
+                                            <td><span t-esc="', '.join(task.user_ids.mapped('name'))"/></td>
+                                            <td><span t-field="task.state"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="text-center text-muted">
+                        <span class="page"/> of <span class="topage"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

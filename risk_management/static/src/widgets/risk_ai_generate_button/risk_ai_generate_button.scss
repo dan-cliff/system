@@ -1,0 +1,33 @@
+.o_risk_ai_generate_button_wrapper {
+    display: inline-block;
+}
+
+.o_risk_ai_generate_overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .o_risk_ai_generate_overlay_content {
+        background: var(--RiskAi-overlay-bg, #fff);
+        color: var(--RiskAi-overlay-color, #1f1f1f);
+        border-radius: 8px;
+        padding: 32px 48px;
+        text-align: center;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+
+        i {
+            display: block;
+            margin-bottom: 16px;
+            color: var(--RiskAi-spinner-color, #714B67);
+        }
+
+        p {
+            margin: 0;
+            font-size: 1rem;
+        }
+    }
+}

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="risk_management.RiskMatrixSelector">
+        <div class="o_risk_matrix_selector">
+            <div class="o_risk_matrix_pickers">
+                <div class="o_risk_matrix_picker">
+                    <label class="o_risk_matrix_picker_label">Likelihood</label>
+                    <select class="o_input" t-on-change="onLikelihoodSelect" t-att-disabled="props.readonly">
+                        <option value="">-</option>
+                        <t t-foreach="state.likelihoods" t-as="l" t-key="l.id">
+                            <option t-att-value="l.id" t-att-selected="l.id === currentLikelihoodId">
+                                <t t-esc="l.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div class="o_risk_matrix_picker">
+                    <label class="o_risk_matrix_picker_label">Consequence</label>
+                    <select class="o_input" t-on-change="onConsequenceSelect" t-att-disabled="props.readonly">
+                        <option value="">-</option>
+                        <t t-foreach="state.consequences" t-as="c" t-key="c.id">
+                            <option t-att-value="c.id" t-att-selected="c.id === currentConsequenceId">
+                                <t t-esc="c.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+            </div>
+            <table class="o_risk_matrix_table">
+                <thead>
+                    <tr>
+                        <th class="o_risk_matrix_corner"/>
+                        <t t-foreach="state.consequences" t-as="c" t-key="c.id">
+                            <th class="o_risk_matrix_header"><t t-esc="c.name"/></th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="state.likelihoods" t-as="l" t-key="l.id">
+                        <tr>
+                            <th class="o_risk_matrix_header o_risk_matrix_row_header"><t t-esc="l.name"/></th>
+                            <t t-foreach="state.consequences" t-as="c" t-key="c.id">
+                                <td t-att-class="cellClass(l.id, c.id)"
+                                    t-att-style="cellStyle(l.id, c.id)"
+                                    t-on-click="() => this.onCellClick(l.id, c.id)">
+                                    <t t-esc="cellLabel(l.id, c.id)"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+</templates>
