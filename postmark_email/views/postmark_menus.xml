@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Settings > Technical > Email (developer mode); also reachable from
+         the Postmark setting on Settings > General Settings. -->
+    <menuitem id="menu_postmark_email_log" name="Postmark Email Log"
+              parent="base.menu_email" action="postmark_email_log_action" sequence="90"/>
+    <menuitem id="menu_postmark_message_stream" name="Postmark Message Streams"
+              parent="base.menu_email" action="postmark_message_stream_action" sequence="91"/>
+    <menuitem id="menu_postmark_reply_rule" name="Postmark Reply Addresses"
+              parent="base.menu_email" action="postmark_reply_rule_action" sequence="92"/>
+</odoo>

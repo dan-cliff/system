@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The "Emails" block on Settings > General Settings is mail's
+         <block id="emails"> (mail/views/res_config_settings_views.xml). -->
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.postmark.email</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='emails']/setting[@id='email_servers_setting']" position="before">
+                <setting id="postmark_email_setting" string="Postmark Email Service"
+                         help="Use postmark as your incoming and outgoing mail service"
+                         documentation="https://postmarkapp.com/developer">
+                    <field name="postmark_enabled"/>
+                    <div class="text-muted">
+                        Turning this on turns off Use Custom Email Servers, Use an Outlook Server
+                        and Use a Gmail Server. If the Gmail or Outlook modules are installed,
+                        saving asks to uninstall them.
+                    </div>
+                    <div class="content-group mt16" invisible="not postmark_enabled">
+                        <div class="row mt8">
+                            <label for="postmark_server_token" class="col-lg-4 o_light_label"/>
+                            <field name="postmark_server_token" password="True"
+                                   placeholder="e.g. 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="postmark_from_filter" class="col-lg-4 o_light_label"/>
+                            <field name="postmark_from_filter" placeholder="e.g. mycompany.com"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="postmark_default_stream_id" class="col-lg-4 o_light_label"/>
+                            <field name="postmark_default_stream_id" options="{'no_create': True}"
+                                   placeholder="Postmark's default (outbound)"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="postmark_fallback_reply_to" class="col-lg-4 o_light_label"/>
+                            <field name="postmark_fallback_reply_to" placeholder="e.g. hello@mycompany.com"/>
+                        </div>
+                        <div class="mt8 d-flex align-items-center">
+                            <field name="postmark_record_routing" class="w-auto me-2"/>
+                            <label for="postmark_record_routing" class="o_light_label"/>
+                        </div>
+                        <div class="mt8 d-flex align-items-center">
+                            <field name="postmark_alias_streams" class="w-auto me-2"/>
+                            <label for="postmark_alias_streams" class="o_light_label"/>
+                        </div>
+                        <div class="mt8 d-flex align-items-center">
+                            <field name="postmark_blacklist_spam" class="w-auto me-2"/>
+                            <label for="postmark_blacklist_spam" class="o_light_label"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="postmark_inbound_url" class="col-lg-4 o_light_label"/>
+                            <field name="postmark_inbound_url" readonly="1"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="postmark_events_url" class="col-lg-4 o_light_label"/>
+                            <field name="postmark_events_url" readonly="1"/>
+                        </div>
+                        <div class="mt8 text-muted">
+                            Save, then press Sync with Postmark to check the token, load the
+                            message streams and set up the inbound, bounce and spam complaint
+                            webhooks. For inbound email, forward your domain's email to Postmark
+                            (an inbound domain MX record, or forwarding to the server's inbound
+                            address).
+                        </div>
+                        <div class="mt8">
+                            <button name="action_postmark_sync" type="object" string="Sync with Postmark"
+                                    icon="fa-refresh" class="btn-secondary"/>
+                        </div>
+                        <div class="mt8">
+                            <button name="action_postmark_streams" type="object" icon="oi-arrow-right"
+                                    class="btn-link" string="Message Streams"/>
+                            <field name="postmark_stream_count" class="oe_inline ms-1" readonly="1"/>
+                        </div>
+                        <div class="mt8">
+                            <button name="action_postmark_reply_rules" type="object" icon="oi-arrow-right"
+                                    class="btn-link" string="Reply Addresses"/>
+                            <field name="postmark_reply_rule_count" class="oe_inline ms-1" readonly="1"/>
+                        </div>
+                        <div class="mt8">
+                            <button name="action_postmark_logs" type="object" icon="oi-arrow-right"
+                                    class="btn-link" string="Email Log"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

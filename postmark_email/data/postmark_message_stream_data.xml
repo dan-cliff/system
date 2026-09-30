@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Every Postmark server comes with these two streams. "Sync with
+         Postmark" in Settings adds any others and refreshes their names. -->
+    <data noupdate="1">
+        <record id="stream_outbound" model="postmark.message.stream">
+            <field name="name">Default Transactional Stream</field>
+            <field name="stream_id">outbound</field>
+            <field name="stream_type">Transactional</field>
+        </record>
+        <record id="stream_inbound" model="postmark.message.stream">
+            <field name="name">Default Inbound Stream</field>
+            <field name="stream_id">inbound</field>
+            <field name="stream_type">Inbound</field>
+        </record>
+    </data>
+</odoo>
