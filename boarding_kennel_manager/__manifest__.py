@@ -1,6 +1,6 @@
 {
     'name': 'Boarding Kennel Manager',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.2.3',
     'category': 'Services',
     'summary': 'Manage the dog and cat boarding kennels',
     'description': """
@@ -32,7 +32,8 @@ Boarding Kennel Manager
   times, between its start and end dates) and observation rounds (at the
   times in Settings) for the day. Keepers open a task, record what was
   eaten / the dose outcome / the observation, add notes and photos and
-  press Complete. Completing logs it against the animal: on its chatter
+  press Complete, which closes the task and goes back to the list.
+  Completing logs it against the animal: on its chatter
   (with the photos), in its Care Log, and for medication and observations
   in the booking's Medication Log and Observations. Tasks are added on
   check-in and every hour; open ones are dropped on check-out or cancel.
@@ -58,8 +59,9 @@ Boarding Kennel Manager
   stay, food, medication, medical and behaviour notes (or "Yard
   Vacant"); today's to-do tasks for the yard, completed right there; and
   a toolbar to add Care records (Care Log entry, Medication to Give,
-  Medication Dose, Observation) on the screen. It reloads itself after
-  the Auto Refresh Interval (minutes idle; 0 turns it off).
+  Medication Dose, Observation) on the screen. It reloads itself every
+  Auto Refresh Interval minutes, waiting while a form is open on the
+  screen (0 turns it off).
 * Control Plane settings (for the interactive enclosure screens): theme
   (System, Light or Dark) and background (an image with a transparency
   slider, custom light/dark mode colours, or the company's branding: its
@@ -100,6 +102,7 @@ Boarding Kennel Manager
     'assets': {
         'web.assets_backend': [
             'boarding_kennel_manager/static/src/percent_slider/*',
+            'boarding_kennel_manager/static/src/task_complete/*',
         ],
     },
     'installable': True,

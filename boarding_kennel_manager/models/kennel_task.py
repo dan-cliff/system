@@ -235,7 +235,8 @@ class KennelTask(models.Model):
                 })
             task.write({'state': 'done', 'done_by_id': self.env.user.id, 'done_datetime': now})
             task._post_to_resident()
-        return True
+        # Close the form and go back to the list it was opened from.
+        return {'type': 'ir.actions.client', 'tag': 'kennel_back_to_list'}
 
     def action_not_required(self):
         self.filtered(lambda task: task.state == 'todo').write({'state': 'cancelled'})
