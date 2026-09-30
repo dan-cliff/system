@@ -1,0 +1,31 @@
+<odoo noupdate="1">
+    <!-- Standard workflow stages. Names/order can be freely customised afterwards
+         (noupdate keeps those customisations across module upgrades) - but keep
+         exactly one stage per stage_type, since the workflow buttons look up
+         "the" stage of a given type. -->
+    <record id="risk_assessment_stage_draft" model="risk.assessment.stage">
+        <field name="name">Draft</field>
+        <field name="sequence">10</field>
+        <field name="stage_type">draft</field>
+    </record>
+    <record id="risk_assessment_stage_in_progress" model="risk.assessment.stage">
+        <field name="name">In Progress</field>
+        <field name="sequence">20</field>
+        <field name="stage_type">in_progress</field>
+    </record>
+    <record id="risk_assessment_stage_submitted" model="risk.assessment.stage">
+        <field name="name">Submitted for Approval</field>
+        <field name="sequence">30</field>
+        <field name="stage_type">submitted</field>
+    </record>
+    <record id="risk_assessment_stage_approved" model="risk.assessment.stage">
+        <field name="name">Approved</field>
+        <field name="sequence">40</field>
+        <field name="stage_type">approved</field>
+    </record>
+    <record id="risk_assessment_stage_done" model="risk.assessment.stage">
+        <field name="name">Completed</field>
+        <field name="sequence">50</field>
+        <field name="stage_type">done</field>
+    </record>
+</odoo>

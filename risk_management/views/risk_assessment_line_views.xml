@@ -1,0 +1,63 @@
+<odoo>
+    <record id="view_risk_assessment_line_form" model="ir.ui.view">
+        <field name="name">risk.assessment.line.form</field>
+        <field name="model">risk.assessment.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="unwanted_event"/>
+                        <field name="risk_type_id"/>
+                        <field name="risk_subtype_id"/>
+                        <field name="source_template_line_id" invisible="not source_template_line_id"/>
+                    </group>
+                    <label for="description" string="Describe this risk"/>
+                    <field name="description" nolabel="1"/>
+                    <separator string="Inherent Risk"/>
+                    <field name="inherent_consequence_id" invisible="1"/>
+                    <field name="inherent_bg_color" invisible="1"/>
+                    <field name="inherent_text_color" invisible="1"/>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span>Rating:</span>
+                        <field name="inherent_label" nolabel="1" widget="risk_score_badge"
+                               options="{'bg_field': 'inherent_bg_color', 'text_field': 'inherent_text_color'}"/>
+                    </div>
+                    <field name="inherent_likelihood_id" nolabel="1" widget="risk_matrix_selector"
+                           options="{'consequence_field': 'inherent_consequence_id'}"/>
+                    <separator string="Controls"/>
+                    <field name="control_ids">
+                        <list>
+                            <field name="id" readonly="1"/>
+                            <field name="name"/>
+                            <field name="hierarchy_id"/>
+                            <field name="description"/>
+                        </list>
+                    </field>
+                    <label for="control_summary" string="Controls Summary"/>
+                    <field name="control_summary" nolabel="1"/>
+                    <separator string="Residual Risk"/>
+                    <field name="residual_consequence_id" invisible="1"/>
+                    <field name="residual_bg_color" invisible="1"/>
+                    <field name="residual_text_color" invisible="1"/>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span>Rating:</span>
+                        <field name="residual_label" nolabel="1" widget="risk_score_badge"
+                               options="{'bg_field': 'residual_bg_color', 'text_field': 'residual_text_color'}"/>
+                    </div>
+                    <field name="residual_likelihood_id" nolabel="1" widget="risk_matrix_selector"
+                           options="{'consequence_field': 'residual_consequence_id'}"/>
+                    <separator string="Actions"/>
+                    <field name="todo_ids">
+                        <list editable="bottom">
+                            <field name="id" readonly="1"/>
+                            <field name="name"/>
+                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

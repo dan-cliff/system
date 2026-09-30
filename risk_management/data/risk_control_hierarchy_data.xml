@@ -1,0 +1,35 @@
+<odoo noupdate="1">
+    <!-- Standard (Australian WHS) hierarchy of control measures, most to least effective.
+         Names/order can be freely customised afterwards (noupdate keeps those customisations
+         across module upgrades). -->
+    <record id="risk_control_hierarchy_elimination" model="risk.control.hierarchy">
+        <field name="name">Elimination</field>
+        <field name="sequence">10</field>
+        <field name="description">Physically remove the hazard entirely, e.g. not running the activity at all.</field>
+    </record>
+    <record id="risk_control_hierarchy_substitution" model="risk.control.hierarchy">
+        <field name="name">Substitution</field>
+        <field name="sequence">20</field>
+        <field name="description">Replace the hazard with something safer, e.g. a less hazardous material or activity.</field>
+    </record>
+    <record id="risk_control_hierarchy_isolation" model="risk.control.hierarchy">
+        <field name="name">Isolation</field>
+        <field name="sequence">30</field>
+        <field name="description">Isolate people from the hazard, e.g. barriers, fencing, or restricted access.</field>
+    </record>
+    <record id="risk_control_hierarchy_engineering" model="risk.control.hierarchy">
+        <field name="name">Engineering Controls</field>
+        <field name="sequence">40</field>
+        <field name="description">Redesign equipment or work processes to reduce the hazard, e.g. guarding or ventilation.</field>
+    </record>
+    <record id="risk_control_hierarchy_administrative" model="risk.control.hierarchy">
+        <field name="name">Administrative Controls</field>
+        <field name="sequence">50</field>
+        <field name="description">Change the way people work, e.g. procedures, training, signage, supervision ratios.</field>
+    </record>
+    <record id="risk_control_hierarchy_ppe" model="risk.control.hierarchy">
+        <field name="name">Personal Protective Equipment</field>
+        <field name="sequence">60</field>
+        <field name="description">Protect the person with PPE, e.g. helmets, gloves, hi-vis - the least effective control on its own.</field>
+    </record>
+</odoo>

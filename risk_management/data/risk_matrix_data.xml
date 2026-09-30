@@ -1,0 +1,263 @@
+<odoo noupdate="1">
+    <!-- Standard 5x5 likelihood x consequence risk matrix. Score = likelihood value x
+         consequence value; severity bands: Low 1-4, Medium 5-9, High 10-15, Extreme 16-25.
+         Colours and labels can be freely customised afterwards - this data is only
+         seeded once (noupdate) so those customisations survive module upgrades. -->
+
+    <!-- Likelihood -->
+    <record id="risk_likelihood_l1" model="risk.likelihood">
+        <field name="name">Rare</field>
+        <field name="value">1</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="risk_likelihood_l2" model="risk.likelihood">
+        <field name="name">Unlikely</field>
+        <field name="value">2</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="risk_likelihood_l3" model="risk.likelihood">
+        <field name="name">Possible</field>
+        <field name="value">3</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="risk_likelihood_l4" model="risk.likelihood">
+        <field name="name">Likely</field>
+        <field name="value">4</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="risk_likelihood_l5" model="risk.likelihood">
+        <field name="name">Almost Certain</field>
+        <field name="value">5</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <!-- Consequence -->
+    <record id="risk_consequence_c1" model="risk.consequence">
+        <field name="name">Insignificant</field>
+        <field name="value">1</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="risk_consequence_c2" model="risk.consequence">
+        <field name="name">Minor</field>
+        <field name="value">2</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="risk_consequence_c3" model="risk.consequence">
+        <field name="name">Moderate</field>
+        <field name="value">3</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="risk_consequence_c4" model="risk.consequence">
+        <field name="name">Major</field>
+        <field name="value">4</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="risk_consequence_c5" model="risk.consequence">
+        <field name="name">Catastrophic</field>
+        <field name="value">5</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <!-- Risk Severity -->
+    <record id="risk_severity_sev_low" model="risk.severity">
+        <field name="name">Low</field>
+        <field name="sequence">10</field>
+        <field name="bg_color">#63BE7B</field>
+        <field name="text_color">#063D1E</field>
+    </record>
+    <record id="risk_severity_sev_medium" model="risk.severity">
+        <field name="name">Medium</field>
+        <field name="sequence">20</field>
+        <field name="bg_color">#FFEB84</field>
+        <field name="text_color">#665200</field>
+    </record>
+    <record id="risk_severity_sev_high" model="risk.severity">
+        <field name="name">High</field>
+        <field name="sequence">30</field>
+        <field name="bg_color">#FFA552</field>
+        <field name="text_color">#5C2900</field>
+    </record>
+    <record id="risk_severity_sev_extreme" model="risk.severity">
+        <field name="name">Extreme</field>
+        <field name="sequence">40</field>
+        <field name="bg_color">#F8696B</field>
+        <field name="text_color">#FFFFFF</field>
+    </record>
+
+    <!-- Risk Score: one record per likelihood/consequence cell -->
+    <record id="risk_score_l1_c1" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l1"/>
+        <field name="consequence_id" ref="risk_consequence_c1"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">1</field>
+        <field name="label">L-1</field>
+    </record>
+    <record id="risk_score_l1_c2" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l1"/>
+        <field name="consequence_id" ref="risk_consequence_c2"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">2</field>
+        <field name="label">L-2</field>
+    </record>
+    <record id="risk_score_l1_c3" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l1"/>
+        <field name="consequence_id" ref="risk_consequence_c3"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">3</field>
+        <field name="label">L-3</field>
+    </record>
+    <record id="risk_score_l1_c4" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l1"/>
+        <field name="consequence_id" ref="risk_consequence_c4"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">4</field>
+        <field name="label">L-4</field>
+    </record>
+    <record id="risk_score_l1_c5" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l1"/>
+        <field name="consequence_id" ref="risk_consequence_c5"/>
+        <field name="severity_id" ref="risk_severity_sev_medium"/>
+        <field name="score">5</field>
+        <field name="label">M-5</field>
+    </record>
+    <record id="risk_score_l2_c1" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l2"/>
+        <field name="consequence_id" ref="risk_consequence_c1"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">2</field>
+        <field name="label">L-2</field>
+    </record>
+    <record id="risk_score_l2_c2" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l2"/>
+        <field name="consequence_id" ref="risk_consequence_c2"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">4</field>
+        <field name="label">L-4</field>
+    </record>
+    <record id="risk_score_l2_c3" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l2"/>
+        <field name="consequence_id" ref="risk_consequence_c3"/>
+        <field name="severity_id" ref="risk_severity_sev_medium"/>
+        <field name="score">6</field>
+        <field name="label">M-6</field>
+    </record>
+    <record id="risk_score_l2_c4" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l2"/>
+        <field name="consequence_id" ref="risk_consequence_c4"/>
+        <field name="severity_id" ref="risk_severity_sev_medium"/>
+        <field name="score">8</field>
+        <field name="label">M-8</field>
+    </record>
+    <record id="risk_score_l2_c5" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l2"/>
+        <field name="consequence_id" ref="risk_consequence_c5"/>
+        <field name="severity_id" ref="risk_severity_sev_high"/>
+        <field name="score">10</field>
+        <field name="label">H-10</field>
+    </record>
+    <record id="risk_score_l3_c1" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l3"/>
+        <field name="consequence_id" ref="risk_consequence_c1"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">3</field>
+        <field name="label">L-3</field>
+    </record>
+    <record id="risk_score_l3_c2" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l3"/>
+        <field name="consequence_id" ref="risk_consequence_c2"/>
+        <field name="severity_id" ref="risk_severity_sev_medium"/>
+        <field name="score">6</field>
+        <field name="label">M-6</field>
+    </record>
+    <record id="risk_score_l3_c3" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l3"/>
+        <field name="consequence_id" ref="risk_consequence_c3"/>
+        <field name="severity_id" ref="risk_severity_sev_medium"/>
+        <field name="score">9</field>
+        <field name="label">M-9</field>
+    </record>
+    <record id="risk_score_l3_c4" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l3"/>
+        <field name="consequence_id" ref="risk_consequence_c4"/>
+        <field name="severity_id" ref="risk_severity_sev_high"/>
+        <field name="score">12</field>
+        <field name="label">H-12</field>
+    </record>
+    <record id="risk_score_l3_c5" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l3"/>
+        <field name="consequence_id" ref="risk_consequence_c5"/>
+        <field name="severity_id" ref="risk_severity_sev_high"/>
+        <field name="score">15</field>
+        <field name="label">H-15</field>
+    </record>
+    <record id="risk_score_l4_c1" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l4"/>
+        <field name="consequence_id" ref="risk_consequence_c1"/>
+        <field name="severity_id" ref="risk_severity_sev_low"/>
+        <field name="score">4</field>
+        <field name="label">L-4</field>
+    </record>
+    <record id="risk_score_l4_c2" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l4"/>
+        <field name="consequence_id" ref="risk_consequence_c2"/>
+        <field name="severity_id" ref="risk_severity_sev_medium"/>
+        <field name="score">8</field>
+        <field name="label">M-8</field>
+    </record>
+    <record id="risk_score_l4_c3" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l4"/>
+        <field name="consequence_id" ref="risk_consequence_c3"/>
+        <field name="severity_id" ref="risk_severity_sev_high"/>
+        <field name="score">12</field>
+        <field name="label">H-12</field>
+    </record>
+    <record id="risk_score_l4_c4" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l4"/>
+        <field name="consequence_id" ref="risk_consequence_c4"/>
+        <field name="severity_id" ref="risk_severity_sev_extreme"/>
+        <field name="score">16</field>
+        <field name="label">E-16</field>
+    </record>
+    <record id="risk_score_l4_c5" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l4"/>
+        <field name="consequence_id" ref="risk_consequence_c5"/>
+        <field name="severity_id" ref="risk_severity_sev_extreme"/>
+        <field name="score">20</field>
+        <field name="label">E-20</field>
+    </record>
+    <record id="risk_score_l5_c1" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l5"/>
+        <field name="consequence_id" ref="risk_consequence_c1"/>
+        <field name="severity_id" ref="risk_severity_sev_medium"/>
+        <field name="score">5</field>
+        <field name="label">M-5</field>
+    </record>
+    <record id="risk_score_l5_c2" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l5"/>
+        <field name="consequence_id" ref="risk_consequence_c2"/>
+        <field name="severity_id" ref="risk_severity_sev_high"/>
+        <field name="score">10</field>
+        <field name="label">H-10</field>
+    </record>
+    <record id="risk_score_l5_c3" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l5"/>
+        <field name="consequence_id" ref="risk_consequence_c3"/>
+        <field name="severity_id" ref="risk_severity_sev_high"/>
+        <field name="score">15</field>
+        <field name="label">H-15</field>
+    </record>
+    <record id="risk_score_l5_c4" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l5"/>
+        <field name="consequence_id" ref="risk_consequence_c4"/>
+        <field name="severity_id" ref="risk_severity_sev_extreme"/>
+        <field name="score">20</field>
+        <field name="label">E-20</field>
+    </record>
+    <record id="risk_score_l5_c5" model="risk.score">
+        <field name="likelihood_id" ref="risk_likelihood_l5"/>
+        <field name="consequence_id" ref="risk_consequence_c5"/>
+        <field name="severity_id" ref="risk_severity_sev_extreme"/>
+        <field name="score">25</field>
+        <field name="label">E-25</field>
+    </record>
+</odoo>

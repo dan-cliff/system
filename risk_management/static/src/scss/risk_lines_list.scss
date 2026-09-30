@@ -1,0 +1,35 @@
+// Odoo's list renderer (useMagicColumnWidths, in @web/views/list/column_width_hook)
+// sets an inline "width" style on each <th> based on measured content, which beats
+// any plain CSS rule on specificity alone - hence !important below. table-layout:
+// fixed makes the browser actually respect those widths instead of letting a long
+// cell value (e.g. Risk text) stretch its column past what's requested.
+//
+// Percentages below took an equal share of the "flexible" columns (Risk, Inherent
+// Risk, Residual Risk, Controls, [Actions]) as a baseline, applied Risk +50% and
+// Inherent/Residual Risk +25% each, then took Inherent/Residual Risk down another
+// 20% (i.e. to 80% of that) and folded the difference into Risk to compensate -
+// id/handle columns keep their small fixed allowances throughout.
+
+.o_risk_template_lines_list .o_list_table,
+.o_risk_assessment_lines_list .o_list_table {
+    table-layout: fixed;
+}
+
+.o_risk_template_lines_list {
+    th[data-name="id"], td[name="id"] { width: 5% !important; }
+    th[data-name="sequence"], td[name="sequence"] { width: 4% !important; }
+    th[data-name="name"], td[name="name"] { width: 36.2% !important; }
+    th[data-name="inherent_label"], td[name="inherent_label"] { width: 18.4% !important; }
+    th[data-name="residual_label"], td[name="residual_label"] { width: 18.4% !important; }
+    th[data-name="control_ids"], td[name="control_ids"] { width: 18% !important; }
+}
+
+.o_risk_assessment_lines_list {
+    th[data-name="id"], td[name="id"] { width: 4% !important; }
+    th[data-name="sequence"], td[name="sequence"] { width: 3% !important; }
+    th[data-name="name"], td[name="name"] { width: 30.6% !important; }
+    th[data-name="inherent_label"], td[name="inherent_label"] { width: 15.2% !important; }
+    th[data-name="residual_label"], td[name="residual_label"] { width: 15.2% !important; }
+    th[data-name="control_ids"], td[name="control_ids"] { width: 16% !important; }
+    th[data-name="todo_ids"], td[name="todo_ids"] { width: 16% !important; }
+}

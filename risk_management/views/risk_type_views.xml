@@ -1,0 +1,40 @@
+<odoo>
+    <record id="view_risk_type_list" model="ir.ui.view">
+        <field name="name">risk.type.list</field>
+        <field name="model">risk.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" readonly="1"/>
+                <field name="name"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_type_form" model="ir.ui.view">
+        <field name="name">risk.type.form</field>
+        <field name="model">risk.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_risk_type" model="ir.actions.act_window">
+        <field name="name">Risk Types</field>
+        <field name="res_model">risk.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">Create a risk type</p>
+            <p>Risk Types group risks at a high level, e.g. "Physical", "Environmental", "Behavioural".
+               Each Risk Subtype belongs to one Risk Type.</p>
+        </field>
+    </record>
+</odoo>

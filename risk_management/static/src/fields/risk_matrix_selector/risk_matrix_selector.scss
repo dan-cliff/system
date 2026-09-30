@@ -1,0 +1,64 @@
+.o_risk_matrix_selector {
+    .o_risk_matrix_pickers {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+
+        .o_risk_matrix_picker_label {
+            display: block;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+    }
+
+    .o_risk_matrix_table {
+        border-collapse: collapse;
+        width: 100%;
+
+        .o_risk_matrix_corner {
+            border: 1px solid var(--border-color, #ccc);
+        }
+
+        .o_risk_matrix_header {
+            border: 1px solid var(--border-color, #ccc);
+            padding: 6px 8px;
+            font-weight: 600;
+            text-align: center;
+            background-color: var(--RiskMatrix-header-bg, #f5f5f5);
+        }
+
+        .o_risk_matrix_row_header {
+            text-align: left;
+        }
+
+        .o_risk_matrix_cell {
+            border: 1px solid var(--border-color, #ccc);
+            padding: 8px;
+            min-width: 90px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: outline-color 0.1s ease-in-out;
+            outline: 2px solid transparent;
+            outline-offset: -2px;
+
+            &:hover {
+                outline-color: rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        .o_risk_matrix_cell_selected {
+            outline: 3px solid #1f1f1f;
+            outline-offset: -3px;
+        }
+
+        .o_risk_matrix_cell_readonly {
+            cursor: default;
+
+            &:hover {
+                outline-color: transparent;
+            }
+        }
+    }
+}
