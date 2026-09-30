@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="postmark_email_log_view_list" model="ir.ui.view">
+        <field name="name">postmark.email.log.list</field>
+        <field name="model">postmark.email.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0"
+                  decoration-danger="state in ('failed', 'bounced', 'spam', 'error')"
+                  decoration-warning="state in ('soft_bounce', 'unrouted')"
+                  decoration-success="state == 'delivered'">
+                <field name="date" options="{'numeric': True}"/>
+                <field name="direction"/>
+                <field name="email_from"/>
+                <field name="email_to"/>
+                <field name="subject"/>
+                <field name="stream_id" optional="show"/>
+                <field name="record_name" string="Record" optional="show"/>
+                <field name="state"/>
+                <field name="event_type" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="postmark_email_log_view_form" model="ir.ui.view">
+        <field name="name">postmark.email.log.form</field>
+        <field name="model">postmark.email.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <header>
+                    <button name="action_retry_inbound" type="object" string="Process Again"
+                            invisible="direction != 'incoming' or state not in ('unrouted', 'error')"
+                            class="btn-primary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_record" type="object" class="oe_stat_button"
+                                icon="fa-file-text-o" invisible="not res_id">
+                            <field name="record_name" widget="statinfo" string="Record"/>
+                        </button>
+                    </div>
+                    <h1><field name="subject"/></h1>
+                    <group>
+                        <group>
+                            <field name="direction"/>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="email_from"/>
+                            <field name="email_to"/>
+                            <field name="email_cc" invisible="not email_cc"/>
+                            <field name="email_bcc" invisible="not email_bcc"/>
+                            <field name="reply_to"/>
+                        </group>
+                        <group>
+                            <field name="stream_id"/>
+                            <field name="postmark_message_id"/>
+                            <field name="message_id"/>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="mail_message_id"/>
+                        </group>
+                    </group>
+                    <group string="Delivery" invisible="not event_date and not event_type">
+                        <field name="event_type"/>
+                        <field name="event_date" options="{'numeric': True}"/>
+                        <field name="event_details"/>
+                    </group>
+                    <group string="Error" invisible="not error">
+                        <field name="error" nolabel="1" colspan="2"/>
+                    </group>
+                    <group string="Payload" invisible="not payload" groups="base.group_no_one">
+                        <field name="payload" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="postmark_email_log_view_search" model="ir.ui.view">
+        <field name="name">postmark.email.log.search</field>
+        <field name="model">postmark.email.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="email_to"/>
+                <field name="postmark_message_id"/>
+                <field name="res_model"/>
+                <filter name="outgoing" string="Outgoing" domain="[('direction', '=', 'outgoing')]"/>
+                <filter name="incoming" string="Incoming" domain="[('direction', '=', 'incoming')]"/>
+                <separator/>
+                <filter name="problems" string="Problems"
+                        domain="[('state', 'in', ('failed', 'bounced', 'soft_bounce', 'spam', 'unrouted', 'error'))]"/>
+                <filter name="bounced" string="Bounced" domain="[('state', 'in', ('bounced', 'soft_bounce'))]"/>
+                <filter name="spam" string="Spam Complaints" domain="[('state', '=', 'spam')]"/>
+                <separator/>
+                <filter name="date" string="Date" date="date"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_stream" string="Message Stream" context="{'group_by': 'stream_id'}"/>
+                    <filter name="group_model" string="Document Model" context="{'group_by': 'res_model'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="postmark_email_log_action" model="ir.actions.act_window">
+        <field name="name">Postmark Email Log</field>
+        <field name="res_model">postmark.email.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No emails sent or received through Postmark yet</p>
+        </field>
+    </record>
+</odoo>
