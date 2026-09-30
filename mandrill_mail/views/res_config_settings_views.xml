@@ -1,0 +1,100 @@
+<odoo>
+    <!-- Adds to the "Emails" block (block id="emails") that the mail module
+         puts on Settings > General Settings, next to "Use Custom Email Servers". -->
+    <record id="view_mandrill_mail_settings_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.mandrill.mail</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='emails']/setting[@id='email_servers_setting']" position="before">
+                <setting id="mandrill_mail_setting" string="Mailchimp Transactional Email Service"
+                         documentation="https://mailchimp.com/developer/transactional/api/"
+                         help="Use Mailchimp Transactional (formerly Mandrill) as your incoming and outgoing mail service. Enabling this turns off Use Custom Email Servers, Use a Gmail Server and Use an Outlook Server; if the Gmail or Outlook modules are installed, saving asks to uninstall them.">
+                    <field name="mandrill_enabled"/>
+                    <div class="content-group mb-3" invisible="not mandrill_enabled">
+                        <div class="mt16 fw-bold">Authentication</div>
+                        <div class="row mt8">
+                            <label for="mandrill_api_key" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_api_key" password="True" required="mandrill_enabled"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="mandrill_subaccount" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_subaccount" placeholder="Optional"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="mandrill_inbound_webhook_key" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_inbound_webhook_key" password="True" placeholder="Recommended"/>
+                        </div>
+                        <div class="mt8">
+                            <button name="action_mandrill_test_connection" type="object"
+                                    string="Test Connection" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+
+                        <div class="mt16 fw-bold">Sending</div>
+                        <div class="row mt8">
+                            <label for="mandrill_sending_domains" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_sending_domains" placeholder="e.g. example.com"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="mandrill_track_opens" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_track_opens"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="mandrill_track_clicks" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_track_clicks"/>
+                        </div>
+
+                        <div class="mt16 fw-bold">Replies</div>
+                        <div class="row mt8">
+                            <label for="mandrill_default_reply_to" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_default_reply_to" placeholder="e.g. hello@example.com"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="mandrill_reply_tracking" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_reply_tracking"/>
+                        </div>
+                        <div class="text-muted">
+                            Replies are logged on the record the email was sent from, e.g. a reply to an
+                            invoice email is posted on the invoice.
+                        </div>
+                        <div class="mt8">
+                            <button name="action_mandrill_open_reply_routes" type="object"
+                                    string="Reply-To Addresses by Model" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+
+                        <div class="mt16 fw-bold">Receiving</div>
+                        <div class="text-muted">
+                            Mail aliases become inbound routes in Mailchimp Transactional automatically.
+                            Point each alias domain's MX records at Mailchimp Transactional, then set up
+                            the routes and delivery webhook once.
+                        </div>
+                        <div class="row mt8">
+                            <label for="mandrill_inbound_url" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_inbound_url" readonly="1"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="mandrill_events_url" class="col-lg-4 o_light_label"/>
+                            <field name="mandrill_events_url" readonly="1"/>
+                        </div>
+                        <div class="mt8">
+                            <button name="action_mandrill_sync" type="object"
+                                    string="Set Up Inbound Routes &amp; Webhook" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+
+                        <div class="mt16 fw-bold">Log</div>
+                        <div class="row mt8">
+                            <label for="mandrill_log_retention_days" class="col-lg-4 o_light_label"/>
+                            <div class="col-lg-8">
+                                <field name="mandrill_log_retention_days" class="oe_inline"/> days (0 = forever)
+                            </div>
+                        </div>
+                        <div class="mt8">
+                            <button name="action_mandrill_open_logs" type="object"
+                                    string="Email Log" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
