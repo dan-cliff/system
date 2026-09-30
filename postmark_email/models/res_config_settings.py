@@ -2,6 +2,7 @@ import secrets
 from urllib.parse import quote, urlsplit, urlunsplit
 
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 from .postmark_api import (
     EVENTS_WEBHOOK_PATH, INBOUND_WEBHOOK_PATH, PARAM_ALIAS_STREAMS, PARAM_WEBHOOK_PASSWORD,
@@ -81,8 +82,15 @@ class ResConfigSettings(models.TransientModel):
             self.external_email_server_default = False
             self.module_google_gmail = False
             self.module_microsoft_outlook = False
+            # Only one API mail service can send Odoo's email.
+            if 'mandrill_enabled' in self._fields:
+                self.mandrill_enabled = False
 
     def set_values(self):
+        if self.postmark_enabled and self._fields.get('mandrill_enabled') and self.mandrill_enabled:
+            raise UserError(_(
+                "Postmark Email Service and Mailchimp Transactional Email Service can't both be on. "
+                "Turn one of them off."))
         super().set_values()
         if self.postmark_enabled:
             self.env['ir.config_parameter'].sudo().set_param('base_setup.default_external_email_server', False)

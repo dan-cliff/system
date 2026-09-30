@@ -165,6 +165,7 @@ class IrMailServer(models.Model):
                 {'Name': name, 'Value': self._postmark_decode(value)}
                 for name, value in message.items()
                 if name.lower() not in POSTMARK_SKIP_HEADERS
+                and not name.lower().startswith('x-odoo-mandrill-')
             ],
         }
         if cc:

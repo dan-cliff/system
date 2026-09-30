@@ -2,6 +2,7 @@ import base64
 import json
 from unittest.mock import patch
 
+from odoo.exceptions import UserError
 from odoo.tests import HttpCase, TransactionCase, tagged
 from odoo.tools import mute_logger
 
@@ -74,6 +75,17 @@ class TestPostmarkSettings(PostmarkCase):
         self.assertFalse(settings.external_email_server_default)
         self.assertFalse(settings.module_google_gmail)
         self.assertFalse(settings.module_microsoft_outlook)
+
+    def test_cannot_enable_with_mandrill(self):
+        if 'mandrill_enabled' not in self.env['res.config.settings']._fields:
+            self.skipTest("mandrill_mail is not installed")
+        settings = self.env['res.config.settings'].new({'mandrill_enabled': True})
+        settings.postmark_enabled = True
+        settings._onchange_postmark_enabled()
+        self.assertFalse(settings.mandrill_enabled)
+        with self.assertRaises(UserError):
+            self.env['res.config.settings'].create({
+                'postmark_enabled': True, 'mandrill_enabled': True}).set_values()
 
     def test_parse_postmark_datetime(self):
         dt = postmark_api.parse_postmark_datetime('2014-02-17T07:25:01.4178645-05:00')
