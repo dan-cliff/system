@@ -1,0 +1,22 @@
+<odoo>
+    <!-- The inbound webhook triggers this cron as soon as an email arrives;
+         the interval is only a safety net for anything left unprocessed. -->
+    <record id="ir_cron_mandrill_process_inbound" model="ir.cron">
+        <field name="name">Mailchimp Transactional: Process Received Emails</field>
+        <field name="model_id" ref="model_mandrill_mail_log"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_process_inbound()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="ir_cron_mandrill_gc_logs" model="ir.cron">
+        <field name="name">Mailchimp Transactional: Clean Up Email Log</field>
+        <field name="model_id" ref="model_mandrill_mail_log"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_gc_logs()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

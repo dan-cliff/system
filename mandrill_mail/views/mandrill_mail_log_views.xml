@@ -1,0 +1,122 @@
+<odoo>
+    <record id="view_mandrill_mail_log_list" model="ir.ui.view">
+        <field name="name">mandrill.mail.log.list</field>
+        <field name="model">mandrill.mail.log</field>
+        <field name="arch" type="xml">
+            <list string="Email Log" create="0" edit="0"
+                  decoration-danger="state in ('error', 'failed', 'rejected', 'invalid', 'bounced', 'spam')"
+                  decoration-warning="state in ('deferred', 'soft_bounced')"
+                  decoration-muted="state == 'ignored'">
+                <field name="date" options="{'numeric': True}"/>
+                <field name="direction"/>
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="recipient"/>
+                <field name="record_name"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('sent', 'processed')"
+                       decoration-info="state in ('queued', 'scheduled', 'received')"
+                       decoration-warning="state in ('deferred', 'soft_bounced')"
+                       decoration-danger="state in ('error', 'failed', 'rejected', 'invalid', 'bounced', 'spam')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mandrill_mail_log_form" model="ir.ui.view">
+        <field name="name">mandrill.mail.log.form</field>
+        <field name="model">mandrill.mail.log</field>
+        <field name="arch" type="xml">
+            <form string="Email" create="0" edit="0">
+                <header>
+                    <button name="action_reprocess" type="object" string="Process Again" class="btn-primary"
+                            invisible="direction != 'inbound' or state not in ('failed', 'ignored')"/>
+                    <button name="action_open_record" type="object" string="Open Record"
+                            invisible="not res_model or not res_id"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="subject" placeholder="(no subject)"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="direction"/>
+                            <field name="state" widget="badge"/>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="email_from"/>
+                            <field name="email_to"/>
+                            <field name="email_cc" invisible="not email_cc"/>
+                            <field name="reply_to" invisible="not reply_to"/>
+                            <field name="recipient"/>
+                        </group>
+                        <group>
+                            <field name="res_model" invisible="not res_model"/>
+                            <field name="record_name" invisible="not record_name"/>
+                            <field name="mail_message_id" invisible="not mail_message_id"/>
+                            <field name="source_log_id" invisible="not source_log_id"/>
+                            <field name="open_count" invisible="direction != 'outbound'"/>
+                            <field name="click_count" invisible="direction != 'outbound'"/>
+                            <field name="last_event" invisible="not last_event"/>
+                            <field name="last_event_date" invisible="not last_event_date" options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <field name="error_message" invisible="not error_message" class="text-danger"/>
+                    <notebook>
+                        <page string="Technical Details" name="technical">
+                            <group>
+                                <field name="message_id"/>
+                                <field name="in_reply_to" invisible="not in_reply_to"/>
+                                <field name="references" invisible="not references"/>
+                                <field name="mandrill_id" invisible="not mandrill_id"/>
+                                <field name="reply_token" invisible="not reply_token"/>
+                                <field name="metadata" invisible="not metadata"/>
+                                <field name="raw_message" filename="subject" invisible="not raw_message"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mandrill_mail_log_search" model="ir.ui.view">
+        <field name="name">mandrill.mail.log.search</field>
+        <field name="model">mandrill.mail.log</field>
+        <field name="arch" type="xml">
+            <search string="Email Log">
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="recipient"/>
+                <field name="message_id"/>
+                <field name="res_model"/>
+                <filter name="outbound" string="Sent" domain="[('direction', '=', 'outbound')]"/>
+                <filter name="inbound" string="Received" domain="[('direction', '=', 'inbound')]"/>
+                <separator/>
+                <filter name="problems" string="Problems"
+                        domain="[('state', 'in', ('error', 'failed', 'rejected', 'invalid', 'bounced', 'soft_bounced', 'deferred', 'spam'))]"/>
+                <separator/>
+                <filter name="date" string="Date" date="date"/>
+                <group>
+                    <filter name="group_direction" string="Direction" context="{'group_by': 'direction'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_model" string="Related Model" context="{'group_by': 'res_model'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mandrill_mail_log" model="ir.actions.act_window">
+        <field name="name">Mailchimp Transactional Email Log</field>
+        <field name="res_model">mandrill.mail.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No emails yet</p>
+            <p>Every email sent or received through Mailchimp Transactional is logged here.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_mandrill_mail_log"
+              name="Mailchimp Transactional Log"
+              parent="base.menu_email"
+              action="action_mandrill_mail_log"
+              sequence="50"/>
+</odoo>
