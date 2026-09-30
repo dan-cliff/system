@@ -1,0 +1,30 @@
+<odoo>
+    <!-- Verified against Odoo 19's actual base_setup/views/res_config_settings_views.xml source
+         (github.com/odoo/odoo, 19.0 branch) before writing this - that source uses a
+         <block name="integration">/<setting> declarative syntax (not the old raw <div> layout
+         a previous attempt here wrongly assumed), and third-party modules like
+         partner_autocomplete confirm inherit_id="base_setup.res_config_settings_view_form" is
+         the right base view. One <setting> per field matches every real example in that file -
+         no example there nests more than one <field> in a single <setting>. -->
+    <record id="view_claude_ai_settings_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.claude.ai.settings</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='integration']" position="inside">
+                <setting id="claude_ai_api_key_setting" string="Claude AI"
+                         help="API key other apps in this database use to call the Claude AI API for AI agent features">
+                    <field name="claude_api_key" password="True" placeholder="sk-ant-..."/>
+                    <button name="action_open_anthropic_console" type="object"
+                            string="Get an API key" class="btn-link" icon="fa-arrow-right"/>
+                </setting>
+                <setting id="claude_ai_gemini_api_key_setting" string="Google Gemini"
+                         help="API key other apps in this database use to call the Google Gemini API for AI agent features">
+                    <field name="gemini_api_key" password="True" placeholder="AIza..."/>
+                    <button name="action_open_google_ai_studio" type="object"
+                            string="Get an API key" class="btn-link" icon="fa-arrow-right"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
