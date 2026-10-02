@@ -1,6 +1,6 @@
 {
     'name': 'Home Menu',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Extra Tools',
     'summary': 'Enterprise-style app grid home screen for the /odoo page',
     'description': """
@@ -11,10 +11,10 @@ access to as a clickable icon, similar to Odoo Enterprise's home
 screen. Clicking an icon opens that app exactly as clicking its menu
 entry would.
 
-The waffle (apps) icon in the top-left of the navbar now always
-navigates to this home screen instead of opening a dropdown, and it
-is also what a user without a personal Home Action configured lands
-on when visiting /odoo directly.
+The home screen lives at /odoo: visiting /odoo directly opens it
+(unless the user has a personal Home Action configured), and the
+waffle (apps) icon in the top-left of the navbar always navigates to
+it instead of opening a dropdown.
 """,
     'author': 'Bendigo Scouts',
     'license': 'LGPL-3',
@@ -29,9 +29,9 @@ on when visiting /odoo directly.
             'web_home_menu/static/src/home_screen/home_screen.scss',
             'web_home_menu/static/src/navbar_patch/navbar_patch.js',
             'web_home_menu/static/src/navbar_patch/navbar_patch.xml',
+            'web_home_menu/static/src/webclient_patch/webclient_patch.js',
         ],
     },
-    'post_init_hook': '_set_default_home_action',
     'installable': True,
     'application': False,
 }

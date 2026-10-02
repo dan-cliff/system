@@ -14,7 +14,7 @@ patch(NavBar.prototype, {
         });
     },
     onHomeMenuClick() {
-        this.actionService.doAction("web_home_menu.action_home_screen");
+        this.actionService.doAction("menu", { clearBreadcrumbs: true });
     },
     isSystrayAllowedOnHome(key) {
         return HOME_SCREEN_SYSTRAY_KEYS.includes(key);

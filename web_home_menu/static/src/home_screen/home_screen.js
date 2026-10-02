@@ -33,4 +33,11 @@ export class HomeScreen extends Component {
     }
 }
 
-registry.category("actions").add("web_home_menu.home_screen", HomeScreen);
+const actionRegistry = registry.category("actions");
+actionRegistry.add("web_home_menu.home_screen", HomeScreen);
+// "menu" is the tag the web client treats as the home menu: the router leaves
+// it out of the URL (so it shows as plain /odoo) and it is never listed in
+// breadcrumbs. Community doesn't register it; Enterprise's own home menu does.
+if (!actionRegistry.contains("menu")) {
+    actionRegistry.add("menu", HomeScreen);
+}
