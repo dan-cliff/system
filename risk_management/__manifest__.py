@@ -27,7 +27,8 @@ Risk Management
   Users with Risk Assessments / Delete can also archive assessments and
   approve any submitted assessment. Risk Assessments / Create and Edit
   Own Only lets a user create and edit assessments but only see the ones
-  they created or are the Owner, Approver or a Collaborator on.
+  they created or are the Owner, Approver or a Collaborator on, unless
+  they also have Risk Assessments / Update or Delete.
 * Risk Assessments carry a Risk Approver (defaulting to the Risk Assessment
   Owner's Team Leader) and a Review Due date (defaulting to one year after
   the assessment date), moving through a configurable Stage statusbar

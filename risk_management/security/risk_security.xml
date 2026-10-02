@@ -42,7 +42,7 @@
     <record id="group_risk_assessment_own" model="res.groups">
         <field name="name">Create and Edit Own Only</field>
         <field name="privilege_id" ref="privilege_risk_assessment"/>
-        <field name="comment">Can create and edit Risk Assessments, but only sees the ones they created or are the Risk Assessment Owner, Risk Approver or a Collaborator on.</field>
+        <field name="comment">Can create and edit Risk Assessments, but only sees the ones they created or are the Risk Assessment Owner, Risk Approver or a Collaborator on. Overridden by Risk Assessments / Update or Delete.</field>
         <field name="implied_ids" eval="[(4, ref('group_risk_assessment_view'))]"/>
     </record>
 
@@ -419,7 +419,9 @@
     </record>
 
     <!-- Create and Edit Own Only: within those companies, only the assessments (and their
-         Risks) the user created or is the Owner, Approver or a Collaborator on. -->
+         Risks) the user created or is the Owner, Approver or a Collaborator on. Group rules
+         are OR-ed, so the "any record" rules below lift the restriction for users who also
+         have Risk Assessments / Update or Delete. -->
     <record id="rule_risk_assessment_own" model="ir.rule">
         <field name="name">Risk Assessment: own, owned, approving or collaborating</field>
         <field name="model_id" ref="model_risk_assessment"/>
@@ -432,6 +434,12 @@
             ('collaborator_ids', 'in', [user.id]),
         ]</field>
     </record>
+    <record id="rule_risk_assessment_any" model="ir.rule">
+        <field name="name">Risk Assessment: any record (Update or Delete)</field>
+        <field name="model_id" ref="model_risk_assessment"/>
+        <field name="groups" eval="[(4, ref('group_risk_assessment_update')), (4, ref('group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
     <record id="rule_risk_assessment_line_own" model="ir.rule">
         <field name="name">Risk Assessment Lines: own, owned, approving or collaborating</field>
         <field name="model_id" ref="model_risk_assessment_line"/>
@@ -443,5 +451,11 @@
             ('assessment_id.approver_id', '=', user.id),
             ('assessment_id.collaborator_ids', 'in', [user.id]),
         ]</field>
+    </record>
+    <record id="rule_risk_assessment_line_any" model="ir.rule">
+        <field name="name">Risk Assessment Lines: any record (Risk Assessments Update or Delete)</field>
+        <field name="model_id" ref="model_risk_assessment_line"/>
+        <field name="groups" eval="[(4, ref('group_risk_assessment_update')), (4, ref('group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 </odoo>
