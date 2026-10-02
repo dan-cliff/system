@@ -1,6 +1,6 @@
 {
     'name': 'Permission Management',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'category': 'Administration',
     'summary': 'Role and Profile-based permission management across all Odoo modules',
     'author': "Cliff's Country Crafts",
