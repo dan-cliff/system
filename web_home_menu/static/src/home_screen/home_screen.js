@@ -1,6 +1,9 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
+import { user } from "@web/core/user";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 import { Component, useState, onMounted, onWillStart, onWillUnmount } from "@odoo/owl";
 import { FolderPopup } from "../folder_popup/folder_popup";
 
@@ -17,6 +20,7 @@ export class HomeScreen extends Component {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.ui = useService("ui");
+        this.dialog = useService("dialog");
         this.state = useState({ searchTerm: "" });
         this.layout = useState({
             source: "none", // "user" | "default" | "none"
@@ -25,9 +29,11 @@ export class HomeScreen extends Component {
             folders: [],
             openFolderId: null,
             editMode: false,
+            // [{id, name, url, new_tab, icon, color, image_url, is_default, editable}]
+            quickLinks: [],
         });
         this.draggedAppId = null;
-        onWillStart(() => this.loadLayout());
+        onWillStart(() => Promise.all([this.loadLayout(), this.loadQuickLinks()]));
         // Let the navbar know the home screen is showing, so it can hide its
         // own menus/waffle button and only keep a few systray icons visible.
         onMounted(() => this.env.bus.trigger("HOME_MENU:VISIBILITY", { isVisible: true }));
@@ -46,6 +52,10 @@ export class HomeScreen extends Component {
             appIds: folder.app_menu_ids,
         }));
         this.layout.openFolderId = null;
+    }
+
+    async loadQuickLinks() {
+        this.layout.quickLinks = await this.orm.call("home.menu.quick.link", "get_quick_links", []);
     }
 
     //--------------------------------------------------------------------------
@@ -228,6 +238,42 @@ export class HomeScreen extends Component {
         await this.loadLayout();
         this.notification.add(_t("Your home screen is back to the default layout."), {
             type: "info",
+        });
+    }
+
+    //--------------------------------------------------------------------------
+    // Quick launch bar (changes save straight away, not with "Save")
+    //--------------------------------------------------------------------------
+
+    onQuickLinkClick(ev) {
+        if (this.layout.editMode) {
+            ev.preventDefault();
+        }
+    }
+
+    openQuickLinkDialog(link = null) {
+        this.dialog.add(FormViewDialog, {
+            resModel: "home.menu.quick.link",
+            resId: link ? link.id : false,
+            title: link ? _t("Edit Quick Launch Button") : _t("New Quick Launch Button"),
+            // New buttons are the user's own; administrators can clear the
+            // User field in the dialog to show a button to everyone.
+            context: { default_user_id: user.userId },
+            onRecordSaved: () => this.loadQuickLinks(),
+        });
+    }
+
+    deleteQuickLink(link) {
+        this.dialog.add(ConfirmationDialog, {
+            body: link.is_default
+                ? _t('Remove "%s" from the quick launch bar for everyone?', link.name)
+                : _t('Remove "%s" from your quick launch bar?', link.name),
+            confirmLabel: _t("Remove"),
+            confirm: async () => {
+                await this.orm.unlink("home.menu.quick.link", [link.id]);
+                await this.loadQuickLinks();
+            },
+            cancel: () => {},
         });
     }
 

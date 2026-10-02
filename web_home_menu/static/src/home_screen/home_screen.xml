@@ -24,6 +24,43 @@
     <t t-name="web_home_menu.HomeScreen">
         <div class="o_home_menu d-flex flex-column align-items-center"
              t-att-class="{ o_home_menu_editing: layout.editMode }">
+
+            <!-- Quick launch bar -->
+            <div t-if="layout.quickLinks.length or layout.editMode"
+                 class="o_home_menu_quick_launch d-flex flex-wrap justify-content-center gap-2 w-100 mt-2">
+                <t t-foreach="layout.quickLinks" t-as="link" t-key="link.id">
+                    <div class="o_home_menu_quick_link_wrapper position-relative">
+                        <a class="o_home_menu_quick_link d-flex align-items-center gap-2 rounded-pill px-3 py-1"
+                           t-att-href="link.url"
+                           t-att-target="link.new_tab ? '_blank' : undefined"
+                           t-att-rel="link.new_tab ? 'noopener noreferrer' : undefined"
+                           t-att-title="link.url"
+                           t-on-click="onQuickLinkClick">
+                            <img t-if="link.image_url" class="o_home_menu_quick_link_icon" t-att-src="link.image_url" alt=""/>
+                            <span t-else="" class="o_home_menu_quick_link_icon d-flex align-items-center justify-content-center"
+                                  t-attf-style="background-color: {{ link.color }};">
+                                <i t-attf-class="fa {{ link.icon }}"/>
+                            </span>
+                            <span class="o_home_menu_quick_link_label text-truncate" t-esc="link.name"/>
+                        </a>
+                        <div t-if="layout.editMode and link.editable" class="o_home_menu_quick_link_controls d-flex gap-1">
+                            <button class="btn btn-sm btn-light rounded-circle" title="Edit button"
+                                    t-on-click="() => this.openQuickLinkDialog(link)">
+                                <i class="fa fa-pencil"/>
+                            </button>
+                            <button class="btn btn-sm btn-light rounded-circle text-danger" title="Remove button"
+                                    t-on-click="() => this.deleteQuickLink(link)">
+                                <i class="fa fa-trash"/>
+                            </button>
+                        </div>
+                    </div>
+                </t>
+                <button t-if="layout.editMode" class="btn btn-sm btn-light rounded-pill px-3 o_home_menu_quick_link_add"
+                        t-on-click="() => this.openQuickLinkDialog()">
+                    <i class="fa fa-plus me-1"/>Add button
+                </button>
+            </div>
+
             <div class="o_home_menu_search my-4 w-100">
                 <input type="text"
                        class="form-control o_home_menu_search_input mx-auto"
@@ -43,7 +80,7 @@
                 </t>
                 <t t-else="">
                     <span class="text-muted small me-auto">
-                        <i class="fa fa-info-circle me-1"/>Drag apps onto a folder, or back onto the grid to take them out.
+                        <i class="fa fa-info-circle me-1"/>Drag apps onto a folder, or back onto the grid to take them out. Quick launch button changes save straight away.
                     </span>
                     <button class="btn btn-sm btn-secondary" t-on-click="() => this.createFolder()">
                         <i class="fa fa-folder-o me-1"/>New folder

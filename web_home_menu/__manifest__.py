@@ -28,6 +28,13 @@ main grid.
   default" to go back.
 * Administrators can also build or change a user's personal layout
   from Settings by setting the User on a folder.
+
+A quick launch bar at the top of the home screen holds buttons, each
+with its own icon (image or FontAwesome icon), label and URL, that
+take the user straight to that URL. Administrators set the buttons
+shown to everyone under Settings > General Settings > Home Screen;
+users add, edit and remove their own from the home screen's "Edit
+layout" mode, and see them after everyone's buttons.
 """,
     'author': 'Bendigo Scouts',
     'license': 'LGPL-3',
@@ -38,6 +45,7 @@ main grid.
         'data/actions.xml',
         'data/res_lang_data.xml',
         'views/home_menu_folder_views.xml',
+        'views/home_menu_quick_link_views.xml',
         'views/res_config_settings_views.xml',
     ],
     'assets': {

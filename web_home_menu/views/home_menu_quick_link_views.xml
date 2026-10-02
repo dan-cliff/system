@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_home_menu_quick_link_list" model="ir.ui.view">
+        <field name="name">home.menu.quick.link.list</field>
+        <field name="model">home.menu.quick.link</field>
+        <field name="arch" type="xml">
+            <list string="Quick Launch Buttons">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="url"/>
+                <field name="user_id" optional="show" placeholder="Everyone"/>
+                <field name="new_tab" optional="hide"/>
+                <field name="color" widget="color" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Also used by the home screen's add/edit dialog, so the User field is
+         only shown to administrators: a user's own buttons are always theirs. -->
+    <record id="view_home_menu_quick_link_form" model="ir.ui.view">
+        <field name="name">home.menu.quick.link.form</field>
+        <field name="model">home.menu.quick.link</field>
+        <field name="arch" type="xml">
+            <form string="Quick Launch Button">
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar" options="{'size': [64, 64]}"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Company Website"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="url" placeholder="/odoo/action-contacts or https://..." widget="url"/>
+                            <field name="new_tab"/>
+                            <field name="user_id" groups="base.group_erp_manager"
+                                   placeholder="Empty = shown to everyone"/>
+                        </group>
+                        <group>
+                            <field name="icon" placeholder="fa-link" invisible="image"/>
+                            <field name="color" widget="color"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_home_menu_quick_link_search" model="ir.ui.view">
+        <field name="name">home.menu.quick.link.search</field>
+        <field name="model">home.menu.quick.link</field>
+        <field name="arch" type="xml">
+            <search string="Quick Launch Buttons">
+                <field name="name"/>
+                <field name="url"/>
+                <field name="user_id"/>
+                <filter name="everyone" string="Shown to everyone"
+                        domain="[('user_id', '=', False)]"/>
+                <filter name="personal" string="Personal"
+                        domain="[('user_id', '!=', False)]"/>
+                <separator/>
+                <filter name="inactive" string="Archived"
+                        domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_user" string="User"
+                            context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_home_menu_quick_link" model="ir.actions.act_window">
+        <field name="name">Quick Launch Buttons</field>
+        <field name="res_model">home.menu.quick.link</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_home_menu_quick_link_search"/>
+        <field name="context">{'search_default_everyone': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a quick launch button
+            </p>
+            <p>
+                Quick launch buttons sit at the top of the home screen and take
+                users straight to a URL. Leave <b>User</b> empty to show a button
+                to everyone; users can also add their own from the home screen.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_home_menu_quick_link"
+              name="Quick Launch"
+              parent="menu_home_menu_root"
+              action="action_home_menu_quick_link"
+              sequence="20"/>
+
+</odoo>
