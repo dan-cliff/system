@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <div name="button_box" position="inside">
                 <button name="action_open_helpdesk_tickets" type="object" class="oe_stat_button" icon="fa-life-ring"
-                        groups="helpdesk_management.group_helpdesk_user" invisible="not helpdesk_ticket_count">
+                        groups="helpdesk_management.group_helpdesk_ticket_view" invisible="not helpdesk_ticket_count">
                     <field name="helpdesk_ticket_count" widget="statinfo" string="Tickets"/>
                 </button>
             </div>

@@ -1,13 +1,14 @@
 {
     'name': 'Permission Management',
-    'version': '19.0.1.0.3',
+    'version': '19.0.1.1.0',
     'category': 'Administration',
     'summary': 'Role and Profile-based permission management across all Odoo modules',
     'author': "Cliff's Country Crafts",
     'depends': ['base', 'hr'],
     'data': [
-        'security/security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'data/permission_role_data.xml',
         'views/permission_role_views.xml',

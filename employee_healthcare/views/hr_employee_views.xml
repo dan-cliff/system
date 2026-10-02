@@ -17,7 +17,7 @@
                         string="Print Care Profile"
                         icon="fa-file-pdf-o"
                         class="btn-secondary"
-                        groups="employee_healthcare.group_employee_healthcare_employee"/>
+                        groups="employee_healthcare.group_hc_record_view"/>
             </xpath>
 
             <!-- Healthcare indicators displayed below the job title -->
@@ -26,14 +26,14 @@
                        widget="many2many_tags"
                        options="{'color_field': 'color', 'no_create': True}"
                        readonly="1"
-                       groups="employee_healthcare.group_employee_healthcare_employee"
+                       groups="employee_healthcare.group_hc_record_view"
                        nolabel="1"/>
             </xpath>
 
             <!-- Healthcare page tab -->
             <xpath expr="//page[@name='hr_settings']" position="after">
                 <page name="healthcare" string="Healthcare"
-                      groups="employee_healthcare.group_employee_healthcare_employee">
+                      groups="employee_healthcare.group_hc_record_view">
 
                     <group>
                         <field name="healthcare_indicator_ids"

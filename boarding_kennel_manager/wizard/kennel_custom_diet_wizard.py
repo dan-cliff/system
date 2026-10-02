@@ -34,7 +34,9 @@ class KennelCustomDietWizard(models.TransientModel):
     def action_create(self):
         self.ensure_one()
         resident = self.line_id.resident_id
-        diet = self.env['kennel.diet'].create({
+        # Diets are Configuration (Administrator only); keepers still make one-off custom
+        # diets for the animal in their care from a stay, so this create runs as superuser.
+        diet = self.env['kennel.diet'].sudo().create({
             'name': self.name or self.env._('%s - Custom Diet', resident.name),
             'resident_id': resident.id,
             'species_id': resident.species_id.id,

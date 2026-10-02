@@ -75,11 +75,11 @@
                     <button name="action_confirm" type="object"
                             string="Confirm" class="btn-primary"
                             invisible="state != 'planned'"
-                            groups="video_production.group_video_production_manager"/>
+                            groups="video_production.group_vp_shoot_update"/>
                     <button name="action_complete" type="object"
                             string="Mark Completed" class="btn-success"
                             invisible="state not in ('planned','confirmed')"
-                            groups="video_production.group_video_production_manager"/>
+                            groups="video_production.group_vp_shoot_update"/>
                     <button name="action_cancel" type="object"
                             string="Cancel" class="btn-danger"
                             invisible="state in ('completed','cancelled')"/>

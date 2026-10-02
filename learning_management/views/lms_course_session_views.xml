@@ -20,11 +20,11 @@
                 <button name="action_confirm" type="object" string="Confirm"
                         icon="fa-check" class="btn-success"
                         invisible="state != 'pending_approval'"
-                        groups="learning_management.group_lms_people_leader"/>
+                        groups="learning_management.group_lms_enrollment_own,learning_management.group_lms_enrollment_update"/>
                 <button name="action_cancel" type="object" string="Cancel"
                         icon="fa-times" class="btn-danger"
                         invisible="state in ('cancelled', 'attended', 'absent')"
-                        groups="learning_management.group_lms_facilitator"/>
+                        groups="learning_management.group_lms_enrollment_update"/>
             </list>
         </field>
     </record>
@@ -38,15 +38,15 @@
                     <button name="action_confirm" type="object" string="Approve &amp; Confirm"
                             class="btn-primary"
                             invisible="state != 'pending_approval'"
-                            groups="learning_management.group_lms_people_leader"/>
+                            groups="learning_management.group_lms_enrollment_own,learning_management.group_lms_enrollment_update"/>
                     <button name="action_mark_attended" type="object" string="Mark Attended"
                             class="btn-success"
                             invisible="state != 'confirmed'"
-                            groups="learning_management.group_lms_facilitator"/>
+                            groups="learning_management.group_lms_enrollment_update"/>
                     <button name="action_mark_absent" type="object" string="Mark Absent"
                             class="btn-warning"
                             invisible="state != 'confirmed'"
-                            groups="learning_management.group_lms_facilitator"/>
+                            groups="learning_management.group_lms_enrollment_update"/>
                     <button name="action_cancel" type="object" string="Cancel"
                             invisible="state in ('cancelled', 'attended', 'absent')"/>
                     <field name="state" widget="statusbar"
@@ -137,13 +137,13 @@
                 <field name="is_public"/>
                 <button name="action_open" type="object" string="Open"
                         icon="fa-unlock" invisible="state != 'draft'"
-                        groups="learning_management.group_lms_facilitator"/>
+                        groups="learning_management.group_lms_session_update"/>
                 <button name="action_close_enrolment" type="object" string="Close Enrolment"
                         icon="fa-lock" invisible="state != 'open'"
-                        groups="learning_management.group_lms_facilitator"/>
+                        groups="learning_management.group_lms_session_update"/>
                 <button name="action_complete" type="object" string="Complete"
                         icon="fa-check-circle" invisible="state not in ('open', 'closed', 'in_progress')"
-                        groups="learning_management.group_lms_facilitator"/>
+                        groups="learning_management.group_lms_session_update"/>
             </list>
         </field>
     </record>
@@ -173,17 +173,17 @@
                     <button name="action_open" type="object" string="Open for Enrolment"
                             class="btn-primary"
                             invisible="state != 'draft'"
-                            groups="learning_management.group_lms_facilitator"/>
+                            groups="learning_management.group_lms_session_update"/>
                     <button name="action_close_enrolment" type="object" string="Close Enrolment"
                             invisible="state != 'open'"
-                            groups="learning_management.group_lms_facilitator"/>
+                            groups="learning_management.group_lms_session_update"/>
                     <button name="action_complete" type="object" string="Mark Complete"
                             class="btn-success"
                             invisible="state not in ('open', 'closed', 'in_progress')"
-                            groups="learning_management.group_lms_facilitator"/>
+                            groups="learning_management.group_lms_session_update"/>
                     <button name="action_cancel" type="object" string="Cancel"
                             invisible="state in ('completed', 'cancelled')"
-                            groups="learning_management.group_lms_manager"/>
+                            groups="learning_management.group_lms_session_delete"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,open,closed,in_progress,completed"/>
                 </header>
@@ -235,15 +235,15 @@
                                     <button name="action_confirm" type="object" string="Confirm"
                                             icon="fa-check" class="btn-success"
                                             invisible="state != 'pending_approval'"
-                                            groups="learning_management.group_lms_people_leader"/>
+                                            groups="learning_management.group_lms_enrollment_own,learning_management.group_lms_enrollment_update"/>
                                     <button name="action_mark_attended" type="object"
                                             string="Attended" icon="fa-user-check"
                                             invisible="state != 'confirmed'"
-                                            groups="learning_management.group_lms_facilitator"/>
+                                            groups="learning_management.group_lms_enrollment_update"/>
                                     <button name="action_mark_absent" type="object"
                                             string="Absent" icon="fa-user-times"
                                             invisible="state != 'confirmed'"
-                                            groups="learning_management.group_lms_facilitator"/>
+                                            groups="learning_management.group_lms_enrollment_update"/>
                                 </list>
                             </field>
                         </page>

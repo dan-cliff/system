@@ -4,8 +4,7 @@
     <menuitem id="menu_meeting_management_root"
               name="Meetings"
               sequence="20"
-              web_icon="meeting_management,static/description/icon.png"
-              groups="meeting_management.group_meeting_user"/>
+              web_icon="meeting_management,static/description/icon.png"/>
 
     <!-- ── Meetings ──────────────────────────────────────────────────────── -->
     <menuitem id="menu_meeting_meetings"
@@ -17,30 +16,33 @@
               name="All Meetings"
               parent="menu_meeting_meetings"
               action="action_meeting_meeting"
-              sequence="10"/>
+              sequence="10"
+              groups="meeting_management.group_meeting_meeting_view"/>
 
     <!-- ── Configuration ─────────────────────────────────────────────────── -->
     <menuitem id="menu_meeting_config"
               name="Configuration"
               parent="menu_meeting_management_root"
-              sequence="90"
-              groups="meeting_management.group_meeting_manager"/>
+              sequence="90"/>
 
     <menuitem id="menu_meeting_templates"
               name="Meeting Templates"
               parent="menu_meeting_config"
               action="action_meeting_template"
-              sequence="10"/>
+              sequence="10"
+              groups="meeting_management.group_meeting_template_create,meeting_management.group_meeting_template_update,meeting_management.group_meeting_template_delete"/>
 
     <menuitem id="menu_meeting_notification_templates"
               name="Notification Templates"
               parent="menu_meeting_config"
               action="action_meeting_notification_template"
-              sequence="20"/>
+              sequence="20"
+              groups="meeting_management.group_meeting_notification_template_create,meeting_management.group_meeting_notification_template_update,meeting_management.group_meeting_notification_template_delete"/>
 
     <menuitem id="menu_meeting_settings"
               name="Settings"
               parent="menu_meeting_config"
               action="action_res_config_settings"
-              sequence="90"/>
+              sequence="90"
+              groups="base.group_system"/>
 </odoo>

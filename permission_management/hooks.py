@@ -1,11 +1,24 @@
 """
 post_init_hook: populate the Role library from all installed privileges.
 
+Apps from this repository that ship an access_levels.py get their Administrator / Manager /
+Employee / View Only roles from _load_access_level_roles instead; ROLE_DEFINITIONS covers
+standard Odoo apps and the odd feature group.
+
 Each entry is (privilege_xml_id, group_xml_id, name, description).
 If either XML ID is missing (module not installed), the role is skipped
 silently — making the library safe on any Odoo instance regardless of
 which optional modules are present.
 """
+
+import importlib.util
+import logging
+
+from odoo.tools.misc import file_path
+
+from odoo.addons.permission_management import access_levels_lib
+
+_logger = logging.getLogger(__name__)
 
 ROLE_DEFINITIONS = [
     # ── Accounting ────────────────────────────────────────────────────
@@ -35,19 +48,6 @@ ROLE_DEFINITIONS = [
         'Full oversight across Accounting, Sales, Purchase, Inventory and Expenses '
         'via the consolidated Accounting Management hub.',
     ),
-    # ── Asset Management ──────────────────────────────────────────────
-    (
-        'asset_management.privilege_asset_management',
-        'asset_management.group_asset_user',
-        'Asset Management – User',
-        'View and log asset activity.',
-    ),
-    (
-        'asset_management.privilege_asset_management',
-        'asset_management.group_asset_manager',
-        'Asset Management – Manager',
-        'Create, edit, and manage all asset records.',
-    ),
     # ── Bank ──────────────────────────────────────────────────────────
     (
         'account.res_group_privilege_accounting_bank',
@@ -69,25 +69,6 @@ ROLE_DEFINITIONS = [
         'Contact – Creation',
         'Create and manage contact records.',
     ),
-    # ── Dangerous Goods ───────────────────────────────────────────────
-    (
-        'dangerous_goods.privilege_dangerous_goods',
-        'dangerous_goods.group_dg_user',
-        'Dangerous Goods – User',
-        'View dangerous goods classifications and documentation.',
-    ),
-    (
-        'dangerous_goods.privilege_dangerous_goods',
-        'dangerous_goods.group_dg_manager',
-        'Dangerous Goods – Manager',
-        'Create and manage dangerous goods records.',
-    ),
-    (
-        'dangerous_goods.privilege_dangerous_goods',
-        'dangerous_goods.group_dg_admin',
-        'Dangerous Goods – Administrator',
-        'Full administration of dangerous goods configuration.',
-    ),
     # ── Dashboard ─────────────────────────────────────────────────────
     (
         'spreadsheet_dashboard.res_groups_privilege_dashboard',
@@ -107,25 +88,6 @@ ROLE_DEFINITIONS = [
         'digital_signage.group_signage_admin',
         'Digital Signage – Administrator',
         'Full administration of digital signage screens and configuration.',
-    ),
-    # ── Employee Healthcare ───────────────────────────────────────────
-    (
-        'employee_healthcare.privilege_employee_healthcare',
-        'employee_healthcare.group_employee_healthcare_employee',
-        'Employee Healthcare – Employee',
-        'View and edit their own healthcare information.',
-    ),
-    (
-        'employee_healthcare.privilege_employee_healthcare',
-        'employee_healthcare.group_employee_healthcare_manager',
-        'Employee Healthcare – Manager',
-        'View and manage all employee healthcare records, without configuration access.',
-    ),
-    (
-        'employee_healthcare.privilege_employee_healthcare',
-        'employee_healthcare.group_employee_healthcare_administrator',
-        'Employee Healthcare – Administrator',
-        'Full access including lookup table configuration and indicator rule management.',
     ),
     # ── Employees ─────────────────────────────────────────────────────
     (
@@ -194,53 +156,16 @@ ROLE_DEFINITIONS = [
     ),
     # ── Incident Management ───────────────────────────────────────────
     (
-        'incident_management.privilege_incident_management',
-        'incident_management.group_incident_user',
-        'Incident Management – User',
-        'Report and view workplace incidents.',
-    ),
-    (
-        'incident_management.privilege_incident_management',
-        'incident_management.group_incident_manager',
-        'Incident Management – Manager',
-        'Manage incident investigations and corrective actions.',
-    ),
-    (
-        'incident_management.privilege_incident_management',
+        'incident_management.privilege_incident_report',
         'incident_management.group_incident_confidential_bypass',
         'Incident Management – Confidential Bypass',
         'Access confidential incident records regardless of restriction flags.',
     ),
     (
-        'incident_management.privilege_incident_management',
-        'incident_management.group_incident_admin',
-        'Incident Management – Administrator',
-        'Full incident management administration and configuration.',
-    ),
-    (
-        'incident_management.privilege_incident_management',
+        'incident_management.privilege_incident_report',
         'emergency_broadcast.group_eb_generate_from_incident',
         'Incident Management – Generate Emergency Broadcast',
         'Generate Emergency Broadcast records directly from an Incident Management report.',
-    ),
-    # ── Injury Management ─────────────────────────────────────────────
-    (
-        'injury_management.res_groups_privilege_injury',
-        'injury_management.group_injury_user',
-        'Injury Management – User',
-        'View RTW cases and injury records.',
-    ),
-    (
-        'injury_management.res_groups_privilege_injury',
-        'injury_management.group_injury_case_manager',
-        'Injury Management – Case Manager',
-        'Manage RTW plans, medical appointments, and injury costs.',
-    ),
-    (
-        'injury_management.res_groups_privilege_injury',
-        'injury_management.group_injury_admin',
-        'Injury Management – Administrator',
-        'Full administration of injury management configuration.',
     ),
     # ── Inventory ─────────────────────────────────────────────────────
     (
@@ -268,37 +193,6 @@ ROLE_DEFINITIONS = [
         'IoT – Administrator',
         'Configure and manage IoT devices and boxes.',
     ),
-    # ── Learning Management System ────────────────────────────────────
-    (
-        'learning_management.privilege_lms',
-        'learning_management.group_lms_employee',
-        'LMS – Employee',
-        'Enrol in and complete assigned training courses.',
-    ),
-    (
-        'learning_management.privilege_lms',
-        'learning_management.group_lms_people_leader',
-        'LMS – People Leader',
-        'View team training progress and enrolments.',
-    ),
-    (
-        'learning_management.privilege_lms',
-        'learning_management.group_lms_facilitator',
-        'LMS – Training Facilitator',
-        'Deliver training sessions and mark attendance.',
-    ),
-    (
-        'learning_management.privilege_lms',
-        'learning_management.group_lms_manager',
-        'LMS – Training Manager',
-        'Create and manage courses, content, and enrolments.',
-    ),
-    (
-        'learning_management.privilege_lms',
-        'learning_management.group_lms_admin',
-        'LMS – Administrator',
-        'Full LMS administration including configuration and reporting.',
-    ),
     # ── Manufacturing ─────────────────────────────────────────────────
     (
         'mrp.res_groups_privilege_manufacturing',
@@ -311,51 +205,6 @@ ROLE_DEFINITIONS = [
         'mrp.group_mrp_manager',
         'Manufacturing – Administrator',
         'Full manufacturing administration including BoMs and routing.',
-    ),
-    # ── Meeting Management ────────────────────────────────────────────
-    (
-        'meeting_management.privilege_meeting_management',
-        'meeting_management.group_meeting_user',
-        'Meeting Management – User',
-        'Create and participate in meetings.',
-    ),
-    (
-        'meeting_management.privilege_meeting_management',
-        'meeting_management.group_meeting_manager',
-        'Meeting Management – Manager',
-        'Manage all meetings, agenda templates, and configuration.',
-    ),
-    # ── Memberships ───────────────────────────────────────────────────
-    (
-        'membership_management.privilege_membership',
-        'membership_management.group_membership_employee',
-        'Memberships – Employee',
-        'View membership records relevant to your role.',
-    ),
-    (
-        'membership_management.privilege_membership',
-        'membership_management.group_membership_manager',
-        'Memberships – Manager',
-        'Manage member records and renewals.',
-    ),
-    (
-        'membership_management.privilege_membership',
-        'membership_management.group_membership_memberships_manager',
-        'Memberships – Memberships Manager',
-        'Manage membership products and pricing configurations.',
-    ),
-    (
-        'membership_management.privilege_membership',
-        'membership_management.group_membership_administrator',
-        'Memberships – Administrator',
-        'Full administration of membership configuration and reporting.',
-    ),
-    # ── Permission Management ─────────────────────────────────────────
-    (
-        'permission_management.privilege_permission_management',
-        'permission_management.group_permission_admin',
-        'Permission Management – Administrator',
-        'Create and manage roles and profiles for all users.',
     ),
     # ── Planning ──────────────────────────────────────────────────────
     (
@@ -382,38 +231,6 @@ ROLE_DEFINITIONS = [
         'point_of_sale.group_pos_manager',
         'Point of Sale – Administrator',
         'Configure and administer all POS shops and settings.',
-    ),
-    # ── Report Builder ────────────────────────────────────────────────
-    (
-        'report_builder.privilege_report_builder',
-        'report_builder.group_report_builder_user',
-        'Report Builder – User',
-        'Run and download existing custom reports.',
-    ),
-    (
-        'report_builder.privilege_report_builder',
-        'report_builder.group_report_builder_manager',
-        'Report Builder – Manager',
-        'Create, configure, and run all custom reports. Full report authoring access.',
-    ),
-    # ── Print Farm ────────────────────────────────────────────────────
-    (
-        'print_farm_jobs.privilege_print_farm',
-        'print_farm_jobs.group_print_farm_user',
-        'Print Farm – User',
-        'View and queue jobs in the 3D print farm.',
-    ),
-    (
-        'print_farm_jobs.privilege_print_farm',
-        'print_farm_jobs.group_print_farm_manager',
-        'Print Farm – Manager',
-        'Manage print jobs, assign printers, and track filament.',
-    ),
-    (
-        'print_farm_jobs.privilege_print_farm',
-        'print_farm_jobs.group_print_farm_administrator',
-        'Print Farm – Administrator',
-        'Full print farm administration including printer and filament configuration.',
     ),
     # ── Products ──────────────────────────────────────────────────────
     (
@@ -499,13 +316,6 @@ ROLE_DEFINITIONS = [
         'Sales – Administrator',
         'Full sales administration including pricelists, teams, and configuration.',
     ),
-    # ── Technical Configuration ───────────────────────────────────────
-    (
-        'url_slug_manager.privilege_technical_configuration',
-        'url_slug_manager.group_technical_config_admin',
-        'Technical Configuration – Administrator',
-        'Manage technical configuration such as URL slugs.',
-    ),
     # ── Tour Ticketing & Bookings ─────────────────────────────────────
     (
         'tour_booking.privilege_tour_booking',
@@ -537,19 +347,6 @@ ROLE_DEFINITIONS = [
         'Tour Bookings – Administrator',
         'Full tour ticketing administration including configuration and reporting.',
     ),
-    # ── Video Production ──────────────────────────────────────────────
-    (
-        'video_production.privilege_video_production',
-        'video_production.group_video_production_user',
-        'Video Production – User',
-        'View and contribute to video production projects.',
-    ),
-    (
-        'video_production.privilege_video_production',
-        'video_production.group_video_production_manager',
-        'Video Production – Manager',
-        'Manage all video production projects and resources.',
-    ),
     # ── Help Centre ───────────────────────────────────────────────────
     (
         'help_centre.privilege_help_centre',
@@ -576,42 +373,72 @@ ROLE_DEFINITIONS = [
         'Website – Editor & Designer',
         'Full website editing, design, and theme customisation access.',
     ),
-    # ── Workflow Automation ───────────────────────────────────────────
-    (
-        'workflow_automation.privilege_workflow_automation',
-        'workflow_automation.group_workflow_user',
-        'Workflow Automation – User',
-        'Read-only access to workflows and execution logs.',
-    ),
-    (
-        'workflow_automation.privilege_workflow_automation',
-        'workflow_automation.group_workflow_manager',
-        'Workflow Automation – Manager',
-        'Create, edit and delete workflows, steps and logs.',
-    ),
-    # ── Zoo Manager ───────────────────────────────────────────────────
-    (
-        'zoo_manager.res_groups_privilege_zoo_manager',
-        'zoo_manager.group_zoo_keeper',
-        'Zoo Manager – Keeper',
-        'Register and move animals; log feedings, weights and health records.',
-    ),
-    (
-        'zoo_manager.res_groups_privilege_zoo_manager',
-        'zoo_manager.group_zoo_manager',
-        'Zoo Manager – Administrator',
-        'Full zoo administration: species, diets, enclosures and deleting records.',
-    ),
 ]
+
+
+def _access_levels_spec(module_name):
+    """The module's access_levels.py, loaded from its file (without importing the addon,
+    which may not be installed yet), or None when it has none."""
+    try:
+        path = file_path('%s/access_levels.py' % module_name)
+    except (FileNotFoundError, ValueError):
+        return None
+    spec = importlib.util.spec_from_file_location('%s_access_levels' % module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_access_level_roles(env):
+    """Create the Administrator / Manager / Employee / View Only (or custom) roles of every
+    installed module that ships an access_levels.py. Roles that already exist (by name) with
+    privileges are left alone, empty ones are refilled, and a role is skipped while any of
+    its groups is not loaded yet."""
+    Role = env['permission.role'].sudo()
+    modules = env['ir.module.module'].sudo().search([
+        ('state', 'in', ('installed', 'to upgrade', 'to install')),
+    ])
+    for module in modules:
+        spec = _access_levels_spec(module.name)
+        if spec is None:
+            continue
+        if not hasattr(spec, 'MODELS'):
+            continue
+        for role_name, (description, access) in access_levels_lib.module_roles(spec):
+            name = '%s – %s' % (spec.APP_NAME, role_name)
+            existing = Role.search([('name', '=', name)], limit=1)
+            if existing.line_ids:
+                continue
+            groups = [
+                env.ref(xmlid, raise_if_not_found=False)
+                for xmlid in access_levels_lib.role_group_xmlids(module.name, spec, role_name, access)
+            ]
+            if not groups:
+                continue
+            if not all(groups):
+                _logger.info('Skipping role %s: its groups are not loaded yet.', name)
+                continue
+            values = {
+                'description': description,
+                # A role line needs a privilege; the rare group without one is left out.
+                'line_ids': [(0, 0, {
+                    'privilege_id': group.privilege_id.id,
+                    'group_id': group.id,
+                }) for group in groups if group.privilege_id],
+            }
+            if existing:
+                # An empty role of the same name (e.g. emptied when its old groups were
+                # removed by an upgrade): refill it, keeping its profiles.
+                existing.write(values)
+            else:
+                Role.create(dict(values, name=name))
 
 
 def post_init_hook(env):
     """Create the predefined Role library, skipping any whose modules are not installed."""
     Role = env['permission.role']
 
-    # Modules that build their own multi-privilege roles
-    if 'risk.permission.roles' in env:
-        env['risk.permission.roles']._sync_permission_roles()
+    _load_access_level_roles(env)
 
     for priv_xml_id, group_xml_id, name, description in ROLE_DEFINITIONS:
         privilege = env.ref(priv_xml_id, raise_if_not_found=False)

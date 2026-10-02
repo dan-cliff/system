@@ -1,6 +1,6 @@
 {
     'name': 'Postmark Email Service',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Technical',
     'summary': 'Send and receive all Odoo email through the Postmark API',
     'description': """
@@ -38,7 +38,9 @@ Gmail Server.
     'license': 'LGPL-3',
     'depends': ['base_setup', 'mail'],
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'data/postmark_message_stream_data.xml',
         'views/postmark_message_stream_views.xml',

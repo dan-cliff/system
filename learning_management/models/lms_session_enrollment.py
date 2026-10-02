@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 
 class LmsSessionEnrollment(models.Model):
@@ -51,10 +51,14 @@ class LmsSessionEnrollment(models.Model):
             rec.manager_id = rec.employee_id.parent_id if rec.employee_id else False
 
     def action_confirm(self):
-        """Manager/admin confirms a pending enrolment."""
+        """The employee's manager, or a user with Session Enrolments / Update, confirms a
+        pending enrolment."""
+        can_confirm_any = self.env.user.has_group('learning_management.group_lms_enrollment_update')
         for rec in self:
             if rec.state != 'pending_approval':
                 raise UserError(_('Only pending enrolments can be confirmed.'))
+            if not can_confirm_any and rec.manager_id.user_id != self.env.user:
+                raise AccessError(_("Only the employee's manager can confirm this enrolment."))
             rec.write({
                 'state': 'confirmed',
                 'approved_by': self.env.user.id,

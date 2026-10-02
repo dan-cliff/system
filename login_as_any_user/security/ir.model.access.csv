@@ -1,2 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_user_selection_user,access.user.selection.user,model_user_selection,base.group_user,1,1,1,1
+access_user_selection_view,user.selection view,model_user_selection,group_login_as_user_selection_view,1,0,0,0
+access_user_selection_create,user.selection create,model_user_selection,group_login_as_user_selection_create,1,0,1,0
+access_user_selection_own,user.selection own,model_user_selection,group_login_as_user_selection_own,1,1,1,0
+access_user_selection_update,user.selection update,model_user_selection,group_login_as_user_selection_update,1,1,0,0
+access_user_selection_delete,user.selection delete,model_user_selection,group_login_as_user_selection_delete,1,0,0,1
+access_user_selection_user,access_user_selection_user,model_user_selection,base.group_user,1,1,1,1

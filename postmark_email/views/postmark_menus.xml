@@ -3,9 +3,12 @@
     <!-- Settings > Technical > Email (developer mode); also reachable from
          the Postmark setting on Settings > General Settings. -->
     <menuitem id="menu_postmark_email_log" name="Postmark Email Log"
-              parent="base.menu_email" action="postmark_email_log_action" sequence="90"/>
+              parent="base.menu_email" action="postmark_email_log_action" sequence="90"
+              groups="postmark_email.group_postmark_email_log_create,postmark_email.group_postmark_email_log_update,postmark_email.group_postmark_email_log_delete,base.group_system"/>
     <menuitem id="menu_postmark_message_stream" name="Postmark Message Streams"
-              parent="base.menu_email" action="postmark_message_stream_action" sequence="91"/>
+              parent="base.menu_email" action="postmark_message_stream_action" sequence="91"
+              groups="postmark_email.group_postmark_message_stream_create,postmark_email.group_postmark_message_stream_update,postmark_email.group_postmark_message_stream_delete,base.group_system"/>
     <menuitem id="menu_postmark_reply_rule" name="Postmark Reply Addresses"
-              parent="base.menu_email" action="postmark_reply_rule_action" sequence="92"/>
+              parent="base.menu_email" action="postmark_reply_rule_action" sequence="92"
+              groups="postmark_email.group_postmark_reply_rule_create,postmark_email.group_postmark_reply_rule_update,postmark_email.group_postmark_reply_rule_delete,base.group_system"/>
 </odoo>

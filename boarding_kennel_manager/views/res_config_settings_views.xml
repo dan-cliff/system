@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app data-string="Boarding Kennel Manager" id="boarding_kennel_manager" string="Boarding Kennel Manager"
-                     name="boarding_kennel_manager" groups="boarding_kennel_manager.group_kennel_manager">
+                     name="boarding_kennel_manager" groups="base.group_system">
                     <block title="Daily To-Do List" id="kennel_daily_tasks">
                         <setting id="kennel_observation_times" string="Observation Rounds"
                                  help="Times of day (24-hour, separated by commas) when every checked-in animal gets an observation task. Feed and medication times come from each Frequency.">

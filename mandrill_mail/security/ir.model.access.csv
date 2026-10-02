@@ -1,4 +1,14 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_mandrill_mail_log_system,mandrill.mail.log system,model_mandrill_mail_log,base.group_system,1,1,1,1
-access_mandrill_reply_route_system,mandrill.reply.route system,model_mandrill_reply_route,base.group_system,1,1,1,1
-access_mandrill_reply_route_user,mandrill.reply.route user,model_mandrill_reply_route,base.group_user,1,0,0,0
+access_mandrill_mail_log_view,mandrill.mail.log view,model_mandrill_mail_log,group_mandrill_mail_log_view,1,0,0,0
+access_mandrill_mail_log_create,mandrill.mail.log create,model_mandrill_mail_log,group_mandrill_mail_log_create,1,0,1,0
+access_mandrill_mail_log_own,mandrill.mail.log own,model_mandrill_mail_log,group_mandrill_mail_log_own,1,1,1,0
+access_mandrill_mail_log_update,mandrill.mail.log update,model_mandrill_mail_log,group_mandrill_mail_log_update,1,1,0,0
+access_mandrill_mail_log_delete,mandrill.mail.log delete,model_mandrill_mail_log,group_mandrill_mail_log_delete,1,0,0,1
+access_mandrill_reply_route_view,mandrill.reply.route view,model_mandrill_reply_route,group_mandrill_reply_route_view,1,0,0,0
+access_mandrill_reply_route_create,mandrill.reply.route create,model_mandrill_reply_route,group_mandrill_reply_route_create,1,0,1,0
+access_mandrill_reply_route_own,mandrill.reply.route own,model_mandrill_reply_route,group_mandrill_reply_route_own,1,1,1,0
+access_mandrill_reply_route_update,mandrill.reply.route update,model_mandrill_reply_route,group_mandrill_reply_route_update,1,1,0,0
+access_mandrill_reply_route_delete,mandrill.reply.route delete,model_mandrill_reply_route,group_mandrill_reply_route_delete,1,0,0,1
+access_mandrill_mail_log_system,access_mandrill_mail_log_system,model_mandrill_mail_log,base.group_system,1,1,1,1
+access_mandrill_reply_route_system,access_mandrill_reply_route_system,model_mandrill_reply_route,base.group_system,1,1,1,1
+access_mandrill_reply_route_user,access_mandrill_reply_route_user,model_mandrill_reply_route,base.group_user,1,0,0,0

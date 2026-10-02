@@ -1,6 +1,6 @@
 {
     'name': 'Employee Healthcare',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Employee healthcare information management',
     'description': (
         'Allows employees to record and manage their personal healthcare information, '
@@ -13,8 +13,9 @@
     'author': 'Custom',
     'depends': ['hr', 'mail'],
     'data': [
-        'security/employee_healthcare_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'data/employee_healthcare_data.xml',
         'data/employee_healthcare_onboarding.xml',

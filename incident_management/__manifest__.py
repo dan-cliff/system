@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Incident Management',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Human Resources/Health & Safety',
     'summary': 'Workplace incident reporting, investigation (ICAM) and corrective action tracking',
     'description': """
@@ -18,8 +18,10 @@
     'author': 'Custom',
     'depends': ['base', 'mail', 'hr'],
     'data': [
+        'security/access_levels.xml',
         'security/incident_security.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/incident_sequence.xml',
         'data/incident_type_data.xml',
         'data/icam_data.xml',

@@ -133,7 +133,7 @@
                     <button name="action_reset_to_pending" type="object"
                             string="Reset to Pending"
                             invisible="state not in ('refused','cancelled')"
-                            groups="video_production.group_video_production_manager"/>
+                            groups="video_production.group_vp_review_update"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="pending,in_review,approved"/>
                 </header>

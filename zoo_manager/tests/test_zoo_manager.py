@@ -39,7 +39,7 @@ class TestZooManager(TransactionCase):
         })
         cls.mound = cls.env['zoo.enclosure'].create({'name': 'Meerkat Mound', 'code': 'MM', 'capacity': 2})
         cls.quarantine = cls.env['zoo.enclosure'].create({'name': 'Quarantine', 'code': 'Q1'})
-        cls.keeper = new_test_user(cls.env, login='zoo_keeper', groups='zoo_manager.group_zoo_keeper')
+        cls.keeper = new_test_user(cls.env, login='zoo_keeper', groups='base.group_user,zoo_manager.group_zoo_animal_create,zoo_manager.group_zoo_animal_update,zoo_manager.group_zoo_animal_move_create,zoo_manager.group_zoo_animal_weight_create,zoo_manager.group_zoo_animal_weight_update,zoo_manager.group_zoo_animal_weight_delete,zoo_manager.group_zoo_feeding_create,zoo_manager.group_zoo_feeding_update,zoo_manager.group_zoo_health_record_create,zoo_manager.group_zoo_health_record_update,zoo_manager.group_zoo_enclosure_view')
 
     def test_prefix_code_suggestions(self):
         Class = self.env['zoo.animal.class']

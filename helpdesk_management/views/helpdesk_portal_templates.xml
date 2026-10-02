@@ -80,7 +80,7 @@
     <!-- /my/tickets/<id> -->
     <template id="portal_my_ticket" name="My Ticket" inherit_id="portal.portal_sidebar" primary="True">
         <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
-            <t t-set="o_portal_fullwidth_alert" groups="helpdesk_management.group_helpdesk_user">
+            <t t-set="o_portal_fullwidth_alert" groups="helpdesk_management.group_helpdesk_ticket_view">
                 <t t-call="portal.portal_back_in_edit_mode">
                     <t t-set="backend_url" t-value="'/odoo/action-helpdesk_management.helpdesk_ticket_action_main/%s' % ticket.id"/>
                 </t>

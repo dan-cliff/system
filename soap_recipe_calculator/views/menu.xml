@@ -7,7 +7,7 @@
               parent="mrp.menu_mrp_bom"
               action="soap_recipe_calculator.action_soap_recipe"
               sequence="20"
-              groups="mrp.group_mrp_user"/>
+              groups="soap_recipe_calculator.group_soap_recipe_view"/>
 
     <!-- ── Also available under Manufacturing > Configuration ──────────────── -->
     <menuitem id="menu_soap_recipe_config"
@@ -15,6 +15,6 @@
               parent="mrp.menu_mrp_configuration"
               action="soap_recipe_calculator.action_soap_recipe"
               sequence="50"
-              groups="mrp.group_mrp_manager"/>
+              groups="soap_recipe_calculator.group_soap_recipe_create,soap_recipe_calculator.group_soap_recipe_update,soap_recipe_calculator.group_soap_recipe_delete"/>
 
 </odoo>

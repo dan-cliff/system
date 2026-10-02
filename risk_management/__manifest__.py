@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management',
-    'version': '19.0.1.15.0',
+    'version': '19.0.1.16.0',
     'category': 'Operations/Risk Management',
     'summary': 'Risk assessment templates, risk assessments, a controls library and a risk matrix',
     'description': """
@@ -53,10 +53,10 @@ Risk Management
     'license': 'LGPL-3',
     'depends': ['base', 'mail', 'project'],
     'data': [
+        'security/access_levels.xml',
         'security/risk_security.xml',
         'security/ir.model.access.csv',
-        'data/risk_security_data.xml',
-        'data/permission_role_sync.xml',
+        'data/access_roles.xml',
         'data/risk_matrix_data.xml',
         'data/risk_assessment_stage_data.xml',
         'data/risk_control_hierarchy_data.xml',

@@ -21,7 +21,7 @@
 ###############################################################################
 {
     'name': 'Login As Any User',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Extra Tools',
     'summary': 'Admin can log in as any user',
     'description': 'The "Login As Any User" module allows administrators to '
@@ -33,7 +33,9 @@
     'website': 'https://www.cybrosys.com',
     'depends': ['web'],
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'views/user_selection_views.xml'
     ],
     'assets': {

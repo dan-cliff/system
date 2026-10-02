@@ -6,8 +6,7 @@
         id="menu_wf_app_root"
         name="Workflow Engine"
         sequence="90"
-        web_icon="workflow_automation,static/description/icon.png"
-        groups="base.group_user"/>
+        web_icon="workflow_automation,static/description/icon.png"/>
 
     <menuitem
         id="menu_wf_automations"
@@ -15,7 +14,7 @@
         parent="menu_wf_app_root"
         action="action_wf_automation"
         sequence="10"
-        groups="base.group_user"/>
+        groups="workflow_automation.group_wf_automation_create,workflow_automation.group_wf_automation_update,workflow_automation.group_wf_automation_delete"/>
 
     <menuitem
         id="menu_wf_execution_logs"
@@ -23,7 +22,7 @@
         parent="menu_wf_app_root"
         action="action_wf_execution_log"
         sequence="20"
-        groups="base.group_user"/>
+        groups="workflow_automation.group_wf_execution_log_create,workflow_automation.group_wf_execution_log_update,workflow_automation.group_wf_execution_log_delete"/>
 
     <!-- API Call Logs — visible to managers and system admins -->
     <menuitem
@@ -32,15 +31,14 @@
         parent="menu_wf_app_root"
         action="action_wf_api_call_log"
         sequence="30"
-        groups="workflow_automation.group_workflow_manager,base.group_system"/>
+        groups="workflow_automation.group_wf_api_call_log_create,workflow_automation.group_wf_api_call_log_update,workflow_automation.group_wf_api_call_log_delete"/>
 
     <!-- Configuration submenu — visible to managers and system admins -->
     <menuitem
         id="menu_wf_configuration"
         name="Configuration"
         parent="menu_wf_app_root"
-        sequence="90"
-        groups="workflow_automation.group_workflow_manager,base.group_system"/>
+        sequence="90"/>
 
     <menuitem
         id="menu_wf_service_platforms"
@@ -48,15 +46,14 @@
         parent="menu_wf_configuration"
         action="action_wf_service_platform"
         sequence="10"
-        groups="workflow_automation.group_workflow_manager,base.group_system"/>
+        groups="workflow_automation.group_wf_service_platform_create,workflow_automation.group_wf_service_platform_update,workflow_automation.group_wf_service_platform_delete"/>
 
     <!-- Also under Settings > Technical for sysadmins in developer mode -->
     <menuitem
         id="menu_wf_root_technical"
         name="Workflow Engine"
         parent="base.menu_administration"
-        sequence="50"
-        groups="base.group_system"/>
+        sequence="50"/>
 
     <menuitem
         id="menu_wf_automations_technical"
@@ -64,7 +61,7 @@
         parent="menu_wf_root_technical"
         action="action_wf_automation"
         sequence="10"
-        groups="base.group_system"/>
+        groups="workflow_automation.group_wf_automation_create,workflow_automation.group_wf_automation_update,workflow_automation.group_wf_automation_delete"/>
 
     <menuitem
         id="menu_wf_execution_logs_technical"
@@ -72,6 +69,6 @@
         parent="menu_wf_root_technical"
         action="action_wf_execution_log"
         sequence="20"
-        groups="base.group_system"/>
+        groups="workflow_automation.group_wf_execution_log_create,workflow_automation.group_wf_execution_log_update,workflow_automation.group_wf_execution_log_delete"/>
 
 </odoo>

@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.11.3',
+    'version': '19.0.1.12.0',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
@@ -48,16 +48,18 @@ Zoo Manager
 * Family tree per animal from its Sire and Dam: up to 10 generations of
   parents and 10 of offspring.
 * Contacts get a Wildlife License Number and Jurisdiction (states).
-* Keepers are ordinary Odoo users given the Zoo Manager / Keeper
-  access level; Zoo Manager / Administrator adds configuration and
+* Access is per model (View Only, Create, Create and Edit Own Only,
+  Update, Delete). With Permission Management installed, keepers get the
+  Zoo Manager - Employee role; Administrator adds configuration and
   deleting records.
 """,
     'author': 'Cliffs',
     'license': 'LGPL-3',
     'depends': ['mail', 'stock'],
     'data': [
-        'security/zoo_manager_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'data/zoo_options_data.xml',
         'data/zoo_manager_sequence.xml',

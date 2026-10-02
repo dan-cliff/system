@@ -1,65 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
+    <!-- Per-model access levels are in access_levels.xml (generated from access_levels.py).
 
-        <!--
-            Module category — visible so it appears in the Apps category
-            filter and on the user Access Rights tab.
-        -->
-        <record id="module_category_technical_configuration"
-                model="ir.module.category">
-            <field name="name">Technical Configuration</field>
-            <field name="description">
-                Controls access to low-level technical configuration screens
-                such as URL slug management, system integrations, and
-                infrastructure settings.
-            </field>
-            <field name="sequence">100</field>
-            <field name="visible">1</field>
-        </record>
-
-        <!--
-            Privilege — in Odoo 19 this is the bridge between a module
-            category and the groups that appear on the user form's
-            Access Rights tab.
-        -->
-        <record id="privilege_technical_configuration"
-                model="res.groups.privilege">
-            <field name="name">Technical Configuration</field>
-            <field name="category_id"
-                   ref="module_category_technical_configuration"/>
-            <field name="sequence">10</field>
-            <field name="placeholder">No access</field>
-        </record>
-
-        <!--
-            Group: Technical Configuration - Administrator
-            The full display name shown in the user form will be
-            "Technical Configuration / Administrator".
-        -->
-        <record id="group_technical_config_admin" model="res.groups">
-            <field name="name">Administrator</field>
-            <field name="privilege_id"
-                   ref="privilege_technical_configuration"/>
-            <field name="sequence">10</field>
-            <field name="comment">
-                Grants access to the URL Slug Manager and other low-level
-                technical configuration tools.  Assign only to trusted
-                developers or system administrators.
-            </field>
-            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-        </record>
-
-        <!--
-            Ensure Odoo's built-in Technical Administrator (group_system)
-            automatically implies the URL Slug Manager admin group, so any
-            user with Settings > Technical Administration access can use
-            the slug manager without a separate manual group assignment.
-        -->
-        <record id="base.group_system" model="res.groups">
-            <field name="implied_ids"
-                   eval="[(4, ref('group_technical_config_admin'))]"/>
-        </record>
-
-    </data>
+         Odoo's Settings administrators (group_system) get full URL Slug access, so anyone
+         with Settings > Technical access can use the slug manager without a separate
+         assignment. -->
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[
+            (4, ref('group_url_slug_config_create')),
+            (4, ref('group_url_slug_config_update')),
+            (4, ref('group_url_slug_config_delete')),
+        ]"/>
+    </record>
 </odoo>

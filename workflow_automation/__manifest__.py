@@ -2,7 +2,7 @@
 
 {
     'name': 'Workflow Automation Engine',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.1.0',
     'summary': 'Complex multi-step workflow automation triggered by model events or schedules',
     'description': """
 Workflow Automation Engine
@@ -21,7 +21,8 @@ Features:
 * Anti-recursion guard to prevent infinite loops
 * Full execution logging with per-step timing and error capture
 * Manual run wizard for ad-hoc execution
-* Two security groups: Workflow User (read-only) and Workflow Manager (full CRUD)
+* Per-model access levels (View Only, Create, Create and Edit Own Only, Update,
+  Delete), all in the Administrator role; internal users can read workflows
     """,
     'author': "Cliff's Country Crafts",
     'category': 'Technical',
@@ -32,10 +33,10 @@ Features:
         'report_builder',
     ],
     'data': [
-        'security/workflow_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/workflow_cron_data.xml',
-        'data/workflow_groups_data.xml',
         'views/workflow_automation_views.xml',
         'views/workflow_step_views.xml',
         'views/workflow_execution_log_views.xml',

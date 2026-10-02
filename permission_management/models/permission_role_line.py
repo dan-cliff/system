@@ -21,5 +21,6 @@ class PermissionRoleLine(models.Model):
         comodel_name='res.groups',
         string='Access Level',
         required=True,
+        ondelete='cascade',
         domain="[('privilege_id', '=', privilege_id)]",
     )

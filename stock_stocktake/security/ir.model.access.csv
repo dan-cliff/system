@@ -1,5 +1,11 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_stock_stocktake_user,stock.stocktake.user,model_stock_stocktake,stock.group_stock_user,1,1,1,0
-access_stock_stocktake_manager,stock.stocktake.manager,model_stock_stocktake,stock.group_stock_manager,1,1,1,1
-access_stock_stocktake_line_user,stock.stocktake.line.user,model_stock_stocktake_line,stock.group_stock_user,1,1,1,1
-access_stock_stocktake_line_manager,stock.stocktake.line.manager,model_stock_stocktake_line,stock.group_stock_manager,1,1,1,1
+access_stock_stocktake_view,stock.stocktake view,model_stock_stocktake,group_stocktake_stocktake_view,1,0,0,0
+access_stock_stocktake_create,stock.stocktake create,model_stock_stocktake,group_stocktake_stocktake_create,1,0,1,0
+access_stock_stocktake_own,stock.stocktake own,model_stock_stocktake,group_stocktake_stocktake_own,1,1,1,0
+access_stock_stocktake_update,stock.stocktake update,model_stock_stocktake,group_stocktake_stocktake_update,1,1,0,0
+access_stock_stocktake_delete,stock.stocktake delete,model_stock_stocktake,group_stocktake_stocktake_delete,1,0,0,1
+access_stock_stocktake_line_view,stock.stocktake.line view,model_stock_stocktake_line,group_stocktake_stocktake_view,1,0,0,0
+access_stock_stocktake_line_create,stock.stocktake.line create,model_stock_stocktake_line,group_stocktake_stocktake_create,1,0,1,0
+access_stock_stocktake_line_own,stock.stocktake.line own,model_stock_stocktake_line,group_stocktake_stocktake_own,1,1,1,0
+access_stock_stocktake_line_update,stock.stocktake.line update,model_stock_stocktake_line,group_stocktake_stocktake_update,1,1,0,0
+access_stock_stocktake_line_delete,stock.stocktake.line delete,model_stock_stocktake_line,group_stocktake_stocktake_delete,1,0,0,1

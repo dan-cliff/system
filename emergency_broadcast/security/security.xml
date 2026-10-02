@@ -1,105 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!--
-        Group definitions are in the default noupdate="0" block (matching the
-        standard Odoo pattern used by purchase, sale, hr, etc.).  This means
-        they are re-applied on every module update, which is safe because the
-        user_ids / implied_ids entries use Command.link (4) — they add without
-        removing any assignments an administrator may have made manually.
-    -->
-
-    <!-- ── Module Category ───────────────────────────────────────────────── -->
-    <record id="module_category_emergency_broadcast" model="ir.module.category">
-        <field name="name">Emergency Broadcast</field>
-        <field name="description">Manage emergency broadcast messages and notifications.</field>
-        <field name="sequence">95</field>
-    </record>
-
-    <!-- ── Privilege (shown as a row in the Users form in Odoo 19) ────────── -->
-    <record id="privilege_emergency_broadcast" model="res.groups.privilege">
-        <field name="name">Emergency Broadcast</field>
-        <field name="category_id" ref="module_category_emergency_broadcast"/>
-        <field name="sequence">10</field>
-    </record>
-
-    <!-- ── Security Groups (User < Manager < Administrator) ──────────────── -->
-
-    <record id="group_eb_user" model="res.groups">
-        <field name="name">User</field>
-        <field name="privilege_id" ref="privilege_emergency_broadcast"/>
-        <field name="sequence">10</field>
-        <field name="comment">Can view broadcasts and acknowledge dialogue notifications.</field>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-    </record>
-
-    <record id="group_eb_manager" model="res.groups">
-        <field name="name">Manager</field>
-        <field name="privilege_id" ref="privilege_emergency_broadcast"/>
-        <field name="sequence">20</field>
-        <field name="comment">Can create and send emergency broadcasts.</field>
-        <field name="implied_ids" eval="[(4, ref('emergency_broadcast.group_eb_user'))]"/>
-    </record>
-
-    <record id="group_eb_admin" model="res.groups">
-        <field name="name">Administrator</field>
-        <field name="privilege_id" ref="privilege_emergency_broadcast"/>
-        <field name="sequence">30</field>
-        <field name="comment">Full access including configuration of statuses, channels and statusbar banners.</field>
-        <field name="implied_ids" eval="[(4, ref('emergency_broadcast.group_eb_manager'))]"/>
-        <!--
-            Grant the built-in root/system user and the default admin user
-            full access on install and on every subsequent module update.
-            Other users are assigned via Settings > Users (Roles & Profiles).
-        -->
-        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
-    </record>
+    <!-- Per-model access levels are in access_levels.xml (generated from access_levels.py). -->
 
     <!--
         Generate Emergency Broadcast — cross-module permission.
-        Appears under the Incident Management privilege so it is visible
-        alongside the other Incident Management roles in Settings > Users
-        and in the Permission Management role library.
-        Implies EB Manager so the user can create and manage broadcasts
-        generated from incident reports.
+        Appears under the Incident Management Incident Reports privilege so it is visible
+        alongside the other Incident Management permissions in Settings > Users.
+        Implies creating and updating Emergency Broadcasts so the user can manage
+        broadcasts generated from incident reports.
     -->
     <record id="group_eb_generate_from_incident" model="res.groups">
         <field name="name">Generate Emergency Broadcast</field>
-        <field name="privilege_id" ref="incident_management.privilege_incident_management"/>
-        <field name="sequence">35</field>
-        <field name="comment">Can generate Emergency Broadcast records from an Incident Management report. Implies Emergency Broadcast Manager access.</field>
-        <field name="implied_ids" eval="[(4, ref('emergency_broadcast.group_eb_manager'))]"/>
+        <field name="privilege_id" ref="incident_management.privilege_incident_report"/>
+        <field name="sequence">60</field>
+        <field name="comment">Can generate Emergency Broadcast records from an Incident Management report. Implies Emergency Broadcasts / Create and Update.</field>
+        <field name="implied_ids" eval="[(4, ref('emergency_broadcast.group_eb_broadcast_create')), (4, ref('emergency_broadcast.group_eb_broadcast_update'))]"/>
     </record>
 
-    <!-- ── Record Rules (noupdate="1" — never overwrite after first install) -->
-    <data noupdate="1">
-
-        <!--
-            Company-based visibility for Emergency Broadcasts.
-
-            Users (incl. Managers): see only broadcasts whose company is within
-            their current session's active company set (company_ids).
-
-            Admins: unrestricted across all companies.
-
-            Because both rules target the same model, Odoo ORs them for any user
-            who belongs to both groups (admin implies user), giving admins a
-            pass-all result.
-        -->
-        <record id="rule_eb_broadcast_company_user" model="ir.rule">
-            <field name="name">Emergency Broadcast: restrict to active companies</field>
-            <field name="model_id" ref="model_emergency_broadcast"/>
-            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
-            <field name="groups" eval="[(4, ref('emergency_broadcast.group_eb_user'))]"/>
-        </record>
-
-        <record id="rule_eb_broadcast_company_admin" model="ir.rule">
-            <field name="name">Emergency Broadcast: admin sees all companies</field>
-            <field name="model_id" ref="model_emergency_broadcast"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(4, ref('emergency_broadcast.group_eb_admin'))]"/>
-        </record>
-
-    </data>
-
+    <!-- Broadcasts are visible within the user's active companies (or with no company). -->
+    <record id="rule_eb_broadcast_company" model="ir.rule">
+        <field name="name">Emergency Broadcast: active companies</field>
+        <field name="model_id" ref="model_emergency_broadcast"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

@@ -14,7 +14,11 @@ class TestBookingInvoicing(AccountTestInvoicingCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.env.company
-        cls.env.user.group_ids += cls.env.ref('boarding_kennel_manager.group_kennel_manager')
+        cls.env.user.group_ids += cls.env['res.groups'].browse([
+            cls.env.ref('boarding_kennel_manager.group_kennel_%s_%s' % (key, permission)).id
+            for key in ('booking', 'resident', 'task', 'medication', 'observation', 'yard', 'diet')
+            for permission in ('create', 'update', 'delete')
+        ])
         cls.company.partner_id.tz = 'UTC'
         cls.kennel_categ = cls.env['product.category'].create({'name': 'Test Kennel Services'})
         cls.nights = cls._create_product(name='Boarding Night', lst_price=50.0, categ_id=cls.kennel_categ.id, taxes_id=False)
@@ -138,7 +142,7 @@ class TestBookingInvoicing(AccountTestInvoicingCommon):
         self.assertFalse(line.exists())
 
     def test_keeper_raises_invoice_without_accounting_access(self):
-        keeper = new_test_user(self.env, login='invoice_keeper', groups='boarding_kennel_manager.group_kennel_keeper',
+        keeper = new_test_user(self.env, login='invoice_keeper', groups='base.group_user,boarding_kennel_manager.group_kennel_booking_create,boarding_kennel_manager.group_kennel_booking_update,boarding_kennel_manager.group_kennel_resident_create,boarding_kennel_manager.group_kennel_resident_update,boarding_kennel_manager.group_kennel_task_create,boarding_kennel_manager.group_kennel_task_update,boarding_kennel_manager.group_kennel_medication_create,boarding_kennel_manager.group_kennel_medication_update,boarding_kennel_manager.group_kennel_medication_delete,boarding_kennel_manager.group_kennel_observation_create,boarding_kennel_manager.group_kennel_observation_update,boarding_kennel_manager.group_kennel_yard_view',
                                company_id=self.company.id, company_ids=[Command.set(self.company.ids)])
         booking = self.booking.with_user(keeper)
         action = booking.action_create_invoice()

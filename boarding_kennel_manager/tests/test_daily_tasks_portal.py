@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Command
 from odoo.tests import HttpCase, TransactionCase, new_test_user, tagged
 from odoo.tools import mute_logger
+from odoo.addons.boarding_kennel_manager import access_levels
 
 PIXEL_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 DAY = date(2026, 10, 2)
@@ -35,7 +36,7 @@ class KennelTaskCommon(TransactionCase):
             'name': 'Rex', 'partner_id': cls.smith.id, 'species_id': cls.dog.id, 'default_diet_id': cls.diet.id,
         })
         cls.tom = cls.env['kennel.resident'].create({'name': 'Tom', 'partner_id': cls.jones.id})
-        cls.keeper = new_test_user(cls.env, login='task_keeper', groups='boarding_kennel_manager.group_kennel_keeper')
+        cls.keeper = new_test_user(cls.env, login='task_keeper', groups='base.group_user,boarding_kennel_manager.group_kennel_booking_create,boarding_kennel_manager.group_kennel_booking_update,boarding_kennel_manager.group_kennel_resident_create,boarding_kennel_manager.group_kennel_resident_update,boarding_kennel_manager.group_kennel_task_create,boarding_kennel_manager.group_kennel_task_update,boarding_kennel_manager.group_kennel_medication_create,boarding_kennel_manager.group_kennel_medication_update,boarding_kennel_manager.group_kennel_medication_delete,boarding_kennel_manager.group_kennel_observation_create,boarding_kennel_manager.group_kennel_observation_update,boarding_kennel_manager.group_kennel_yard_view')
 
     def _checked_in_booking(self, resident, arrival=datetime(2026, 10, 1, 9), departure=datetime(2026, 10, 5, 17), **vals):
         booking = self.env['kennel.booking'].create({
@@ -217,8 +218,8 @@ class TestPortalInvite(KennelTaskCommon):
         wizard_user.action_grant_access()
         self.assertTrue(self.smith.user_ids._is_portal())
         self.assertEqual(self.smith.email, 'new.smith@example.com')
-        self.assertTrue(self.env.ref('boarding_kennel_manager.group_kennel_manager').implied_ids
-                        & self.env.ref('boarding_kennel_manager.group_kennel_portal_user'))
+        self.assertIn('boarding_kennel_manager.group_kennel_portal_user',
+                      access_levels.ROLE_EXTRA_GROUPS['Administrator'])
 
     def test_portal_customer_sees_only_their_own(self):
         portal = new_test_user(self.env, login='smith_portal', groups='base.group_portal', partner_id=self.smith.id)

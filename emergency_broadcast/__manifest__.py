@@ -1,6 +1,6 @@
 {
     'name': 'Emergency Broadcast',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Communication',
     'summary': 'Emergency broadcast messages with real-time notifications and acknowledgement tracking',
     'description': """
@@ -23,10 +23,11 @@ Features:
     'author': "Cliff's Country Crafts",
     'depends': ['base', 'mail', 'sms', 'bus', 'web', 'web_enterprise', 'incident_management'],
     'data': [
+        'security/access_levels.xml',
         'security/security.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
-        'data/permission_role_sync.xml',
         'data/emergency_broadcast_channel_data.xml',
         'data/emergency_broadcast_status_data.xml',
         'views/emergency_broadcast_status_views.xml',

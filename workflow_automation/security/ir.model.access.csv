@@ -1,41 +1,93 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_wf_automation_admin,wf.automation admin,model_wf_automation,base.group_system,1,1,1,1
-access_wf_automation_manager,wf.automation manager,model_wf_automation,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_automation_user,wf.automation user,model_wf_automation,base.group_user,1,0,0,0
-access_wf_step_admin,wf.step admin,model_wf_step,base.group_system,1,1,1,1
-access_wf_step_manager,wf.step manager,model_wf_step,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_step_user,wf.step user,model_wf_step,base.group_user,1,0,0,0
-access_wf_step_field_mapping_admin,wf.step.field.mapping admin,model_wf_step_field_mapping,base.group_system,1,1,1,1
-access_wf_step_field_mapping_manager,wf.step.field.mapping manager,model_wf_step_field_mapping,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_step_field_mapping_user,wf.step.field.mapping user,model_wf_step_field_mapping,base.group_user,1,0,0,0
-access_wf_execution_log_admin,wf.execution.log admin,model_wf_execution_log,base.group_system,1,1,1,1
-access_wf_execution_log_manager,wf.execution.log manager,model_wf_execution_log,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_execution_log_user,wf.execution.log user,model_wf_execution_log,base.group_user,1,0,0,0
-access_wf_execution_log_step_admin,wf.execution.log.step admin,model_wf_execution_log_step,base.group_system,1,1,1,1
-access_wf_execution_log_step_manager,wf.execution.log.step manager,model_wf_execution_log_step,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_execution_log_step_user,wf.execution.log.step user,model_wf_execution_log_step,base.group_user,1,0,0,0
-access_wf_step_connection_admin,wf.step.connection admin,model_wf_step_connection,base.group_system,1,1,1,1
-access_wf_step_connection_manager,wf.step.connection manager,model_wf_step_connection,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_step_connection_user,wf.step.connection user,model_wf_step_connection,base.group_user,1,0,0,0
-access_wf_manual_run_wizard,wf.manual.run.wizard,model_wf_manual_run_wizard,base.group_user,1,1,1,1
-access_wf_service_platform_admin,wf.service.platform admin,model_wf_service_platform,base.group_system,1,1,1,1
-access_wf_service_platform_manager,wf.service.platform manager,model_wf_service_platform,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_service_platform_user,wf.service.platform user,model_wf_service_platform,base.group_user,1,0,0,0
-access_wf_service_platform_header_admin,wf.service.platform.header admin,model_wf_service_platform_header,base.group_system,1,1,1,1
-access_wf_service_platform_header_manager,wf.service.platform.header manager,model_wf_service_platform_header,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_service_platform_header_user,wf.service.platform.header user,model_wf_service_platform_header,base.group_user,1,0,0,0
-access_wf_service_platform_body_param_admin,wf.service.platform.body.param admin,model_wf_service_platform_body_param,base.group_system,1,1,1,1
-access_wf_service_platform_body_param_manager,wf.service.platform.body.param manager,model_wf_service_platform_body_param,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_service_platform_body_param_user,wf.service.platform.body.param user,model_wf_service_platform_body_param,base.group_user,1,0,0,0
-access_wf_api_call_log_admin,wf.api.call.log admin,model_wf_api_call_log,base.group_system,1,1,1,1
-access_wf_api_call_log_manager,wf.api.call.log manager,model_wf_api_call_log,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_api_call_log_user,wf.api.call.log user,model_wf_api_call_log,base.group_user,1,0,0,0
-access_wf_step_api_header_admin,wf.step.api.header admin,model_wf_step_api_header,base.group_system,1,1,1,1
-access_wf_step_api_header_manager,wf.step.api.header manager,model_wf_step_api_header,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_step_api_header_user,wf.step.api.header user,model_wf_step_api_header,base.group_user,1,1,1,1
-access_wf_step_api_body_param_admin,wf.step.api.body.param admin,model_wf_step_api_body_param,base.group_system,1,1,1,1
-access_wf_step_api_body_param_manager,wf.step.api.body.param manager,model_wf_step_api_body_param,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_step_api_body_param_user,wf.step.api.body.param user,model_wf_step_api_body_param,base.group_user,1,1,1,1
-access_wf_step_api_query_param_admin,wf.step.api.query.param admin,model_wf_step_api_query_param,base.group_system,1,1,1,1
-access_wf_step_api_query_param_manager,wf.step.api.query.param manager,model_wf_step_api_query_param,workflow_automation.group_workflow_manager,1,1,1,1
-access_wf_step_api_query_param_user,wf.step.api.query.param user,model_wf_step_api_query_param,base.group_user,1,1,1,1
+access_wf_automation_view,wf.automation view,model_wf_automation,group_wf_automation_view,1,0,0,0
+access_wf_automation_create,wf.automation create,model_wf_automation,group_wf_automation_create,1,0,1,0
+access_wf_automation_own,wf.automation own,model_wf_automation,group_wf_automation_own,1,1,1,0
+access_wf_automation_update,wf.automation update,model_wf_automation,group_wf_automation_update,1,1,0,0
+access_wf_automation_delete,wf.automation delete,model_wf_automation,group_wf_automation_delete,1,0,0,1
+access_wf_step_view,wf.step view,model_wf_step,group_wf_automation_view,1,0,0,0
+access_wf_step_create,wf.step create,model_wf_step,group_wf_automation_create,1,0,1,0
+access_wf_step_own,wf.step own,model_wf_step,group_wf_automation_own,1,1,1,0
+access_wf_step_update,wf.step update,model_wf_step,group_wf_automation_update,1,1,0,0
+access_wf_step_delete,wf.step delete,model_wf_step,group_wf_automation_delete,1,0,0,1
+access_wf_step_field_mapping_view,wf.step.field.mapping view,model_wf_step_field_mapping,group_wf_automation_view,1,0,0,0
+access_wf_step_field_mapping_create,wf.step.field.mapping create,model_wf_step_field_mapping,group_wf_automation_create,1,0,1,0
+access_wf_step_field_mapping_own,wf.step.field.mapping own,model_wf_step_field_mapping,group_wf_automation_own,1,1,1,0
+access_wf_step_field_mapping_update,wf.step.field.mapping update,model_wf_step_field_mapping,group_wf_automation_update,1,1,0,0
+access_wf_step_field_mapping_delete,wf.step.field.mapping delete,model_wf_step_field_mapping,group_wf_automation_delete,1,0,0,1
+access_wf_step_connection_view,wf.step.connection view,model_wf_step_connection,group_wf_automation_view,1,0,0,0
+access_wf_step_connection_create,wf.step.connection create,model_wf_step_connection,group_wf_automation_create,1,0,1,0
+access_wf_step_connection_own,wf.step.connection own,model_wf_step_connection,group_wf_automation_own,1,1,1,0
+access_wf_step_connection_update,wf.step.connection update,model_wf_step_connection,group_wf_automation_update,1,1,0,0
+access_wf_step_connection_delete,wf.step.connection delete,model_wf_step_connection,group_wf_automation_delete,1,0,0,1
+access_wf_step_api_header_view,wf.step.api.header view,model_wf_step_api_header,group_wf_automation_view,1,0,0,0
+access_wf_step_api_header_create,wf.step.api.header create,model_wf_step_api_header,group_wf_automation_create,1,0,1,0
+access_wf_step_api_header_own,wf.step.api.header own,model_wf_step_api_header,group_wf_automation_own,1,1,1,0
+access_wf_step_api_header_update,wf.step.api.header update,model_wf_step_api_header,group_wf_automation_update,1,1,0,0
+access_wf_step_api_header_delete,wf.step.api.header delete,model_wf_step_api_header,group_wf_automation_delete,1,0,0,1
+access_wf_step_api_body_param_view,wf.step.api.body.param view,model_wf_step_api_body_param,group_wf_automation_view,1,0,0,0
+access_wf_step_api_body_param_create,wf.step.api.body.param create,model_wf_step_api_body_param,group_wf_automation_create,1,0,1,0
+access_wf_step_api_body_param_own,wf.step.api.body.param own,model_wf_step_api_body_param,group_wf_automation_own,1,1,1,0
+access_wf_step_api_body_param_update,wf.step.api.body.param update,model_wf_step_api_body_param,group_wf_automation_update,1,1,0,0
+access_wf_step_api_body_param_delete,wf.step.api.body.param delete,model_wf_step_api_body_param,group_wf_automation_delete,1,0,0,1
+access_wf_step_api_query_param_view,wf.step.api.query.param view,model_wf_step_api_query_param,group_wf_automation_view,1,0,0,0
+access_wf_step_api_query_param_create,wf.step.api.query.param create,model_wf_step_api_query_param,group_wf_automation_create,1,0,1,0
+access_wf_step_api_query_param_own,wf.step.api.query.param own,model_wf_step_api_query_param,group_wf_automation_own,1,1,1,0
+access_wf_step_api_query_param_update,wf.step.api.query.param update,model_wf_step_api_query_param,group_wf_automation_update,1,1,0,0
+access_wf_step_api_query_param_delete,wf.step.api.query.param delete,model_wf_step_api_query_param,group_wf_automation_delete,1,0,0,1
+access_wf_execution_log_view,wf.execution.log view,model_wf_execution_log,group_wf_execution_log_view,1,0,0,0
+access_wf_execution_log_create,wf.execution.log create,model_wf_execution_log,group_wf_execution_log_create,1,0,1,0
+access_wf_execution_log_own,wf.execution.log own,model_wf_execution_log,group_wf_execution_log_own,1,1,1,0
+access_wf_execution_log_update,wf.execution.log update,model_wf_execution_log,group_wf_execution_log_update,1,1,0,0
+access_wf_execution_log_delete,wf.execution.log delete,model_wf_execution_log,group_wf_execution_log_delete,1,0,0,1
+access_wf_execution_log_step_view,wf.execution.log.step view,model_wf_execution_log_step,group_wf_execution_log_view,1,0,0,0
+access_wf_execution_log_step_create,wf.execution.log.step create,model_wf_execution_log_step,group_wf_execution_log_create,1,0,1,0
+access_wf_execution_log_step_own,wf.execution.log.step own,model_wf_execution_log_step,group_wf_execution_log_own,1,1,1,0
+access_wf_execution_log_step_update,wf.execution.log.step update,model_wf_execution_log_step,group_wf_execution_log_update,1,1,0,0
+access_wf_execution_log_step_delete,wf.execution.log.step delete,model_wf_execution_log_step,group_wf_execution_log_delete,1,0,0,1
+access_wf_api_call_log_view,wf.api.call.log view,model_wf_api_call_log,group_wf_api_call_log_view,1,0,0,0
+access_wf_api_call_log_create,wf.api.call.log create,model_wf_api_call_log,group_wf_api_call_log_create,1,0,1,0
+access_wf_api_call_log_own,wf.api.call.log own,model_wf_api_call_log,group_wf_api_call_log_own,1,1,1,0
+access_wf_api_call_log_update,wf.api.call.log update,model_wf_api_call_log,group_wf_api_call_log_update,1,1,0,0
+access_wf_api_call_log_delete,wf.api.call.log delete,model_wf_api_call_log,group_wf_api_call_log_delete,1,0,0,1
+access_wf_service_platform_view,wf.service.platform view,model_wf_service_platform,group_wf_service_platform_view,1,0,0,0
+access_wf_service_platform_create,wf.service.platform create,model_wf_service_platform,group_wf_service_platform_create,1,0,1,0
+access_wf_service_platform_own,wf.service.platform own,model_wf_service_platform,group_wf_service_platform_own,1,1,1,0
+access_wf_service_platform_update,wf.service.platform update,model_wf_service_platform,group_wf_service_platform_update,1,1,0,0
+access_wf_service_platform_delete,wf.service.platform delete,model_wf_service_platform,group_wf_service_platform_delete,1,0,0,1
+access_wf_service_platform_header_view,wf.service.platform.header view,model_wf_service_platform_header,group_wf_service_platform_view,1,0,0,0
+access_wf_service_platform_header_create,wf.service.platform.header create,model_wf_service_platform_header,group_wf_service_platform_create,1,0,1,0
+access_wf_service_platform_header_own,wf.service.platform.header own,model_wf_service_platform_header,group_wf_service_platform_own,1,1,1,0
+access_wf_service_platform_header_update,wf.service.platform.header update,model_wf_service_platform_header,group_wf_service_platform_update,1,1,0,0
+access_wf_service_platform_header_delete,wf.service.platform.header delete,model_wf_service_platform_header,group_wf_service_platform_delete,1,0,0,1
+access_wf_service_platform_body_param_view,wf.service.platform.body.param view,model_wf_service_platform_body_param,group_wf_service_platform_view,1,0,0,0
+access_wf_service_platform_body_param_create,wf.service.platform.body.param create,model_wf_service_platform_body_param,group_wf_service_platform_create,1,0,1,0
+access_wf_service_platform_body_param_own,wf.service.platform.body.param own,model_wf_service_platform_body_param,group_wf_service_platform_own,1,1,1,0
+access_wf_service_platform_body_param_update,wf.service.platform.body.param update,model_wf_service_platform_body_param,group_wf_service_platform_update,1,1,0,0
+access_wf_service_platform_body_param_delete,wf.service.platform.body.param delete,model_wf_service_platform_body_param,group_wf_service_platform_delete,1,0,0,1
+access_wf_automation_internal,access_wf_automation_internal,model_wf_automation,base.group_user,1,0,0,0
+access_wf_step_internal,access_wf_step_internal,model_wf_step,base.group_user,1,0,0,0
+access_wf_step_field_mapping_internal,access_wf_step_field_mapping_internal,model_wf_step_field_mapping,base.group_user,1,0,0,0
+access_wf_step_connection_internal,access_wf_step_connection_internal,model_wf_step_connection,base.group_user,1,0,0,0
+access_wf_execution_log_internal,access_wf_execution_log_internal,model_wf_execution_log,base.group_user,1,0,0,0
+access_wf_execution_log_step_internal,access_wf_execution_log_step_internal,model_wf_execution_log_step,base.group_user,1,0,0,0
+access_wf_api_call_log_internal,access_wf_api_call_log_internal,model_wf_api_call_log,base.group_user,1,0,0,0
+access_wf_service_platform_internal,access_wf_service_platform_internal,model_wf_service_platform,base.group_user,1,0,0,0
+access_wf_service_platform_header_internal,access_wf_service_platform_header_internal,model_wf_service_platform_header,base.group_user,1,0,0,0
+access_wf_service_platform_body_param_internal,access_wf_service_platform_body_param_internal,model_wf_service_platform_body_param,base.group_user,1,0,0,0
+access_wf_step_api_header_internal,access_wf_step_api_header_internal,model_wf_step_api_header,base.group_user,1,1,1,1
+access_wf_step_api_body_param_internal,access_wf_step_api_body_param_internal,model_wf_step_api_body_param,base.group_user,1,1,1,1
+access_wf_step_api_query_param_internal,access_wf_step_api_query_param_internal,model_wf_step_api_query_param,base.group_user,1,1,1,1
+access_wf_manual_run_wizard,access_wf_manual_run_wizard,model_wf_manual_run_wizard,base.group_user,1,1,1,1
+access_wf_automation_system,access_wf_automation_system,model_wf_automation,base.group_system,1,1,1,1
+access_wf_step_system,access_wf_step_system,model_wf_step,base.group_system,1,1,1,1
+access_wf_step_field_mapping_system,access_wf_step_field_mapping_system,model_wf_step_field_mapping,base.group_system,1,1,1,1
+access_wf_step_connection_system,access_wf_step_connection_system,model_wf_step_connection,base.group_system,1,1,1,1
+access_wf_execution_log_system,access_wf_execution_log_system,model_wf_execution_log,base.group_system,1,1,1,1
+access_wf_execution_log_step_system,access_wf_execution_log_step_system,model_wf_execution_log_step,base.group_system,1,1,1,1
+access_wf_api_call_log_system,access_wf_api_call_log_system,model_wf_api_call_log,base.group_system,1,1,1,1
+access_wf_service_platform_system,access_wf_service_platform_system,model_wf_service_platform,base.group_system,1,1,1,1
+access_wf_service_platform_header_system,access_wf_service_platform_header_system,model_wf_service_platform_header,base.group_system,1,1,1,1
+access_wf_service_platform_body_param_system,access_wf_service_platform_body_param_system,model_wf_service_platform_body_param,base.group_system,1,1,1,1
+access_wf_step_api_header_system,access_wf_step_api_header_system,model_wf_step_api_header,base.group_system,1,1,1,1
+access_wf_step_api_body_param_system,access_wf_step_api_body_param_system,model_wf_step_api_body_param,base.group_system,1,1,1,1
+access_wf_step_api_query_param_system,access_wf_step_api_query_param_system,model_wf_step_api_query_param,base.group_system,1,1,1,1

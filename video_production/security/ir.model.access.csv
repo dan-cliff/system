@@ -1,41 +1,102 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_video_idea_stage_user,video.idea.stage user,model_video_idea_stage,video_production.group_video_production_user,1,1,1,0
-access_video_idea_stage_manager,video.idea.stage manager,model_video_idea_stage,video_production.group_video_production_manager,1,1,1,1
-access_video_idea_tag_user,video.idea.tag user,model_video_idea_tag,base.group_user,1,0,0,0
-access_video_idea_tag_manager,video.idea.tag manager,model_video_idea_tag,video_production.group_video_production_manager,1,1,1,1
-access_video_idea_user,video.idea user,model_video_idea,video_production.group_video_production_user,1,1,1,0
-access_video_idea_manager,video.idea manager,model_video_idea,video_production.group_video_production_manager,1,1,1,1
-access_video_production_stage_user,video.production.stage user,model_video_production_stage,base.group_user,1,0,0,0
-access_video_production_stage_manager,video.production.stage manager,model_video_production_stage,video_production.group_video_production_manager,1,1,1,1
-access_video_production_tag_user,video.production.tag user,model_video_production_tag,base.group_user,1,0,0,0
-access_video_production_tag_manager,video.production.tag manager,model_video_production_tag,video_production.group_video_production_manager,1,1,1,1
-access_video_production_user,video.production user,model_video_production,video_production.group_video_production_user,1,1,1,0
-access_video_production_manager,video.production manager,model_video_production,video_production.group_video_production_manager,1,1,1,1
-access_video_script_user,video.script user,model_video_script,video_production.group_video_production_user,1,1,1,0
-access_video_script_manager,video.script manager,model_video_script,video_production.group_video_production_manager,1,1,1,1
-access_video_shoot_user,video.shoot user,model_video_shoot,video_production.group_video_production_user,1,1,1,0
-access_video_shoot_manager,video.shoot manager,model_video_shoot,video_production.group_video_production_manager,1,1,1,1
-access_video_shoot_crew_user,video.shoot.crew user,model_video_shoot_crew,video_production.group_video_production_user,1,1,1,0
-access_video_shoot_crew_manager,video.shoot.crew manager,model_video_shoot_crew,video_production.group_video_production_manager,1,1,1,1
-access_video_shoot_equipment_user,video.shoot.equipment user,model_video_shoot_equipment,video_production.group_video_production_user,1,1,1,0
-access_video_shoot_equipment_manager,video.shoot.equipment manager,model_video_shoot_equipment,video_production.group_video_production_manager,1,1,1,1
-access_video_edit_job_user,video.edit.job user,model_video_edit_job,video_production.group_video_production_user,1,1,1,0
-access_video_edit_job_manager,video.edit.job manager,model_video_edit_job,video_production.group_video_production_manager,1,1,1,1
-access_video_edit_version_user,video.edit.version user,model_video_edit_version,video_production.group_video_production_user,1,1,1,0
-access_video_edit_version_manager,video.edit.version manager,model_video_edit_version,video_production.group_video_production_manager,1,1,1,1
-access_video_review_user,video.review user,model_video_review,video_production.group_video_production_user,1,1,1,0
-access_video_review_manager,video.review manager,model_video_review,video_production.group_video_production_manager,1,1,1,1
-access_video_review_approver_user,video.review.approver user,model_video_review_approver,video_production.group_video_production_user,1,1,1,0
-access_video_review_approver_manager,video.review.approver manager,model_video_review_approver,video_production.group_video_production_manager,1,1,1,1
-access_video_metadata_user,video.metadata user,model_video_metadata,video_production.group_video_production_user,1,1,1,0
-access_video_metadata_manager,video.metadata manager,model_video_metadata,video_production.group_video_production_manager,1,1,1,1
-access_video_platform_user,video.platform user,model_video_platform,video_production.group_video_production_user,1,0,0,0
-access_video_platform_manager,video.platform manager,model_video_platform,video_production.group_video_production_manager,1,1,1,1
-access_video_platform_channel_user,video.platform.channel user,model_video_platform_channel,video_production.group_video_production_user,1,0,0,0
-access_video_platform_channel_manager,video.platform.channel manager,model_video_platform_channel,video_production.group_video_production_manager,1,1,1,1
-access_video_platform_playlist_user,video.platform.playlist user,model_video_platform_playlist,video_production.group_video_production_user,1,0,0,0
-access_video_platform_playlist_manager,video.platform.playlist manager,model_video_platform_playlist,video_production.group_video_production_manager,1,1,1,1
-access_video_approve_wizard,video.approve.wizard,model_video_approve_wizard,video_production.group_video_production_user,1,1,1,1
-access_teleprompter_send_wizard,teleprompter.send.wizard,model_teleprompter_send_wizard,video_production.group_video_production_user,1,1,1,1
-access_video_idea_ai_wizard,video.idea.ai.wizard,model_video_idea_ai_wizard,video_production.group_video_production_user,1,1,1,1
-access_video_metadata_seo_wizard,video.metadata.seo.wizard,model_video_metadata_seo_wizard,video_production.group_video_production_user,1,1,1,1
+access_video_idea_view,video.idea view,model_video_idea,group_vp_idea_view,1,0,0,0
+access_video_idea_create,video.idea create,model_video_idea,group_vp_idea_create,1,0,1,0
+access_video_idea_own,video.idea own,model_video_idea,group_vp_idea_own,1,1,1,0
+access_video_idea_update,video.idea update,model_video_idea,group_vp_idea_update,1,1,0,0
+access_video_idea_delete,video.idea delete,model_video_idea,group_vp_idea_delete,1,0,0,1
+access_video_production_view,video.production view,model_video_production,group_vp_production_view,1,0,0,0
+access_video_production_create,video.production create,model_video_production,group_vp_production_create,1,0,1,0
+access_video_production_own,video.production own,model_video_production,group_vp_production_own,1,1,1,0
+access_video_production_update,video.production update,model_video_production,group_vp_production_update,1,1,0,0
+access_video_production_delete,video.production delete,model_video_production,group_vp_production_delete,1,0,0,1
+access_video_script_view,video.script view,model_video_script,group_vp_script_view,1,0,0,0
+access_video_script_create,video.script create,model_video_script,group_vp_script_create,1,0,1,0
+access_video_script_own,video.script own,model_video_script,group_vp_script_own,1,1,1,0
+access_video_script_update,video.script update,model_video_script,group_vp_script_update,1,1,0,0
+access_video_script_delete,video.script delete,model_video_script,group_vp_script_delete,1,0,0,1
+access_video_shoot_view,video.shoot view,model_video_shoot,group_vp_shoot_view,1,0,0,0
+access_video_shoot_create,video.shoot create,model_video_shoot,group_vp_shoot_create,1,0,1,0
+access_video_shoot_own,video.shoot own,model_video_shoot,group_vp_shoot_own,1,1,1,0
+access_video_shoot_update,video.shoot update,model_video_shoot,group_vp_shoot_update,1,1,0,0
+access_video_shoot_delete,video.shoot delete,model_video_shoot,group_vp_shoot_delete,1,0,0,1
+access_video_shoot_crew_view,video.shoot.crew view,model_video_shoot_crew,group_vp_shoot_view,1,0,0,0
+access_video_shoot_crew_create,video.shoot.crew create,model_video_shoot_crew,group_vp_shoot_create,1,0,1,0
+access_video_shoot_crew_own,video.shoot.crew own,model_video_shoot_crew,group_vp_shoot_own,1,1,1,0
+access_video_shoot_crew_update,video.shoot.crew update,model_video_shoot_crew,group_vp_shoot_update,1,1,0,0
+access_video_shoot_crew_delete,video.shoot.crew delete,model_video_shoot_crew,group_vp_shoot_delete,1,0,0,1
+access_video_shoot_equipment_view,video.shoot.equipment view,model_video_shoot_equipment,group_vp_shoot_view,1,0,0,0
+access_video_shoot_equipment_create,video.shoot.equipment create,model_video_shoot_equipment,group_vp_shoot_create,1,0,1,0
+access_video_shoot_equipment_own,video.shoot.equipment own,model_video_shoot_equipment,group_vp_shoot_own,1,1,1,0
+access_video_shoot_equipment_update,video.shoot.equipment update,model_video_shoot_equipment,group_vp_shoot_update,1,1,0,0
+access_video_shoot_equipment_delete,video.shoot.equipment delete,model_video_shoot_equipment,group_vp_shoot_delete,1,0,0,1
+access_video_edit_job_view,video.edit.job view,model_video_edit_job,group_vp_edit_job_view,1,0,0,0
+access_video_edit_job_create,video.edit.job create,model_video_edit_job,group_vp_edit_job_create,1,0,1,0
+access_video_edit_job_own,video.edit.job own,model_video_edit_job,group_vp_edit_job_own,1,1,1,0
+access_video_edit_job_update,video.edit.job update,model_video_edit_job,group_vp_edit_job_update,1,1,0,0
+access_video_edit_job_delete,video.edit.job delete,model_video_edit_job,group_vp_edit_job_delete,1,0,0,1
+access_video_edit_version_view,video.edit.version view,model_video_edit_version,group_vp_edit_job_view,1,0,0,0
+access_video_edit_version_create,video.edit.version create,model_video_edit_version,group_vp_edit_job_create,1,0,1,0
+access_video_edit_version_own,video.edit.version own,model_video_edit_version,group_vp_edit_job_own,1,1,1,0
+access_video_edit_version_update,video.edit.version update,model_video_edit_version,group_vp_edit_job_update,1,1,0,0
+access_video_edit_version_delete,video.edit.version delete,model_video_edit_version,group_vp_edit_job_delete,1,0,0,1
+access_video_review_view,video.review view,model_video_review,group_vp_review_view,1,0,0,0
+access_video_review_create,video.review create,model_video_review,group_vp_review_create,1,0,1,0
+access_video_review_own,video.review own,model_video_review,group_vp_review_own,1,1,1,0
+access_video_review_update,video.review update,model_video_review,group_vp_review_update,1,1,0,0
+access_video_review_delete,video.review delete,model_video_review,group_vp_review_delete,1,0,0,1
+access_video_review_approver_view,video.review.approver view,model_video_review_approver,group_vp_review_view,1,0,0,0
+access_video_review_approver_create,video.review.approver create,model_video_review_approver,group_vp_review_create,1,0,1,0
+access_video_review_approver_own,video.review.approver own,model_video_review_approver,group_vp_review_own,1,1,1,0
+access_video_review_approver_update,video.review.approver update,model_video_review_approver,group_vp_review_update,1,1,0,0
+access_video_review_approver_delete,video.review.approver delete,model_video_review_approver,group_vp_review_delete,1,0,0,1
+access_video_metadata_view,video.metadata view,model_video_metadata,group_vp_metadata_view,1,0,0,0
+access_video_metadata_create,video.metadata create,model_video_metadata,group_vp_metadata_create,1,0,1,0
+access_video_metadata_own,video.metadata own,model_video_metadata,group_vp_metadata_own,1,1,1,0
+access_video_metadata_update,video.metadata update,model_video_metadata,group_vp_metadata_update,1,1,0,0
+access_video_metadata_delete,video.metadata delete,model_video_metadata,group_vp_metadata_delete,1,0,0,1
+access_video_idea_stage_view,video.idea.stage view,model_video_idea_stage,group_vp_idea_stage_view,1,0,0,0
+access_video_idea_stage_create,video.idea.stage create,model_video_idea_stage,group_vp_idea_stage_create,1,0,1,0
+access_video_idea_stage_own,video.idea.stage own,model_video_idea_stage,group_vp_idea_stage_own,1,1,1,0
+access_video_idea_stage_update,video.idea.stage update,model_video_idea_stage,group_vp_idea_stage_update,1,1,0,0
+access_video_idea_stage_delete,video.idea.stage delete,model_video_idea_stage,group_vp_idea_stage_delete,1,0,0,1
+access_video_idea_stage_internal_read,video.idea.stage internal read,model_video_idea_stage,base.group_user,1,0,0,0
+access_video_idea_tag_view,video.idea.tag view,model_video_idea_tag,group_vp_idea_tag_view,1,0,0,0
+access_video_idea_tag_create,video.idea.tag create,model_video_idea_tag,group_vp_idea_tag_create,1,0,1,0
+access_video_idea_tag_own,video.idea.tag own,model_video_idea_tag,group_vp_idea_tag_own,1,1,1,0
+access_video_idea_tag_update,video.idea.tag update,model_video_idea_tag,group_vp_idea_tag_update,1,1,0,0
+access_video_idea_tag_delete,video.idea.tag delete,model_video_idea_tag,group_vp_idea_tag_delete,1,0,0,1
+access_video_idea_tag_internal_read,video.idea.tag internal read,model_video_idea_tag,base.group_user,1,0,0,0
+access_video_production_stage_view,video.production.stage view,model_video_production_stage,group_vp_production_stage_view,1,0,0,0
+access_video_production_stage_create,video.production.stage create,model_video_production_stage,group_vp_production_stage_create,1,0,1,0
+access_video_production_stage_own,video.production.stage own,model_video_production_stage,group_vp_production_stage_own,1,1,1,0
+access_video_production_stage_update,video.production.stage update,model_video_production_stage,group_vp_production_stage_update,1,1,0,0
+access_video_production_stage_delete,video.production.stage delete,model_video_production_stage,group_vp_production_stage_delete,1,0,0,1
+access_video_production_stage_internal_read,video.production.stage internal read,model_video_production_stage,base.group_user,1,0,0,0
+access_video_production_tag_view,video.production.tag view,model_video_production_tag,group_vp_production_tag_view,1,0,0,0
+access_video_production_tag_create,video.production.tag create,model_video_production_tag,group_vp_production_tag_create,1,0,1,0
+access_video_production_tag_own,video.production.tag own,model_video_production_tag,group_vp_production_tag_own,1,1,1,0
+access_video_production_tag_update,video.production.tag update,model_video_production_tag,group_vp_production_tag_update,1,1,0,0
+access_video_production_tag_delete,video.production.tag delete,model_video_production_tag,group_vp_production_tag_delete,1,0,0,1
+access_video_production_tag_internal_read,video.production.tag internal read,model_video_production_tag,base.group_user,1,0,0,0
+access_video_platform_view,video.platform view,model_video_platform,group_vp_platform_view,1,0,0,0
+access_video_platform_create,video.platform create,model_video_platform,group_vp_platform_create,1,0,1,0
+access_video_platform_own,video.platform own,model_video_platform,group_vp_platform_own,1,1,1,0
+access_video_platform_update,video.platform update,model_video_platform,group_vp_platform_update,1,1,0,0
+access_video_platform_delete,video.platform delete,model_video_platform,group_vp_platform_delete,1,0,0,1
+access_video_platform_internal_read,video.platform internal read,model_video_platform,base.group_user,1,0,0,0
+access_video_platform_channel_view,video.platform.channel view,model_video_platform_channel,group_vp_platform_view,1,0,0,0
+access_video_platform_channel_create,video.platform.channel create,model_video_platform_channel,group_vp_platform_create,1,0,1,0
+access_video_platform_channel_own,video.platform.channel own,model_video_platform_channel,group_vp_platform_own,1,1,1,0
+access_video_platform_channel_update,video.platform.channel update,model_video_platform_channel,group_vp_platform_update,1,1,0,0
+access_video_platform_channel_delete,video.platform.channel delete,model_video_platform_channel,group_vp_platform_delete,1,0,0,1
+access_video_platform_channel_internal_read,video.platform.channel internal read,model_video_platform_channel,base.group_user,1,0,0,0
+access_video_platform_playlist_view,video.platform.playlist view,model_video_platform_playlist,group_vp_platform_view,1,0,0,0
+access_video_platform_playlist_create,video.platform.playlist create,model_video_platform_playlist,group_vp_platform_create,1,0,1,0
+access_video_platform_playlist_own,video.platform.playlist own,model_video_platform_playlist,group_vp_platform_own,1,1,1,0
+access_video_platform_playlist_update,video.platform.playlist update,model_video_platform_playlist,group_vp_platform_update,1,1,0,0
+access_video_platform_playlist_delete,video.platform.playlist delete,model_video_platform_playlist,group_vp_platform_delete,1,0,0,1
+access_video_platform_playlist_internal_read,video.platform.playlist internal read,model_video_platform_playlist,base.group_user,1,0,0,0
+access_video_approve_wizard,access_video_approve_wizard,model_video_approve_wizard,group_vp_review_view,1,1,1,1
+access_teleprompter_send_wizard,access_teleprompter_send_wizard,model_teleprompter_send_wizard,group_vp_script_view,1,1,1,1
+access_video_idea_ai_wizard,access_video_idea_ai_wizard,model_video_idea_ai_wizard,group_vp_idea_view,1,1,1,1
+access_video_metadata_seo_wizard,access_video_metadata_seo_wizard,model_video_metadata_seo_wizard,group_vp_metadata_view,1,1,1,1

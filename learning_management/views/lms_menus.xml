@@ -4,8 +4,7 @@
     <menuitem id="menu_lms_root"
               name="Learning"
               web_icon="learning_management,static/src/img/icon.png"
-              sequence="85"
-              groups="learning_management.group_lms_employee"/>
+              sequence="85"/>
 
     <!-- Client action: renders /my/training portal inside a backend iframe -->
     <record id="action_lms_portal_iframe" model="ir.actions.client">
@@ -20,145 +19,140 @@
               parent="menu_lms_root"
               action="action_lms_portal_iframe"
               sequence="5"
-              groups="learning_management.group_lms_employee"/>
+              groups="learning_management.group_lms_employee_record_view"/>
 
     <!-- ─── Courses ─── -->
     <menuitem id="menu_lms_courses"
               name="Courses"
               parent="menu_lms_root"
-              sequence="10"
-              groups="learning_management.group_lms_facilitator"/>
+              sequence="10"/>
 
     <menuitem id="menu_lms_course_library"
               name="Course Library"
               parent="menu_lms_courses"
               action="action_lms_course"
               sequence="1"
-              groups="learning_management.group_lms_facilitator"/>
+              groups="learning_management.group_lms_course_view"/>
 
     <menuitem id="menu_lms_assessment_templates"
               name="Assessment Templates"
               parent="menu_lms_courses"
               action="learning_management.action_lms_assessment_template"
               sequence="2"
-              groups="learning_management.group_lms_manager"/>
+              groups="learning_management.group_lms_assessment_template_view"/>
 
     <menuitem id="menu_lms_course_groups"
               name="Training Packages"
               parent="menu_lms_courses"
               action="action_lms_course_group"
               sequence="3"
-              groups="learning_management.group_lms_manager"/>
+              groups="learning_management.group_lms_course_group_view"/>
 
     <!-- ─── Sessions ─── -->
     <menuitem id="menu_lms_sessions"
               name="Sessions"
               parent="menu_lms_root"
-              sequence="20"
-              groups="learning_management.group_lms_facilitator"/>
+              sequence="20"/>
 
     <menuitem id="menu_lms_session_list"
               name="All Sessions"
               parent="menu_lms_sessions"
               action="action_lms_session"
               sequence="1"
-              groups="learning_management.group_lms_facilitator"/>
+              groups="learning_management.group_lms_session_view"/>
 
     <menuitem id="menu_lms_enrollment_list"
               name="Enrolments"
               parent="menu_lms_sessions"
               action="action_lms_enrollment"
               sequence="2"
-              groups="learning_management.group_lms_facilitator"/>
+              groups="learning_management.group_lms_enrollment_view"/>
 
     <menuitem id="menu_lms_enrollment_pending"
               name="Pending Approval"
               parent="menu_lms_sessions"
               action="action_lms_enrollment_pending"
               sequence="3"
-              groups="learning_management.group_lms_people_leader"/>
+              groups="learning_management.group_lms_enrollment_view"/>
 
     <!-- ─── Employees ─── -->
     <menuitem id="menu_lms_employees"
               name="Employees"
               parent="menu_lms_root"
-              sequence="30"
-              groups="learning_management.group_lms_people_leader"/>
+              sequence="30"/>
 
     <menuitem id="menu_lms_assignments"
               name="Package Assignments"
               parent="menu_lms_employees"
               action="action_lms_assignment"
               sequence="1"
-              groups="learning_management.group_lms_manager"/>
+              groups="learning_management.group_lms_assignment_view"/>
 
     <menuitem id="menu_lms_records"
               name="Training Records"
               parent="menu_lms_employees"
               action="action_lms_employee_record"
               sequence="2"
-              groups="learning_management.group_lms_people_leader"/>
+              groups="learning_management.group_lms_employee_record_view"/>
 
     <menuitem id="menu_lms_assessments"
               name="Assessments"
               parent="menu_lms_employees"
               action="learning_management.action_lms_assessment"
               sequence="3"
-              groups="learning_management.group_lms_facilitator"/>
+              groups="learning_management.group_lms_assessment_view"/>
 
     <!-- ─── Reports ─── -->
     <menuitem id="menu_lms_reports"
               name="Reports"
               parent="menu_lms_root"
-              sequence="40"
-              groups="learning_management.group_lms_people_leader"/>
+              sequence="40"/>
 
     <menuitem id="menu_lms_tna"
               name="Training Needs Analysis"
               parent="menu_lms_reports"
               action="action_lms_tna"
               sequence="1"
-              groups="learning_management.group_lms_people_leader"/>
+              groups="learning_management.group_lms_employee_record_view"/>
 
     <menuitem id="menu_lms_expiring"
               name="Training Records Expiring"
               parent="menu_lms_reports"
               action="action_lms_expiring"
               sequence="2"
-              groups="learning_management.group_lms_people_leader"/>
+              groups="learning_management.group_lms_employee_record_view"/>
 
     <menuitem id="menu_lms_sessions_report"
               name="Training Sessions"
               parent="menu_lms_reports"
               action="action_lms_sessions_report"
               sequence="3"
-              groups="learning_management.group_lms_people_leader"/>
+              groups="learning_management.group_lms_session_view"/>
 
     <!-- ─── Settings ─── -->
     <menuitem id="menu_lms_settings"
               name="Settings"
               parent="menu_lms_root"
-              sequence="90"
-              groups="learning_management.group_lms_admin"/>
+              sequence="90"/>
 
     <menuitem id="menu_lms_course_categories"
               name="Categories"
               parent="menu_lms_settings"
               action="action_lms_course_category"
               sequence="1"
-              groups="learning_management.group_lms_admin"/>
+              groups="learning_management.group_lms_course_category_create,learning_management.group_lms_course_category_update,learning_management.group_lms_course_category_delete"/>
 
     <menuitem id="menu_lms_notifications"
               name="Notification Templates"
               parent="menu_lms_settings"
               action="action_lms_notification_template"
               sequence="2"
-              groups="learning_management.group_lms_admin"/>
+              groups="learning_management.group_lms_notification_template_create,learning_management.group_lms_notification_template_update,learning_management.group_lms_notification_template_delete"/>
 
     <menuitem id="menu_lms_notification_log"
               name="Notification History"
               parent="menu_lms_settings"
               action="action_lms_notification_log"
               sequence="3"
-              groups="learning_management.group_lms_admin"/>
+              groups="learning_management.group_lms_notification_log_create,learning_management.group_lms_notification_log_update,learning_management.group_lms_notification_log_delete"/>
 </odoo>

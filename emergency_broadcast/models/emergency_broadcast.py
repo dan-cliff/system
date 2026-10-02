@@ -264,21 +264,6 @@ class EmergencyBroadcast(models.Model):
 
     # ── Permission Management integration ────────────────────────────────────
     @api.model
-    def _sync_permission_roles(self):
-        """Called from data loading to ensure the 'Generate Emergency Broadcast'
-        role is present in the Permission Management role library.
-
-        Runs on every ``odoo-bin -u emergency_broadcast`` so new roles added
-        to permission_management.hooks.ROLE_DEFINITIONS are picked up even when
-        permission_management is updated before this module.  Safe to call
-        repeatedly — the role library is idempotent (skips already-existing roles).
-
-        Does nothing if permission_management is not installed.
-        """
-        Role = self.env.get('permission.role')
-        if Role is not None:
-            Role._load_role_library()
-
     # ── Smart button helpers ──────────────────────────────────────────────────
     def action_view_recipients(self):
         """Open the recipient lines for this broadcast."""

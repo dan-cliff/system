@@ -18,7 +18,7 @@ class TestControlPlane(HttpCase):
         company.write({'kennel_invoicing': False, 'kennel_cp_theme': 'dark', 'kennel_cp_refresh_minutes': 7})
         company.partner_id.tz = 'UTC'
         cls.keeper = new_test_user(cls.env, login='cp_keeper', password='cp-keeper-pass-1234',
-                                   groups='boarding_kennel_manager.group_kennel_keeper')
+                                   groups='base.group_user,boarding_kennel_manager.group_kennel_booking_create,boarding_kennel_manager.group_kennel_booking_update,boarding_kennel_manager.group_kennel_resident_create,boarding_kennel_manager.group_kennel_resident_update,boarding_kennel_manager.group_kennel_task_create,boarding_kennel_manager.group_kennel_task_update,boarding_kennel_manager.group_kennel_medication_create,boarding_kennel_manager.group_kennel_medication_update,boarding_kennel_manager.group_kennel_medication_delete,boarding_kennel_manager.group_kennel_observation_create,boarding_kennel_manager.group_kennel_observation_update,boarding_kennel_manager.group_kennel_yard_view')
         cls.outsider = new_test_user(cls.env, login='cp_outsider', password='cp-outsider-pass-1234', groups='base.group_user')
         cls.yard = cls.env['kennel.yard'].create({
             'name': 'Run 7', 'code': 'R7', 'capacity': 2,

@@ -17,7 +17,8 @@
               name="Print Jobs"
               parent="menu_print_farm_jobs"
               action="action_print_job"
-              sequence="10"/>
+              sequence="10"
+              groups="print_farm_jobs.group_print_farm_job_view"/>
 
     <!-- ─── Printers ─────────────────────────────────────────────────────── -->
     <menuitem id="menu_print_farm_printers"
@@ -29,7 +30,8 @@
               name="Printers"
               parent="menu_print_farm_printers"
               action="action_print_printer"
-              sequence="10"/>
+              sequence="10"
+              groups="print_farm_jobs.group_print_farm_printer_view"/>
 
     <!-- ─── Inventory ─────────────────────────────────────────────────────── -->
     <menuitem id="menu_print_farm_inventory"
@@ -41,26 +43,27 @@
               name="Spools"
               parent="menu_print_farm_inventory"
               action="action_print_filament_spool"
-              sequence="10"/>
+              sequence="10"
+              groups="print_farm_jobs.group_print_farm_spool_view"/>
 
     <menuitem id="menu_print_restock_list"
               name="Restock Orders"
               parent="menu_print_farm_inventory"
               action="action_print_restock_order"
-              sequence="20"/>
+              sequence="20"
+              groups="print_farm_jobs.group_print_farm_restock_view"/>
 
     <!-- ─── Settings (Administrator only) ───────────────────────────────── -->
     <menuitem id="menu_print_farm_settings"
               name="Settings"
               parent="menu_print_farm_root"
-              groups="print_farm_jobs.group_print_farm_administrator"
               sequence="90"/>
 
     <menuitem id="menu_print_filament_list"
               name="Filament Catalogue"
               parent="menu_print_farm_settings"
               action="action_print_filament"
-              groups="print_farm_jobs.group_print_farm_administrator"
-              sequence="10"/>
+              sequence="10"
+              groups="print_farm_jobs.group_print_farm_filament_create,print_farm_jobs.group_print_farm_filament_update,print_farm_jobs.group_print_farm_filament_delete"/>
 
 </odoo>

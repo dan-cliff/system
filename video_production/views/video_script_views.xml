@@ -64,12 +64,12 @@
                             string="Approve"
                             class="btn-success"
                             invisible="state != 'in_review'"
-                            groups="video_production.group_video_production_manager"/>
+                            groups="video_production.group_vp_script_update"/>
                     <button name="action_reject" type="object"
                             string="Reject"
                             class="btn-danger"
                             invisible="state not in ('in_review', 'approved')"
-                            groups="video_production.group_video_production_manager"/>
+                            groups="video_production.group_vp_script_update"/>
                     <button name="action_reset_to_draft" type="object"
                             string="Reset to Draft"
                             invisible="state == 'draft'"/>

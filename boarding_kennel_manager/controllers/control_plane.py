@@ -10,7 +10,7 @@ from odoo.http import request
 from odoo.tools import file_open, format_datetime
 
 BASE = '/kennel/control-plane'
-KEEPER_GROUP = 'boarding_kennel_manager.group_kennel_keeper'
+KEEPER_GROUP = 'boarding_kennel_manager.group_kennel_yard_view'
 
 
 def _date(value):

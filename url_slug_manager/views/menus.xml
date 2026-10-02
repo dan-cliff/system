@@ -10,8 +10,7 @@
         id="menu_url_slug_manager_root"
         name="URL Slug Manager"
         parent="base.menu_administration"
-        sequence="200"
-        groups="url_slug_manager.group_technical_config_admin"/>
+        sequence="200"/>
 
     <menuitem
         id="menu_url_slug_config"
@@ -19,6 +18,6 @@
         parent="menu_url_slug_manager_root"
         action="action_url_slug_config"
         sequence="10"
-        groups="url_slug_manager.group_technical_config_admin"/>
+        groups="url_slug_manager.group_url_slug_config_create,url_slug_manager.group_url_slug_config_update,url_slug_manager.group_url_slug_config_delete"/>
 
 </odoo>

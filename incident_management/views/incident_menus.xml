@@ -17,104 +17,102 @@
               name="My Incidents"
               parent="menu_incident_reporting"
               action="action_incident_report_my"
-              sequence="10"/>
+              sequence="10"
+              groups="incident_management.group_incident_report_view"/>
 
     <menuitem id="menu_incident_all"
               name="All Incidents"
               parent="menu_incident_reporting"
               action="action_incident_report_all"
               sequence="20"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_report_view"/>
 
     <!-- ── Management Menu ────────────────────────────────────────────────── -->
     <menuitem id="menu_incident_management"
               name="Management"
               parent="menu_incident_root"
-              sequence="20"
-              groups="incident_management.group_incident_manager"/>
+              sequence="20"/>
 
     <menuitem id="menu_incident_pending"
               name="Pending Assignment"
               parent="menu_incident_management"
               action="action_incident_report_pending"
               sequence="10"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_report_view"/>
 
     <menuitem id="menu_incident_investigations"
               name="Open Investigations"
               parent="menu_incident_management"
               action="action_incident_report_investigations"
               sequence="20"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_report_view"/>
 
     <menuitem id="menu_corrective_actions"
               name="Corrective Actions"
               parent="menu_incident_management"
               action="action_incident_corrective_action_all"
               sequence="30"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_corrective_action_view"/>
 
     <!-- ── Analysis Menu ────────────────────────────────────────────────── -->
     <menuitem id="menu_incident_analysis"
               name="Analysis"
               parent="menu_incident_root"
-              sequence="30"
-              groups="incident_management.group_incident_manager"/>
+              sequence="30"/>
 
     <menuitem id="menu_incident_analysis_status"
               name="By Status"
               parent="menu_incident_analysis"
               action="action_incident_analysis_by_status"
               sequence="10"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_analysis_view"/>
 
     <menuitem id="menu_incident_analysis_severity"
               name="By Severity"
               parent="menu_incident_analysis"
               action="action_incident_analysis_by_severity"
               sequence="20"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_analysis_view"/>
 
     <menuitem id="menu_incident_analysis_category"
               name="By Category"
               parent="menu_incident_analysis"
               action="action_incident_analysis_by_category"
               sequence="30"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_analysis_view"/>
 
     <menuitem id="menu_incident_analysis_trend"
               name="Trend Over Time"
               parent="menu_incident_analysis"
               action="action_incident_analysis_trend"
               sequence="40"
-              groups="incident_management.group_incident_manager"/>
+              groups="incident_management.group_incident_analysis_view"/>
 
     <!-- ── Configuration Menu ────────────────────────────────────────────── -->
     <menuitem id="menu_incident_config"
               name="Configuration"
               parent="menu_incident_root"
-              sequence="100"
-              groups="incident_management.group_incident_admin"/>
+              sequence="100"/>
 
     <menuitem id="menu_icam_categories"
               name="ICAM Categories"
               parent="menu_incident_config"
               action="action_icam_category"
               sequence="10"
-              groups="incident_management.group_incident_admin"/>
+              groups="incident_management.group_incident_icam_category_create,incident_management.group_incident_icam_category_update,incident_management.group_incident_icam_category_delete"/>
 
     <menuitem id="menu_icam_factors"
               name="ICAM Factors"
               parent="menu_incident_config"
               action="action_icam_factor"
               sequence="20"
-              groups="incident_management.group_incident_admin"/>
+              groups="incident_management.group_incident_icam_factor_create,incident_management.group_incident_icam_factor_update,incident_management.group_incident_icam_factor_delete"/>
 
     <menuitem id="menu_incident_ai_settings"
               name="AI Settings"
               parent="menu_incident_config"
               action="action_incident_ai_settings"
               sequence="30"
-              groups="incident_management.group_incident_admin"/>
+              groups="incident_management.group_incident_ai_settings_create,incident_management.group_incident_ai_settings_update,incident_management.group_incident_ai_settings_delete"/>
 
 </odoo>

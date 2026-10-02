@@ -20,23 +20,23 @@
                     <button name="action_open_assign_wizard" string="Assign Manager"
                             type="object" class="btn-primary"
                             invisible="state != 'submitted'"
-                            groups="incident_management.group_incident_manager"/>
+                            groups="incident_management.group_incident_report_update"/>
                     <button name="action_open_assign_wizard" string="Reassign Manager"
                             type="object" class="btn-secondary"
                             invisible="state != 'assigned'"
-                            groups="incident_management.group_incident_manager"/>
+                            groups="incident_management.group_incident_report_update"/>
                     <button name="action_start_investigation" string="Start Investigation"
                             type="object" class="btn-primary"
                             invisible="state != 'assigned'"
-                            groups="incident_management.group_incident_manager"/>
+                            groups="incident_management.group_incident_report_update"/>
                     <button name="action_complete_investigation" string="Complete Investigation"
                             type="object" class="btn-primary"
                             invisible="state != 'under_investigation'"
-                            groups="incident_management.group_incident_manager"/>
+                            groups="incident_management.group_incident_report_update"/>
                     <button name="action_close" string="Close Incident"
                             type="object" class="btn-primary"
                             invisible="state != 'corrective_actions' or (corrective_action_ids and not corrective_actions_complete)"
-                            groups="incident_management.group_incident_manager"/>
+                            groups="incident_management.group_incident_report_update"/>
 
                     <!-- Confidentiality toggle — managers only -->
                     <button name="action_mark_confidential"
@@ -44,31 +44,31 @@
                             type="object" class="btn-secondary"
                             icon="fa-lock"
                             invisible="is_confidential"
-                            groups="incident_management.group_incident_manager"
+                            groups="incident_management.group_incident_report_update"
                             confirm="Mark this incident as confidential? Access will be restricted to authorised users only."/>
                     <button name="action_remove_confidential"
                             string="Remove Confidential"
                             type="object" class="btn-secondary"
                             icon="fa-unlock"
                             invisible="not is_confidential"
-                            groups="incident_management.group_incident_manager"
+                            groups="incident_management.group_incident_report_update"
                             confirm="Remove confidential status? This incident will become visible to all users with access to the Incidents module."/>
 
                     <!-- Common actions -->
                     <button name="action_cancel" string="Cancel"
                             type="object" class="btn-secondary"
                             invisible="state in ('draft', 'closed', 'cancelled')"
-                            groups="incident_management.group_incident_manager"
+                            groups="incident_management.group_incident_report_update"
                             confirm="Are you sure you want to cancel this incident?"/>
                     <button name="action_reset_to_draft" string="Reset to Draft"
                             type="object" class="btn-secondary"
                             invisible="state not in ('submitted', 'cancelled')"
-                            groups="incident_management.group_incident_manager"/>
+                            groups="incident_management.group_incident_report_update"/>
                     <button name="action_open_report_wizard" string="Export PDF"
                             type="object" class="btn-secondary"
                             icon="fa-file-pdf-o"
                             invisible="state == 'draft'"
-                            groups="incident_management.group_incident_manager"/>
+                            groups="incident_management.group_incident_report_update"/>
 
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,submitted,assigned,under_investigation,corrective_actions,closed"/>
@@ -90,7 +90,7 @@
                         <button name="action_manage_confidential_access" type="object"
                                 class="oe_stat_button" icon="fa-lock"
                                 invisible="not is_confidential"
-                                groups="incident_management.group_incident_manager"
+                                groups="incident_management.group_incident_report_update"
                                 title="Manage who can view this confidential record">
                             <field name="confidential_user_count" widget="statinfo" string="Authorised"/>
                         </button>

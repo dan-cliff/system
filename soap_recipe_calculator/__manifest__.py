@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Soap Recipe Calculator',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Manufacturing',
     'summary': 'Lye calculator for cold-process soap recipes with fatty acid profiling and quality predictions.',
     'author': "Cliff's Country Crafts",
     'depends': ['product', 'mrp', 'mail'],
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'views/product_template_views.xml',
         'views/soap_recipe_views.xml',
