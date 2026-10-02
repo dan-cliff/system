@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_custom_dashboard_widget_form" model="ir.ui.view">
+        <field name="name">custom.dashboard.widget.form</field>
+        <field name="model">custom.dashboard.widget</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="data_mode" invisible="1"/>
+                    <field name="type_code" invisible="1"/>
+                    <field name="supports_series" invisible="1"/>
+                    <field name="requires_series" invisible="1"/>
+                    <field name="uses_second_measure" invisible="1"/>
+                    <field name="groupby_field_type" invisible="1"/>
+                    <field name="series_field_type" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="subtitle"/>
+                        </group>
+                        <group>
+                            <field name="type_id" options="{'no_create': True}"/>
+                            <field name="dashboard_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Data" name="data" invisible="data_mode == 'content'">
+                            <group>
+                                <group>
+                                    <field name="model_id" options="{'no_create': True}" required="data_mode != 'content'"/>
+                                    <field name="model_name" invisible="1"/>
+                                    <field name="groupby_field_id" options="{'no_create': True}"
+                                           invisible="data_mode != 'grouped' or not model_id"
+                                           required="data_mode == 'grouped'"/>
+                                    <field name="groupby_interval"
+                                           invisible="data_mode != 'grouped' or groupby_field_type not in ('date', 'datetime')"/>
+                                    <field name="series_field_id" options="{'no_create': True}"
+                                           invisible="not supports_series or not model_id"
+                                           required="requires_series"/>
+                                    <field name="series_interval"
+                                           invisible="not supports_series or series_field_type not in ('date', 'datetime')"/>
+                                </group>
+                                <group>
+                                    <label for="measure_field_id" string="X Measure" invisible="data_mode != 'points'"/>
+                                    <label for="measure_field_id" invisible="data_mode == 'points'"/>
+                                    <div class="o_row" invisible="not model_id">
+                                        <field name="measure_field_id" options="{'no_create': True}" placeholder="Count"/>
+                                        <field name="aggregate" invisible="not measure_field_id or data_mode == 'points'"/>
+                                    </div>
+                                    <label for="measure2_field_id" string="Y Measure" invisible="data_mode != 'points'"/>
+                                    <label for="measure2_field_id" invisible="not uses_second_measure or data_mode == 'points'"/>
+                                    <div class="o_row" invisible="not uses_second_measure or not model_id">
+                                        <field name="measure2_field_id" options="{'no_create': True}" placeholder="Count"/>
+                                        <field name="aggregate2" invisible="not measure2_field_id or data_mode == 'points'"/>
+                                    </div>
+                                    <field name="sort" invisible="data_mode != 'grouped'"/>
+                                    <field name="limit" invisible="data_mode not in ('grouped', 'points')"/>
+                                </group>
+                            </group>
+                            <label for="domain" invisible="not model_id"/>
+                            <field name="domain" widget="domain" invisible="not model_id"
+                                   options="{'model': 'model_name', 'in_dialog': True}"/>
+                        </page>
+                        <page string="Display" name="display" invisible="data_mode == 'content'">
+                            <group>
+                                <group>
+                                    <field name="color" widget="color" invisible="data_mode == 'single'"/>
+                                    <field name="show_legend" invisible="data_mode != 'grouped' or type_code in ('table', 'pivot')"/>
+                                    <field name="show_values" invisible="data_mode != 'grouped' or type_code in ('table', 'pivot')"/>
+                                    <field name="decimals"/>
+                                    <field name="prefix"/>
+                                    <field name="suffix"/>
+                                </group>
+                                <group invisible="data_mode != 'single'">
+                                    <field name="target_value"/>
+                                    <field name="gauge_min" invisible="type_code != 'gauge'"/>
+                                    <field name="gauge_max" invisible="type_code != 'gauge'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Content" name="content" invisible="data_mode != 'content'">
+                            <field name="text_content" invisible="type_code != 'text'" options="{'height': 200}"/>
+                            <field name="image" widget="image" invisible="type_code != 'image'"/>
+                        </page>
+                        <page string="Layout" name="layout" groups="base.group_no_one">
+                            <group>
+                                <group>
+                                    <field name="pos_x"/>
+                                    <field name="pos_y"/>
+                                </group>
+                                <group>
+                                    <field name="width"/>
+                                    <field name="height"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_widget_list" model="ir.ui.view">
+        <field name="name">custom.dashboard.widget.list</field>
+        <field name="model">custom.dashboard.widget</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="dashboard_id"/>
+                <field name="name"/>
+                <field name="type_id"/>
+                <field name="model_id"/>
+            </list>
+        </field>
+    </record>
+</odoo>
