@@ -1,6 +1,6 @@
 {
     'name': 'Meeting Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Comprehensive meeting management with agenda, minutes, Teams integration and To-Do',
     'description': """
 Meeting Management
@@ -23,8 +23,9 @@ A full-featured meeting management solution for Odoo 19.0:
         'project',
     ],
     'data': [
-        'security/meeting_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/meeting_sequence.xml',
         'views/meeting_notification_template_views.xml',
         'views/meeting_template_views.xml',

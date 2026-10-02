@@ -16,7 +16,7 @@ class HrEmployee(models.Model):
         string='Healthcare Record',
         compute='_compute_healthcare_id',
         store=True,
-        groups='employee_healthcare.group_employee_healthcare_employee',
+        groups='employee_healthcare.group_hc_record_view',
     )
 
     # ── Indicator tags (convenience related field for the employee form) ───
@@ -24,7 +24,7 @@ class HrEmployee(models.Model):
         'employee.healthcare.indicator',
         related='healthcare_id.healthcare_indicator_ids',
         string='Healthcare Indicators',
-        groups='employee_healthcare.group_employee_healthcare_employee',
+        groups='employee_healthcare.group_hc_record_view',
     )
 
     @api.model_create_multi

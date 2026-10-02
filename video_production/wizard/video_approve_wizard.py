@@ -27,7 +27,7 @@ class VideoApproveWizard(models.TransientModel):
                 lambda a: a.user_id == self.env.user
             )
             if not approver and not self.env.user.has_group(
-                'video_production.group_video_production_manager'
+                'video_production.group_vp_review_update'
             ):
                 raise UserError(
                     _('You are not listed as an approver for review "%s".') % review.name

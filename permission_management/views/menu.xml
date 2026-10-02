@@ -25,12 +25,14 @@
         name="Roles"
         parent="menu_permission_management"
         action="action_permission_role"
-        sequence="10"/>
+        sequence="10"
+        groups="permission_management.group_permission_role_create,permission_management.group_permission_role_update,permission_management.group_permission_role_delete,base.group_erp_manager"/>
 
     <menuitem
         id="menu_permission_profile"
         name="Profiles"
         parent="menu_permission_management"
         action="action_permission_profile"
-        sequence="20"/>
+        sequence="20"
+        groups="permission_management.group_permission_profile_create,permission_management.group_permission_profile_update,permission_management.group_permission_profile_delete,base.group_erp_manager"/>
 </odoo>

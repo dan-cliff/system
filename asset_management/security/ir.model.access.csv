@@ -1,21 +1,56 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_asset_usage_unit_user,asset.usage.unit user,model_asset_usage_unit,group_asset_user,1,0,0,0
-access_asset_usage_unit_manager,asset.usage.unit manager,model_asset_usage_unit,group_asset_manager,1,1,1,1
-access_asset_type_user,asset.type user,model_asset_type,group_asset_user,1,0,0,0
-access_asset_type_manager,asset.type manager,model_asset_type,group_asset_manager,1,1,1,1
-access_asset_subtype_user,asset.subtype user,model_asset_subtype,group_asset_user,1,0,0,0
-access_asset_subtype_manager,asset.subtype manager,model_asset_subtype,group_asset_manager,1,1,1,1
-access_asset_asset_user,asset.asset user,model_asset_asset,group_asset_user,1,1,1,0
-access_asset_asset_manager,asset.asset manager,model_asset_asset,group_asset_manager,1,1,1,1
-access_asset_usage_log_user,asset.usage.log user,model_asset_usage_log,group_asset_user,1,1,1,0
-access_asset_usage_log_manager,asset.usage.log manager,model_asset_usage_log,group_asset_manager,1,1,1,1
-access_asset_defect_user,asset.defect user,model_asset_defect,group_asset_user,1,1,1,0
-access_asset_defect_manager,asset.defect manager,model_asset_defect,group_asset_manager,1,1,1,1
-access_asset_maintenance_log_user,asset.maintenance.log user,model_asset_maintenance_log,group_asset_user,1,1,1,0
-access_asset_maintenance_log_manager,asset.maintenance.log manager,model_asset_maintenance_log,group_asset_manager,1,1,1,1
-access_asset_maintenance_type_user,asset.maintenance.type user,model_asset_maintenance_type,group_asset_user,1,0,0,0
-access_asset_maintenance_type_manager,asset.maintenance.type manager,model_asset_maintenance_type,group_asset_manager,1,1,1,1
-access_asset_defect_severity_user,asset.defect.severity user,model_asset_defect_severity,group_asset_user,1,0,0,0
-access_asset_defect_severity_manager,asset.defect.severity manager,model_asset_defect_severity,group_asset_manager,1,1,1,1
-access_asset_location_log_user,asset.location.log user,model_asset_location_log,group_asset_user,1,0,0,0
-access_asset_location_log_manager,asset.location.log manager,model_asset_location_log,group_asset_manager,1,1,1,1
+access_asset_asset_view,asset.asset view,model_asset_asset,group_asset_asset_view,1,0,0,0
+access_asset_asset_create,asset.asset create,model_asset_asset,group_asset_asset_create,1,0,1,0
+access_asset_asset_own,asset.asset own,model_asset_asset,group_asset_asset_own,1,1,1,0
+access_asset_asset_update,asset.asset update,model_asset_asset,group_asset_asset_update,1,1,0,0
+access_asset_asset_delete,asset.asset delete,model_asset_asset,group_asset_asset_delete,1,0,0,1
+access_asset_usage_log_view,asset.usage.log view,model_asset_usage_log,group_asset_usage_log_view,1,0,0,0
+access_asset_usage_log_create,asset.usage.log create,model_asset_usage_log,group_asset_usage_log_create,1,0,1,0
+access_asset_usage_log_own,asset.usage.log own,model_asset_usage_log,group_asset_usage_log_own,1,1,1,0
+access_asset_usage_log_update,asset.usage.log update,model_asset_usage_log,group_asset_usage_log_update,1,1,0,0
+access_asset_usage_log_delete,asset.usage.log delete,model_asset_usage_log,group_asset_usage_log_delete,1,0,0,1
+access_asset_defect_view,asset.defect view,model_asset_defect,group_asset_defect_view,1,0,0,0
+access_asset_defect_create,asset.defect create,model_asset_defect,group_asset_defect_create,1,0,1,0
+access_asset_defect_own,asset.defect own,model_asset_defect,group_asset_defect_own,1,1,1,0
+access_asset_defect_update,asset.defect update,model_asset_defect,group_asset_defect_update,1,1,0,0
+access_asset_defect_delete,asset.defect delete,model_asset_defect,group_asset_defect_delete,1,0,0,1
+access_asset_maintenance_log_view,asset.maintenance.log view,model_asset_maintenance_log,group_asset_maintenance_log_view,1,0,0,0
+access_asset_maintenance_log_create,asset.maintenance.log create,model_asset_maintenance_log,group_asset_maintenance_log_create,1,0,1,0
+access_asset_maintenance_log_own,asset.maintenance.log own,model_asset_maintenance_log,group_asset_maintenance_log_own,1,1,1,0
+access_asset_maintenance_log_update,asset.maintenance.log update,model_asset_maintenance_log,group_asset_maintenance_log_update,1,1,0,0
+access_asset_maintenance_log_delete,asset.maintenance.log delete,model_asset_maintenance_log,group_asset_maintenance_log_delete,1,0,0,1
+access_asset_location_log_view,asset.location.log view,model_asset_location_log,group_asset_location_log_view,1,0,0,0
+access_asset_location_log_create,asset.location.log create,model_asset_location_log,group_asset_location_log_create,1,0,1,0
+access_asset_location_log_own,asset.location.log own,model_asset_location_log,group_asset_location_log_own,1,1,1,0
+access_asset_location_log_update,asset.location.log update,model_asset_location_log,group_asset_location_log_update,1,1,0,0
+access_asset_location_log_delete,asset.location.log delete,model_asset_location_log,group_asset_location_log_delete,1,0,0,1
+access_asset_type_view,asset.type view,model_asset_type,group_asset_type_view,1,0,0,0
+access_asset_type_create,asset.type create,model_asset_type,group_asset_type_create,1,0,1,0
+access_asset_type_own,asset.type own,model_asset_type,group_asset_type_own,1,1,1,0
+access_asset_type_update,asset.type update,model_asset_type,group_asset_type_update,1,1,0,0
+access_asset_type_delete,asset.type delete,model_asset_type,group_asset_type_delete,1,0,0,1
+access_asset_type_internal_read,asset.type internal read,model_asset_type,base.group_user,1,0,0,0
+access_asset_subtype_view,asset.subtype view,model_asset_subtype,group_asset_subtype_view,1,0,0,0
+access_asset_subtype_create,asset.subtype create,model_asset_subtype,group_asset_subtype_create,1,0,1,0
+access_asset_subtype_own,asset.subtype own,model_asset_subtype,group_asset_subtype_own,1,1,1,0
+access_asset_subtype_update,asset.subtype update,model_asset_subtype,group_asset_subtype_update,1,1,0,0
+access_asset_subtype_delete,asset.subtype delete,model_asset_subtype,group_asset_subtype_delete,1,0,0,1
+access_asset_subtype_internal_read,asset.subtype internal read,model_asset_subtype,base.group_user,1,0,0,0
+access_asset_usage_unit_view,asset.usage.unit view,model_asset_usage_unit,group_asset_usage_unit_view,1,0,0,0
+access_asset_usage_unit_create,asset.usage.unit create,model_asset_usage_unit,group_asset_usage_unit_create,1,0,1,0
+access_asset_usage_unit_own,asset.usage.unit own,model_asset_usage_unit,group_asset_usage_unit_own,1,1,1,0
+access_asset_usage_unit_update,asset.usage.unit update,model_asset_usage_unit,group_asset_usage_unit_update,1,1,0,0
+access_asset_usage_unit_delete,asset.usage.unit delete,model_asset_usage_unit,group_asset_usage_unit_delete,1,0,0,1
+access_asset_usage_unit_internal_read,asset.usage.unit internal read,model_asset_usage_unit,base.group_user,1,0,0,0
+access_asset_maintenance_type_view,asset.maintenance.type view,model_asset_maintenance_type,group_asset_maintenance_type_view,1,0,0,0
+access_asset_maintenance_type_create,asset.maintenance.type create,model_asset_maintenance_type,group_asset_maintenance_type_create,1,0,1,0
+access_asset_maintenance_type_own,asset.maintenance.type own,model_asset_maintenance_type,group_asset_maintenance_type_own,1,1,1,0
+access_asset_maintenance_type_update,asset.maintenance.type update,model_asset_maintenance_type,group_asset_maintenance_type_update,1,1,0,0
+access_asset_maintenance_type_delete,asset.maintenance.type delete,model_asset_maintenance_type,group_asset_maintenance_type_delete,1,0,0,1
+access_asset_maintenance_type_internal_read,asset.maintenance.type internal read,model_asset_maintenance_type,base.group_user,1,0,0,0
+access_asset_defect_severity_view,asset.defect.severity view,model_asset_defect_severity,group_asset_defect_severity_view,1,0,0,0
+access_asset_defect_severity_create,asset.defect.severity create,model_asset_defect_severity,group_asset_defect_severity_create,1,0,1,0
+access_asset_defect_severity_own,asset.defect.severity own,model_asset_defect_severity,group_asset_defect_severity_own,1,1,1,0
+access_asset_defect_severity_update,asset.defect.severity update,model_asset_defect_severity,group_asset_defect_severity_update,1,1,0,0
+access_asset_defect_severity_delete,asset.defect.severity delete,model_asset_defect_severity,group_asset_defect_severity_delete,1,0,0,1
+access_asset_defect_severity_internal_read,asset.defect.severity internal read,model_asset_defect_severity,base.group_user,1,0,0,0

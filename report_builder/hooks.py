@@ -4,7 +4,7 @@ post_init_hook for report_builder:
 
 1. Seeds the Report Builder roles into the Permission Management role library.
 2. Creates (or updates) a 'System Administrator' permission profile that holds
-   the Report Builder – Manager role.
+   the Report Builder – Administrator role.
 3. Assigns the built-in admin user to that profile if they do not already have
    a permission profile set.
 
@@ -40,7 +40,7 @@ def _seed_permission_roles(env):
 
 def _setup_admin_profile(env):
     """
-    Find the Report Builder – Manager role and ensure it is present in a
+    Find the Report Builder – Administrator role and ensure it is present in a
     'System Administrator' permission profile.  If the admin user has no
     profile assigned, assign this one.
     """
@@ -49,24 +49,12 @@ def _setup_admin_profile(env):
     if Role is None or Profile is None:
         return
 
-    # Locate the Report Builder – Manager role
-    privilege = env.ref('report_builder.privilege_report_builder', raise_if_not_found=False)
-    manager_group = env.ref('report_builder.group_report_builder_manager', raise_if_not_found=False)
-    if not privilege or not manager_group:
-        _logger.warning(
-            'report_builder post_init_hook: could not resolve privilege or '
-            'manager group XML refs — skipping admin profile setup.'
-        )
-        return
-
-    manager_role = Role.search([
-        ('line_ids.privilege_id', '=', privilege.id),
-        ('line_ids.group_id', '=', manager_group.id),
-    ], limit=1)
+    # Locate the Report Builder – Administrator role (created from access_levels.py)
+    manager_role = Role.search([('name', '=', 'Report Builder – Administrator')], limit=1)
 
     if not manager_role:
         _logger.warning(
-            'report_builder post_init_hook: Report Builder – Manager role not '
+            'report_builder post_init_hook: Report Builder – Administrator role not '
             'found in library after seeding — skipping admin profile setup.'
         )
         return
@@ -90,7 +78,7 @@ def _setup_admin_profile(env):
         if manager_role.id not in admin_profile.role_ids.ids:
             admin_profile.write({'role_ids': [(4, manager_role.id)]})
             _logger.info(
-                'report_builder post_init_hook: added Report Builder – Manager '
+                'report_builder post_init_hook: added Report Builder – Administrator '
                 'role to existing "System Administrator" profile.'
             )
 

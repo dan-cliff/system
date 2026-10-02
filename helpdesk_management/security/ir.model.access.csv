@@ -1,19 +1,45 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_helpdesk_ticket_user,helpdesk.ticket user,model_helpdesk_ticket,group_helpdesk_user,1,1,1,0
-access_helpdesk_ticket_manager,helpdesk.ticket manager,model_helpdesk_ticket,group_helpdesk_manager,1,1,1,1
-access_helpdesk_ticket_portal,helpdesk.ticket portal,model_helpdesk_ticket,base.group_portal,1,0,0,0
-access_helpdesk_team_user,helpdesk.team user,model_helpdesk_team,group_helpdesk_user,1,0,0,0
-access_helpdesk_team_manager,helpdesk.team manager,model_helpdesk_team,group_helpdesk_manager,1,1,1,1
-access_helpdesk_team_portal,helpdesk.team portal,model_helpdesk_team,base.group_portal,1,0,0,0
-access_helpdesk_stage_user,helpdesk.stage user,model_helpdesk_stage,group_helpdesk_user,1,0,0,0
-access_helpdesk_stage_manager,helpdesk.stage manager,model_helpdesk_stage,group_helpdesk_manager,1,1,1,1
-access_helpdesk_stage_portal,helpdesk.stage portal,model_helpdesk_stage,base.group_portal,1,0,0,0
-access_helpdesk_sla_user,helpdesk.sla user,model_helpdesk_sla,group_helpdesk_user,1,0,0,0
-access_helpdesk_sla_manager,helpdesk.sla manager,model_helpdesk_sla,group_helpdesk_manager,1,1,1,1
-access_helpdesk_sla_status_user,helpdesk.sla.status user,model_helpdesk_sla_status,group_helpdesk_user,1,0,0,0
-access_helpdesk_sla_status_manager,helpdesk.sla.status manager,model_helpdesk_sla_status,group_helpdesk_manager,1,1,1,1
-access_helpdesk_ticket_type_user,helpdesk.ticket.type user,model_helpdesk_ticket_type,group_helpdesk_user,1,0,0,0
-access_helpdesk_ticket_type_manager,helpdesk.ticket.type manager,model_helpdesk_ticket_type,group_helpdesk_manager,1,1,1,1
-access_helpdesk_ticket_type_portal,helpdesk.ticket.type portal,model_helpdesk_ticket_type,base.group_portal,1,0,0,0
-access_helpdesk_tag_user,helpdesk.tag user,model_helpdesk_tag,group_helpdesk_user,1,0,0,0
-access_helpdesk_tag_manager,helpdesk.tag manager,model_helpdesk_tag,group_helpdesk_manager,1,1,1,1
+access_helpdesk_ticket_view,helpdesk.ticket view,model_helpdesk_ticket,group_helpdesk_ticket_view,1,0,0,0
+access_helpdesk_ticket_create,helpdesk.ticket create,model_helpdesk_ticket,group_helpdesk_ticket_create,1,0,1,0
+access_helpdesk_ticket_own,helpdesk.ticket own,model_helpdesk_ticket,group_helpdesk_ticket_own,1,1,1,0
+access_helpdesk_ticket_update,helpdesk.ticket update,model_helpdesk_ticket,group_helpdesk_ticket_update,1,1,0,0
+access_helpdesk_ticket_delete,helpdesk.ticket delete,model_helpdesk_ticket,group_helpdesk_ticket_delete,1,0,0,1
+access_helpdesk_sla_status_view,helpdesk.sla.status view,model_helpdesk_sla_status,group_helpdesk_ticket_view,1,0,0,0
+access_helpdesk_sla_status_create,helpdesk.sla.status create,model_helpdesk_sla_status,group_helpdesk_ticket_create,1,0,1,0
+access_helpdesk_sla_status_own,helpdesk.sla.status own,model_helpdesk_sla_status,group_helpdesk_ticket_own,1,1,1,0
+access_helpdesk_sla_status_update,helpdesk.sla.status update,model_helpdesk_sla_status,group_helpdesk_ticket_update,1,1,0,0
+access_helpdesk_sla_status_delete,helpdesk.sla.status delete,model_helpdesk_sla_status,group_helpdesk_ticket_delete,1,0,0,1
+access_helpdesk_team_view,helpdesk.team view,model_helpdesk_team,group_helpdesk_team_view,1,0,0,0
+access_helpdesk_team_create,helpdesk.team create,model_helpdesk_team,group_helpdesk_team_create,1,0,1,0
+access_helpdesk_team_own,helpdesk.team own,model_helpdesk_team,group_helpdesk_team_own,1,1,1,0
+access_helpdesk_team_update,helpdesk.team update,model_helpdesk_team,group_helpdesk_team_update,1,1,0,0
+access_helpdesk_team_delete,helpdesk.team delete,model_helpdesk_team,group_helpdesk_team_delete,1,0,0,1
+access_helpdesk_team_internal_read,helpdesk.team internal read,model_helpdesk_team,base.group_user,1,0,0,0
+access_helpdesk_stage_view,helpdesk.stage view,model_helpdesk_stage,group_helpdesk_stage_view,1,0,0,0
+access_helpdesk_stage_create,helpdesk.stage create,model_helpdesk_stage,group_helpdesk_stage_create,1,0,1,0
+access_helpdesk_stage_own,helpdesk.stage own,model_helpdesk_stage,group_helpdesk_stage_own,1,1,1,0
+access_helpdesk_stage_update,helpdesk.stage update,model_helpdesk_stage,group_helpdesk_stage_update,1,1,0,0
+access_helpdesk_stage_delete,helpdesk.stage delete,model_helpdesk_stage,group_helpdesk_stage_delete,1,0,0,1
+access_helpdesk_stage_internal_read,helpdesk.stage internal read,model_helpdesk_stage,base.group_user,1,0,0,0
+access_helpdesk_sla_view,helpdesk.sla view,model_helpdesk_sla,group_helpdesk_sla_view,1,0,0,0
+access_helpdesk_sla_create,helpdesk.sla create,model_helpdesk_sla,group_helpdesk_sla_create,1,0,1,0
+access_helpdesk_sla_own,helpdesk.sla own,model_helpdesk_sla,group_helpdesk_sla_own,1,1,1,0
+access_helpdesk_sla_update,helpdesk.sla update,model_helpdesk_sla,group_helpdesk_sla_update,1,1,0,0
+access_helpdesk_sla_delete,helpdesk.sla delete,model_helpdesk_sla,group_helpdesk_sla_delete,1,0,0,1
+access_helpdesk_sla_internal_read,helpdesk.sla internal read,model_helpdesk_sla,base.group_user,1,0,0,0
+access_helpdesk_ticket_type_view,helpdesk.ticket.type view,model_helpdesk_ticket_type,group_helpdesk_ticket_type_view,1,0,0,0
+access_helpdesk_ticket_type_create,helpdesk.ticket.type create,model_helpdesk_ticket_type,group_helpdesk_ticket_type_create,1,0,1,0
+access_helpdesk_ticket_type_own,helpdesk.ticket.type own,model_helpdesk_ticket_type,group_helpdesk_ticket_type_own,1,1,1,0
+access_helpdesk_ticket_type_update,helpdesk.ticket.type update,model_helpdesk_ticket_type,group_helpdesk_ticket_type_update,1,1,0,0
+access_helpdesk_ticket_type_delete,helpdesk.ticket.type delete,model_helpdesk_ticket_type,group_helpdesk_ticket_type_delete,1,0,0,1
+access_helpdesk_ticket_type_internal_read,helpdesk.ticket.type internal read,model_helpdesk_ticket_type,base.group_user,1,0,0,0
+access_helpdesk_tag_view,helpdesk.tag view,model_helpdesk_tag,group_helpdesk_tag_view,1,0,0,0
+access_helpdesk_tag_create,helpdesk.tag create,model_helpdesk_tag,group_helpdesk_tag_create,1,0,1,0
+access_helpdesk_tag_own,helpdesk.tag own,model_helpdesk_tag,group_helpdesk_tag_own,1,1,1,0
+access_helpdesk_tag_update,helpdesk.tag update,model_helpdesk_tag,group_helpdesk_tag_update,1,1,0,0
+access_helpdesk_tag_delete,helpdesk.tag delete,model_helpdesk_tag,group_helpdesk_tag_delete,1,0,0,1
+access_helpdesk_tag_internal_read,helpdesk.tag internal read,model_helpdesk_tag,base.group_user,1,0,0,0
+access_helpdesk_ticket_portal,access_helpdesk_ticket_portal,model_helpdesk_ticket,base.group_portal,1,0,0,0
+access_helpdesk_team_portal,access_helpdesk_team_portal,model_helpdesk_team,base.group_portal,1,0,0,0
+access_helpdesk_stage_portal,access_helpdesk_stage_portal,model_helpdesk_stage,base.group_portal,1,0,0,0
+access_helpdesk_ticket_type_portal,access_helpdesk_ticket_type_portal,model_helpdesk_ticket_type,base.group_portal,1,0,0,0

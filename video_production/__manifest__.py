@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Video Production',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'End-to-end YouTube video production management',
     'description': """
 Video Production Management
@@ -30,8 +30,9 @@ Manage the full lifecycle of YouTube video production:
     ],
     'data': [
         # Security (load first)
-        'security/video_production_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         # Data
         'data/video_production_data.xml',
         # Views

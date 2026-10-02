@@ -1,88 +1,69 @@
-"""Risk Management access levels and the Permission Management roles built from them.
+"""Risk Management access levels - see permission_management/access_levels_lib.py.
 
-Each risk model has its own privilege (shown as "<model name>") holding four
-groups: View Only, Create, Update and Delete, so they display as
-"Risk Templates / Create", "Risk Templates / Delete" and so on. Create,
-Update and Delete each imply View Only for the same model.
-
-Risk Assessments also has a "Create and Edit Own Only" group: it lets a user create
-and edit Risk Assessments, but limits them (and the assessments' Risks) to the ones
-they created or are the Risk Assessment Owner, Risk Approver or a Collaborator on.
+Regenerate the security files after changing this: python3 tools/generate_access_levels.py risk_management
 """
 
-# (key, privilege name) - XML IDs are privilege_risk_<key> and group_risk_<key>_<permission>.
-RISK_MODELS = [
-    ('assessment', 'Risk Assessments'),
-    ('risk', 'Risks'),
-    ('template', 'Risk Templates'),
-    ('category', 'Risk Categories'),
-    ('control', 'Controls'),
-    ('control_hierarchy', 'Hierarchy of Controls'),
-    ('type', 'Risk Types'),
-    ('subtype', 'Risk Subtypes'),
-    ('stage', 'Risk Assessment Stages'),
-    ('likelihood', 'Likelihood'),
-    ('consequence', 'Consequence'),
-    ('severity', 'Risk Severity'),
-    ('score', 'Risk Score'),
+APP_NAME = 'Risk Management'
+PREFIX = 'risk'
+CATEGORY = 'module_category_risk_management'
+
+OPERATIONAL, CONFIG, SETTINGS = 'operational', 'config', 'settings'
+
+_ASSESSMENT_OWNERS = ['assessor_id', 'approver_id', 'collaborator_ids']
+
+MODELS = [
+    ('assessment', 'Risk Assessments', OPERATIONAL, ['model_risk_assessment'], _ASSESSMENT_OWNERS),
+    ('risk', 'Risks', OPERATIONAL, ['model_risk_assessment_line'],
+     ['assessment_id.create_uid'] + ['assessment_id.%s' % field for field in _ASSESSMENT_OWNERS]),
+    ('template', 'Risk Templates', CONFIG,
+     ['model_risk_template', 'model_risk_template_line', 'model_risk_template_action'], []),
+    ('category', 'Risk Categories', CONFIG, ['model_risk_category'], []),
+    ('control', 'Controls', CONFIG, ['model_risk_control'], []),
+    ('control_hierarchy', 'Hierarchy of Controls', CONFIG, ['model_risk_control_hierarchy'], []),
+    ('type', 'Risk Types', CONFIG, ['model_risk_type'], []),
+    ('subtype', 'Risk Subtypes', CONFIG, ['model_risk_subtype'], []),
+    ('stage', 'Risk Assessment Stages', CONFIG, ['model_risk_assessment_stage'], []),
+    ('likelihood', 'Likelihood', CONFIG, ['model_risk_likelihood'], []),
+    ('consequence', 'Consequence', CONFIG, ['model_risk_consequence'], []),
+    ('severity', 'Risk Severity', CONFIG, ['model_risk_severity'], []),
+    ('score', 'Risk Score', CONFIG, ['model_risk_score'], []),
 ]
 
-PERMISSIONS = ['view', 'create', 'update', 'delete']
+_FULL = ('view', 'create', 'update', 'delete')
+_LIBRARY = ('template', 'category', 'control', 'type', 'subtype')
 
-ALL = ('view', 'create', 'update', 'delete')
-VIEW = ('view',)
-
-# Role name -> (description, {model key: permissions}); models not listed get View Only.
 ROLES = {
     'Administrator': (
         'Full access to every Risk Management record, including Risk Templates and all '
         'Configuration lists.',
-        {key: ALL for key, _name in RISK_MODELS},
+        {model[0]: _FULL for model in MODELS},
     ),
     'Risk Manager': (
-        'Manages Risk Assessments, Risk Templates and the risk library (Categories, Types, '
-        'Subtypes and Controls). Views the Risk Matrix and Stage configuration.',
-        {key: ALL for key in (
-            'assessment', 'risk', 'template', 'category', 'control', 'type', 'subtype',
-        )},
+        'Manages every Risk Assessment, the Risk Templates and the risk library (Categories, '
+        'Types, Subtypes and Controls).',
+        dict({'assessment': _FULL, 'risk': _FULL}, **{key: _FULL for key in _LIBRARY}),
     ),
     'Manager': (
-        'Creates, updates, approves and archives Risk Assessments and their Risks, and can add '
-        'new Controls. Views Risk Templates and Configuration.',
-        {'assessment': ALL, 'risk': ALL, 'control': ('view', 'create')},
+        'Creates, updates, approves and archives every Risk Assessment and its Risks. No '
+        'access to Configuration.',
+        {'assessment': _FULL, 'risk': _FULL},
     ),
     'Employee': (
-        'Creates and updates the Risk Assessments (and their Risks) they created or are the '
-        'Risk Assessment Owner, Risk Approver or a Collaborator on, and can add new Controls. '
-        'Views Risk Templates and Configuration.',
-        {
-            'assessment': ('view', 'own'),
-            'risk': ALL,
-            'control': ('view', 'create'),
-        },
+        'Creates and edits the Risk Assessments (and their Risks) they created or are the Risk '
+        'Assessment Owner, Risk Approver or a Collaborator on. No access to Configuration.',
+        {'assessment': ('view', 'own'), 'risk': ('view', 'own')},
     ),
     'View Only': (
-        'Views Risk Assessments, Risk Templates and Configuration without changing them.',
-        {},
+        'Views Risk Assessments and their Risks without changing them. No access to '
+        'Configuration.',
+        {'assessment': ('view',), 'risk': ('view',)},
     ),
 }
 
-ROLE_NAME_PREFIX = 'Risk Management – '
-
-
-def group_xmlid(key, permission):
-    return 'risk_management.group_risk_%s_%s' % (key, permission)
-
-
-def privilege_xmlid(key):
-    return 'risk_management.privilege_risk_%s' % key
-
-
-def role_access(role_name):
-    """Return [(model key, permission), ...] for a role, defaulting unlisted models to View Only."""
-    access = ROLES[role_name][1]
-    return [
-        (key, permission)
-        for key, _name in RISK_MODELS
-        for permission in access.get(key, VIEW)
-    ]
+EXTRA_ACCESS = [
+    ('access_risk_matrix_wizard_score_view', 'model_risk_matrix_wizard', 'group_risk_score_view', 'rwc'),
+    ('access_risk_assessment_approval_wizard_update', 'model_risk_assessment_approval_wizard',
+     'group_risk_assessment_update', 'rwcu'),
+    ('access_risk_assessment_approval_wizard_own', 'model_risk_assessment_approval_wizard',
+     'group_risk_assessment_own', 'rwc'),
+]

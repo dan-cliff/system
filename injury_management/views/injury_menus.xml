@@ -4,7 +4,6 @@
     <menuitem id="menu_injury_root"
               name="Injury Management"
               sequence="50"
-              groups="injury_management.group_injury_user"
               web_icon="injury_management,static/description/icon.png"/>
 
     <!-- RTW Cases (top level) -->
@@ -13,61 +12,60 @@
               parent="menu_injury_root"
               action="action_injury_rtw_case_all"
               sequence="10"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_rtw_case_view"/>
 
     <!-- Registers parent -->
     <menuitem id="menu_injury_registers"
               name="Registers"
               parent="menu_injury_root"
-              sequence="20"
-              groups="injury_management.group_injury_user"/>
+              sequence="20"/>
 
     <menuitem id="menu_injury_case_notes"
               name="Case Notes"
               parent="menu_injury_registers"
               action="action_injury_case_note_all"
               sequence="10"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_case_note_view"/>
 
     <menuitem id="menu_injury_medical_appointments"
               name="Medical Appointments"
               parent="menu_injury_registers"
               action="action_injury_medical_appointment_all"
               sequence="20"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_medical_appointment_view"/>
 
     <menuitem id="menu_injury_meetings"
               name="Meetings &amp; Communications"
               parent="menu_injury_registers"
               action="action_injury_meeting_all"
               sequence="30"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_meeting_view"/>
 
     <menuitem id="menu_injury_file_notes"
               name="File Notes"
               parent="menu_injury_registers"
               action="action_injury_file_note_all"
               sequence="40"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_file_note_view"/>
 
     <menuitem id="menu_injury_costs"
               name="Costs"
               parent="menu_injury_registers"
               action="action_injury_cost_all"
               sequence="50"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_cost_view"/>
 
     <menuitem id="menu_injury_rtw_plans"
               name="RTW Plans"
               parent="menu_injury_registers"
               action="action_injury_rtw_plan_all"
               sequence="60"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_rtw_plan_view"/>
 
     <menuitem id="menu_injury_medical_certificates"
               name="Medical Certificates"
               parent="menu_injury_registers"
               action="action_injury_medical_certificate_all"
               sequence="70"
-              groups="injury_management.group_injury_user"/>
+              groups="injury_management.group_injury_medical_certificate_view"/>
 </odoo>

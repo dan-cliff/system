@@ -1,14 +1,15 @@
 {
     'name': 'Injury Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Return to Work case management',
     'description': 'Manage Return to Work cases including case notes, medical appointments, meetings, file notes, costs, RTW plans, and medical certificates.',
     'category': 'Human Resources',
     'author': 'Custom',
     'depends': ['mail', 'hr', 'incident_management'],
     'data': [
-        'security/injury_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/injury_sequence_data.xml',
         'data/res_lang_data.xml',
         'views/injury_rtw_case_views.xml',

@@ -98,13 +98,13 @@
     <menuitem id="menu_home_menu_root"
               name="Home Screen"
               parent="base.menu_administration"
-              groups="base.group_erp_manager"
               sequence="100"/>
 
     <menuitem id="menu_home_menu_folder"
               name="Folders"
               parent="menu_home_menu_root"
               action="action_home_menu_folder"
-              sequence="10"/>
+              sequence="10"
+              groups="web_home_menu.group_home_menu_folder_create,web_home_menu.group_home_menu_folder_update,web_home_menu.group_home_menu_folder_delete,base.group_erp_manager"/>
 
 </odoo>

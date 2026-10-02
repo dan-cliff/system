@@ -1,15 +1,46 @@
 <odoo>
+    <!-- Booking products and food items follow the Bookings access levels of Boarding Kennel
+         Manager (food items on diets are also managed with Diets / Create, Update or Delete). -->
+
+    <!-- Multi-company: global rules (no groups), so they narrow the Create and Edit Own Only
+         rules rather than being OR-ed with them; portal (share) users are exempted. -->
     <record id="kennel_booking_product_rule_company" model="ir.rule">
         <field name="name">Booking Products: multi-company</field>
         <field name="model_id" ref="model_kennel_booking_product"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
 
     <record id="kennel_feed_item_rule_company" model="ir.rule">
         <field name="name">Food Items: multi-company</field>
         <field name="model_id" ref="model_kennel_feed_item"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
+    </record>
+
+    <!-- Bookings / Create and Edit Own Only: the bookings the user made or created. -->
+    <record id="rule_kennel_booking_product_own_only" model="ir.rule">
+        <field name="name">Booking Products: Create and Edit Own Only</field>
+        <field name="model_id" ref="model_kennel_booking_product"/>
+        <field name="groups" eval="[(4, ref('boarding_kennel_manager.group_kennel_booking_own'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid', 'in', [user.id]), ('booking_id.user_id', 'in', [user.id]), ('booking_id.create_uid', 'in', [user.id])]</field>
+    </record>
+    <record id="rule_kennel_booking_product_all_records" model="ir.rule">
+        <field name="name">Booking Products: any record (Update or Delete)</field>
+        <field name="model_id" ref="model_kennel_booking_product"/>
+        <field name="groups" eval="[(4, ref('boarding_kennel_manager.group_kennel_booking_update')), (4, ref('boarding_kennel_manager.group_kennel_booking_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_kennel_feed_item_own_only" model="ir.rule">
+        <field name="name">Food Items: Create and Edit Own Only</field>
+        <field name="model_id" ref="model_kennel_feed_item"/>
+        <field name="groups" eval="[(4, ref('boarding_kennel_manager.group_kennel_booking_own'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid', 'in', [user.id]), ('line_id.booking_id.user_id', 'in', [user.id]), ('line_id.booking_id.create_uid', 'in', [user.id])]</field>
+    </record>
+    <record id="rule_kennel_feed_item_all_records" model="ir.rule">
+        <field name="name">Food Items: any record (Update or Delete)</field>
+        <field name="model_id" ref="model_kennel_feed_item"/>
+        <field name="groups" eval="[(4, ref('boarding_kennel_manager.group_kennel_booking_update')), (4, ref('boarding_kennel_manager.group_kennel_booking_delete')), (4, ref('boarding_kennel_manager.group_kennel_diet_create')), (4, ref('boarding_kennel_manager.group_kennel_diet_update')), (4, ref('boarding_kennel_manager.group_kennel_diet_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 </odoo>

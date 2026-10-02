@@ -1,6 +1,6 @@
 {
     'name': 'Boarding Kennel Manager',
-    'version': '19.0.1.2.3',
+    'version': '19.0.1.3.0',
     'category': 'Services',
     'summary': 'Manage the dog and cat boarding kennels',
     'description': """
@@ -69,16 +69,19 @@ Boarding Kennel Manager
 * Multi-company: every record belongs to a company and users only see
   records of the companies they have selected. Diets and choice-list
   options can be left without a company to share them.
-* Keepers are ordinary Odoo users given the Boarding Kennel Manager /
-  Keeper access level; Administrator adds configuration and deleting
-  records.
+* Access is per model (View Only, Create, Create and Edit Own Only,
+  Update, Delete). With Permission Management installed, keepers get the
+  Boarding Kennel Manager - Employee role; Administrator adds
+  configuration, deleting records and inviting customers to the portal.
 """,
     'author': 'Cliffs',
     'license': 'LGPL-3',
     'depends': ['mail', 'portal'],
     'data': [
+        'security/access_levels.xml',
         'security/kennel_security.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'data/kennel_options_data.xml',
         'data/kennel_sequence_data.xml',

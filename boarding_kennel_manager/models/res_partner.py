@@ -6,10 +6,10 @@ class ResPartner(models.Model):
     _inherit = 'res.partner'
 
     kennel_resident_ids = fields.One2many(
-        'kennel.resident', 'partner_id', string='Residents', groups='boarding_kennel_manager.group_kennel_keeper',
+        'kennel.resident', 'partner_id', string='Residents', groups='boarding_kennel_manager.group_kennel_resident_view',
     )
     kennel_resident_count = fields.Integer(
-        compute='_compute_kennel_resident_count', groups='boarding_kennel_manager.group_kennel_keeper',
+        compute='_compute_kennel_resident_count', groups='boarding_kennel_manager.group_kennel_resident_view',
     )
 
     @api.depends('kennel_resident_ids')

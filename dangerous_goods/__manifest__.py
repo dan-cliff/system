@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Dangerous Goods & Hazardous Substances',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Human Resources/Health & Safety',
     'summary': 'Chemical and Asbestos Registers with GHS classification and Australian WHS compliance',
     'description': """
@@ -32,8 +32,9 @@
     'author': 'Custom',
     'depends': ['base', 'mail', 'hr'],
     'data': [
-        'security/dangerous_goods_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/dg_sequence_data.xml',
         'data/ghs_pictogram_data.xml',
         'data/ghs_hazard_class_data.xml',

@@ -15,12 +15,14 @@
 
     'category': 'Tools',
     'license': 'LGPL-3',
-    'version': '1.0.0',
+    'version': '1.1.0',
 
     'depends': ['base'],
 
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/auth_endpoint_data.xml',
         'views/app_key_views.xml',
         'views/auth_endpoint_views.xml',

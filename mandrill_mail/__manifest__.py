@@ -1,6 +1,6 @@
 {
     'name': 'Mailchimp Transactional Email Service',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Technical',
     'summary': 'Send and receive all Odoo email through Mailchimp Transactional (Mandrill)',
     'description': """
@@ -23,7 +23,9 @@ Settings > Emails. When enabled:
     'license': 'LGPL-3',
     'depends': ['base_setup', 'mail'],
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/ir_cron_data.xml',
         'views/mandrill_mail_log_views.xml',
         'views/mandrill_reply_route_views.xml',

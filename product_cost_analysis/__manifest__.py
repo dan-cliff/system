@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Product Cost Analysis',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Inventory/Products',
     'summary': 'Cost breakdown, break-even analysis and profitability modelling per product',
     'description': """
@@ -14,7 +14,9 @@
     'author': 'Custom',
     'depends': ['product', 'mrp', 'hr', 'hr_hourly_cost', 'mail'],
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'views/product_cost_analysis_views.xml',
         'views/product_template_views.xml',

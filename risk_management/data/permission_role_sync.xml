@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-    Create the Risk Management roles (Administrator, Risk Manager, Manager, Employee and
-    View Only) in Permission Management. Not noupdate, so it runs on every upgrade; it does
-    nothing when permission_management is not installed and skips roles that already exist.
--->
-<odoo>
-    <function model="risk.permission.roles" name="_sync_permission_roles"/>
-</odoo>

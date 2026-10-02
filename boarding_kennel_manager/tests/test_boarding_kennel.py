@@ -34,7 +34,7 @@ class TestBoardingKennel(TransactionCase):
         })
         cls.tom = cls.env['kennel.resident'].create({'name': 'Tom', 'partner_id': cls.jones.id, 'species_id': cls.cat.id})
         cls.run1 = cls.env['kennel.yard'].create({'name': 'Run 1', 'code': 'R1', 'capacity': 2, 'species_ids': [Command.set(cls.dog.ids)]})
-        cls.keeper = new_test_user(cls.env, login='kennel_keeper', groups='boarding_kennel_manager.group_kennel_keeper')
+        cls.keeper = new_test_user(cls.env, login='kennel_keeper', groups='base.group_user,boarding_kennel_manager.group_kennel_booking_create,boarding_kennel_manager.group_kennel_booking_update,boarding_kennel_manager.group_kennel_resident_create,boarding_kennel_manager.group_kennel_resident_update,boarding_kennel_manager.group_kennel_task_create,boarding_kennel_manager.group_kennel_task_update,boarding_kennel_manager.group_kennel_medication_create,boarding_kennel_manager.group_kennel_medication_update,boarding_kennel_manager.group_kennel_medication_delete,boarding_kennel_manager.group_kennel_observation_create,boarding_kennel_manager.group_kennel_observation_update,boarding_kennel_manager.group_kennel_yard_view')
 
     def _book(self, partner, residents, arrival=datetime(2026, 10, 1, 9), departure=datetime(2026, 10, 5, 17), **vals):
         return self.env['kennel.booking'].create({
@@ -242,7 +242,7 @@ class TestBoardingKennel(TransactionCase):
     def test_multi_company(self):
         company_b = self.env['res.company'].create({'name': 'Test Kennels B'})
         user_b = new_test_user(
-            self.env, login='kennel_b', groups='boarding_kennel_manager.group_kennel_manager',
+            self.env, login='kennel_b', groups='base.group_user,boarding_kennel_manager.group_kennel_booking_create,boarding_kennel_manager.group_kennel_booking_update,boarding_kennel_manager.group_kennel_booking_delete,boarding_kennel_manager.group_kennel_resident_create,boarding_kennel_manager.group_kennel_resident_update,boarding_kennel_manager.group_kennel_resident_delete,boarding_kennel_manager.group_kennel_task_create,boarding_kennel_manager.group_kennel_task_update,boarding_kennel_manager.group_kennel_task_delete,boarding_kennel_manager.group_kennel_medication_create,boarding_kennel_manager.group_kennel_medication_update,boarding_kennel_manager.group_kennel_medication_delete,boarding_kennel_manager.group_kennel_observation_create,boarding_kennel_manager.group_kennel_observation_update,boarding_kennel_manager.group_kennel_observation_delete,boarding_kennel_manager.group_kennel_yard_create,boarding_kennel_manager.group_kennel_yard_update,boarding_kennel_manager.group_kennel_yard_delete',
             company_id=company_b.id, company_ids=[Command.set(company_b.ids)],
         )
         booking = self._book(self.smith, self.rex)

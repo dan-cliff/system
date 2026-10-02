@@ -5,58 +5,61 @@
     <menuitem id="menu_video_production_root"
               name="Video Production"
               web_icon="video_production,static/description/icon.png"
-              sequence="72"
-              groups="video_production.group_video_production_user"/>
+              sequence="72"/>
 
     <!-- ── Level 1: Content Pipeline ─────────────────────────────────── -->
     <menuitem id="menu_video_content_pipeline"
               name="Content Pipeline"
               parent="menu_video_production_root"
-              sequence="10"
-              groups="video_production.group_video_production_user"/>
+              sequence="10"/>
 
     <menuitem id="menu_video_ideas"
               name="Ideas"
               parent="menu_video_content_pipeline"
               action="action_video_idea"
-              sequence="10"/>
+              sequence="10"
+              groups="video_production.group_vp_idea_view"/>
 
     <menuitem id="menu_video_productions"
               name="Productions"
               parent="menu_video_content_pipeline"
               action="action_video_production"
-              sequence="20"/>
+              sequence="20"
+              groups="video_production.group_vp_production_view"/>
 
     <menuitem id="menu_video_scripts"
               name="Scripts"
               parent="menu_video_content_pipeline"
               action="action_video_script"
-              sequence="30"/>
+              sequence="30"
+              groups="video_production.group_vp_script_view"/>
 
     <!-- ── Level 1: Schedule ─────────────────────────────────────────── -->
     <menuitem id="menu_video_schedule"
               name="Schedule"
               parent="menu_video_production_root"
-              sequence="20"
-              groups="video_production.group_video_production_user"/>
+              sequence="20"/>
 
     <menuitem id="menu_video_production_calendar"
               name="Production Schedule"
               parent="menu_video_schedule"
               action="action_video_production_calendar"
-              sequence="10"/>
+              sequence="10"
+              groups="video_production.group_vp_production_view"/>
 
     <menuitem id="menu_video_shoot_calendar"
               name="Shoot Calendar"
               parent="menu_video_schedule"
               action="action_video_shoot"
-              sequence="20"/>
+              sequence="20"
+              groups="video_production.group_vp_shoot_view"/>
 
     <menuitem id="menu_video_publish_calendar"
               name="Publishing Calendar"
               parent="menu_video_schedule"
               action="action_video_production_publish_calendar"
-              sequence="30"/>
+              sequence="30"
+              groups="video_production.group_vp_production_view"/>
 
     <!-- ── Level 1: Shoots ───────────────────────────────────────────── -->
     <menuitem id="menu_video_shoots"
@@ -64,87 +67,94 @@
               parent="menu_video_production_root"
               action="action_video_shoot_list"
               sequence="30"
-              groups="video_production.group_video_production_user"/>
+              groups="video_production.group_vp_shoot_view"/>
 
     <!-- ── Level 1: Post-Production ──────────────────────────────────── -->
     <menuitem id="menu_video_post_production"
               name="Post-Production"
               parent="menu_video_production_root"
-              sequence="40"
-              groups="video_production.group_video_production_user"/>
+              sequence="40"/>
 
     <menuitem id="menu_video_edit_jobs"
               name="Edit Jobs"
               parent="menu_video_post_production"
               action="action_video_edit_job"
-              sequence="10"/>
+              sequence="10"
+              groups="video_production.group_vp_edit_job_view"/>
 
     <menuitem id="menu_video_reviews"
               name="Reviews &amp; Approvals"
               parent="menu_video_post_production"
               action="action_video_review"
-              sequence="20"/>
+              sequence="20"
+              groups="video_production.group_vp_review_view"/>
 
     <!-- ── Level 1: Publishing ───────────────────────────────────────── -->
     <menuitem id="menu_video_publishing"
               name="Publishing"
               parent="menu_video_production_root"
-              sequence="50"
-              groups="video_production.group_video_production_user"/>
+              sequence="50"/>
 
     <menuitem id="menu_video_metadata"
               name="Metadata &amp; Thumbnails"
               parent="menu_video_publishing"
               action="action_video_metadata"
-              sequence="10"/>
+              sequence="10"
+              groups="video_production.group_vp_metadata_view"/>
 
     <!-- ── Level 1: Configuration ────────────────────────────────────── -->
     <menuitem id="menu_video_configuration"
               name="Configuration"
               parent="menu_video_production_root"
-              sequence="99"
-              groups="video_production.group_video_production_manager"/>
+              sequence="99"/>
 
     <menuitem id="menu_video_config_settings"
               name="Settings"
               parent="menu_video_configuration"
               action="action_video_production_config_settings"
-              sequence="10"/>
+              sequence="10"
+              groups="base.group_system"/>
 
     <menuitem id="menu_video_platforms"
               name="Platforms"
               parent="menu_video_configuration"
               action="video_production.action_video_platform"
-              sequence="15"/>
+              sequence="15"
+              groups="video_production.group_vp_platform_create,video_production.group_vp_platform_update,video_production.group_vp_platform_delete"/>
 
     <menuitem id="menu_video_platform_channels"
               name="Channels"
               parent="menu_video_configuration"
               action="video_production.action_video_platform_channel"
-              sequence="16"/>
+              sequence="16"
+              groups="video_production.group_vp_platform_create,video_production.group_vp_platform_update,video_production.group_vp_platform_delete"/>
 
     <menuitem id="menu_video_platform_playlists"
               name="Playlists"
               parent="menu_video_configuration"
               action="video_production.action_video_platform_playlist"
-              sequence="17"/>
+              sequence="17"
+              groups="video_production.group_vp_platform_create,video_production.group_vp_platform_update,video_production.group_vp_platform_delete"/>
 
     <menuitem id="menu_video_idea_stages"
               name="Idea Stages"
               parent="menu_video_configuration"
               action="action_video_idea_stage"
-              sequence="20"/>
+              sequence="20"
+              groups="video_production.group_vp_idea_stage_create,video_production.group_vp_idea_stage_update,video_production.group_vp_idea_stage_delete"/>
 
     <menuitem id="menu_video_production_stages"
               name="Production Stages"
               parent="menu_video_configuration"
               action="action_video_production_stage"
-              sequence="30"/>
+              sequence="30"
+              groups="video_production.group_vp_production_stage_create,video_production.group_vp_production_stage_update,video_production.group_vp_production_stage_delete"/>
 
     <menuitem id="menu_video_production_tags"
               name="Tags"
               parent="menu_video_configuration"
               action="action_video_production_tag"
-              sequence="40"/>
+              sequence="40"
+              groups="video_production.group_vp_production_tag_create,video_production.group_vp_production_tag_update,video_production.group_vp_production_tag_delete"/>
 
 </odoo>

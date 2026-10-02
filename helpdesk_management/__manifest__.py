@@ -1,6 +1,6 @@
 {
     'name': 'Helpdesk',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services/Helpdesk',
     'summary': 'Track, prioritise and solve customer support tickets',
     'description': """
@@ -35,7 +35,9 @@ Modelled on the Odoo Enterprise Helpdesk app.
     'depends': ['mail', 'portal', 'rating', 'resource'],
     'data': [
         'security/helpdesk_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'data/helpdesk_sequence.xml',
         'data/mail_message_subtype_data.xml',

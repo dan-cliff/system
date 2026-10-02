@@ -5,56 +5,53 @@
     <menuitem id="menu_eb_root"
               name="Emergency Broadcast"
               sequence="95"
-              web_icon="emergency_broadcast,static/description/icon.png"
-              groups="emergency_broadcast.group_eb_user"/>
+              web_icon="emergency_broadcast,static/description/icon.png"/>
 
     <!-- ── Broadcasts ────────────────────────────────────────────────── -->
     <menuitem id="menu_eb_broadcasts"
               name="Broadcasts"
               parent="menu_eb_root"
-              sequence="1"
-              groups="emergency_broadcast.group_eb_user"/>
+              sequence="1"/>
 
     <menuitem id="menu_eb_all_broadcasts"
               name="All Broadcasts"
               parent="menu_eb_broadcasts"
               action="action_eb_broadcast"
               sequence="1"
-              groups="emergency_broadcast.group_eb_user"/>
+              groups="emergency_broadcast.group_eb_broadcast_view"/>
 
     <!-- ── Configuration ─────────────────────────────────────────────── -->
     <menuitem id="menu_eb_configuration"
               name="Configuration"
               parent="menu_eb_root"
-              sequence="90"
-              groups="emergency_broadcast.group_eb_admin"/>
+              sequence="90"/>
 
     <menuitem id="menu_eb_statuses"
               name="Statuses"
               parent="menu_eb_configuration"
               action="action_eb_status"
               sequence="1"
-              groups="emergency_broadcast.group_eb_admin"/>
+              groups="emergency_broadcast.group_eb_status_create,emergency_broadcast.group_eb_status_update,emergency_broadcast.group_eb_status_delete"/>
 
     <menuitem id="menu_eb_channels"
               name="Delivery Channels"
               parent="menu_eb_configuration"
               action="action_eb_channel"
               sequence="2"
-              groups="emergency_broadcast.group_eb_admin"/>
+              groups="emergency_broadcast.group_eb_channel_create,emergency_broadcast.group_eb_channel_update,emergency_broadcast.group_eb_channel_delete"/>
 
     <menuitem id="menu_eb_statusbar_cfg"
               name="Statusbar Banner Configuration"
               parent="menu_eb_configuration"
               action="action_eb_statusbar_cfg"
               sequence="3"
-              groups="emergency_broadcast.group_eb_admin"/>
+              groups="emergency_broadcast.group_eb_statusbar_config_create,emergency_broadcast.group_eb_statusbar_config_update,emergency_broadcast.group_eb_statusbar_config_delete"/>
 
     <menuitem id="menu_eb_settings"
               name="Settings"
               parent="menu_eb_configuration"
               action="action_eb_config_settings"
               sequence="90"
-              groups="emergency_broadcast.group_eb_admin"/>
+              groups="base.group_system"/>
 
 </odoo>

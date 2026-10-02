@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <!-- Grant the Workflow Manager group to the default admin user so the
-         menu is visible immediately after install. Additional users can be
-         added via Settings → Users. -->
-    <record id="base.group_user" model="res.groups">
-        <field name="implied_ids" eval="[Command.link(ref('workflow_automation.group_workflow_user'))]"/>
-    </record>
-</odoo>

@@ -5,15 +5,15 @@
     <menuitem id="menu_asset_root"
               name="Assets"
               sequence="40"
-              web_icon="asset_management,static/description/icon.png"
-              groups="group_asset_user"/>
+              web_icon="asset_management,static/description/icon.png"/>
 
     <!-- ══ All Assets — top-level direct link ════════════════════════════════ -->
     <menuitem id="menu_asset_asset"
               name="Assets"
               parent="menu_asset_root"
               action="action_asset_asset"
-              sequence="10"/>
+              sequence="10"
+              groups="asset_management.group_asset_asset_view"/>
 
     <!-- ══ Registers ═════════════════════════════════════════════════════════ -->
     <menuitem id="menu_asset_registers"
@@ -25,55 +25,62 @@
               name="Usage Logs"
               parent="menu_asset_registers"
               action="action_asset_usage_log"
-              sequence="10"/>
+              sequence="10"
+              groups="asset_management.group_asset_usage_log_view"/>
 
     <menuitem id="menu_asset_defect"
               name="Defect Reports"
               parent="menu_asset_registers"
               action="action_asset_defect"
-              sequence="20"/>
+              sequence="20"
+              groups="asset_management.group_asset_defect_view"/>
 
     <menuitem id="menu_asset_maintenance_log"
               name="Maintenance Logs"
               parent="menu_asset_registers"
               action="action_asset_maintenance_log"
-              sequence="30"/>
+              sequence="30"
+              groups="asset_management.group_asset_maintenance_log_view"/>
 
     <!-- ══ Configuration / Settings ════════════════════════════════════════ -->
     <menuitem id="menu_asset_config"
               name="Configuration"
               parent="menu_asset_root"
-              sequence="90"
-              groups="group_asset_manager"/>
+              sequence="90"/>
 
     <menuitem id="menu_asset_type"
               name="Asset Types"
               parent="menu_asset_config"
               action="action_asset_type"
-              sequence="10"/>
+              sequence="10"
+              groups="asset_management.group_asset_type_create,asset_management.group_asset_type_update,asset_management.group_asset_type_delete"/>
 
     <menuitem id="menu_asset_subtype"
               name="Asset Sub-Types"
               parent="menu_asset_config"
               action="action_asset_subtype"
-              sequence="20"/>
+              sequence="20"
+              groups="asset_management.group_asset_subtype_create,asset_management.group_asset_subtype_update,asset_management.group_asset_subtype_delete"/>
 
     <menuitem id="menu_asset_usage_unit"
               name="Usage Units"
               parent="menu_asset_config"
               action="action_asset_usage_unit"
-              sequence="30"/>
+              sequence="30"
+              groups="asset_management.group_asset_usage_unit_create,asset_management.group_asset_usage_unit_update,asset_management.group_asset_usage_unit_delete"/>
 
     <menuitem id="menu_asset_maintenance_type"
               name="Maintenance Types"
               parent="menu_asset_config"
               action="action_asset_maintenance_type"
-              sequence="40"/>
+              sequence="40"
+              groups="asset_management.group_asset_maintenance_type_create,asset_management.group_asset_maintenance_type_update,asset_management.group_asset_maintenance_type_delete"/>
 
     <menuitem id="menu_asset_defect_severity"
               name="Defect Severities"
               parent="menu_asset_config"
               action="action_asset_defect_severity"
-              sequence="50"/>
+              sequence="50"
+              groups="asset_management.group_asset_defect_severity_create,asset_management.group_asset_defect_severity_update,asset_management.group_asset_defect_severity_delete"/>
 
 </odoo>

@@ -12,7 +12,8 @@
               name="Memberships"
               parent="menu_membership_root"
               sequence="10"
-              action="action_membership_list"/>
+              action="action_membership_list"
+              groups="membership_management.group_membership_membership_view"/>
 
     <!-- ── Configuration submenu ─────────────────────────────────────────── -->
     <menuitem id="menu_membership_config"
@@ -24,18 +25,21 @@
               name="Membership Statuses"
               parent="menu_membership_config"
               sequence="10"
-              action="action_membership_status"/>
+              action="action_membership_status"
+              groups="membership_management.group_membership_status_create,membership_management.group_membership_status_update,membership_management.group_membership_status_delete"/>
 
     <menuitem id="menu_membership_letter_templates"
               name="Letter Templates"
               parent="menu_membership_config"
               sequence="20"
-              action="action_membership_letter_templates"/>
+              action="action_membership_letter_templates"
+              groups="membership_management.group_membership_letter_template_create,membership_management.group_membership_letter_template_update,membership_management.group_membership_letter_template_delete"/>
 
     <menuitem id="menu_membership_email_templates"
               name="Email Templates"
               parent="menu_membership_config"
               sequence="30"
-              action="action_membership_email_templates"/>
+              action="action_membership_email_templates"
+              groups="membership_management.group_membership_email_template_create,membership_management.group_membership_email_template_update,membership_management.group_membership_email_template_delete"/>
 
 </odoo>

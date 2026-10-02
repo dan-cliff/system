@@ -16,7 +16,7 @@ class EmergencyBroadcastController(http.Controller):
 
         # Security: only the recipient themselves (or a manager) may acknowledge
         if recipient.user_id.id != request.env.uid:
-            if not request.env.user.has_group('emergency_broadcast.group_eb_manager'):
+            if not request.env.user.has_group('emergency_broadcast.group_eb_broadcast_update'):
                 return {'success': False, 'error': 'Access denied.'}
 
         if not recipient.acknowledged:

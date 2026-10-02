@@ -5,50 +5,46 @@
     <menuitem id="menu_dangerous_goods_root"
               name="Dangerous Goods"
               sequence="82"
-              web_icon="dangerous_goods,static/description/icon.png"
-              groups="dangerous_goods.group_dg_user"/>
+              web_icon="dangerous_goods,static/description/icon.png"/>
 
     <!-- ── Chemical Register ─────────────────────────────────────── -->
     <menuitem id="menu_dg_chemical_root"
               name="Chemical Register"
               parent="menu_dangerous_goods_root"
-              sequence="10"
-              groups="dangerous_goods.group_dg_user"/>
+              sequence="10"/>
 
     <menuitem id="menu_dg_chemical_all"
               name="All Chemicals"
               parent="menu_dg_chemical_root"
               action="action_dg_chemical_all"
               sequence="10"
-              groups="dangerous_goods.group_dg_user"/>
+              groups="dangerous_goods.group_dg_chemical_view"/>
 
     <!-- ── Asbestos Register ──────────────────────────────────────── -->
     <menuitem id="menu_dg_asbestos_root"
               name="Asbestos Register"
               parent="menu_dangerous_goods_root"
-              sequence="20"
-              groups="dangerous_goods.group_dg_user"/>
+              sequence="20"/>
 
     <menuitem id="menu_dg_asbestos_all"
               name="All Items"
               parent="menu_dg_asbestos_root"
               action="action_dg_asbestos_all"
               sequence="10"
-              groups="dangerous_goods.group_dg_user"/>
+              groups="dangerous_goods.group_dg_asbestos_view"/>
 
     <menuitem id="menu_dg_asbestos_inspections"
               name="Inspection Records"
               parent="menu_dg_asbestos_root"
               action="action_dg_asbestos_inspection_all"
               sequence="20"
-              groups="dangerous_goods.group_dg_manager"/>
+              groups="dangerous_goods.group_dg_asbestos_inspection_view"/>
 
     <!-- ── Configuration ─────────────────────────────────────────── -->
     <menuitem id="menu_dg_config_root"
               name="Configuration"
               parent="menu_dangerous_goods_root"
-              sequence="100"
-              groups="dangerous_goods.group_dg_admin"/>
+              sequence="100"/>
 
     <!-- Workplace / Site config -->
     <menuitem id="menu_dg_buildings"
@@ -56,14 +52,14 @@
               parent="menu_dg_config_root"
               action="action_dg_building"
               sequence="10"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_building_create,dangerous_goods.group_dg_building_update,dangerous_goods.group_dg_building_delete"/>
 
     <menuitem id="menu_dg_storage_locations"
               name="Storage Locations"
               parent="menu_dg_config_root"
               action="action_dg_storage_location"
               sequence="20"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_storage_location_create,dangerous_goods.group_dg_storage_location_update,dangerous_goods.group_dg_storage_location_delete"/>
 
     <!-- Chemical config -->
     <menuitem id="menu_dg_chemical_stages"
@@ -71,28 +67,28 @@
               parent="menu_dg_config_root"
               action="action_dg_chemical_stage"
               sequence="25"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_chemical_stage_create,dangerous_goods.group_dg_chemical_stage_update,dangerous_goods.group_dg_chemical_stage_delete"/>
 
     <menuitem id="menu_dg_ppe_types"
               name="PPE Types"
               parent="menu_dg_config_root"
               action="action_dg_ppe_type"
               sequence="30"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_ppe_type_create,dangerous_goods.group_dg_ppe_type_update,dangerous_goods.group_dg_ppe_type_delete"/>
 
     <menuitem id="menu_dg_storage_classes"
               name="DG Storage Classes (AS 3833)"
               parent="menu_dg_config_root"
               action="action_dg_storage_class"
               sequence="40"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_storage_class_create,dangerous_goods.group_dg_storage_class_update,dangerous_goods.group_dg_storage_class_delete"/>
 
     <menuitem id="menu_dg_adg_classes"
               name="ADG Transport Classes"
               parent="menu_dg_config_root"
               action="action_dg_adg_class"
               sequence="50"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_adg_class_create,dangerous_goods.group_dg_adg_class_update,dangerous_goods.group_dg_adg_class_delete"/>
 
     <!-- Asbestos config -->
     <menuitem id="menu_dg_asbestos_forms"
@@ -100,21 +96,21 @@
               parent="menu_dg_config_root"
               action="action_dg_asbestos_form"
               sequence="60"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_asbestos_form_create,dangerous_goods.group_dg_asbestos_form_update,dangerous_goods.group_dg_asbestos_form_delete"/>
 
     <menuitem id="menu_dg_control_measures"
               name="Control Measures"
               parent="menu_dg_config_root"
               action="action_dg_control_measure"
               sequence="70"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_control_measure_create,dangerous_goods.group_dg_control_measure_update,dangerous_goods.group_dg_control_measure_delete"/>
 
     <menuitem id="menu_dg_asbestos_removers"
               name="Asbestos Removalists"
               parent="menu_dg_config_root"
               action="action_dg_asbestos_remover"
               sequence="80"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_asbestos_remover_create,dangerous_goods.group_dg_asbestos_remover_update,dangerous_goods.group_dg_asbestos_remover_delete"/>
 
     <!-- GHS Data -->
     <menuitem id="menu_dg_ghs_hazard_classes"
@@ -122,27 +118,27 @@
               parent="menu_dg_config_root"
               action="action_ghs_hazard_class"
               sequence="110"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_ghs_hazard_class_create,dangerous_goods.group_dg_ghs_hazard_class_update,dangerous_goods.group_dg_ghs_hazard_class_delete"/>
 
     <menuitem id="menu_dg_ghs_pictograms"
               name="GHS Pictograms"
               parent="menu_dg_config_root"
               action="action_ghs_pictogram"
               sequence="120"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_ghs_pictogram_create,dangerous_goods.group_dg_ghs_pictogram_update,dangerous_goods.group_dg_ghs_pictogram_delete"/>
 
     <menuitem id="menu_dg_hazard_statements"
               name="Hazard Statements (H-codes)"
               parent="menu_dg_config_root"
               action="action_ghs_hazard_statement"
               sequence="130"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_ghs_hazard_statement_create,dangerous_goods.group_dg_ghs_hazard_statement_update,dangerous_goods.group_dg_ghs_hazard_statement_delete"/>
 
     <menuitem id="menu_dg_precautionary_statements"
               name="Precautionary Statements (P-codes)"
               parent="menu_dg_config_root"
               action="action_ghs_precautionary_statement"
               sequence="140"
-              groups="dangerous_goods.group_dg_admin"/>
+              groups="dangerous_goods.group_dg_ghs_precautionary_statement_create,dangerous_goods.group_dg_ghs_precautionary_statement_update,dangerous_goods.group_dg_ghs_precautionary_statement_delete"/>
 
 </odoo>

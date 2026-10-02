@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Membership Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Manage memberships, member cards, and instant check-in',
     'category': 'Membership',
     'author': "Cliff's Country Crafts",
@@ -11,8 +11,9 @@
     'application': True,
     'depends': ['product', 'mail', 'base_setup'],
     'data': [
-        'security/membership_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/res_lang_data.xml',
         'data/membership_sequence.xml',
         'data/membership_status_data.xml',

@@ -1,3 +1,11 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_product_cost_analysis_user,product.cost.analysis (user),model_product_cost_analysis,base.group_user,1,1,1,1
-access_product_cost_analysis_line_user,product.cost.analysis.line (user),model_product_cost_analysis_line,base.group_user,1,1,1,1
+access_product_cost_analysis_view,product.cost.analysis view,model_product_cost_analysis,group_cost_analysis_view,1,0,0,0
+access_product_cost_analysis_create,product.cost.analysis create,model_product_cost_analysis,group_cost_analysis_create,1,0,1,0
+access_product_cost_analysis_own,product.cost.analysis own,model_product_cost_analysis,group_cost_analysis_own,1,1,1,0
+access_product_cost_analysis_update,product.cost.analysis update,model_product_cost_analysis,group_cost_analysis_update,1,1,0,0
+access_product_cost_analysis_delete,product.cost.analysis delete,model_product_cost_analysis,group_cost_analysis_delete,1,0,0,1
+access_product_cost_analysis_line_view,product.cost.analysis.line view,model_product_cost_analysis_line,group_cost_analysis_view,1,0,0,0
+access_product_cost_analysis_line_create,product.cost.analysis.line create,model_product_cost_analysis_line,group_cost_analysis_create,1,0,1,0
+access_product_cost_analysis_line_own,product.cost.analysis.line own,model_product_cost_analysis_line,group_cost_analysis_own,1,1,1,0
+access_product_cost_analysis_line_update,product.cost.analysis.line update,model_product_cost_analysis_line,group_cost_analysis_update,1,1,0,0
+access_product_cost_analysis_line_delete,product.cost.analysis.line delete,model_product_cost_analysis_line,group_cost_analysis_delete,1,0,0,1

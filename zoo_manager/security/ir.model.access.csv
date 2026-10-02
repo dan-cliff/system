@@ -1,45 +1,125 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_zoo_animal_class_keeper,zoo.animal.class.keeper,model_zoo_animal_class,group_zoo_keeper,1,0,0,0
-access_zoo_animal_class_manager,zoo.animal.class.manager,model_zoo_animal_class,group_zoo_manager,1,1,1,1
-access_zoo_species_keeper,zoo.species.keeper,model_zoo_species,group_zoo_keeper,1,0,0,0
-access_zoo_species_manager,zoo.species.manager,model_zoo_species,group_zoo_manager,1,1,1,1
-access_zoo_enclosure_keeper,zoo.enclosure.keeper,model_zoo_enclosure,group_zoo_keeper,1,0,0,0
-access_zoo_enclosure_manager,zoo.enclosure.manager,model_zoo_enclosure,group_zoo_manager,1,1,1,1
-access_zoo_diet_keeper,zoo.diet.keeper,model_zoo_diet,group_zoo_keeper,1,0,0,0
-access_zoo_diet_manager,zoo.diet.manager,model_zoo_diet,group_zoo_manager,1,1,1,1
-access_zoo_diet_line_keeper,zoo.diet.line.keeper,model_zoo_diet_line,group_zoo_keeper,1,0,0,0
-access_zoo_diet_line_manager,zoo.diet.line.manager,model_zoo_diet_line,group_zoo_manager,1,1,1,1
-access_zoo_animal_keeper,zoo.animal.keeper,model_zoo_animal,group_zoo_keeper,1,1,1,0
-access_zoo_animal_manager,zoo.animal.manager,model_zoo_animal,group_zoo_manager,1,1,1,1
-access_zoo_animal_move_keeper,zoo.animal.move.keeper,model_zoo_animal_move,group_zoo_keeper,1,0,1,0
-access_zoo_animal_move_manager,zoo.animal.move.manager,model_zoo_animal_move,group_zoo_manager,1,1,1,1
-access_zoo_animal_weight_keeper,zoo.animal.weight.keeper,model_zoo_animal_weight,group_zoo_keeper,1,1,1,1
-access_zoo_animal_weight_manager,zoo.animal.weight.manager,model_zoo_animal_weight,group_zoo_manager,1,1,1,1
-access_zoo_feeding_keeper,zoo.feeding.keeper,model_zoo_feeding,group_zoo_keeper,1,1,1,0
-access_zoo_feeding_manager,zoo.feeding.manager,model_zoo_feeding,group_zoo_manager,1,1,1,1
-access_zoo_health_record_keeper,zoo.health.record.keeper,model_zoo_health_record,group_zoo_keeper,1,1,1,0
-access_zoo_health_record_manager,zoo.health.record.manager,model_zoo_health_record,group_zoo_manager,1,1,1,1
-access_zoo_enclosure_type_keeper,zoo.enclosure.type.keeper,model_zoo_enclosure_type,group_zoo_keeper,1,0,0,0
-access_zoo_enclosure_type_manager,zoo.enclosure.type.manager,model_zoo_enclosure_type,group_zoo_manager,1,1,1,1
-access_zoo_animal_origin_keeper,zoo.animal.origin.keeper,model_zoo_animal_origin,group_zoo_keeper,1,0,0,0
-access_zoo_animal_origin_manager,zoo.animal.origin.manager,model_zoo_animal_origin,group_zoo_manager,1,1,1,1
-access_zoo_conservation_status_keeper,zoo.conservation.status.keeper,model_zoo_conservation_status,group_zoo_keeper,1,0,0,0
-access_zoo_conservation_status_manager,zoo.conservation.status.manager,model_zoo_conservation_status,group_zoo_manager,1,1,1,1
-access_zoo_health_record_type_keeper,zoo.health.record.type.keeper,model_zoo_health_record_type,group_zoo_keeper,1,0,0,0
-access_zoo_health_record_type_manager,zoo.health.record.type.manager,model_zoo_health_record_type,group_zoo_manager,1,1,1,1
-access_zoo_diet_frequency_keeper,zoo.diet.frequency.keeper,model_zoo_diet_frequency,group_zoo_keeper,1,0,0,0
-access_zoo_diet_frequency_manager,zoo.diet.frequency.manager,model_zoo_diet_frequency,group_zoo_manager,1,1,1,1
-access_zoo_feeding_consumption_keeper,zoo.feeding.consumption.keeper,model_zoo_feeding_consumption,group_zoo_keeper,1,0,0,0
-access_zoo_feeding_consumption_manager,zoo.feeding.consumption.manager,model_zoo_feeding_consumption,group_zoo_manager,1,1,1,1
-access_zoo_feeding_line_keeper,zoo.feeding.line.keeper,model_zoo_feeding_line,group_zoo_keeper,1,1,1,1
-access_zoo_feeding_line_manager,zoo.feeding.line.manager,model_zoo_feeding_line,group_zoo_manager,1,1,1,1
-access_zoo_animal_note_keeper,zoo.animal.note.keeper,model_zoo_animal_note,group_zoo_keeper,1,1,1,0
-access_zoo_animal_note_manager,zoo.animal.note.manager,model_zoo_animal_note,group_zoo_manager,1,1,1,1
-access_zoo_climate_control_type_keeper,zoo.climate.control.type.keeper,model_zoo_climate_control_type,group_zoo_keeper,1,0,0,0
-access_zoo_climate_control_type_manager,zoo.climate.control.type.manager,model_zoo_climate_control_type,group_zoo_manager,1,1,1,1
-access_zoo_water_source_type_keeper,zoo.water.source.type.keeper,model_zoo_water_source_type,group_zoo_keeper,1,0,0,0
-access_zoo_water_source_type_manager,zoo.water.source.type.manager,model_zoo_water_source_type,group_zoo_manager,1,1,1,1
-access_zoo_facility_keeper,zoo.facility.keeper,model_zoo_facility,group_zoo_keeper,1,0,0,0
-access_zoo_facility_manager,zoo.facility.manager,model_zoo_facility,group_zoo_manager,1,1,1,1
-access_zoo_location_keeper,zoo.location.keeper,model_zoo_location,group_zoo_keeper,1,0,0,0
-access_zoo_location_manager,zoo.location.manager,model_zoo_location,group_zoo_manager,1,1,1,1
+access_zoo_animal_view,zoo.animal view,model_zoo_animal,group_zoo_animal_view,1,0,0,0
+access_zoo_animal_create,zoo.animal create,model_zoo_animal,group_zoo_animal_create,1,0,1,0
+access_zoo_animal_own,zoo.animal own,model_zoo_animal,group_zoo_animal_own,1,1,1,0
+access_zoo_animal_update,zoo.animal update,model_zoo_animal,group_zoo_animal_update,1,1,0,0
+access_zoo_animal_delete,zoo.animal delete,model_zoo_animal,group_zoo_animal_delete,1,0,0,1
+access_zoo_animal_note_view,zoo.animal.note view,model_zoo_animal_note,group_zoo_animal_view,1,0,0,0
+access_zoo_animal_note_create,zoo.animal.note create,model_zoo_animal_note,group_zoo_animal_create,1,0,1,0
+access_zoo_animal_note_own,zoo.animal.note own,model_zoo_animal_note,group_zoo_animal_own,1,1,1,0
+access_zoo_animal_note_update,zoo.animal.note update,model_zoo_animal_note,group_zoo_animal_update,1,1,0,0
+access_zoo_animal_note_delete,zoo.animal.note delete,model_zoo_animal_note,group_zoo_animal_delete,1,0,0,1
+access_zoo_animal_move_view,zoo.animal.move view,model_zoo_animal_move,group_zoo_animal_move_view,1,0,0,0
+access_zoo_animal_move_create,zoo.animal.move create,model_zoo_animal_move,group_zoo_animal_move_create,1,0,1,0
+access_zoo_animal_move_own,zoo.animal.move own,model_zoo_animal_move,group_zoo_animal_move_own,1,1,1,0
+access_zoo_animal_move_update,zoo.animal.move update,model_zoo_animal_move,group_zoo_animal_move_update,1,1,0,0
+access_zoo_animal_move_delete,zoo.animal.move delete,model_zoo_animal_move,group_zoo_animal_move_delete,1,0,0,1
+access_zoo_animal_weight_view,zoo.animal.weight view,model_zoo_animal_weight,group_zoo_animal_weight_view,1,0,0,0
+access_zoo_animal_weight_create,zoo.animal.weight create,model_zoo_animal_weight,group_zoo_animal_weight_create,1,0,1,0
+access_zoo_animal_weight_own,zoo.animal.weight own,model_zoo_animal_weight,group_zoo_animal_weight_own,1,1,1,0
+access_zoo_animal_weight_update,zoo.animal.weight update,model_zoo_animal_weight,group_zoo_animal_weight_update,1,1,0,0
+access_zoo_animal_weight_delete,zoo.animal.weight delete,model_zoo_animal_weight,group_zoo_animal_weight_delete,1,0,0,1
+access_zoo_feeding_view,zoo.feeding view,model_zoo_feeding,group_zoo_feeding_view,1,0,0,0
+access_zoo_feeding_create,zoo.feeding create,model_zoo_feeding,group_zoo_feeding_create,1,0,1,0
+access_zoo_feeding_own,zoo.feeding own,model_zoo_feeding,group_zoo_feeding_own,1,1,1,0
+access_zoo_feeding_update,zoo.feeding update,model_zoo_feeding,group_zoo_feeding_update,1,1,0,0
+access_zoo_feeding_delete,zoo.feeding delete,model_zoo_feeding,group_zoo_feeding_delete,1,0,0,1
+access_zoo_feeding_line_view,zoo.feeding.line view,model_zoo_feeding_line,group_zoo_feeding_view,1,0,0,0
+access_zoo_feeding_line_create,zoo.feeding.line create,model_zoo_feeding_line,group_zoo_feeding_create,1,0,1,0
+access_zoo_feeding_line_own,zoo.feeding.line own,model_zoo_feeding_line,group_zoo_feeding_own,1,1,1,0
+access_zoo_feeding_line_update,zoo.feeding.line update,model_zoo_feeding_line,group_zoo_feeding_update,1,1,0,0
+access_zoo_feeding_line_delete,zoo.feeding.line delete,model_zoo_feeding_line,group_zoo_feeding_delete,1,0,0,1
+access_zoo_health_record_view,zoo.health.record view,model_zoo_health_record,group_zoo_health_record_view,1,0,0,0
+access_zoo_health_record_create,zoo.health.record create,model_zoo_health_record,group_zoo_health_record_create,1,0,1,0
+access_zoo_health_record_own,zoo.health.record own,model_zoo_health_record,group_zoo_health_record_own,1,1,1,0
+access_zoo_health_record_update,zoo.health.record update,model_zoo_health_record,group_zoo_health_record_update,1,1,0,0
+access_zoo_health_record_delete,zoo.health.record delete,model_zoo_health_record,group_zoo_health_record_delete,1,0,0,1
+access_zoo_enclosure_view,zoo.enclosure view,model_zoo_enclosure,group_zoo_enclosure_view,1,0,0,0
+access_zoo_enclosure_create,zoo.enclosure create,model_zoo_enclosure,group_zoo_enclosure_create,1,0,1,0
+access_zoo_enclosure_own,zoo.enclosure own,model_zoo_enclosure,group_zoo_enclosure_own,1,1,1,0
+access_zoo_enclosure_update,zoo.enclosure update,model_zoo_enclosure,group_zoo_enclosure_update,1,1,0,0
+access_zoo_enclosure_delete,zoo.enclosure delete,model_zoo_enclosure,group_zoo_enclosure_delete,1,0,0,1
+access_zoo_animal_class_view,zoo.animal.class view,model_zoo_animal_class,group_zoo_animal_class_view,1,0,0,0
+access_zoo_animal_class_create,zoo.animal.class create,model_zoo_animal_class,group_zoo_animal_class_create,1,0,1,0
+access_zoo_animal_class_own,zoo.animal.class own,model_zoo_animal_class,group_zoo_animal_class_own,1,1,1,0
+access_zoo_animal_class_update,zoo.animal.class update,model_zoo_animal_class,group_zoo_animal_class_update,1,1,0,0
+access_zoo_animal_class_delete,zoo.animal.class delete,model_zoo_animal_class,group_zoo_animal_class_delete,1,0,0,1
+access_zoo_animal_class_internal_read,zoo.animal.class internal read,model_zoo_animal_class,base.group_user,1,0,0,0
+access_zoo_species_view,zoo.species view,model_zoo_species,group_zoo_species_view,1,0,0,0
+access_zoo_species_create,zoo.species create,model_zoo_species,group_zoo_species_create,1,0,1,0
+access_zoo_species_own,zoo.species own,model_zoo_species,group_zoo_species_own,1,1,1,0
+access_zoo_species_update,zoo.species update,model_zoo_species,group_zoo_species_update,1,1,0,0
+access_zoo_species_delete,zoo.species delete,model_zoo_species,group_zoo_species_delete,1,0,0,1
+access_zoo_species_internal_read,zoo.species internal read,model_zoo_species,base.group_user,1,0,0,0
+access_zoo_diet_view,zoo.diet view,model_zoo_diet,group_zoo_diet_view,1,0,0,0
+access_zoo_diet_create,zoo.diet create,model_zoo_diet,group_zoo_diet_create,1,0,1,0
+access_zoo_diet_own,zoo.diet own,model_zoo_diet,group_zoo_diet_own,1,1,1,0
+access_zoo_diet_update,zoo.diet update,model_zoo_diet,group_zoo_diet_update,1,1,0,0
+access_zoo_diet_delete,zoo.diet delete,model_zoo_diet,group_zoo_diet_delete,1,0,0,1
+access_zoo_diet_internal_read,zoo.diet internal read,model_zoo_diet,base.group_user,1,0,0,0
+access_zoo_diet_line_view,zoo.diet.line view,model_zoo_diet_line,group_zoo_diet_view,1,0,0,0
+access_zoo_diet_line_create,zoo.diet.line create,model_zoo_diet_line,group_zoo_diet_create,1,0,1,0
+access_zoo_diet_line_own,zoo.diet.line own,model_zoo_diet_line,group_zoo_diet_own,1,1,1,0
+access_zoo_diet_line_update,zoo.diet.line update,model_zoo_diet_line,group_zoo_diet_update,1,1,0,0
+access_zoo_diet_line_delete,zoo.diet.line delete,model_zoo_diet_line,group_zoo_diet_delete,1,0,0,1
+access_zoo_diet_line_internal_read,zoo.diet.line internal read,model_zoo_diet_line,base.group_user,1,0,0,0
+access_zoo_facility_view,zoo.facility view,model_zoo_facility,group_zoo_facility_view,1,0,0,0
+access_zoo_facility_create,zoo.facility create,model_zoo_facility,group_zoo_facility_create,1,0,1,0
+access_zoo_facility_own,zoo.facility own,model_zoo_facility,group_zoo_facility_own,1,1,1,0
+access_zoo_facility_update,zoo.facility update,model_zoo_facility,group_zoo_facility_update,1,1,0,0
+access_zoo_facility_delete,zoo.facility delete,model_zoo_facility,group_zoo_facility_delete,1,0,0,1
+access_zoo_facility_internal_read,zoo.facility internal read,model_zoo_facility,base.group_user,1,0,0,0
+access_zoo_location_view,zoo.location view,model_zoo_location,group_zoo_location_view,1,0,0,0
+access_zoo_location_create,zoo.location create,model_zoo_location,group_zoo_location_create,1,0,1,0
+access_zoo_location_own,zoo.location own,model_zoo_location,group_zoo_location_own,1,1,1,0
+access_zoo_location_update,zoo.location update,model_zoo_location,group_zoo_location_update,1,1,0,0
+access_zoo_location_delete,zoo.location delete,model_zoo_location,group_zoo_location_delete,1,0,0,1
+access_zoo_location_internal_read,zoo.location internal read,model_zoo_location,base.group_user,1,0,0,0
+access_zoo_enclosure_type_view,zoo.enclosure.type view,model_zoo_enclosure_type,group_zoo_enclosure_type_view,1,0,0,0
+access_zoo_enclosure_type_create,zoo.enclosure.type create,model_zoo_enclosure_type,group_zoo_enclosure_type_create,1,0,1,0
+access_zoo_enclosure_type_own,zoo.enclosure.type own,model_zoo_enclosure_type,group_zoo_enclosure_type_own,1,1,1,0
+access_zoo_enclosure_type_update,zoo.enclosure.type update,model_zoo_enclosure_type,group_zoo_enclosure_type_update,1,1,0,0
+access_zoo_enclosure_type_delete,zoo.enclosure.type delete,model_zoo_enclosure_type,group_zoo_enclosure_type_delete,1,0,0,1
+access_zoo_enclosure_type_internal_read,zoo.enclosure.type internal read,model_zoo_enclosure_type,base.group_user,1,0,0,0
+access_zoo_climate_control_type_view,zoo.climate.control.type view,model_zoo_climate_control_type,group_zoo_climate_control_type_view,1,0,0,0
+access_zoo_climate_control_type_create,zoo.climate.control.type create,model_zoo_climate_control_type,group_zoo_climate_control_type_create,1,0,1,0
+access_zoo_climate_control_type_own,zoo.climate.control.type own,model_zoo_climate_control_type,group_zoo_climate_control_type_own,1,1,1,0
+access_zoo_climate_control_type_update,zoo.climate.control.type update,model_zoo_climate_control_type,group_zoo_climate_control_type_update,1,1,0,0
+access_zoo_climate_control_type_delete,zoo.climate.control.type delete,model_zoo_climate_control_type,group_zoo_climate_control_type_delete,1,0,0,1
+access_zoo_climate_control_type_internal_read,zoo.climate.control.type internal read,model_zoo_climate_control_type,base.group_user,1,0,0,0
+access_zoo_water_source_type_view,zoo.water.source.type view,model_zoo_water_source_type,group_zoo_water_source_type_view,1,0,0,0
+access_zoo_water_source_type_create,zoo.water.source.type create,model_zoo_water_source_type,group_zoo_water_source_type_create,1,0,1,0
+access_zoo_water_source_type_own,zoo.water.source.type own,model_zoo_water_source_type,group_zoo_water_source_type_own,1,1,1,0
+access_zoo_water_source_type_update,zoo.water.source.type update,model_zoo_water_source_type,group_zoo_water_source_type_update,1,1,0,0
+access_zoo_water_source_type_delete,zoo.water.source.type delete,model_zoo_water_source_type,group_zoo_water_source_type_delete,1,0,0,1
+access_zoo_water_source_type_internal_read,zoo.water.source.type internal read,model_zoo_water_source_type,base.group_user,1,0,0,0
+access_zoo_animal_origin_view,zoo.animal.origin view,model_zoo_animal_origin,group_zoo_animal_origin_view,1,0,0,0
+access_zoo_animal_origin_create,zoo.animal.origin create,model_zoo_animal_origin,group_zoo_animal_origin_create,1,0,1,0
+access_zoo_animal_origin_own,zoo.animal.origin own,model_zoo_animal_origin,group_zoo_animal_origin_own,1,1,1,0
+access_zoo_animal_origin_update,zoo.animal.origin update,model_zoo_animal_origin,group_zoo_animal_origin_update,1,1,0,0
+access_zoo_animal_origin_delete,zoo.animal.origin delete,model_zoo_animal_origin,group_zoo_animal_origin_delete,1,0,0,1
+access_zoo_animal_origin_internal_read,zoo.animal.origin internal read,model_zoo_animal_origin,base.group_user,1,0,0,0
+access_zoo_conservation_status_view,zoo.conservation.status view,model_zoo_conservation_status,group_zoo_conservation_status_view,1,0,0,0
+access_zoo_conservation_status_create,zoo.conservation.status create,model_zoo_conservation_status,group_zoo_conservation_status_create,1,0,1,0
+access_zoo_conservation_status_own,zoo.conservation.status own,model_zoo_conservation_status,group_zoo_conservation_status_own,1,1,1,0
+access_zoo_conservation_status_update,zoo.conservation.status update,model_zoo_conservation_status,group_zoo_conservation_status_update,1,1,0,0
+access_zoo_conservation_status_delete,zoo.conservation.status delete,model_zoo_conservation_status,group_zoo_conservation_status_delete,1,0,0,1
+access_zoo_conservation_status_internal_read,zoo.conservation.status internal read,model_zoo_conservation_status,base.group_user,1,0,0,0
+access_zoo_health_record_type_view,zoo.health.record.type view,model_zoo_health_record_type,group_zoo_health_record_type_view,1,0,0,0
+access_zoo_health_record_type_create,zoo.health.record.type create,model_zoo_health_record_type,group_zoo_health_record_type_create,1,0,1,0
+access_zoo_health_record_type_own,zoo.health.record.type own,model_zoo_health_record_type,group_zoo_health_record_type_own,1,1,1,0
+access_zoo_health_record_type_update,zoo.health.record.type update,model_zoo_health_record_type,group_zoo_health_record_type_update,1,1,0,0
+access_zoo_health_record_type_delete,zoo.health.record.type delete,model_zoo_health_record_type,group_zoo_health_record_type_delete,1,0,0,1
+access_zoo_health_record_type_internal_read,zoo.health.record.type internal read,model_zoo_health_record_type,base.group_user,1,0,0,0
+access_zoo_diet_frequency_view,zoo.diet.frequency view,model_zoo_diet_frequency,group_zoo_diet_frequency_view,1,0,0,0
+access_zoo_diet_frequency_create,zoo.diet.frequency create,model_zoo_diet_frequency,group_zoo_diet_frequency_create,1,0,1,0
+access_zoo_diet_frequency_own,zoo.diet.frequency own,model_zoo_diet_frequency,group_zoo_diet_frequency_own,1,1,1,0
+access_zoo_diet_frequency_update,zoo.diet.frequency update,model_zoo_diet_frequency,group_zoo_diet_frequency_update,1,1,0,0
+access_zoo_diet_frequency_delete,zoo.diet.frequency delete,model_zoo_diet_frequency,group_zoo_diet_frequency_delete,1,0,0,1
+access_zoo_diet_frequency_internal_read,zoo.diet.frequency internal read,model_zoo_diet_frequency,base.group_user,1,0,0,0
+access_zoo_feeding_consumption_view,zoo.feeding.consumption view,model_zoo_feeding_consumption,group_zoo_feeding_consumption_view,1,0,0,0
+access_zoo_feeding_consumption_create,zoo.feeding.consumption create,model_zoo_feeding_consumption,group_zoo_feeding_consumption_create,1,0,1,0
+access_zoo_feeding_consumption_own,zoo.feeding.consumption own,model_zoo_feeding_consumption,group_zoo_feeding_consumption_own,1,1,1,0
+access_zoo_feeding_consumption_update,zoo.feeding.consumption update,model_zoo_feeding_consumption,group_zoo_feeding_consumption_update,1,1,0,0
+access_zoo_feeding_consumption_delete,zoo.feeding.consumption delete,model_zoo_feeding_consumption,group_zoo_feeding_consumption_delete,1,0,0,1
+access_zoo_feeding_consumption_internal_read,zoo.feeding.consumption internal read,model_zoo_feeding_consumption,base.group_user,1,0,0,0

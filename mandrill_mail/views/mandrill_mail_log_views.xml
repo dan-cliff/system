@@ -118,5 +118,6 @@
               name="Mailchimp Transactional Log"
               parent="base.menu_email"
               action="action_mandrill_mail_log"
-              sequence="50"/>
+              sequence="50"
+              groups="mandrill_mail.group_mandrill_mail_log_create,mandrill_mail.group_mandrill_mail_log_update,mandrill_mail.group_mandrill_mail_log_delete,base.group_system"/>
 </odoo>

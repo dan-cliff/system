@@ -1,6 +1,6 @@
 {
     'name': 'Learning Management System',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Licences, Qualifications, Training & eLearning Management',
     'description': '''
         A comprehensive Learning Management System for tracking employee licences,
@@ -18,8 +18,9 @@
     'category': 'Human Resources/Learning',
     'depends': ['base', 'mail', 'hr', 'portal'],
     'data': [
-        'security/lms_security.xml',
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'data/lms_data.xml',
         'views/lms_course_views.xml',
         'views/lms_course_session_views.xml',

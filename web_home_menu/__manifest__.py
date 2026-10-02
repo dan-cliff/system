@@ -1,6 +1,6 @@
 {
     'name': 'Home Menu',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Extra Tools',
     'summary': 'Enterprise-style app grid home screen for the /odoo page',
     'description': """
@@ -40,7 +40,9 @@ layout" mode, and see them after everyone's buttons.
     'license': 'LGPL-3',
     'depends': ['web', 'base_setup'],
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'security/home_menu_security.xml',
         'data/actions.xml',
         'data/res_lang_data.xml',

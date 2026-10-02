@@ -1,17 +1,5 @@
 <odoo>
-    <record id="res_groups_privilege_boarding_kennel" model="res.groups.privilege">
-        <field name="name">Boarding Kennel Manager</field>
-        <field name="category_id" ref="base.module_category_services"/>
-    </record>
-
-    <!-- Keepers: day-to-day care. Residents, bookings, the daily to-do list, medication and
-         observations; can make custom diets. Read-only on yards, standard diets and choice lists. -->
-    <record id="group_kennel_keeper" model="res.groups">
-        <field name="name">Keeper</field>
-        <field name="sequence">10</field>
-        <field name="privilege_id" ref="res_groups_privilege_boarding_kennel"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-    </record>
+    <!-- Per-model access levels are in access_levels.xml (generated from access_levels.py). -->
 
     <!-- Customer Portal User: may invite customers to the portal, where they see their animals and
          bookings. Its own privilege so it shows as a separate checkbox on the user form. -->
@@ -27,127 +15,119 @@
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
-    <!-- Administrators: everything keepers can do, plus configuration, deleting records and
-         inviting customers to the portal. -->
-    <record id="group_kennel_manager" model="res.groups">
-        <field name="name">Administrator</field>
-        <field name="sequence">20</field>
-        <field name="privilege_id" ref="res_groups_privilege_boarding_kennel"/>
-        <field name="implied_ids" eval="[(4, ref('group_kennel_keeper')), (4, ref('group_kennel_portal_user'))]"/>
-        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
-    </record>
-
     <!-- Multi-company: employees only see records of the companies they have selected. Records
          without a company (shared diets and options) are visible to all. Portal customers are
-         limited by the portal rules below instead, whichever company their animals are with. -->
+         limited by the portal rules below instead, whichever company their animals are with.
+         Global rules (no groups), so they narrow the Create and Edit Own Only rules rather
+         than being OR-ed with them; portal (share) users are exempted in the domain. -->
 
     <record id="kennel_resident_rule_company" model="ir.rule">
         <field name="name">Residents: multi-company</field>
         <field name="model_id" ref="model_kennel_resident"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_yard_rule_company" model="ir.rule">
         <field name="name">Yards: multi-company</field>
         <field name="model_id" ref="model_kennel_yard"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_booking_rule_company" model="ir.rule">
         <field name="name">Bookings: multi-company</field>
         <field name="model_id" ref="model_kennel_booking"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_booking_line_rule_company" model="ir.rule">
         <field name="name">Booking Animals: multi-company</field>
         <field name="model_id" ref="model_kennel_booking_line"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_medication_rule_company" model="ir.rule">
         <field name="name">Medication: multi-company</field>
         <field name="model_id" ref="model_kennel_medication"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_medication_administration_rule_company" model="ir.rule">
         <field name="name">Medication Log: multi-company</field>
         <field name="model_id" ref="model_kennel_medication_administration"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_observation_rule_company" model="ir.rule">
         <field name="name">Observations: multi-company</field>
         <field name="model_id" ref="model_kennel_observation"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_task_rule_company" model="ir.rule">
         <field name="name">Daily Tasks: multi-company</field>
         <field name="model_id" ref="model_kennel_task"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_diet_rule_company" model="ir.rule">
         <field name="name">Diets: multi-company</field>
         <field name="model_id" ref="model_kennel_diet"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_species_rule_company" model="ir.rule">
         <field name="name">Species: multi-company</field>
         <field name="model_id" ref="model_kennel_species"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_sex_rule_company" model="ir.rule">
         <field name="name">Sexes: multi-company</field>
         <field name="model_id" ref="model_kennel_sex"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_yard_type_rule_company" model="ir.rule">
         <field name="name">Yard Types: multi-company</field>
         <field name="model_id" ref="model_kennel_yard_type"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_yard_feature_rule_company" model="ir.rule">
         <field name="name">Yard Features: multi-company</field>
         <field name="model_id" ref="model_kennel_yard_feature"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_frequency_rule_company" model="ir.rule">
         <field name="name">Frequencies: multi-company</field>
         <field name="model_id" ref="model_kennel_frequency"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_feed_consumption_rule_company" model="ir.rule">
         <field name="name">Food Eaten: multi-company</field>
         <field name="model_id" ref="model_kennel_feed_consumption"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_medication_route_rule_company" model="ir.rule">
         <field name="name">Medication Routes: multi-company</field>
         <field name="model_id" ref="model_kennel_medication_route"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_dose_outcome_rule_company" model="ir.rule">
         <field name="name">Dose Outcomes: multi-company</field>
         <field name="model_id" ref="model_kennel_dose_outcome"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <record id="kennel_observation_type_rule_company" model="ir.rule">
         <field name="name">Observation Types: multi-company</field>
         <field name="model_id" ref="model_kennel_observation_type"/>
-        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])] if not user.share else [(1, '=', 1)]</field>
+        <field name="groups" eval="[(5, 0, 0)]"/>
     </record>
     <!-- Portal: customers see their own (and their company's) animals and bookings, read-only. -->
     <record id="kennel_resident_rule_portal" model="ir.rule">

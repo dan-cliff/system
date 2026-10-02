@@ -2,37 +2,45 @@
     <menuitem id="menu_helpdesk_root"
               name="Helpdesk"
               web_icon="helpdesk_management,static/description/icon.png"
-              groups="group_helpdesk_user"
               sequence="75"/>
 
     <menuitem id="menu_helpdesk_overview" name="Overview" parent="menu_helpdesk_root"
-              action="helpdesk_team_action_overview" sequence="10"/>
+              action="helpdesk_team_action_overview" sequence="10"
+              groups="helpdesk_management.group_helpdesk_ticket_view"/>
 
     <menuitem id="menu_helpdesk_tickets" name="Tickets" parent="menu_helpdesk_root" sequence="20"/>
     <menuitem id="menu_helpdesk_ticket_my" name="My Tickets" parent="menu_helpdesk_tickets"
-              action="helpdesk_ticket_action_my" sequence="10"/>
+              action="helpdesk_ticket_action_my" sequence="10"
+              groups="helpdesk_management.group_helpdesk_ticket_view"/>
     <menuitem id="menu_helpdesk_ticket_all" name="All Tickets" parent="menu_helpdesk_tickets"
-              action="helpdesk_ticket_action_main" sequence="20"/>
+              action="helpdesk_ticket_action_main" sequence="20"
+              groups="helpdesk_management.group_helpdesk_ticket_view"/>
 
-    <menuitem id="menu_helpdesk_reporting" name="Reporting" parent="menu_helpdesk_root"
-              groups="group_helpdesk_manager" sequence="80"/>
+    <menuitem id="menu_helpdesk_reporting" name="Reporting" parent="menu_helpdesk_root" sequence="80"/>
     <menuitem id="menu_helpdesk_ticket_analysis" name="Tickets" parent="menu_helpdesk_reporting"
-              action="helpdesk_ticket_action_analysis" sequence="10"/>
+              action="helpdesk_ticket_action_analysis" sequence="10"
+              groups="helpdesk_management.group_helpdesk_ticket_update"/>
     <menuitem id="menu_helpdesk_sla_analysis" name="SLA Status" parent="menu_helpdesk_reporting"
-              action="helpdesk_sla_status_action_analysis" sequence="20"/>
+              action="helpdesk_sla_status_action_analysis" sequence="20"
+              groups="helpdesk_management.group_helpdesk_ticket_update"/>
     <menuitem id="menu_helpdesk_rating" name="Customer Ratings" parent="menu_helpdesk_reporting"
-              action="helpdesk_rating_action" sequence="30"/>
+              action="helpdesk_rating_action" sequence="30"
+              groups="helpdesk_management.group_helpdesk_ticket_update"/>
 
-    <menuitem id="menu_helpdesk_config" name="Configuration" parent="menu_helpdesk_root"
-              groups="group_helpdesk_manager" sequence="90"/>
+    <menuitem id="menu_helpdesk_config" name="Configuration" parent="menu_helpdesk_root" sequence="90"/>
     <menuitem id="menu_helpdesk_team" name="Teams" parent="menu_helpdesk_config"
-              action="helpdesk_team_action" sequence="10"/>
+              action="helpdesk_team_action" sequence="10"
+              groups="helpdesk_management.group_helpdesk_team_create,helpdesk_management.group_helpdesk_team_update,helpdesk_management.group_helpdesk_team_delete"/>
     <menuitem id="menu_helpdesk_stage" name="Stages" parent="menu_helpdesk_config"
-              action="helpdesk_stage_action" sequence="20"/>
+              action="helpdesk_stage_action" sequence="20"
+              groups="helpdesk_management.group_helpdesk_stage_create,helpdesk_management.group_helpdesk_stage_update,helpdesk_management.group_helpdesk_stage_delete"/>
     <menuitem id="menu_helpdesk_sla" name="SLA Policies" parent="menu_helpdesk_config"
-              action="helpdesk_sla_action" sequence="30"/>
+              action="helpdesk_sla_action" sequence="30"
+              groups="helpdesk_management.group_helpdesk_sla_create,helpdesk_management.group_helpdesk_sla_update,helpdesk_management.group_helpdesk_sla_delete"/>
     <menuitem id="menu_helpdesk_ticket_type" name="Ticket Types" parent="menu_helpdesk_config"
-              action="helpdesk_ticket_type_action" sequence="40"/>
+              action="helpdesk_ticket_type_action" sequence="40"
+              groups="helpdesk_management.group_helpdesk_ticket_type_create,helpdesk_management.group_helpdesk_ticket_type_update,helpdesk_management.group_helpdesk_ticket_type_delete"/>
     <menuitem id="menu_helpdesk_tag" name="Tags" parent="menu_helpdesk_config"
-              action="helpdesk_tag_action" sequence="50"/>
+              action="helpdesk_tag_action" sequence="50"
+              groups="helpdesk_management.group_helpdesk_tag_create,helpdesk_management.group_helpdesk_tag_update,helpdesk_management.group_helpdesk_tag_delete"/>
 </odoo>

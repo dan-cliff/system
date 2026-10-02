@@ -26,11 +26,11 @@
                 <button name="action_verify" type="object" string="Verify"
                         icon="fa-check-circle" class="btn-success"
                         invisible="state not in ('pending_upload', 'pending_verification')"
-                        groups="learning_management.group_lms_manager"/>
+                        groups="learning_management.group_lms_employee_record_update"/>
                 <button name="action_mark_complete" type="object" string="Complete"
                         icon="fa-graduation-cap"
                         invisible="state in ('completed', 'not_started')"
-                        groups="learning_management.group_lms_manager"/>
+                        groups="learning_management.group_lms_employee_record_update"/>
             </list>
         </field>
     </record>
@@ -44,29 +44,29 @@
                     <button name="action_start" type="object" string="Start"
                             class="btn-primary"
                             invisible="state != 'not_started'"
-                            groups="learning_management.group_lms_employee"/>
+                            groups="learning_management.group_lms_employee_record_view"/>
                     <button name="action_view_assessments" type="object"
                             string="Assessment"
                             class="btn-primary"
                             invisible="not course_id.assessment_template_id or state in ('completed', 'lapsed')"
-                            groups="learning_management.group_lms_employee"/>
+                            groups="learning_management.group_lms_employee_record_view"/>
                     <button name="action_verify" type="object" string="Verify Upload"
                             class="btn-success"
                             invisible="state not in ('pending_upload', 'pending_verification')"
-                            groups="learning_management.group_lms_manager"/>
+                            groups="learning_management.group_lms_employee_record_update"/>
                     <button name="action_mark_complete" type="object" string="Mark Complete"
                             class="btn-success"
                             invisible="state in ('completed', 'not_started', 'lapsed')"
-                            groups="learning_management.group_lms_manager"/>
+                            groups="learning_management.group_lms_employee_record_update"/>
                     <button name="action_fail" type="object" string="Mark Failed"
                             invisible="state not in ('in_progress', 'pending_upload', 'pending_verification')"
-                            groups="learning_management.group_lms_manager"/>
+                            groups="learning_management.group_lms_employee_record_update"/>
                     <button name="action_lapse" type="object" string="Mark Lapsed"
                             invisible="state not in ('expired', 'failed', 'completed')"
-                            groups="learning_management.group_lms_manager"/>
+                            groups="learning_management.group_lms_employee_record_update"/>
                     <button name="action_reset" type="object" string="Reset"
                             invisible="state == 'not_started'"
-                            groups="learning_management.group_lms_admin"/>
+                            groups="learning_management.group_lms_employee_record_delete"/>
                     <button name="action_print_training_record" type="object"
                             string="Print" icon="fa-print"
                             class="btn-secondary"/>
@@ -126,7 +126,7 @@
                         </page>
                         <page string="SCORM Data" name="scorm"
                               invisible="delivery_mode != 'scorm'"
-                              groups="learning_management.group_lms_admin">
+                              groups="learning_management.group_lms_employee_record_delete">
                             <field name="scorm_completion_status" readonly="1"/>
                             <field name="scorm_data" readonly="1"/>
                         </page>
@@ -314,7 +314,7 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Training &amp; Qualifications" name="lms_tab"
-                      groups="learning_management.group_lms_people_leader">
+                      groups="learning_management.group_lms_employee_record_view">
                     <div class="oe_button_box mb-3">
                         <button name="action_view_lms_assignments" type="object"
                                 class="oe_stat_button" icon="fa-book">

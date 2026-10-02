@@ -1,6 +1,6 @@
 {
     'name': 'Stocktake',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Inventory/Inventory',
     'summary': 'Count on-hand stock and apply the counted quantities as an inventory adjustment',
     'description': """
@@ -23,7 +23,9 @@ Stocktake
     'license': 'LGPL-3',
     'depends': ['stock'],
     'data': [
+        'security/access_levels.xml',
         'security/ir.model.access.csv',
+        'data/access_roles.xml',
         'security/stock_stocktake_security.xml',
         'data/stock_stocktake_sequence.xml',
         'views/stock_stocktake_views.xml',

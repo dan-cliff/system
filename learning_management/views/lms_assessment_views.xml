@@ -200,13 +200,13 @@
                     <button name="action_pass" type="object" string="Pass"
                             class="btn-success"
                             invisible="state != 'submitted'"
-                            groups="learning_management.group_lms_manager"/>
+                            groups="learning_management.group_lms_assessment_update"/>
                     <button name="action_fail" type="object" string="Fail"
                             invisible="state != 'submitted'"
-                            groups="learning_management.group_lms_manager"/>
+                            groups="learning_management.group_lms_assessment_update"/>
                     <button name="action_reset" type="object" string="Reset"
                             invisible="state == 'draft'"
-                            groups="learning_management.group_lms_admin"/>
+                            groups="learning_management.group_lms_assessment_delete"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,in_progress,submitted,passed,failed"/>
                 </header>

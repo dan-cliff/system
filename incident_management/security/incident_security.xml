@@ -1,105 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <!-- Per-model access levels are in access_levels.xml (generated from access_levels.py). -->
 
-        <!-- ── Module Category ───────────────────────────────────────────── -->
-        <record id="module_category_incident_management" model="ir.module.category">
-            <field name="name">Incident Management</field>
-            <field name="description">Manage workplace incidents, investigations and corrective actions.</field>
-            <field name="sequence">50</field>
-        </record>
+    <!-- Confidential Bypass: can view all confidential incident records regardless of access list -->
+    <record id="group_incident_confidential_bypass" model="res.groups">
+        <field name="name">Confidential Bypass</field>
+        <field name="privilege_id" ref="privilege_incident_report"/>
+        <field name="sequence">60</field>
+        <field name="comment">Can view all confidential incident reports regardless of the per-record access list. Included in the Administrator role.</field>
+        <field name="implied_ids" eval="[(4, ref('group_incident_report_view'))]"/>
+    </record>
 
-        <!-- ── Privilege (Odoo 19 way to link groups to a category in Settings) ── -->
-        <record id="privilege_incident_management" model="res.groups.privilege">
-            <field name="name">Incident Management</field>
-            <field name="category_id" ref="module_category_incident_management"/>
-            <field name="sequence">10</field>
-        </record>
-
-        <!-- ── Security Groups ───────────────────────────────────────────── -->
-
-        <!-- User: can create and view incidents -->
-        <record id="group_incident_user" model="res.groups">
-            <field name="name">User</field>
-            <field name="privilege_id" ref="privilege_incident_management"/>
-            <field name="sequence">10</field>
-            <field name="comment">Can create and view incident reports.</field>
-            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-        </record>
-
-        <!-- Manager: can assign, investigate and close incidents -->
-        <record id="group_incident_manager" model="res.groups">
-            <field name="name">Manager</field>
-            <field name="privilege_id" ref="privilege_incident_management"/>
-            <field name="sequence">20</field>
-            <field name="comment">Can assign managers, run investigations and close incidents.</field>
-            <field name="implied_ids" eval="[(4, ref('group_incident_user'))]"/>
-        </record>
-
-        <!-- Administrator: full access including ICAM configuration -->
-        <record id="group_incident_admin" model="res.groups">
-            <field name="name">Administrator</field>
-            <field name="privilege_id" ref="privilege_incident_management"/>
-            <field name="sequence">30</field>
-            <field name="comment">Full access including ICAM methodology configuration.</field>
-            <field name="implied_ids" eval="[(4, ref('group_incident_manager'))]"/>
-        </record>
-
-        <!-- Confidential Bypass: can view all confidential incident records regardless of access list -->
-        <record id="group_incident_confidential_bypass" model="res.groups">
-            <field name="name">Confidential Bypass</field>
-            <field name="privilege_id" ref="privilege_incident_management"/>
-            <field name="sequence">25</field>
-            <field name="comment">Can view all confidential incident reports regardless of the per-record access list. Automatically granted to Administrators.</field>
-        </record>
-
-    </data>
-
-    <!-- ── Record Rules ──────────────────────────────────────────────────── -->
-    <!-- Updateable data block so rules are refreshed on every -u run        -->
-    <data>
-
-        <!--
-            Confidentiality rule — applies to all incident users.
-            A confidential record is only visible to:
-              * the original reporter
-              * the responsible manager
-              * any user explicitly listed in confidential_user_ids
-            Non-confidential records are always visible.
-        -->
-        <record id="rule_incident_report_confidential" model="ir.rule">
-            <field name="name">Incident: Confidentiality Filter</field>
-            <field name="model_id" ref="model_incident_report"/>
-            <field name="domain_force">
-                ['|', '|', '|',
-                    ('is_confidential', '=', False),
-                    ('reporter_id', '=', user.id),
-                    ('responsible_manager_id', '=', user.id),
-                    ('confidential_user_ids', 'in', [user.id])
-                ]
-            </field>
-            <field name="groups" eval="[(4, ref('incident_management.group_incident_user'))]"/>
-            <field name="perm_read"   eval="True"/>
-            <field name="perm_write"  eval="True"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="True"/>
-        </record>
-
-        <!--
-            Bypass rule — users with Confidential Bypass OR Administrator
-            permission can read/write any incident record regardless of
-            confidentiality status.
-        -->
-        <record id="rule_incident_report_confidential_bypass" model="ir.rule">
-            <field name="name">Incident: Confidentiality Bypass</field>
-            <field name="model_id" ref="model_incident_report"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('incident_management.group_incident_confidential_bypass')), (4, ref('incident_management.group_incident_admin'))]"/>
-            <field name="perm_read"   eval="True"/>
-            <field name="perm_write"  eval="True"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="True"/>
-        </record>
-
-    </data>
+    <!--
+        Confidentiality rule — applies to everyone (global, so it narrows the access level
+        rules rather than widening them). A confidential record is only visible to:
+          * the original reporter
+          * the responsible manager
+          * any user explicitly listed in confidential_user_ids
+          * users with Confidential Bypass
+        Non-confidential records are always visible.
+    -->
+    <record id="rule_incident_report_confidential" model="ir.rule">
+        <field name="name">Incident: Confidentiality Filter</field>
+        <field name="model_id" ref="model_incident_report"/>
+        <field name="domain_force">(
+            [(1, '=', 1)] if user.has_group('incident_management.group_incident_confidential_bypass') else
+            ['|', '|', '|',
+                ('is_confidential', '=', False),
+                ('reporter_id', '=', user.id),
+                ('responsible_manager_id', '=', user.id),
+                ('confidential_user_ids', 'in', [user.id])
+            ]
+        )</field>
+        <!-- Clears the group this rule used to be limited to, making it global. -->
+        <field name="groups" eval="[(5, 0, 0)]"/>
+        <field name="perm_read"   eval="True"/>
+        <field name="perm_write"  eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
 </odoo>

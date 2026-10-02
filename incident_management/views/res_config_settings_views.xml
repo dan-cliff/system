@@ -11,7 +11,7 @@
                      string="Incidents"
                      name="incident_management"
                      logo="/incident_management/static/description/icon.png"
-                     groups="incident_management.group_incident_admin">
+                     groups="base.group_system">
                     <block title="AI Integration" name="incident_ai_integration">
                         <field name="im_openai_from_ai_settings" invisible="1"/>
                         <field name="im_google_from_ai_settings" invisible="1"/>
@@ -55,6 +55,6 @@
               parent="base.menu_administration"
               action="action_incident_config_settings"
               sequence="80"
-              groups="incident_management.group_incident_admin"/>
+              groups="base.group_system"/>
 
 </odoo>

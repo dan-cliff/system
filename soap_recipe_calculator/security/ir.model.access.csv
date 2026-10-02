@@ -1,4 +1,12 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_soap_recipe_user,soap.recipe user,model_soap_recipe,base.group_user,1,1,1,1
-access_soap_recipe_line_user,soap.recipe.line user,model_soap_recipe_line,base.group_user,1,1,1,1
-access_soap_recipe_improve_wizard_user,soap.recipe.improve.wizard user,model_soap_recipe_improve_wizard,base.group_user,1,1,1,1
+access_soap_recipe_view,soap.recipe view,model_soap_recipe,group_soap_recipe_view,1,0,0,0
+access_soap_recipe_create,soap.recipe create,model_soap_recipe,group_soap_recipe_create,1,0,1,0
+access_soap_recipe_own,soap.recipe own,model_soap_recipe,group_soap_recipe_own,1,1,1,0
+access_soap_recipe_update,soap.recipe update,model_soap_recipe,group_soap_recipe_update,1,1,0,0
+access_soap_recipe_delete,soap.recipe delete,model_soap_recipe,group_soap_recipe_delete,1,0,0,1
+access_soap_recipe_line_view,soap.recipe.line view,model_soap_recipe_line,group_soap_recipe_view,1,0,0,0
+access_soap_recipe_line_create,soap.recipe.line create,model_soap_recipe_line,group_soap_recipe_create,1,0,1,0
+access_soap_recipe_line_own,soap.recipe.line own,model_soap_recipe_line,group_soap_recipe_own,1,1,1,0
+access_soap_recipe_line_update,soap.recipe.line update,model_soap_recipe_line,group_soap_recipe_update,1,1,0,0
+access_soap_recipe_line_delete,soap.recipe.line delete,model_soap_recipe_line,group_soap_recipe_delete,1,0,0,1
+access_soap_recipe_improve_wizard,access_soap_recipe_improve_wizard,model_soap_recipe_improve_wizard,group_soap_recipe_view,1,1,1,1

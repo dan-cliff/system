@@ -1,35 +1,94 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_dg_chemical_user,dg.chemical user,model_dg_chemical,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_chemical_manager,dg.chemical manager,model_dg_chemical,dangerous_goods.group_dg_manager,1,1,1,0
-access_dg_chemical_admin,dg.chemical admin,model_dg_chemical,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_asbestos_user,dg.asbestos user,model_dg_asbestos,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_asbestos_manager,dg.asbestos manager,model_dg_asbestos,dangerous_goods.group_dg_manager,1,1,1,0
-access_dg_asbestos_admin,dg.asbestos admin,model_dg_asbestos,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_asbestos_inspection_user,dg.asbestos.inspection user,model_dg_asbestos_inspection,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_asbestos_inspection_manager,dg.asbestos.inspection manager,model_dg_asbestos_inspection,dangerous_goods.group_dg_manager,1,1,1,1
-access_ghs_hazard_class_user,ghs.hazard.class user,model_ghs_hazard_class,dangerous_goods.group_dg_user,1,0,0,0
-access_ghs_hazard_class_admin,ghs.hazard.class admin,model_ghs_hazard_class,dangerous_goods.group_dg_admin,1,1,1,1
-access_ghs_pictogram_user,ghs.pictogram user,model_ghs_pictogram,dangerous_goods.group_dg_user,1,0,0,0
-access_ghs_pictogram_admin,ghs.pictogram admin,model_ghs_pictogram,dangerous_goods.group_dg_admin,1,1,1,1
-access_ghs_hazard_statement_user,ghs.hazard.statement user,model_ghs_hazard_statement,dangerous_goods.group_dg_user,1,0,0,0
-access_ghs_hazard_statement_admin,ghs.hazard.statement admin,model_ghs_hazard_statement,dangerous_goods.group_dg_admin,1,1,1,1
-access_ghs_precautionary_statement_user,ghs.precautionary.statement user,model_ghs_precautionary_statement,dangerous_goods.group_dg_user,1,0,0,0
-access_ghs_precautionary_statement_admin,ghs.precautionary.statement admin,model_ghs_precautionary_statement,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_chemical_stage_user,dg.chemical.stage user,model_dg_chemical_stage,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_chemical_stage_admin,dg.chemical.stage admin,model_dg_chemical_stage,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_storage_location_user,dg.storage.location user,model_dg_storage_location,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_storage_location_admin,dg.storage.location admin,model_dg_storage_location,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_ppe_type_user,dg.ppe.type user,model_dg_ppe_type,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_ppe_type_admin,dg.ppe.type admin,model_dg_ppe_type,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_storage_class_user,dg.storage.class user,model_dg_storage_class,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_storage_class_admin,dg.storage.class admin,model_dg_storage_class,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_adg_class_user,dg.adg.class user,model_dg_adg_class,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_adg_class_admin,dg.adg.class admin,model_dg_adg_class,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_building_user,dg.building user,model_dg_building,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_building_admin,dg.building admin,model_dg_building,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_asbestos_form_user,dg.asbestos.form user,model_dg_asbestos_form,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_asbestos_form_admin,dg.asbestos.form admin,model_dg_asbestos_form,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_control_measure_user,dg.control.measure user,model_dg_control_measure,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_control_measure_admin,dg.control.measure admin,model_dg_control_measure,dangerous_goods.group_dg_admin,1,1,1,1
-access_dg_asbestos_remover_user,dg.asbestos.remover user,model_dg_asbestos_remover,dangerous_goods.group_dg_user,1,0,0,0
-access_dg_asbestos_remover_admin,dg.asbestos.remover admin,model_dg_asbestos_remover,dangerous_goods.group_dg_admin,1,1,1,1
+access_dg_chemical_view,dg.chemical view,model_dg_chemical,group_dg_chemical_view,1,0,0,0
+access_dg_chemical_create,dg.chemical create,model_dg_chemical,group_dg_chemical_create,1,0,1,0
+access_dg_chemical_own,dg.chemical own,model_dg_chemical,group_dg_chemical_own,1,1,1,0
+access_dg_chemical_update,dg.chemical update,model_dg_chemical,group_dg_chemical_update,1,1,0,0
+access_dg_chemical_delete,dg.chemical delete,model_dg_chemical,group_dg_chemical_delete,1,0,0,1
+access_dg_asbestos_view,dg.asbestos view,model_dg_asbestos,group_dg_asbestos_view,1,0,0,0
+access_dg_asbestos_create,dg.asbestos create,model_dg_asbestos,group_dg_asbestos_create,1,0,1,0
+access_dg_asbestos_own,dg.asbestos own,model_dg_asbestos,group_dg_asbestos_own,1,1,1,0
+access_dg_asbestos_update,dg.asbestos update,model_dg_asbestos,group_dg_asbestos_update,1,1,0,0
+access_dg_asbestos_delete,dg.asbestos delete,model_dg_asbestos,group_dg_asbestos_delete,1,0,0,1
+access_dg_asbestos_inspection_view,dg.asbestos.inspection view,model_dg_asbestos_inspection,group_dg_asbestos_inspection_view,1,0,0,0
+access_dg_asbestos_inspection_create,dg.asbestos.inspection create,model_dg_asbestos_inspection,group_dg_asbestos_inspection_create,1,0,1,0
+access_dg_asbestos_inspection_own,dg.asbestos.inspection own,model_dg_asbestos_inspection,group_dg_asbestos_inspection_own,1,1,1,0
+access_dg_asbestos_inspection_update,dg.asbestos.inspection update,model_dg_asbestos_inspection,group_dg_asbestos_inspection_update,1,1,0,0
+access_dg_asbestos_inspection_delete,dg.asbestos.inspection delete,model_dg_asbestos_inspection,group_dg_asbestos_inspection_delete,1,0,0,1
+access_dg_building_view,dg.building view,model_dg_building,group_dg_building_view,1,0,0,0
+access_dg_building_create,dg.building create,model_dg_building,group_dg_building_create,1,0,1,0
+access_dg_building_own,dg.building own,model_dg_building,group_dg_building_own,1,1,1,0
+access_dg_building_update,dg.building update,model_dg_building,group_dg_building_update,1,1,0,0
+access_dg_building_delete,dg.building delete,model_dg_building,group_dg_building_delete,1,0,0,1
+access_dg_building_internal_read,dg.building internal read,model_dg_building,base.group_user,1,0,0,0
+access_dg_storage_location_view,dg.storage.location view,model_dg_storage_location,group_dg_storage_location_view,1,0,0,0
+access_dg_storage_location_create,dg.storage.location create,model_dg_storage_location,group_dg_storage_location_create,1,0,1,0
+access_dg_storage_location_own,dg.storage.location own,model_dg_storage_location,group_dg_storage_location_own,1,1,1,0
+access_dg_storage_location_update,dg.storage.location update,model_dg_storage_location,group_dg_storage_location_update,1,1,0,0
+access_dg_storage_location_delete,dg.storage.location delete,model_dg_storage_location,group_dg_storage_location_delete,1,0,0,1
+access_dg_storage_location_internal_read,dg.storage.location internal read,model_dg_storage_location,base.group_user,1,0,0,0
+access_dg_chemical_stage_view,dg.chemical.stage view,model_dg_chemical_stage,group_dg_chemical_stage_view,1,0,0,0
+access_dg_chemical_stage_create,dg.chemical.stage create,model_dg_chemical_stage,group_dg_chemical_stage_create,1,0,1,0
+access_dg_chemical_stage_own,dg.chemical.stage own,model_dg_chemical_stage,group_dg_chemical_stage_own,1,1,1,0
+access_dg_chemical_stage_update,dg.chemical.stage update,model_dg_chemical_stage,group_dg_chemical_stage_update,1,1,0,0
+access_dg_chemical_stage_delete,dg.chemical.stage delete,model_dg_chemical_stage,group_dg_chemical_stage_delete,1,0,0,1
+access_dg_chemical_stage_internal_read,dg.chemical.stage internal read,model_dg_chemical_stage,base.group_user,1,0,0,0
+access_dg_ppe_type_view,dg.ppe.type view,model_dg_ppe_type,group_dg_ppe_type_view,1,0,0,0
+access_dg_ppe_type_create,dg.ppe.type create,model_dg_ppe_type,group_dg_ppe_type_create,1,0,1,0
+access_dg_ppe_type_own,dg.ppe.type own,model_dg_ppe_type,group_dg_ppe_type_own,1,1,1,0
+access_dg_ppe_type_update,dg.ppe.type update,model_dg_ppe_type,group_dg_ppe_type_update,1,1,0,0
+access_dg_ppe_type_delete,dg.ppe.type delete,model_dg_ppe_type,group_dg_ppe_type_delete,1,0,0,1
+access_dg_ppe_type_internal_read,dg.ppe.type internal read,model_dg_ppe_type,base.group_user,1,0,0,0
+access_dg_storage_class_view,dg.storage.class view,model_dg_storage_class,group_dg_storage_class_view,1,0,0,0
+access_dg_storage_class_create,dg.storage.class create,model_dg_storage_class,group_dg_storage_class_create,1,0,1,0
+access_dg_storage_class_own,dg.storage.class own,model_dg_storage_class,group_dg_storage_class_own,1,1,1,0
+access_dg_storage_class_update,dg.storage.class update,model_dg_storage_class,group_dg_storage_class_update,1,1,0,0
+access_dg_storage_class_delete,dg.storage.class delete,model_dg_storage_class,group_dg_storage_class_delete,1,0,0,1
+access_dg_storage_class_internal_read,dg.storage.class internal read,model_dg_storage_class,base.group_user,1,0,0,0
+access_dg_adg_class_view,dg.adg.class view,model_dg_adg_class,group_dg_adg_class_view,1,0,0,0
+access_dg_adg_class_create,dg.adg.class create,model_dg_adg_class,group_dg_adg_class_create,1,0,1,0
+access_dg_adg_class_own,dg.adg.class own,model_dg_adg_class,group_dg_adg_class_own,1,1,1,0
+access_dg_adg_class_update,dg.adg.class update,model_dg_adg_class,group_dg_adg_class_update,1,1,0,0
+access_dg_adg_class_delete,dg.adg.class delete,model_dg_adg_class,group_dg_adg_class_delete,1,0,0,1
+access_dg_adg_class_internal_read,dg.adg.class internal read,model_dg_adg_class,base.group_user,1,0,0,0
+access_dg_asbestos_form_view,dg.asbestos.form view,model_dg_asbestos_form,group_dg_asbestos_form_view,1,0,0,0
+access_dg_asbestos_form_create,dg.asbestos.form create,model_dg_asbestos_form,group_dg_asbestos_form_create,1,0,1,0
+access_dg_asbestos_form_own,dg.asbestos.form own,model_dg_asbestos_form,group_dg_asbestos_form_own,1,1,1,0
+access_dg_asbestos_form_update,dg.asbestos.form update,model_dg_asbestos_form,group_dg_asbestos_form_update,1,1,0,0
+access_dg_asbestos_form_delete,dg.asbestos.form delete,model_dg_asbestos_form,group_dg_asbestos_form_delete,1,0,0,1
+access_dg_asbestos_form_internal_read,dg.asbestos.form internal read,model_dg_asbestos_form,base.group_user,1,0,0,0
+access_dg_control_measure_view,dg.control.measure view,model_dg_control_measure,group_dg_control_measure_view,1,0,0,0
+access_dg_control_measure_create,dg.control.measure create,model_dg_control_measure,group_dg_control_measure_create,1,0,1,0
+access_dg_control_measure_own,dg.control.measure own,model_dg_control_measure,group_dg_control_measure_own,1,1,1,0
+access_dg_control_measure_update,dg.control.measure update,model_dg_control_measure,group_dg_control_measure_update,1,1,0,0
+access_dg_control_measure_delete,dg.control.measure delete,model_dg_control_measure,group_dg_control_measure_delete,1,0,0,1
+access_dg_control_measure_internal_read,dg.control.measure internal read,model_dg_control_measure,base.group_user,1,0,0,0
+access_dg_asbestos_remover_view,dg.asbestos.remover view,model_dg_asbestos_remover,group_dg_asbestos_remover_view,1,0,0,0
+access_dg_asbestos_remover_create,dg.asbestos.remover create,model_dg_asbestos_remover,group_dg_asbestos_remover_create,1,0,1,0
+access_dg_asbestos_remover_own,dg.asbestos.remover own,model_dg_asbestos_remover,group_dg_asbestos_remover_own,1,1,1,0
+access_dg_asbestos_remover_update,dg.asbestos.remover update,model_dg_asbestos_remover,group_dg_asbestos_remover_update,1,1,0,0
+access_dg_asbestos_remover_delete,dg.asbestos.remover delete,model_dg_asbestos_remover,group_dg_asbestos_remover_delete,1,0,0,1
+access_dg_asbestos_remover_internal_read,dg.asbestos.remover internal read,model_dg_asbestos_remover,base.group_user,1,0,0,0
+access_ghs_hazard_class_view,ghs.hazard.class view,model_ghs_hazard_class,group_dg_ghs_hazard_class_view,1,0,0,0
+access_ghs_hazard_class_create,ghs.hazard.class create,model_ghs_hazard_class,group_dg_ghs_hazard_class_create,1,0,1,0
+access_ghs_hazard_class_own,ghs.hazard.class own,model_ghs_hazard_class,group_dg_ghs_hazard_class_own,1,1,1,0
+access_ghs_hazard_class_update,ghs.hazard.class update,model_ghs_hazard_class,group_dg_ghs_hazard_class_update,1,1,0,0
+access_ghs_hazard_class_delete,ghs.hazard.class delete,model_ghs_hazard_class,group_dg_ghs_hazard_class_delete,1,0,0,1
+access_ghs_hazard_class_internal_read,ghs.hazard.class internal read,model_ghs_hazard_class,base.group_user,1,0,0,0
+access_ghs_pictogram_view,ghs.pictogram view,model_ghs_pictogram,group_dg_ghs_pictogram_view,1,0,0,0
+access_ghs_pictogram_create,ghs.pictogram create,model_ghs_pictogram,group_dg_ghs_pictogram_create,1,0,1,0
+access_ghs_pictogram_own,ghs.pictogram own,model_ghs_pictogram,group_dg_ghs_pictogram_own,1,1,1,0
+access_ghs_pictogram_update,ghs.pictogram update,model_ghs_pictogram,group_dg_ghs_pictogram_update,1,1,0,0
+access_ghs_pictogram_delete,ghs.pictogram delete,model_ghs_pictogram,group_dg_ghs_pictogram_delete,1,0,0,1
+access_ghs_pictogram_internal_read,ghs.pictogram internal read,model_ghs_pictogram,base.group_user,1,0,0,0
+access_ghs_hazard_statement_view,ghs.hazard.statement view,model_ghs_hazard_statement,group_dg_ghs_hazard_statement_view,1,0,0,0
+access_ghs_hazard_statement_create,ghs.hazard.statement create,model_ghs_hazard_statement,group_dg_ghs_hazard_statement_create,1,0,1,0
+access_ghs_hazard_statement_own,ghs.hazard.statement own,model_ghs_hazard_statement,group_dg_ghs_hazard_statement_own,1,1,1,0
+access_ghs_hazard_statement_update,ghs.hazard.statement update,model_ghs_hazard_statement,group_dg_ghs_hazard_statement_update,1,1,0,0
+access_ghs_hazard_statement_delete,ghs.hazard.statement delete,model_ghs_hazard_statement,group_dg_ghs_hazard_statement_delete,1,0,0,1
+access_ghs_hazard_statement_internal_read,ghs.hazard.statement internal read,model_ghs_hazard_statement,base.group_user,1,0,0,0
+access_ghs_precautionary_statement_view,ghs.precautionary.statement view,model_ghs_precautionary_statement,group_dg_ghs_precautionary_statement_view,1,0,0,0
+access_ghs_precautionary_statement_create,ghs.precautionary.statement create,model_ghs_precautionary_statement,group_dg_ghs_precautionary_statement_create,1,0,1,0
+access_ghs_precautionary_statement_own,ghs.precautionary.statement own,model_ghs_precautionary_statement,group_dg_ghs_precautionary_statement_own,1,1,1,0
+access_ghs_precautionary_statement_update,ghs.precautionary.statement update,model_ghs_precautionary_statement,group_dg_ghs_precautionary_statement_update,1,1,0,0
+access_ghs_precautionary_statement_delete,ghs.precautionary.statement delete,model_ghs_precautionary_statement,group_dg_ghs_precautionary_statement_delete,1,0,0,1
+access_ghs_precautionary_statement_internal_read,ghs.precautionary.statement internal read,model_ghs_precautionary_statement,base.group_user,1,0,0,0
