@@ -15,15 +15,35 @@ The home screen lives at /odoo: visiting /odoo directly opens it
 (unless the user has a personal Home Action configured), and the
 waffle (apps) icon in the top-left of the navbar always navigates to
 it instead of opening a dropdown.
+
+Apps can be grouped into folders on the home screen. Clicking a folder
+opens a popup with the apps inside; apps not in a folder stay on the
+main grid.
+
+* Administrators set the default layout for everyone, either from the
+  home screen ("Edit layout" then "Save as default") or under
+  Settings > General Settings > Home Screen > Manage Folders.
+* Each user can save a personal layout from the home screen with
+  "Edit layout", which replaces the default for them, and "Reset to
+  default" to go back.
+* Administrators can also build or change a user's personal layout
+  from Settings by setting the User on a folder.
 """,
     'author': 'Bendigo Scouts',
     'license': 'LGPL-3',
-    'depends': ['web'],
+    'depends': ['web', 'base_setup'],
     'data': [
+        'security/ir.model.access.csv',
+        'security/home_menu_security.xml',
         'data/actions.xml',
+        'data/res_lang_data.xml',
+        'views/home_menu_folder_views.xml',
+        'views/res_config_settings_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
+            'web_home_menu/static/src/folder_popup/folder_popup.js',
+            'web_home_menu/static/src/folder_popup/folder_popup.xml',
             'web_home_menu/static/src/home_screen/home_screen.js',
             'web_home_menu/static/src/home_screen/home_screen.xml',
             'web_home_menu/static/src/home_screen/home_screen.scss',
