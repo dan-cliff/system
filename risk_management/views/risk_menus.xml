@@ -1,66 +1,67 @@
 <odoo>
     <menuitem id="menu_risk_root" name="Risk Management" sequence="90"
               web_icon="risk_management,static/description/icon.png"
-              groups="risk_management.group_risk_read_only,risk_management.group_risk_leader_youth"/>
+              groups="risk_management.group_risk_assessment_view,risk_management.group_risk_risk_view,risk_management.group_risk_template_view,risk_management.group_risk_category_view,risk_management.group_risk_control_view,risk_management.group_risk_control_hierarchy_view,risk_management.group_risk_type_view,risk_management.group_risk_subtype_view,risk_management.group_risk_stage_view,risk_management.group_risk_likelihood_view,risk_management.group_risk_consequence_view,risk_management.group_risk_severity_view,risk_management.group_risk_score_view"/>
 
     <menuitem id="menu_risk_assessments" name="Risk Assessments" parent="menu_risk_root"
               action="action_risk_assessment" sequence="10"
-              groups="risk_management.group_risk_read_only,risk_management.group_risk_leader_youth"/>
+              groups="risk_management.group_risk_assessment_view"/>
 
     <!-- Configuration houses the lookup-list source models, Risk Template design and the
-         Risk Matrix design models - Administrator only. Leaders still use Risk Templates and
-         Controls day-to-day, but do so via the fields on a Risk Assessment, not this menu. -->
+         Risk Matrix design models. Each list is shown to users who can create, update or
+         delete its records; everyone else still uses Risk Templates and Controls via the
+         fields on a Risk Assessment. -->
     <menuitem id="menu_risk_configuration" name="Configuration" parent="menu_risk_root"
-              sequence="100" groups="risk_management.group_risk_administrator"/>
+              sequence="100" groups="risk_management.group_risk_template_create,risk_management.group_risk_template_update,risk_management.group_risk_template_delete,risk_management.group_risk_category_create,risk_management.group_risk_category_update,risk_management.group_risk_category_delete,risk_management.group_risk_control_create,risk_management.group_risk_control_update,risk_management.group_risk_control_delete,risk_management.group_risk_control_hierarchy_create,risk_management.group_risk_control_hierarchy_update,risk_management.group_risk_control_hierarchy_delete,risk_management.group_risk_type_create,risk_management.group_risk_type_update,risk_management.group_risk_type_delete,risk_management.group_risk_subtype_create,risk_management.group_risk_subtype_update,risk_management.group_risk_subtype_delete,risk_management.group_risk_stage_create,risk_management.group_risk_stage_update,risk_management.group_risk_stage_delete,risk_management.group_risk_likelihood_create,risk_management.group_risk_likelihood_update,risk_management.group_risk_likelihood_delete,risk_management.group_risk_consequence_create,risk_management.group_risk_consequence_update,risk_management.group_risk_consequence_delete,risk_management.group_risk_severity_create,risk_management.group_risk_severity_update,risk_management.group_risk_severity_delete,risk_management.group_risk_score_create,risk_management.group_risk_score_update,risk_management.group_risk_score_delete"/>
 
     <menuitem id="menu_risk_templates" name="Risk Templates" parent="menu_risk_configuration"
               action="action_risk_template" sequence="10"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_template_create,risk_management.group_risk_template_update,risk_management.group_risk_template_delete"/>
 
     <menuitem id="menu_risk_categories" name="Risk Categories" parent="menu_risk_configuration"
               action="action_risk_category" sequence="20"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_category_create,risk_management.group_risk_category_update,risk_management.group_risk_category_delete"/>
 
     <menuitem id="menu_risk_controls" name="Controls" parent="menu_risk_configuration"
               action="action_risk_control" sequence="30"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_control_create,risk_management.group_risk_control_update,risk_management.group_risk_control_delete"/>
 
     <menuitem id="menu_risk_control_hierarchy" name="Hierarchy of Controls" parent="menu_risk_configuration"
               action="action_risk_control_hierarchy" sequence="32"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_control_hierarchy_create,risk_management.group_risk_control_hierarchy_update,risk_management.group_risk_control_hierarchy_delete"/>
 
     <menuitem id="menu_risk_types" name="Risk Types" parent="menu_risk_configuration"
               action="action_risk_type" sequence="35"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_type_create,risk_management.group_risk_type_update,risk_management.group_risk_type_delete"/>
 
     <menuitem id="menu_risk_subtypes" name="Risk Subtypes" parent="menu_risk_configuration"
               action="action_risk_subtype" sequence="36"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_subtype_create,risk_management.group_risk_subtype_update,risk_management.group_risk_subtype_delete"/>
 
     <menuitem id="menu_risk_assessment_stages" name="Risk Assessment Stages" parent="menu_risk_configuration"
               action="action_risk_assessment_stage" sequence="38"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_stage_create,risk_management.group_risk_stage_update,risk_management.group_risk_stage_delete"/>
 
     <menuitem id="menu_risk_matrix_config" name="Risk Matrix" parent="menu_risk_configuration"
-              sequence="40" groups="risk_management.group_risk_administrator"/>
+              sequence="40" groups="risk_management.group_risk_likelihood_create,risk_management.group_risk_likelihood_update,risk_management.group_risk_likelihood_delete,risk_management.group_risk_consequence_create,risk_management.group_risk_consequence_update,risk_management.group_risk_consequence_delete,risk_management.group_risk_severity_create,risk_management.group_risk_severity_update,risk_management.group_risk_severity_delete,risk_management.group_risk_score_create,risk_management.group_risk_score_update,risk_management.group_risk_score_delete"/>
 
     <menuitem id="menu_risk_likelihood" name="Likelihood" parent="menu_risk_matrix_config"
               action="action_risk_likelihood" sequence="10"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_likelihood_create,risk_management.group_risk_likelihood_update,risk_management.group_risk_likelihood_delete"/>
 
     <menuitem id="menu_risk_consequence" name="Consequence" parent="menu_risk_matrix_config"
               action="action_risk_consequence" sequence="20"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_consequence_create,risk_management.group_risk_consequence_update,risk_management.group_risk_consequence_delete"/>
 
     <menuitem id="menu_risk_severity" name="Risk Severity" parent="menu_risk_matrix_config"
               action="action_risk_severity" sequence="30"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_severity_create,risk_management.group_risk_severity_update,risk_management.group_risk_severity_delete"/>
 
     <menuitem id="menu_risk_score" name="Risk Score" parent="menu_risk_matrix_config"
               action="action_risk_score" sequence="40"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_score_create,risk_management.group_risk_score_update,risk_management.group_risk_score_delete"/>
 
     <menuitem id="menu_risk_matrix_view" name="View Risk Matrix" parent="menu_risk_matrix_config"
               action="action_risk_matrix_wizard" sequence="50"
-              groups="risk_management.group_risk_administrator"/>
+              groups="risk_management.group_risk_score_create,risk_management.group_risk_score_update,risk_management.group_risk_score_delete"/>
 </odoo>

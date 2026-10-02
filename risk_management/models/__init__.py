@@ -18,3 +18,4 @@ from . import risk_assessment
 from . import risk_assessment_line
 from . import risk_assessment_approval_wizard
 from . import risk_matrix_wizard
+from . import risk_permission_roles

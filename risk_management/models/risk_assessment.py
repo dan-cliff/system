@@ -76,8 +76,7 @@ class RiskAssessment(models.Model):
             user = self.env.user
             assessment.can_approve = bool(
                 (assessment.approver_id and assessment.approver_id == user)
-                or user.has_group('risk_management.group_risk_administrator')
-                or user.has_group('risk_management.group_risk_leader_adults')
+                or user.has_group('risk_management.group_risk_assessment_delete')
             )
 
     @api.onchange('assessor_id')
@@ -160,7 +159,7 @@ class RiskAssessment(models.Model):
         self.ensure_one()
         if not self.can_approve:
             raise AccessError(
-                'Only the assigned Risk Approver (or a Leader of Adults/Administrator) can '
+                'Only the assigned Risk Approver (or a user with Risk Assessments / Delete) can '
                 'approve or reject this Risk Assessment.'
             )
 
@@ -212,8 +211,8 @@ class RiskAssessment(models.Model):
         return self.env.ref('risk_management.action_report_risk_assessment').report_action(self)
 
     def write(self, vals):
-        if set(vals.keys()) == {'active'} and not self.env.user.has_group('risk_management.group_risk_leader_adults'):
+        if set(vals.keys()) == {'active'} and not self.env.user.has_group('risk_management.group_risk_assessment_delete'):
             raise AccessError(
-                'Only a Risk Management Leader of Adults or Administrator can archive a Risk Assessment.'
+                'Only a user with Risk Assessments / Delete can archive a Risk Assessment.'
             )
         return super().write(vals)

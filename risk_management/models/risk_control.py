@@ -39,4 +39,5 @@ class RiskControl(models.Model):
         for control in controls:
             description = ai_generate_control_description(api_key, control.name)
             if description:
-                control.description = description
+                # sudo: users who may create Controls but not edit them still get the backfill
+                control.sudo().description = description

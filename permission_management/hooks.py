@@ -609,6 +609,10 @@ def post_init_hook(env):
     """Create the predefined Role library, skipping any whose modules are not installed."""
     Role = env['permission.role']
 
+    # Modules that build their own multi-privilege roles
+    if 'risk.permission.roles' in env:
+        env['risk.permission.roles']._sync_permission_roles()
+
     for priv_xml_id, group_xml_id, name, description in ROLE_DEFINITIONS:
         privilege = env.ref(priv_xml_id, raise_if_not_found=False)
         group = env.ref(group_xml_id, raise_if_not_found=False)

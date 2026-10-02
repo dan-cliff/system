@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management',
-    'version': '19.0.1.14.20',
+    'version': '19.0.1.15.0',
     'category': 'Operations/Risk Management',
     'summary': 'Risk assessment templates, risk assessments, a controls library and a risk matrix',
     'description': """
@@ -19,11 +19,16 @@ Risk Management
   Risk Score reference data, including colour coding for severity bands
   that is applied to the matrix cells (with a separate text colour to
   keep labels readable against their background).
-* Role based access: Administrators design templates and configuration;
-  Leaders of Adults manage every assessment in their company and can
-  archive them; Leaders of Youth manage the assessments they create or
-  are added to as a collaborator; Read Only users can view assessments
-  without editing them.
+* Per-model access: every risk model (Risk Assessments, Risks, Risk
+  Templates, Controls and each Configuration list) has its own View Only,
+  Create, Update and Delete permissions, shown as e.g. "Risk Templates /
+  Create". When Permission Management is installed, Administrator, Risk
+  Manager, Manager, Employee and View Only roles are created from them.
+  Users with Risk Assessments / Delete can also archive assessments and
+  approve any submitted assessment. Risk Assessments / Create and Edit
+  Own Only lets a user create and edit assessments but only see the ones
+  they created or are the Owner, Approver or a Collaborator on, unless
+  they also have Risk Assessments / Update or Delete.
 * Risk Assessments carry a Risk Approver (defaulting to the Risk Assessment
   Owner's Team Leader) and a Review Due date (defaulting to one year after
   the assessment date), moving through a configurable Stage statusbar
@@ -51,6 +56,7 @@ Risk Management
         'security/risk_security.xml',
         'security/ir.model.access.csv',
         'data/risk_security_data.xml',
+        'data/permission_role_sync.xml',
         'data/risk_matrix_data.xml',
         'data/risk_assessment_stage_data.xml',
         'data/risk_control_hierarchy_data.xml',
