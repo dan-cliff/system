@@ -1,3 +1,4 @@
+import os
 import re
 import logging
 from odoo import api, fields, models
@@ -273,7 +274,8 @@ class UrlSlugConfig(models.Model):
     def action_find_missing_views(self):
         """
         Button: scan every ir.actions.act_window belonging to a custom module
-        (any module whose path lives under /src/user/), create a
+        (any module installed from the same addons directory as this one, i.e.
+        this repository, wherever the host checks it out), create a
         url.slug.config entry for each one that does not yet have one, then
         open the list filtered to 'No Slug Set' so the operator can assign
         slugs to the new records.
@@ -282,6 +284,12 @@ class UrlSlugConfig(models.Model):
         visible whether or not any records are currently selected.
         """
         from odoo.modules.module import get_module_path
+
+        # Custom modules are the ones checked out alongside this module.
+        # Don't match a hard-coded path: Odoo.sh uses /src/user/, but
+        # Cloudpepper uses /var/odoo/<db>/extra-addons/<repo>.git-<hash>/.
+        own_path = get_module_path('url_slug_manager', display_warning=False)
+        custom_root = os.path.dirname(os.path.realpath(own_path)) if own_path else None
 
         IrModelData = self.env['ir.model.data'].sudo()
         IrModule = self.env['ir.module.module'].sudo()
@@ -313,7 +321,8 @@ class UrlSlugConfig(models.Model):
                 try:
                     path = get_module_path(module_name, display_warning=False)
                     custom_module_cache[module_name] = bool(
-                        path and '/src/user/' in path
+                        path and custom_root
+                        and os.path.dirname(os.path.realpath(path)) == custom_root
                     )
                 except Exception:
                     custom_module_cache[module_name] = False
