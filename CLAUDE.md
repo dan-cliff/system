@@ -32,3 +32,28 @@ for every module we create or edit.
   (read for users, full for the app's administrators).
 - Exceptions: technical states that code depends on (e.g. a record's workflow
   `state`), or when a request explicitly asks for a fixed selection.
+
+## Access rights
+
+- Every model gets its own access levels, not app-wide User/Manager groups:
+  one privilege per model (named after it, e.g. "Risk Templates") holding
+  **View Only**, **Create**, **Create and Edit Own Only**, **Update** and
+  **Delete** groups, so they read "Risk Templates / Create".
+- Declare them in the module's `access_levels.py` (format in
+  `permission_management/access_levels_lib.py`): each model's kind
+  (operational, configuration or Settings app) and the user fields that make
+  a record "own". Then run `python3 tools/generate_access_levels.py <module>`
+  (writes `security/access_levels.xml`, `security/ir.model.access.csv` and
+  `data/access_roles.xml`) and `python3 tools/apply_menu_groups.py <module>`.
+  Don't hand-edit the generated files.
+- Roles: Administrator, Manager, Employee and View Only. Models on a
+  Configuration/Settings menu or in the Settings app go in the Administrator
+  role only (internal users can still read configuration lists). Employees get
+  Create and Edit Own Only unless the app needs otherwise (override `ROLES`).
+- Permission Management builds the roles from `access_levels.py` whenever
+  either app is installed or upgraded.
+- Record rules that must combine with Create and Edit Own Only (e.g.
+  multi-company) are global (no `groups`); group rules are OR-ed and would
+  lift the restriction.
+- Moving a module to access levels: map its old groups to the new roles in a
+  migration with `access_levels_lib.migrate_old_groups`.
