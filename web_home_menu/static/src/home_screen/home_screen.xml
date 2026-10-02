@@ -1,28 +1,174 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
+    <!-- App icon: its uploaded image, or a fallback glyph. -->
+    <t t-name="web_home_menu.AppIcon">
+        <img t-if="app.webIconData" class="o_home_menu_app_icon" t-att-src="app.webIconData"/>
+        <i t-else="" class="o_home_menu_app_icon o_home_menu_app_icon_fallback oi oi-apps"/>
+    </t>
+
+    <!-- Loose app tile. Draggable onto folders while editing the layout. -->
+    <t t-name="web_home_menu.AppTile">
+        <div class="o_home_menu_app d-flex flex-column align-items-center"
+             t-att-class="{ o_home_menu_draggable: layout.editMode }"
+             t-att-data-menu-xmlid="app.xmlid"
+             t-att-draggable="layout.editMode ? 'true' : 'false'"
+             t-on-dragstart="(ev) => this.onAppDragStart(ev, app)"
+             t-on-dragend="() => this.onAppDragEnd()"
+             t-on-click="() => this.openApp(app)">
+            <t t-call="web_home_menu.AppIcon"/>
+            <span class="o_home_menu_app_name text-center"><t t-esc="app.name"/></span>
+        </div>
+    </t>
+
     <t t-name="web_home_menu.HomeScreen">
-        <div class="o_home_menu d-flex flex-column align-items-center">
+        <div class="o_home_menu d-flex flex-column align-items-center"
+             t-att-class="{ o_home_menu_editing: layout.editMode }">
+
+            <!-- Quick launch bar -->
+            <div t-if="layout.quickLinks.length or layout.editMode"
+                 class="o_home_menu_quick_launch d-flex flex-wrap justify-content-center gap-2 w-100 mt-2">
+                <t t-foreach="layout.quickLinks" t-as="link" t-key="link.id">
+                    <div class="o_home_menu_quick_link_wrapper position-relative">
+                        <a class="o_home_menu_quick_link d-flex align-items-center gap-2 rounded-pill px-3 py-1"
+                           t-att-href="link.url"
+                           t-att-target="link.new_tab ? '_blank' : undefined"
+                           t-att-rel="link.new_tab ? 'noopener noreferrer' : undefined"
+                           t-att-title="link.url"
+                           t-on-click="onQuickLinkClick">
+                            <img t-if="link.image_url" class="o_home_menu_quick_link_icon" t-att-src="link.image_url" alt=""/>
+                            <span t-else="" class="o_home_menu_quick_link_icon d-flex align-items-center justify-content-center"
+                                  t-attf-style="background-color: {{ link.color }};">
+                                <i t-attf-class="fa {{ link.icon }}"/>
+                            </span>
+                            <span class="o_home_menu_quick_link_label text-truncate" t-esc="link.name"/>
+                        </a>
+                        <div t-if="layout.editMode and link.editable" class="o_home_menu_quick_link_controls d-flex gap-1">
+                            <button class="btn btn-sm btn-light rounded-circle" title="Edit button"
+                                    t-on-click="() => this.openQuickLinkDialog(link)">
+                                <i class="fa fa-pencil"/>
+                            </button>
+                            <button class="btn btn-sm btn-light rounded-circle text-danger" title="Remove button"
+                                    t-on-click="() => this.deleteQuickLink(link)">
+                                <i class="fa fa-trash"/>
+                            </button>
+                        </div>
+                    </div>
+                </t>
+                <button t-if="layout.editMode" class="btn btn-sm btn-light rounded-pill px-3 o_home_menu_quick_link_add"
+                        t-on-click="() => this.openQuickLinkDialog()">
+                    <i class="fa fa-plus me-1"/>Add button
+                </button>
+            </div>
+
             <div class="o_home_menu_search my-4 w-100">
                 <input type="text"
                        class="form-control o_home_menu_search_input mx-auto"
                        placeholder="Search apps..."
                        t-att-value="state.searchTerm"
+                       t-att-disabled="layout.editMode"
                        t-on-input="onSearchInput"
                        autofocus="autofocus"/>
             </div>
-            <div class="o_home_menu_apps d-flex flex-wrap justify-content-center">
-                <t t-foreach="apps" t-as="app" t-key="app.id">
-                    <div class="o_home_menu_app d-flex flex-column align-items-center"
-                         t-att-data-menu-xmlid="app.xmlid"
-                         t-on-click="() => this.openApp(app)">
-                        <img t-if="app.webIconData" class="o_home_menu_app_icon" t-att-src="app.webIconData"/>
-                        <i t-else="" class="o_home_menu_app_icon o_home_menu_app_icon_fallback oi oi-apps"/>
-                        <span class="o_home_menu_app_name text-center"><t t-esc="app.name"/></span>
-                    </div>
+
+            <!-- Edit-layout toolbar -->
+            <div t-if="canEditLayout" class="o_home_menu_toolbar d-flex flex-wrap justify-content-end align-items-center gap-2 w-100 mb-2">
+                <t t-if="!layout.editMode">
+                    <button class="btn btn-sm btn-light o_home_menu_edit_btn" t-on-click="() => this.startEdit()">
+                        <i class="fa fa-pencil me-1"/>Edit layout
+                    </button>
                 </t>
-                <p t-if="!apps.length" class="text-muted mt-4">No apps match your search.</p>
+                <t t-else="">
+                    <span class="text-muted small me-auto">
+                        <i class="fa fa-info-circle me-1"/>Drag apps onto a folder, or back onto the grid to take them out. Quick launch button changes save straight away.
+                    </span>
+                    <button class="btn btn-sm btn-secondary" t-on-click="() => this.createFolder()">
+                        <i class="fa fa-folder-o me-1"/>New folder
+                    </button>
+                    <button t-if="layout.source === 'user'" class="btn btn-sm btn-link text-danger"
+                            t-on-click="() => this.resetLayout()">
+                        Reset to default
+                    </button>
+                    <button class="btn btn-sm btn-light" t-on-click="() => this.cancelEdit()">
+                        Cancel
+                    </button>
+                    <button t-if="layout.canEditDefault" class="btn btn-sm btn-secondary"
+                            title="Save this layout as the default for every user without a personal layout"
+                            t-on-click="() => this.saveLayout('default')">
+                        <i class="fa fa-users me-1"/>Save as default
+                    </button>
+                    <button class="btn btn-sm btn-primary" t-on-click="() => this.saveLayout('user')">
+                        <i class="fa fa-check me-1"/>Save
+                    </button>
+                </t>
             </div>
+
+            <!-- Search results: a flat list, including apps inside folders -->
+            <div t-if="isSearching" class="o_home_menu_apps d-flex flex-wrap justify-content-center">
+                <t t-foreach="searchResults" t-as="app" t-key="app.id">
+                    <t t-call="web_home_menu.AppTile"/>
+                </t>
+                <p t-if="!searchResults.length" class="text-muted mt-4">No apps match your search.</p>
+            </div>
+
+            <!-- Folders, then loose apps -->
+            <div t-else="" class="o_home_menu_apps d-flex flex-wrap justify-content-center"
+                 t-on-dragover="(ev) => this.onDragOver(ev)"
+                 t-on-drop="(ev) => this.onGridDrop(ev)">
+                <t t-foreach="tiles" t-as="tile" t-key="tile.type === 'folder' ? 'f' + tile.folder.id : 'a' + tile.app.id">
+                    <div t-if="tile.type === 'folder'"
+                         class="o_home_menu_app o_home_menu_folder d-flex flex-column align-items-center"
+                         t-on-click="() => this.openFolder(tile.folder)"
+                         t-on-dragover="(ev) => this.onDragOver(ev)"
+                         t-on-drop.stop="(ev) => this.onFolderDrop(ev, tile.folder)">
+                        <div class="o_home_menu_app_icon o_home_menu_folder_icon"
+                             t-attf-style="background-color: {{ tile.folder.color }};">
+                            <div t-if="tile.apps.length" class="o_home_menu_folder_grid">
+                                <t t-foreach="tile.apps.slice(0, 4)" t-as="app" t-key="app.id">
+                                    <img t-if="app.webIconData" class="o_home_menu_folder_mini" t-att-src="app.webIconData"/>
+                                    <i t-else="" class="o_home_menu_folder_mini o_home_menu_app_icon_fallback oi oi-apps"/>
+                                </t>
+                            </div>
+                            <i t-else="" t-attf-class="fa {{ tile.folder.icon }} o_home_menu_folder_empty_icon"/>
+                        </div>
+                        <input t-if="layout.editMode" type="text"
+                               class="form-control form-control-sm o_home_menu_folder_name_input text-center"
+                               t-att-value="tile.folder.name"
+                               t-on-click.stop=""
+                               t-on-change="(ev) => this.renameFolder(tile.folder, ev)"/>
+                        <span t-else="" class="o_home_menu_app_name text-center"><t t-esc="tile.folder.name"/></span>
+                        <div t-if="layout.editMode" class="o_home_menu_folder_controls d-flex gap-1 mt-1" t-on-click.stop="">
+                            <button class="btn btn-sm btn-light py-0 px-1" title="Move left"
+                                    t-on-click="() => this.moveFolder(tile.folder, -1)">
+                                <i class="fa fa-chevron-left"/>
+                            </button>
+                            <input type="color" class="o_home_menu_folder_color" title="Folder colour"
+                                   t-att-value="tile.folder.color"
+                                   t-on-change="(ev) => this.recolorFolder(tile.folder, ev)"/>
+                            <button class="btn btn-sm btn-light py-0 px-1 text-danger" title="Delete folder"
+                                    t-on-click="() => this.deleteFolder(tile.folder)">
+                                <i class="fa fa-trash"/>
+                            </button>
+                            <button class="btn btn-sm btn-light py-0 px-1" title="Move right"
+                                    t-on-click="() => this.moveFolder(tile.folder, 1)">
+                                <i class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
+                    </div>
+                    <t t-else="">
+                        <t t-set="app" t-value="tile.app"/>
+                        <t t-call="web_home_menu.AppTile"/>
+                    </t>
+                </t>
+            </div>
+
+            <FolderPopup t-if="openFolderTile and !isSearching"
+                         folder="openFolderTile.folder"
+                         apps="openFolderTile.apps"
+                         editMode="layout.editMode"
+                         onClose="() => this.closeFolder()"
+                         onAppClick="(app) => this.openApp(app)"
+                         onRemoveApp="(app) => this.moveAppToFolder(app.id, null)"/>
         </div>
     </t>
 

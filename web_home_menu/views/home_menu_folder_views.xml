@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_home_menu_folder_list" model="ir.ui.view">
+        <field name="name">home.menu.folder.list</field>
+        <field name="model">home.menu.folder</field>
+        <field name="arch" type="xml">
+            <list string="Home Screen Folders">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="user_id" optional="show" placeholder="Default (everyone)"/>
+                <field name="icon" optional="hide"/>
+                <field name="color" widget="color" optional="show"/>
+                <field name="app_count"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_home_menu_folder_form" model="ir.ui.view">
+        <field name="name">home.menu.folder.form</field>
+        <field name="model">home.menu.folder</field>
+        <field name="arch" type="xml">
+            <form string="Home Screen Folder">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Sales &amp; CRM"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id" placeholder="Empty = default layout (everyone)"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="color" widget="color"/>
+                            <field name="icon" placeholder="fa-folder"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Apps" name="apps">
+                            <field name="app_ids">
+                                <list string="Apps" editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="menu_id" options="{'no_create': True}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_home_menu_folder_search" model="ir.ui.view">
+        <field name="name">home.menu.folder.search</field>
+        <field name="model">home.menu.folder</field>
+        <field name="arch" type="xml">
+            <search string="Home Screen Folders">
+                <field name="name"/>
+                <field name="user_id"/>
+                <filter name="default_layout" string="Default layout"
+                        domain="[('user_id', '=', False)]"/>
+                <filter name="personal_layouts" string="Personal layouts"
+                        domain="[('user_id', '!=', False)]"/>
+                <separator/>
+                <filter name="inactive" string="Archived"
+                        domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_user" string="User"
+                            context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_home_menu_folder" model="ir.actions.act_window">
+        <field name="name">Home Screen Folders</field>
+        <field name="res_model">home.menu.folder</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_home_menu_folder_search"/>
+        <field name="context">{'search_default_default_layout': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first home screen folder
+            </p>
+            <p>
+                Folders group apps on the home screen. Leave <b>User</b> empty
+                to add the folder to the default layout everyone sees; set a
+                user to build that user's personal layout instead.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_home_menu_root"
+              name="Home Screen"
+              parent="base.menu_administration"
+              groups="base.group_erp_manager"
+              sequence="100"/>
+
+    <menuitem id="menu_home_menu_folder"
+              name="Folders"
+              parent="menu_home_menu_root"
+              action="action_home_menu_folder"
+              sequence="10"/>
+
+</odoo>

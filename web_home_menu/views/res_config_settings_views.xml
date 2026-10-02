@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.web.home.menu</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='languages']" position="after">
+                <div id="home_screen">
+                    <block title="Home Screen" name="home_screen_setting_container">
+                        <setting id="home_screen_folders_setting" string="App Folders"
+                                 help="Group apps into folders on the home screen. Folders with no user are the default layout for everyone; users can also save their own layout from the home screen.">
+                            <button name="%(web_home_menu.action_home_menu_folder)d" icon="oi-arrow-right"
+                                    type="action" string="Manage Folders" class="btn-link"/>
+                        </setting>
+                        <setting id="home_screen_quick_launch_setting" string="Quick Launch Bar"
+                                 help="Buttons at the top of the home screen that take users straight to a URL. Buttons with no user are shown to everyone; users can also add their own from the home screen.">
+                            <button name="%(web_home_menu.action_home_menu_quick_link)d" icon="oi-arrow-right"
+                                    type="action" string="Manage Quick Launch Buttons" class="btn-link"/>
+                        </setting>
+                    </block>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

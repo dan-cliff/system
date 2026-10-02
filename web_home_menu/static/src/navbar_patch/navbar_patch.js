@@ -3,7 +3,14 @@ import { NavBar } from "@web/webclient/navbar/navbar";
 import { useBus } from "@web/core/utils/hooks";
 
 // Systray icons that stay visible while the home screen is showing.
-const HOME_SCREEN_SYSTRAY_KEYS = ["mail.messaging_menu", "mail.activity_menu", "SwitchCompanyMenu", "web.user_menu"];
+const HOME_SCREEN_SYSTRAY_KEYS = [
+    "global_search.SystrayButton",
+    "UserSwitchSystray",
+    "mail.messaging_menu",
+    "mail.activity_menu",
+    "SwitchCompanyMenu",
+    "web.user_menu",
+];
 
 patch(NavBar.prototype, {
     setup() {
@@ -14,7 +21,7 @@ patch(NavBar.prototype, {
         });
     },
     onHomeMenuClick() {
-        this.actionService.doAction("web_home_menu.action_home_screen");
+        this.actionService.doAction("menu", { clearBreadcrumbs: true });
     },
     isSystrayAllowedOnHome(key) {
         return HOME_SCREEN_SYSTRAY_KEYS.includes(key);

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_home_menu.FolderPopup">
+        <div class="o_home_menu_folder_backdrop" t-on-click="() => props.onClose()">
+            <div class="o_home_menu_folder_popup rounded-4 shadow-lg p-4" t-on-click.stop="">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="o_home_menu_folder_badge d-flex justify-content-center align-items-center rounded-3 me-2"
+                         t-attf-style="background-color: {{ props.folder.color }};">
+                        <i t-attf-class="fa {{ props.folder.icon }} text-white"/>
+                    </div>
+                    <h4 class="m-0 flex-grow-1 text-truncate" t-esc="props.folder.name"/>
+                    <button class="btn btn-light btn-sm rounded-circle" aria-label="Close" t-on-click="() => props.onClose()">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+                <div t-if="props.apps.length" class="d-flex flex-wrap justify-content-center">
+                    <t t-foreach="props.apps" t-as="app" t-key="app.id">
+                        <div class="o_home_menu_app d-flex flex-column align-items-center position-relative"
+                             t-att-data-menu-xmlid="app.xmlid"
+                             t-on-click="() => this.onAppClick(app)">
+                            <button t-if="props.editMode"
+                                    class="btn btn-sm btn-light rounded-circle o_home_menu_folder_remove"
+                                    title="Take out of folder"
+                                    t-on-click.stop="() => props.onRemoveApp(app)">
+                                <i class="fa fa-times"/>
+                            </button>
+                            <t t-call="web_home_menu.AppIcon"/>
+                            <span class="o_home_menu_app_name text-center"><t t-esc="app.name"/></span>
+                        </div>
+                    </t>
+                </div>
+                <div t-else="" class="text-muted text-center py-4">
+                    This folder is empty.
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>
