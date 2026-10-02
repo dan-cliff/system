@@ -4,6 +4,10 @@ Each risk model has its own privilege (shown as "<model name>") holding four
 groups: View Only, Create, Update and Delete, so they display as
 "Risk Templates / Create", "Risk Templates / Delete" and so on. Create,
 Update and Delete each imply View Only for the same model.
+
+Risk Assessments also has a "Create and Edit Own Only" group: it lets a user create
+and edit Risk Assessments, but limits them (and the assessments' Risks) to the ones
+they created or are the Risk Assessment Owner, Risk Approver or a Collaborator on.
 """
 
 # (key, privilege name) - XML IDs are privilege_risk_<key> and group_risk_<key>_<permission>.
@@ -48,10 +52,11 @@ ROLES = {
         {'assessment': ALL, 'risk': ALL, 'control': ('view', 'create')},
     ),
     'Employee': (
-        'Creates and updates Risk Assessments and their Risks, and can add new Controls. '
+        'Creates and updates the Risk Assessments (and their Risks) they created or are the '
+        'Risk Assessment Owner, Risk Approver or a Collaborator on, and can add new Controls. '
         'Views Risk Templates and Configuration.',
         {
-            'assessment': ('view', 'create', 'update'),
+            'assessment': ('view', 'own'),
             'risk': ALL,
             'control': ('view', 'create'),
         },

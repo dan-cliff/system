@@ -39,6 +39,12 @@
         <field name="comment">Can delete and archive Risk Assessments, and approve or reject any submitted Risk Assessment.</field>
         <field name="implied_ids" eval="[(4, ref('group_risk_assessment_view'))]"/>
     </record>
+    <record id="group_risk_assessment_own" model="res.groups">
+        <field name="name">Create and Edit Own Only</field>
+        <field name="privilege_id" ref="privilege_risk_assessment"/>
+        <field name="comment">Can create and edit Risk Assessments, but only sees the ones they created or are the Risk Assessment Owner, Risk Approver or a Collaborator on.</field>
+        <field name="implied_ids" eval="[(4, ref('group_risk_assessment_view'))]"/>
+    </record>
 
     <!-- Risks -->
     <record id="privilege_risk_risk" model="res.groups.privilege">
@@ -410,5 +416,32 @@
         <field name="name">Risk Assessment Lines: allowed companies</field>
         <field name="model_id" ref="model_risk_assessment_line"/>
         <field name="domain_force">[('assessment_id.company_id', 'in', company_ids)]</field>
+    </record>
+
+    <!-- Create and Edit Own Only: within those companies, only the assessments (and their
+         Risks) the user created or is the Owner, Approver or a Collaborator on. -->
+    <record id="rule_risk_assessment_own" model="ir.rule">
+        <field name="name">Risk Assessment: own, owned, approving or collaborating</field>
+        <field name="model_id" ref="model_risk_assessment"/>
+        <field name="groups" eval="[(4, ref('group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            '|', '|', '|',
+            ('create_uid', '=', user.id),
+            ('assessor_id', '=', user.id),
+            ('approver_id', '=', user.id),
+            ('collaborator_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_risk_assessment_line_own" model="ir.rule">
+        <field name="name">Risk Assessment Lines: own, owned, approving or collaborating</field>
+        <field name="model_id" ref="model_risk_assessment_line"/>
+        <field name="groups" eval="[(4, ref('group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            '|', '|', '|',
+            ('assessment_id.create_uid', '=', user.id),
+            ('assessment_id.assessor_id', '=', user.id),
+            ('assessment_id.approver_id', '=', user.id),
+            ('assessment_id.collaborator_ids', 'in', [user.id]),
+        ]</field>
     </record>
 </odoo>
