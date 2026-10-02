@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="privilege_custom_dashboard" model="res.groups.privilege">
+            <field name="name">Dashboards</field>
+            <field name="sequence">40</field>
+            <field name="placeholder">No access</field>
+            <field name="category_id" ref="base.module_category_productivity"/>
+        </record>
+
+        <!-- Views dashboards shared with them -->
+        <record id="group_dashboard_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="sequence">10</field>
+            <field name="privilege_id" ref="privilege_custom_dashboard"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Builds and shares dashboards, manages widget types -->
+        <record id="group_dashboard_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="sequence">20</field>
+            <field name="privilege_id" ref="privilege_custom_dashboard"/>
+            <field name="implied_ids" eval="[(4, ref('group_dashboard_user'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+    </data>
+
+    <data noupdate="1">
+        <!-- Users see dashboards shared with them directly or through a group -->
+        <record id="rule_dashboard_user" model="ir.rule">
+            <field name="name">Dashboard: shared with me</field>
+            <field name="model_id" ref="model_custom_dashboard"/>
+            <field name="domain_force">['|', ('user_ids', 'in', user.id), ('group_ids', 'in', user.all_group_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_dashboard_user'))]"/>
+        </record>
+
+        <record id="rule_dashboard_manager" model="ir.rule">
+            <field name="name">Dashboard: managers see all</field>
+            <field name="model_id" ref="model_custom_dashboard"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_dashboard_manager'))]"/>
+        </record>
+
+        <record id="rule_dashboard_widget_user" model="ir.rule">
+            <field name="name">Dashboard Widget: shared with me</field>
+            <field name="model_id" ref="model_custom_dashboard_widget"/>
+            <field name="domain_force">['|', ('dashboard_id.user_ids', 'in', user.id), ('dashboard_id.group_ids', 'in', user.all_group_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_dashboard_user'))]"/>
+        </record>
+
+        <record id="rule_dashboard_widget_manager" model="ir.rule">
+            <field name="name">Dashboard Widget: managers see all</field>
+            <field name="model_id" ref="model_custom_dashboard_widget"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_dashboard_manager'))]"/>
+        </record>
+    </data>
+</odoo>

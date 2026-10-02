@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_custom_dashboard_kanban" model="ir.ui.view">
+        <field name="name">custom.dashboard.kanban</field>
+        <field name="model">custom.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban action="action_open" type="object" highlight_color="color" sample="1">
+                <field name="color"/>
+                <templates>
+                    <t t-name="menu">
+                        <a role="menuitem" type="open" class="dropdown-item" groups="custom_dashboard.group_dashboard_manager">Settings</a>
+                        <a role="menuitem" type="object" name="copy" class="dropdown-item" groups="custom_dashboard.group_dashboard_manager">Duplicate</a>
+                        <a role="menuitem" type="archive" class="dropdown-item" groups="custom_dashboard.group_dashboard_manager">Archive</a>
+                        <field name="color" widget="kanban_color_picker" groups="custom_dashboard.group_dashboard_manager"/>
+                    </t>
+                    <t t-name="card">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa fa-th-large fa-2x text-primary" title="Dashboard"/>
+                            <field name="name" class="fw-bold fs-5"/>
+                        </div>
+                        <field name="description" class="text-muted small mt-1"/>
+                        <footer class="mt-auto pt-2 text-muted small">
+                            <span><field name="widget_count"/> widgets</span>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_list" model="ir.ui.view">
+        <field name="name">custom.dashboard.list</field>
+        <field name="model">custom.dashboard</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="widget_count"/>
+                <field name="user_ids" widget="many2many_avatar_user" optional="show"/>
+                <field name="group_ids" widget="many2many_tags" optional="show"/>
+                <button name="action_open" type="object" string="Open" icon="fa-external-link" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_form" model="ir.ui.view">
+        <field name="name">custom.dashboard.form</field>
+        <field name="model">custom.dashboard</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open" type="object" string="Open Dashboard" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Sales Overview"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="refresh_interval"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Sharing">
+                            <field name="user_ids" widget="many2many_avatar_user"/>
+                            <field name="group_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="What this dashboard is for..."/>
+                    <notebook>
+                        <page string="Widgets" name="widgets">
+                            <field name="widget_ids" context="{'default_dashboard_id': id}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="type_id"/>
+                                    <field name="model_id"/>
+                                    <field name="pos_x" optional="hide"/>
+                                    <field name="pos_y" optional="hide"/>
+                                    <field name="width" optional="hide"/>
+                                    <field name="height" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_search" model="ir.ui.view">
+        <field name="name">custom.dashboard.search</field>
+        <field name="model">custom.dashboard</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_custom_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboards</field>
+        <field name="res_model">custom.dashboard</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first dashboard</p>
+            <p>Lay out charts, KPIs and tables from any of your data on a drag-and-drop grid.</p>
+        </field>
+    </record>
+</odoo>

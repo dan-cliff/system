@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="custom_dashboard.WidgetCard">
+        <div class="o_cd_card h-100 d-flex flex-column" t-att-class="'o_cd_type_' + props.widget.type">
+            <div class="o_cd_card_header d-flex align-items-start gap-2">
+                <div class="flex-grow-1 text-truncate">
+                    <div class="o_cd_card_title text-truncate" t-esc="props.widget.name"/>
+                    <div t-if="props.widget.subtitle" class="o_cd_card_subtitle text-muted text-truncate" t-esc="props.widget.subtitle"/>
+                </div>
+                <div t-if="props.editing" class="o_cd_card_tools d-flex gap-1">
+                    <button class="btn btn-sm btn-link p-1" title="Configure" t-on-click="() => props.onEdit(props.widget)">
+                        <i class="fa fa-cog"/>
+                    </button>
+                    <button class="btn btn-sm btn-link p-1" title="Duplicate" t-on-click="() => props.onDuplicate(props.widget)">
+                        <i class="fa fa-clone"/>
+                    </button>
+                    <button class="btn btn-sm btn-link p-1 text-danger" t-att-title="removeTitle" t-on-click="() => props.onRemove(props.widget)">
+                        <i class="fa fa-trash"/>
+                    </button>
+                </div>
+            </div>
+            <div class="o_cd_card_body flex-grow-1 position-relative">
+                <div t-if="isLoading" class="o_cd_center text-muted">
+                    <i class="fa fa-circle-o-notch fa-spin"/>
+                </div>
+                <div t-elif="error" class="o_cd_center o_cd_error text-muted small px-3 text-center">
+                    <i class="fa fa-exclamation-triangle text-warning me-1"/>
+                    <t t-esc="error"/>
+                </div>
+                <div t-elif="isEmpty" class="o_cd_center text-muted small">No data</div>
+                <t t-elif="props.widget.type === 'kpi'">
+                    <div class="o_cd_kpi o_cd_center flex-column">
+                        <div class="o_cd_kpi_value" t-esc="kpiValue"/>
+                        <t t-set="target" t-value="kpiTarget"/>
+                        <div t-if="target" class="o_cd_kpi_target w-75 mt-2">
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar" t-att-class="target.reached ? 'bg-success' : 'bg-warning'" t-attf-style="width: {{target.width}}%"/>
+                            </div>
+                            <div class="small text-muted mt-1 text-center">
+                                <t t-esc="target.percent"/>% of <t t-esc="target.label"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <t t-elif="props.widget.type === 'gauge'">
+                    <div class="o_cd_gauge">
+                        <div class="o_cd_chart"><canvas t-ref="canvas"/></div>
+                        <div class="o_cd_gauge_value" t-esc="kpiValue"/>
+                        <div class="o_cd_gauge_range d-flex justify-content-between small text-muted">
+                            <span t-esc="gaugeRange.min"/>
+                            <span t-if="kpiTarget">Target <t t-esc="kpiTarget.label"/></span>
+                            <span t-esc="gaugeRange.max"/>
+                        </div>
+                    </div>
+                </t>
+                <t t-elif="isChart">
+                    <div class="o_cd_chart"><canvas t-ref="canvas"/></div>
+                </t>
+                <t t-elif="props.widget.type === 'table'">
+                    <div class="o_cd_table_wrap">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th t-esc="props.widget.groupby_label"/>
+                                    <th class="text-end" t-esc="props.widget.measure_label"/>
+                                    <th class="text-end" t-esc="props.widget.measure2_label"/>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="tableRows" t-as="row" t-key="row_index">
+                                    <td t-esc="row.label"/>
+                                    <td class="text-end" t-esc="row.value"/>
+                                    <td class="text-end" t-esc="row.value2"/>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td>Total</td>
+                                    <td class="text-end" t-esc="tableTotal.value"/>
+                                    <td class="text-end" t-esc="tableTotal.value2"/>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </t>
+                <t t-elif="props.widget.type === 'pivot'">
+                    <t t-set="pv" t-value="pivot"/>
+                    <div class="o_cd_table_wrap">
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead>
+                                <tr>
+                                    <th t-esc="props.widget.groupby_label"/>
+                                    <th t-foreach="pv.columns" t-as="col" t-key="col_index" class="text-end" t-esc="col"/>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="pv.rows" t-as="row" t-key="row_index">
+                                    <th t-esc="row.label"/>
+                                    <td t-foreach="row.cells" t-as="cell" t-key="cell_index" class="text-end" t-esc="cell"/>
+                                    <td class="text-end fw-bold" t-esc="row.total"/>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <th>Total</th>
+                                    <td t-foreach="pv.columnTotals" t-as="total" t-key="total_index" class="text-end" t-esc="total"/>
+                                    <td class="text-end" t-esc="pv.grandTotal"/>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </t>
+                <t t-elif="props.widget.type === 'text'">
+                    <div class="o_cd_text" t-out="textContent"/>
+                </t>
+                <t t-elif="props.widget.type === 'image'">
+                    <div class="o_cd_center">
+                        <img t-if="props.widget.image_url" t-att-src="props.widget.image_url" class="o_cd_image" alt=""/>
+                        <span t-else="" class="text-muted small">No image yet</span>
+                    </div>
+                </t>
+                <div t-else="" class="o_cd_center text-muted small">
+                    This widget type has no renderer.
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

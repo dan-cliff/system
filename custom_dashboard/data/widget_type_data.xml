@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="widget_type_column" model="custom.dashboard.widget.type">
+            <field name="name">Column</field>
+            <field name="code">column</field>
+            <field name="sequence">10</field>
+            <field name="category_id" ref="widget_category_comparison"/>
+            <field name="icon">fa-bar-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Vertical bars comparing values across groups</field>
+        </record>
+        <record id="widget_type_stacked_column" model="custom.dashboard.widget.type">
+            <field name="name">Stacked Column</field>
+            <field name="code">stacked_column</field>
+            <field name="sequence">20</field>
+            <field name="category_id" ref="widget_category_comparison"/>
+            <field name="icon">fa-bar-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Vertical bars with series stacked on top of each other</field>
+        </record>
+        <record id="widget_type_column_100" model="custom.dashboard.widget.type">
+            <field name="name">100% Stacked Column</field>
+            <field name="code">column_100</field>
+            <field name="sequence">30</field>
+            <field name="category_id" ref="widget_category_composition"/>
+            <field name="icon">fa-bar-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="True"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Share of each series within every group, as vertical bars</field>
+        </record>
+        <record id="widget_type_bar" model="custom.dashboard.widget.type">
+            <field name="name">Bar</field>
+            <field name="code">bar</field>
+            <field name="sequence">40</field>
+            <field name="category_id" ref="widget_category_comparison"/>
+            <field name="icon">fa-align-left</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Horizontal bars comparing values across groups</field>
+        </record>
+        <record id="widget_type_stacked_bar" model="custom.dashboard.widget.type">
+            <field name="name">Stacked Bar</field>
+            <field name="code">stacked_bar</field>
+            <field name="sequence">50</field>
+            <field name="category_id" ref="widget_category_comparison"/>
+            <field name="icon">fa-align-left</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Horizontal bars with series stacked side by side</field>
+        </record>
+        <record id="widget_type_bar_100" model="custom.dashboard.widget.type">
+            <field name="name">100% Stacked Bar</field>
+            <field name="code">bar_100</field>
+            <field name="sequence">60</field>
+            <field name="category_id" ref="widget_category_composition"/>
+            <field name="icon">fa-align-left</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="True"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Share of each series within every group, as horizontal bars</field>
+        </record>
+        <record id="widget_type_line" model="custom.dashboard.widget.type">
+            <field name="name">Line</field>
+            <field name="code">line</field>
+            <field name="sequence">70</field>
+            <field name="category_id" ref="widget_category_trend"/>
+            <field name="icon">fa-line-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">Values over time or an ordered category</field>
+        </record>
+        <record id="widget_type_area" model="custom.dashboard.widget.type">
+            <field name="name">Area</field>
+            <field name="code">area</field>
+            <field name="sequence">80</field>
+            <field name="category_id" ref="widget_category_trend"/>
+            <field name="icon">fa-area-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">Line chart with the area below filled</field>
+        </record>
+        <record id="widget_type_stacked_area" model="custom.dashboard.widget.type">
+            <field name="name">Stacked Area</field>
+            <field name="code">stacked_area</field>
+            <field name="sequence">90</field>
+            <field name="category_id" ref="widget_category_trend"/>
+            <field name="icon">fa-area-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="True"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">Series stacked as filled areas over time</field>
+        </record>
+        <record id="widget_type_combo" model="custom.dashboard.widget.type">
+            <field name="name">Column and Line</field>
+            <field name="code">combo</field>
+            <field name="sequence">100</field>
+            <field name="category_id" ref="widget_category_trend"/>
+            <field name="icon">fa-bar-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="True"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">Columns for one measure, a line for a second measure</field>
+        </record>
+        <record id="widget_type_waterfall" model="custom.dashboard.widget.type">
+            <field name="name">Waterfall</field>
+            <field name="code">waterfall</field>
+            <field name="sequence">110</field>
+            <field name="category_id" ref="widget_category_trend"/>
+            <field name="icon">fa-signal</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">Running total with each group as an increase or decrease</field>
+        </record>
+        <record id="widget_type_pie" model="custom.dashboard.widget.type">
+            <field name="name">Pie</field>
+            <field name="code">pie</field>
+            <field name="sequence">120</field>
+            <field name="category_id" ref="widget_category_composition"/>
+            <field name="icon">fa-pie-chart</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Parts of a whole</field>
+        </record>
+        <record id="widget_type_donut" model="custom.dashboard.widget.type">
+            <field name="name">Donut</field>
+            <field name="code">donut</field>
+            <field name="sequence">130</field>
+            <field name="category_id" ref="widget_category_composition"/>
+            <field name="icon">fa-circle-o-notch</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Parts of a whole with the total in the centre</field>
+        </record>
+        <record id="widget_type_polar_area" model="custom.dashboard.widget.type">
+            <field name="name">Polar Area</field>
+            <field name="code">polar_area</field>
+            <field name="sequence">140</field>
+            <field name="category_id" ref="widget_category_composition"/>
+            <field name="icon">fa-bullseye</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Segments sized by value around a circle</field>
+        </record>
+        <record id="widget_type_funnel" model="custom.dashboard.widget.type">
+            <field name="name">Funnel</field>
+            <field name="code">funnel</field>
+            <field name="sequence">150</field>
+            <field name="category_id" ref="widget_category_composition"/>
+            <field name="icon">fa-filter</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Stages narrowing from largest to smallest</field>
+        </record>
+        <record id="widget_type_radar" model="custom.dashboard.widget.type">
+            <field name="name">Radar</field>
+            <field name="code">radar</field>
+            <field name="sequence">160</field>
+            <field name="category_id" ref="widget_category_distribution"/>
+            <field name="icon">fa-certificate</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Several groups compared on a spider web</field>
+        </record>
+        <record id="widget_type_scatter" model="custom.dashboard.widget.type">
+            <field name="name">Scatter</field>
+            <field name="code">scatter</field>
+            <field name="sequence">170</field>
+            <field name="category_id" ref="widget_category_distribution"/>
+            <field name="icon">fa-braille</field>
+            <field name="data_mode">points</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="True"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">One dot per record, plotting two measures</field>
+        </record>
+        <record id="widget_type_bubble" model="custom.dashboard.widget.type">
+            <field name="name">Bubble</field>
+            <field name="code">bubble</field>
+            <field name="sequence">180</field>
+            <field name="category_id" ref="widget_category_distribution"/>
+            <field name="icon">fa-circle</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="True"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">One bubble per group: two measures, sized by record count</field>
+        </record>
+        <record id="widget_type_kpi" model="custom.dashboard.widget.type">
+            <field name="name">KPI Card</field>
+            <field name="code">kpi</field>
+            <field name="sequence">190</field>
+            <field name="category_id" ref="widget_category_kpi"/>
+            <field name="icon">fa-hashtag</field>
+            <field name="data_mode">single</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">3</field>
+            <field name="default_height">2</field>
+            <field name="description">A single headline number, with an optional target</field>
+        </record>
+        <record id="widget_type_gauge" model="custom.dashboard.widget.type">
+            <field name="name">Gauge</field>
+            <field name="code">gauge</field>
+            <field name="sequence">200</field>
+            <field name="category_id" ref="widget_category_kpi"/>
+            <field name="icon">fa-tachometer</field>
+            <field name="data_mode">single</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">3</field>
+            <field name="default_height">3</field>
+            <field name="description">A single value on a dial between a minimum and maximum</field>
+        </record>
+        <record id="widget_type_table" model="custom.dashboard.widget.type">
+            <field name="name">Table</field>
+            <field name="code">table</field>
+            <field name="sequence">210</field>
+            <field name="category_id" ref="widget_category_table"/>
+            <field name="icon">fa-table</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="True"/>
+            <field name="default_width">4</field>
+            <field name="default_height">4</field>
+            <field name="description">Grouped values listed in rows</field>
+        </record>
+        <record id="widget_type_pivot" model="custom.dashboard.widget.type">
+            <field name="name">Pivot Table</field>
+            <field name="code">pivot</field>
+            <field name="sequence">220</field>
+            <field name="category_id" ref="widget_category_table"/>
+            <field name="icon">fa-th</field>
+            <field name="data_mode">grouped</field>
+            <field name="supports_series" eval="True"/>
+            <field name="requires_series" eval="True"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">6</field>
+            <field name="default_height">4</field>
+            <field name="description">Values cross-tabulated by two fields, with totals</field>
+        </record>
+        <record id="widget_type_text" model="custom.dashboard.widget.type">
+            <field name="name">Text</field>
+            <field name="code">text</field>
+            <field name="sequence">230</field>
+            <field name="category_id" ref="widget_category_content"/>
+            <field name="icon">fa-font</field>
+            <field name="data_mode">content</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">4</field>
+            <field name="default_height">2</field>
+            <field name="description">A heading, note or explanation</field>
+        </record>
+        <record id="widget_type_image" model="custom.dashboard.widget.type">
+            <field name="name">Image</field>
+            <field name="code">image</field>
+            <field name="sequence">240</field>
+            <field name="category_id" ref="widget_category_content"/>
+            <field name="icon">fa-picture-o</field>
+            <field name="data_mode">content</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">3</field>
+            <field name="default_height">3</field>
+            <field name="description">A logo or picture</field>
+        </record>
+    </data>
+</odoo>

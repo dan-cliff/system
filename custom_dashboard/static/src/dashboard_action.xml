@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="custom_dashboard.DashboardAction">
+        <div class="o_action o_cd_action" t-att-class="{ 'o_cd_editing': state.editing }">
+            <Layout display="{ controlPanel: {} }" className="'o_cd_content d-flex'">
+                <t t-set-slot="control-panel-always-buttons">
+                    <t t-if="state.dashboard">
+                        <button class="btn btn-secondary" t-on-click="onRefresh" title="Refresh data">
+                            <i class="fa fa-refresh"/>
+                        </button>
+                        <t t-if="state.dashboard.can_edit">
+                            <button t-if="!state.editing" class="btn btn-primary" t-on-click="onToggleEdit">
+                                <i class="fa fa-pencil me-1"/>Edit Layout
+                            </button>
+                            <button t-else="" class="btn btn-primary" t-on-click="onToggleEdit">
+                                <i class="fa fa-check me-1"/>Done
+                            </button>
+                            <button class="btn btn-secondary" t-on-click="onOpenSettings" title="Dashboard settings">
+                                <i class="fa fa-cog"/>
+                            </button>
+                        </t>
+                    </t>
+                </t>
+
+                <aside t-if="state.editing" class="o_cd_palette border-end" t-ref="palette">
+                    <div class="o_cd_palette_hint small text-muted px-3 pt-3">
+                        Drag a widget onto the dashboard, or click to add it at the bottom.
+                    </div>
+                    <div t-foreach="paletteGroups" t-as="group" t-key="group.name" class="o_cd_palette_group px-2 pb-2">
+                        <div class="o_cd_palette_group_title text-uppercase small fw-bold text-muted px-1 pt-3 pb-1" t-esc="group.name"/>
+                        <div class="o_cd_palette_items">
+                            <div t-foreach="group.items" t-as="item" t-key="item.code"
+                                 class="o_cd_palette_item grid-stack-item"
+                                 t-att-data-type="item.code"
+                                 t-att-gs-w="item.w"
+                                 t-att-gs-h="item.h"
+                                 t-att-title="item.description"
+                                 t-on-click="() => this.onPaletteClick(item)">
+                                <div class="grid-stack-item-content o_cd_palette_tile">
+                                    <i t-attf-class="fa {{item.icon}} fa-fw"/>
+                                    <span class="text-truncate" t-esc="item.name"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="o_cd_canvas flex-grow-1">
+                    <div t-if="!dashboardId" class="o_view_nocontent">
+                        <div class="o_nocontent_help">
+                            <p class="o_view_nocontent_empty_folder">No dashboard selected</p>
+                            <button class="btn btn-primary" t-on-click="onOpenDashboards">Choose a dashboard</button>
+                        </div>
+                    </div>
+                    <div t-elif="!state.widgets.length and !state.editing" class="o_view_nocontent">
+                        <div class="o_nocontent_help">
+                            <p class="o_view_nocontent_smiling_face">This dashboard is empty</p>
+                            <p t-if="state.dashboard?.can_edit">Click <b>Edit Layout</b> and drag widgets from the palette.</p>
+                        </div>
+                    </div>
+                    <div class="grid-stack o_cd_grid" t-ref="grid">
+                        <div t-foreach="state.widgets" t-as="widget" t-key="widget.id"
+                             class="grid-stack-item"
+                             t-att-data-widget-id="widget.id"
+                             t-att-gs-id="widget.id"
+                             t-att-gs-x="widget.x"
+                             t-att-gs-y="widget.y"
+                             t-att-gs-w="widget.w"
+                             t-att-gs-h="widget.h">
+                            <div class="grid-stack-item-content">
+                                <DashboardWidgetCard
+                                    widget="widget"
+                                    data="widgetData(widget)"
+                                    editing="state.editing"
+                                    onEdit.bind="onEditWidget"
+                                    onDuplicate.bind="onDuplicateWidget"
+                                    onRemove.bind="onRemoveWidget"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Layout>
+        </div>
+    </t>
+</templates>

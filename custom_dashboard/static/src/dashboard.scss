@@ -1,0 +1,172 @@
+.o_cd_action {
+    height: 100%;
+
+    .o_cd_content {
+        overflow: hidden;
+    }
+
+    .o_cd_canvas {
+        overflow: auto;
+        padding: 8px;
+        background-color: $o-webclient-background-color;
+    }
+
+    .o_cd_grid {
+        min-height: 400px;
+    }
+
+    &.o_cd_editing .o_cd_grid {
+        background-image: linear-gradient(to right, rgba($o-gray-500, 0.12) 1px, transparent 1px);
+        background-size: calc(100% / 12) 100%;
+        border-radius: 4px;
+    }
+
+    .o_cd_palette {
+        flex: 0 0 220px;
+        overflow-y: auto;
+        background-color: $o-view-background-color;
+    }
+
+    .o_cd_palette_item {
+        // Shown as a plain list in the palette; gridstack sizes the clone on drop.
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        cursor: grab;
+        user-select: none;
+
+        > .grid-stack-item-content {
+            position: relative !important;
+            inset: auto !important;
+        }
+    }
+
+    .o_cd_palette_tile {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        margin-bottom: 2px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+
+        &:hover {
+            background-color: rgba($o-action, 0.1);
+            color: $o-action;
+        }
+    }
+}
+
+// The clone dragged from the palette, and the tile while it sits on the grid.
+.o_cd_palette_item.ui-draggable-dragging,
+.o_cd_grid .o_cd_palette_item {
+    .o_cd_palette_tile {
+        background-color: $o-view-background-color;
+        border: 1px dashed $o-action;
+        height: 100%;
+        justify-content: center;
+    }
+}
+
+.o_cd_card {
+    background-color: $o-view-background-color;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    overflow: hidden;
+
+    .o_cd_card_header {
+        padding: 8px 10px 0;
+        min-height: 34px;
+    }
+
+    .o_cd_card_title {
+        font-weight: 600;
+    }
+
+    .o_cd_card_subtitle {
+        font-size: 0.8rem;
+    }
+
+    .o_cd_card_body {
+        min-height: 0;
+        padding: 6px 10px 10px;
+    }
+
+    .o_cd_center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .o_cd_chart {
+        position: absolute;
+        inset: 6px 10px 10px;
+    }
+
+    .o_cd_kpi_value {
+        font-size: 2.4rem;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .o_cd_gauge {
+        position: absolute;
+        inset: 0;
+
+        .o_cd_chart {
+            bottom: 28px;
+        }
+
+        .o_cd_gauge_value {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 34px;
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .o_cd_gauge_range {
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 6px;
+        }
+    }
+
+    .o_cd_table_wrap {
+        position: absolute;
+        inset: 0 10px 10px;
+        overflow: auto;
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: $o-view-background-color;
+        }
+    }
+
+    .o_cd_text {
+        height: 100%;
+        overflow: auto;
+    }
+
+    .o_cd_image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+}
+
+.o_cd_editing .o_cd_card {
+    .o_cd_card_header {
+        cursor: move;
+    }
+
+    &:hover {
+        border-color: $o-action;
+    }
+}
