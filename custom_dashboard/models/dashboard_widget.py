@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.safe_eval import datetime as safe_datetime, dateutil, safe_eval, time
@@ -29,6 +31,16 @@ INTERVALS = [
     ('month', 'Month'),
     ('quarter', 'Quarter'),
     ('year', 'Year'),
+]
+ELAPSED_UNITS = [
+    ('day', 'Days'),
+    ('week', 'Weeks'),
+    ('month', 'Months'),
+    ('year', 'Years'),
+]
+VALUE_MODES = [
+    ('aggregate', 'Aggregate a measure'),
+    ('elapsed', 'Time since the latest date'),
 ]
 SORTS = [
     ('label', 'Group order'),
@@ -103,6 +115,18 @@ class CustomDashboardWidget(models.Model):
     decimals = fields.Integer(string='Decimals', default=0)
     prefix = fields.Char(string='Prefix', help='Shown before values, e.g. $.')
     suffix = fields.Char(string='Suffix', help='Shown after values, e.g. kg.')
+    # Single-value widgets (KPI, gauge)
+    value_mode = fields.Selection(
+        VALUE_MODES, string='Value', default='aggregate', required=True,
+        help='Aggregate a measure over the found records, or count the time '
+             'since the latest date among them (e.g. days since the last incident).',
+    )
+    elapsed_field_id = fields.Many2one(
+        'ir.model.fields', string='Date Field', ondelete='set null',
+        domain="[('model_id', '=', model_id), ('store', '=', True), ('ttype', 'in', %s)]" % (list(DATE_TYPES),),
+        help='The latest value of this field among the found records is the starting point.',
+    )
+    elapsed_unit = fields.Selection(ELAPSED_UNITS, string='Count In', default='day', required=True)
     target_value = fields.Float(string='Target')
     gauge_min = fields.Float(string='Gauge Minimum', default=0.0)
     gauge_max = fields.Float(string='Gauge Maximum', default=100.0)
@@ -113,16 +137,18 @@ class CustomDashboardWidget(models.Model):
     def _onchange_model_id(self):
         for widget in self:
             model = widget.model_id
-            for fname in ('groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id'):
+            for fname in ('groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id', 'elapsed_field_id'):
                 if widget[fname] and widget[fname].model_id != model:
                     widget[fname] = False
             if widget.domain and widget.domain != '[]' and widget._origin.model_id != model:
                 widget.domain = '[]'
 
-    @api.constrains('model_id', 'groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id')
+    @api.constrains('model_id', 'groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id',
+                    'elapsed_field_id')
     def _check_fields_model(self):
         for widget in self:
-            for fname in ('groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id'):
+            for fname in ('groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id',
+                          'elapsed_field_id'):
                 field = widget[fname]
                 if field and field.model_id != widget.model_id:
                     raise ValidationError(_(
@@ -158,6 +184,8 @@ class CustomDashboardWidget(models.Model):
             'prefix': self.prefix or '',
             'suffix': self.suffix or '',
             'target': self.target_value,
+            'value_mode': self.value_mode,
+            'elapsed_unit': self.elapsed_unit,
             'gauge_min': self.gauge_min,
             'gauge_max': self.gauge_max,
             'measure_label': self._measure_label(self.measure_field_id, self.aggregate),
@@ -271,11 +299,48 @@ class CustomDashboardWidget(models.Model):
             raise UserError(_('Field "%s" no longer exists on this model.', field.name))
 
     def _compute_single(self, Model, domain):
+        if self.value_mode == 'elapsed':
+            return self._compute_elapsed(Model, domain)
         self._check_field(Model, self.measure_field_id)
         spec = self._aggregate_spec(self.measure_field_id, self.aggregate)
         rows = Model._read_group(domain, [], [spec])
         value = rows[0][0] if rows else 0
         return {'value': float(value or 0)}
+
+    def _compute_elapsed(self, Model, domain):
+        """Whole days/weeks/months/years from the latest date to today.
+
+        Negative when the latest date is in the future. ``value`` is None
+        when no found record has a date.
+        """
+        field = self.elapsed_field_id
+        if not field:
+            return {'error': _('Choose the date field to count from.')}
+        self._check_field(Model, field)
+        rows = Model._read_group(domain, [], ['%s:max' % field.name])
+        latest = rows[0][0] if rows else False
+        if not latest:
+            return {'value': None, 'latest': False}
+        if isinstance(latest, datetime.datetime):
+            # Compare calendar days in the reading user's timezone.
+            latest = fields.Datetime.context_timestamp(Model, latest).date()
+        today = fields.Date.context_today(Model)
+        return {
+            'value': self._elapsed_between(latest, today, self.elapsed_unit),
+            'latest': latest.strftime('%d/%m/%Y'),
+        }
+
+    @api.model
+    def _elapsed_between(self, start, end, unit):
+        """Whole ``unit``s from ``start`` to ``end`` (negative if ``end`` is earlier)."""
+        if unit in ('day', 'week'):
+            days = (end - start).days
+            weeks = abs(days) // 7
+            return float(days if unit == 'day' else (weeks if days >= 0 else -weeks))
+        delta = relativedelta(end, start)
+        if unit == 'month':
+            return float(delta.years * 12 + delta.months)
+        return float(delta.years)
 
     def _compute_points(self, Model, domain):
         x_field, y_field = self.measure_field_id, self.measure2_field_id

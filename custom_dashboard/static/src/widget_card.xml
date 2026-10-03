@@ -31,6 +31,7 @@
                 <t t-elif="props.widget.type === 'kpi'">
                     <div class="o_cd_kpi o_cd_center flex-column">
                         <div class="o_cd_kpi_value" t-esc="kpiValue"/>
+                        <div t-if="elapsedCaption" class="o_cd_kpi_caption text-muted" t-esc="elapsedCaption"/>
                         <t t-set="target" t-value="kpiTarget"/>
                         <div t-if="target" class="o_cd_kpi_target w-75 mt-2">
                             <div class="progress" style="height: 6px;">
@@ -45,7 +46,10 @@
                 <t t-elif="props.widget.type === 'gauge'">
                     <div class="o_cd_gauge">
                         <div class="o_cd_chart"><canvas t-ref="canvas"/></div>
-                        <div class="o_cd_gauge_value" t-esc="kpiValue"/>
+                        <div class="o_cd_gauge_value">
+                            <t t-esc="kpiValue"/>
+                            <div t-if="elapsedCaption" class="o_cd_kpi_caption text-muted" t-esc="elapsedCaption"/>
+                        </div>
                         <div class="o_cd_gauge_range d-flex justify-content-between small text-muted">
                             <span t-esc="gaugeRange.min"/>
                             <span t-if="kpiTarget">Target <t t-esc="kpiTarget.label"/></span>
