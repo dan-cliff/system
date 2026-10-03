@@ -181,3 +181,78 @@ class TestCustomDashboard(TransactionCase):
         config = widget._get_config()
         self.assertFalse(config['show_border'])
         self.assertTrue(config['show_shadow'])
+
+    # ------------------------------------------------------------------
+    # Map widget
+    # ------------------------------------------------------------------
+    def _map_widget(self, **vals):
+        return self._widget('map', **vals)
+
+    def test_map_countries_from_contacts(self):
+        widget = self._map_widget(map_level='country')
+        data = widget.get_widget_data()[widget.id]
+        regions = {r['key']: r for r in data['regions']}
+        self.assertEqual(regions['BE']['value'], 2.0)
+        self.assertEqual(regions['FR']['value'], 1.0)
+        self.assertEqual(regions['BE']['country'], 'BE')
+
+    def test_map_sum_and_country_focus(self):
+        widget = self._map_widget(
+            map_level='country', map_country_id=self.country_be.id,
+            measure_field_id=self._field('color').id, aggregate='sum',
+        )
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual([(r['key'], r['value']) for r in data['regions']], [('BE', 5.0)])
+        config = widget._get_config()
+        self.assertEqual(config['map_country_code'], 'BE')
+        self.assertEqual(config['map_level'], 'country')
+
+    def test_map_states_through_another_model(self):
+        victoria = self.env['res.country.state'].search(
+            [('country_id.code', '=', 'AU'), ('code', '=', 'VIC')], limit=1)
+        partner = self.env['res.partner'].create({
+            'name': 'CD Vic', 'country_id': victoria.country_id.id, 'state_id': victoria.id,
+        })
+        user = new_test_user(self.env, login='cd_map_user', partner_id=partner.id)
+        widget = self.env['custom.dashboard.widget'].create({
+            'dashboard_id': self.dashboard.id,
+            'type_id': self.env.ref('custom_dashboard.widget_type_map').id,
+            'name': 'Users by state',
+            'model_id': self.env['ir.model']._get('res.users').id,
+            'domain': "[('id', '=', %d)]" % user.id,
+            'map_address_path': 'partner_id',
+            'map_level': 'state',
+            'map_state_id': victoria.id,
+        })
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual(data['regions'], [{
+            'key': 'AU-VIC', 'name': victoria.name, 'country': 'AU', 'value': 1.0, 'count': 1,
+        }])
+        self.assertEqual(widget._get_config()['map_state_key'], 'AU-VIC')
+        self.assertEqual(widget._get_config()['map_country_code'], 'AU')
+
+        # Multi-step paths work too
+        widget.write({'map_address_path': 'company_id.partner_id', 'map_level': 'country', 'map_state_id': False})
+        self.assertNotIn('error', widget.get_widget_data()[widget.id])
+
+    def test_map_rejects_bad_address_paths(self):
+        widget = self._map_widget()
+        for path in ('name', 'country_id', 'nope'):
+            widget.map_address_path = path
+            self.assertIn('error', widget.get_widget_data()[widget.id], path)
+        users_widget = self._map_widget(model_id=self.env['ir.model']._get('res.users').id, domain='[]')
+        self.assertIn('error', users_widget.get_widget_data()[users_widget.id])
+
+    def test_map_contact_locations(self):
+        widget = self._map_widget(map_level='point')
+        data = widget.get_widget_data()[widget.id]
+        if 'partner_latitude' not in self.env['res.partner']._fields:
+            self.assertIn('base_geolocalize', data['error'])
+            return
+        self.env['res.partner'].search([('name', 'like', 'CD ')]).write({
+            'partner_latitude': -36.7571, 'partner_longitude': 144.2794, 'city': 'Bendigo',
+        })
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual(data['points'], [{
+            'lat': -36.76, 'lng': 144.28, 'value': 3.0, 'count': 3, 'name': 'Bendigo',
+        }])

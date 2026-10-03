@@ -39,6 +39,15 @@
                                            required="requires_series"/>
                                     <field name="series_interval"
                                            invisible="not supports_series or series_field_type not in ('date', 'datetime')"/>
+                                    <field name="map_address_path" widget="field_selector"
+                                           options="{'model': 'model_name', 'follow_relations': True}"
+                                           placeholder="The record itself (Contacts only)"
+                                           invisible="data_mode != 'map' or not model_id"/>
+                                    <field name="map_level" widget="radio" invisible="data_mode != 'map'"/>
+                                    <field name="map_country_id" options="{'no_create': True}"
+                                           invisible="data_mode != 'map'" placeholder="Whole world"/>
+                                    <field name="map_state_id" options="{'no_create': True}"
+                                           invisible="data_mode != 'map'" placeholder="Whole country"/>
                                 </group>
                                 <group>
                                     <field name="value_mode" widget="radio" invisible="data_mode != 'single'"/>
@@ -78,8 +87,8 @@
                             <group invisible="data_mode == 'content'">
                                 <group string="Values">
                                     <field name="color" widget="color" invisible="data_mode == 'single'"/>
-                                    <field name="show_legend" invisible="data_mode != 'grouped' or type_code in ('table', 'pivot')"/>
-                                    <field name="show_values" invisible="data_mode != 'grouped' or type_code in ('table', 'pivot')"/>
+                                    <field name="show_legend" invisible="data_mode not in ('grouped', 'map') or type_code in ('table', 'pivot')"/>
+                                    <field name="show_values" invisible="data_mode not in ('grouped', 'map') or type_code in ('table', 'pivot')"/>
                                     <field name="decimals"/>
                                     <field name="prefix"/>
                                     <field name="suffix"/>

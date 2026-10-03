@@ -1,6 +1,7 @@
 import { Component, markup, onWillUnmount, useEffect, useRef } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { buildChartConfig, CHART_TYPES, makeFormatter } from "./chart_config";
+import { DashboardMap } from "./map_view";
 
 /**
  * One dashboard tile: header with the title (and edit tools while editing)
@@ -8,6 +9,7 @@ import { buildChartConfig, CHART_TYPES, makeFormatter } from "./chart_config";
  */
 export class DashboardWidgetCard extends Component {
     static template = "custom_dashboard.WidgetCard";
+    static components = { DashboardMap };
     static props = {
         widget: Object,
         data: { type: Object, optional: true },
@@ -43,7 +45,7 @@ export class DashboardWidgetCard extends Component {
 
     get isEmpty() {
         const { data, widget } = this.props;
-        if (!data || data.error || widget.data_mode === "content" || widget.data_mode === "single") {
+        if (!data || data.error || ["content", "single", "map"].includes(widget.data_mode)) {
             return false;
         }
         if (widget.data_mode === "points") {
