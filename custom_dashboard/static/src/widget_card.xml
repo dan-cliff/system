@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="custom_dashboard.WidgetCard">
-        <div class="o_cd_card h-100 d-flex flex-column" t-att-class="'o_cd_type_' + props.widget.type">
+        <div class="o_cd_card h-100 d-flex flex-column" t-attf-class="o_cd_type_{{props.widget.type}}"
+             t-att-class="{ 'o_cd_card_border': props.widget.show_border, 'o_cd_card_shadow': props.widget.show_shadow }">
             <div class="o_cd_card_header d-flex align-items-start gap-2">
                 <div class="flex-grow-1 text-truncate">
                     <div class="o_cd_card_title text-truncate" t-esc="props.widget.name"/>

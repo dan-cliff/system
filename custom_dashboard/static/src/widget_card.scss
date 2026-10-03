@@ -1,9 +1,18 @@
 // Widget tiles, shared by the backend dashboard and published website pages.
 .o_cd_card {
-    background-color: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
+    background-color: $body-bg;
+    // Transparent unless the widget asks for a border, so content never shifts.
+    border: 1px solid transparent;
     border-radius: 6px;
     overflow: hidden;
+
+    &.o_cd_card_border {
+        border-color: $border-color;
+    }
+
+    &.o_cd_card_shadow {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
 
     .o_cd_card_header {
         padding: 8px 10px 0;
@@ -82,7 +91,7 @@
         thead th {
             position: sticky;
             top: 0;
-            background-color: var(--bs-body-bg);
+            background-color: $body-bg;
         }
     }
 

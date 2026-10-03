@@ -171,3 +171,13 @@ class TestCustomDashboard(TransactionCase):
         )
         # Partners created in this test run are stamped "now"
         self.assertEqual(widget.get_widget_data()[widget.id]['value'], 0.0)
+
+    def test_frame_options_in_config(self):
+        widget = self._widget('column', groupby_field_id=self._field('country_id').id)
+        config = widget._get_config()
+        self.assertTrue(config['show_border'])
+        self.assertFalse(config['show_shadow'])
+        widget.write({'show_border': False, 'show_shadow': True})
+        config = widget._get_config()
+        self.assertFalse(config['show_border'])
+        self.assertTrue(config['show_shadow'])
