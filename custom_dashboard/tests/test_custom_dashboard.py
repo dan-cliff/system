@@ -416,3 +416,82 @@ class TestCustomDashboard(TransactionCase):
         # Reversed sequence, with the "None" group still last
         self.assertEqual(data['labels'], names[::-1] + ['None'])
         self.assertEqual([s['label'] for s in data['series']], ['No', 'Yes'])
+
+    # ------------------------------------------------------------------
+    # User relationship filter
+    # ------------------------------------------------------------------
+    def _hierarchy(self):
+        """boss > me > report > junior, each with a user and an employee."""
+        if 'hr.employee' not in self.env:
+            self.skipTest('Needs the Employees app')
+        Employee = self.env['hr.employee']
+        people = {}
+        parent = Employee
+        for name in ('boss', 'me', 'report', 'junior'):
+            user = new_test_user(self.env, login='cd_h_%s' % name, groups='base.group_user')
+            people[name] = (user, Employee.create({'name': name, 'user_id': user.id, 'parent_id': parent.id}))
+            parent = people[name][1]
+        # A peer of "me" who is not in my team
+        peer = new_test_user(self.env, login='cd_h_peer', groups='base.group_user')
+        people['peer'] = (peer, Employee.create({'name': 'peer', 'user_id': peer.id,
+                                                 'parent_id': people['boss'][1].id}))
+        return people
+
+    def _user_kpi(self, people, scope, **vals):
+        user_ids = [user.id for user, _employee in people.values()]
+        return self.env['custom.dashboard.widget'].create({
+            'dashboard_id': self.dashboard.id,
+            'type_id': self.env.ref('custom_dashboard.widget_type_table').id,
+            'name': 'Users',
+            'model_id': self.env['ir.model']._get('res.users').id,
+            'domain': "[('id', 'in', %s)]" % user_ids,
+            'groupby_field_id': self.env['ir.model.fields']._get('res.users', 'login').id,
+            'user_filter_scope': scope,
+            **vals,
+        })
+
+    def test_user_filter_scopes(self):
+        people = self._hierarchy()
+        me = people['me'][0]
+        expected = {
+            'self': ['cd_h_me'],
+            'manager': ['cd_h_boss'],
+            'team': ['cd_h_report'],
+            'extended_team': ['cd_h_junior', 'cd_h_me', 'cd_h_report'],
+        }
+        for scope, logins in expected.items():
+            widget = self._user_kpi(people, scope)
+            data = widget._get_widget_data(self.env(user=me))[widget.id]
+            self.assertEqual(sorted(data['labels']), logins, scope)
+        # Without a scope everyone counts
+        widget = self._user_kpi(people, False)
+        self.assertEqual(len(widget._get_widget_data(self.env(user=me))[widget.id]['labels']), 5)
+
+    def test_user_filter_through_a_field_and_on_employees(self):
+        people = self._hierarchy()
+        boss_user, boss_employee = people['boss']
+        employee_ids = [employee.id for _user, employee in people.values()]
+        widget = self.env['custom.dashboard.widget'].create({
+            'dashboard_id': self.dashboard.id,
+            'type_id': self.env.ref('custom_dashboard.widget_type_table').id,
+            'name': 'Team',
+            'model_id': self.env['ir.model']._get('hr.employee').id,
+            'domain': "[('id', 'in', %s)]" % employee_ids,
+            'groupby_field_id': self.env['ir.model.fields']._get('hr.employee', 'name').id,
+            'user_filter_scope': 'team',
+        })
+        boss_user.write({'group_ids': [(4, self.env.ref('hr.group_hr_user').id)]})
+        data_env = self.env(user=boss_user)
+        # The record itself is the employee
+        self.assertEqual(sorted(widget._get_widget_data(data_env)[widget.id]['labels']), ['me', 'peer'])
+        # Through a user field
+        widget.user_filter_path = 'user_id'
+        self.assertEqual(sorted(widget._get_widget_data(data_env)[widget.id]['labels']), ['me', 'peer'])
+
+    def test_user_filter_needs_a_user_field(self):
+        widget = self._widget('column', groupby_field_id=self._field('country_id').id, user_filter_scope='self')
+        self.assertIn('error', widget.get_widget_data()[widget.id])
+        widget.user_filter_path = 'country_id'
+        self.assertIn('error', widget.get_widget_data()[widget.id])
+        widget.user_filter_path = 'user_id'
+        self.assertNotIn('error', widget.get_widget_data()[widget.id])
