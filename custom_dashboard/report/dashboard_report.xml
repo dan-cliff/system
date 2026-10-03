@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A3 landscape. Margins are fixed so the page layout computed in
+         custom.dashboard._pdf_pages matches the printed page. -->
+    <record id="paperformat_dashboard_a3" model="report.paperformat">
+        <field name="name">Dashboard A3 Landscape</field>
+        <field name="format">A3</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">30</field>
+        <field name="margin_bottom">16</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">24</field>
+        <field name="disable_shrinking" eval="True"/>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_dashboard_pdf" model="ir.actions.report">
+        <field name="name">Dashboard PDF</field>
+        <field name="model">custom.dashboard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_dashboard.report_dashboard</field>
+        <field name="report_file">custom_dashboard.report_dashboard</field>
+        <field name="paperformat_id" ref="paperformat_dashboard_a3"/>
+        <field name="print_report_name">object.name</field>
+    </record>
+
+    <template id="report_dashboard">
+        <t t-call="web.html_container">
+            <t t-set="accent" t-value="company.primary_color or '#714B67'"/>
+            <t t-foreach="docs" t-as="o">
+                <div t-attf-class="header o_company_#{company.id}_layout">
+                    <div class="d-flex align-items-center gap-4 pb-2"
+                         t-attf-style="border-bottom: 2px solid {{accent}};">
+                        <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Logo"
+                             style="max-height: 16mm; max-width: 70mm;"/>
+                        <div class="flex-grow-1 text-end">
+                            <div class="fw-bold" t-attf-style="font-size: 20pt; line-height: 1.2; color: {{accent}};"
+                                 t-esc="o.name"/>
+                            <div class="text-muted" style="font-size: 9pt;">
+                                <span t-esc="company.name"/> ·
+                                <span t-esc="data['printed']"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-attf-class="article o_company_#{company.id}_layout o_cd_report"
+                     t-att-data-oe-model="o._name" t-att-data-oe-id="o.id"
+                     t-att-data-oe-lang="o.env.context.get('lang')">
+                    <div t-foreach="data['pages']" t-as="page"
+                         t-attf-style="position: relative; width: {{data['page_width']}}mm; height: {{data['page_height']}}mm; overflow: hidden; {{'page-break-after: always;' if not page_last else ''}}">
+                        <div t-foreach="page" t-as="item"
+                             t-attf-style="position: absolute; left: {{item['left']}}mm; top: {{item['top']}}mm; width: {{item['width']}}mm; height: {{item['height']}}mm; padding: {{data['gap']}}mm;">
+                            <img t-att-src="item['image']" alt=""
+                                 style="display: block; width: 100%; height: 100%; object-fit: contain;"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-attf-class="footer o_company_#{company.id}_layout">
+                    <div class="d-flex align-items-center pt-1 text-muted"
+                         t-attf-style="border-top: 1px solid {{accent}}; font-size: 9pt;">
+                        <div class="flex-grow-1 text-start" t-field="company.report_footer"/>
+                        <div class="text-end text-nowrap ms-3">
+                            <span class="page"/> of <span class="topage"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
