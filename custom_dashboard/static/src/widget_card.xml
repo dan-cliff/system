@@ -96,26 +96,28 @@
                     <t t-set="pv" t-value="pivot"/>
                     <t t-set="rowLabel" t-value="props.widget.pivot_row_label"/>
                     <t t-set="colLabel" t-value="props.widget.pivot_col_label"/>
+                    <t t-set="rowTotals" t-value="props.widget.pivot_row_totals !== false"/>
+                    <t t-set="colTotals" t-value="props.widget.pivot_column_totals !== false"/>
                     <div class="o_cd_table_wrap">
                         <table class="table table-sm table-bordered mb-0 o_cd_pivot" t-ref="pivot">
                             <colgroup>
                                 <col t-if="rowLabel"/>
                                 <col/>
                                 <col t-foreach="pv.columns" t-as="col" t-key="col_index" class="o_cd_pivot_value"/>
-                                <col class="o_cd_pivot_value"/>
+                                <col t-if="rowTotals" class="o_cd_pivot_value"/>
                             </colgroup>
                             <thead>
                                 <tr t-if="colLabel">
                                     <th t-if="rowLabel" class="o_cd_pivot_corner"/>
                                     <th class="o_cd_pivot_corner"/>
                                     <th t-att-colspan="pv.columns.length" class="o_cd_pivot_axis_label text-center" t-esc="colLabel"/>
-                                    <th class="o_cd_pivot_corner"/>
+                                    <th t-if="rowTotals" class="o_cd_pivot_corner"/>
                                 </tr>
                                 <tr>
                                     <th t-if="rowLabel" class="o_cd_pivot_corner"/>
                                     <th t-esc="rowLabel ? '' : props.widget.groupby_label"/>
                                     <th t-foreach="pv.columns" t-as="col" t-key="col_index" class="text-end o_cd_pivot_head" t-esc="col"/>
-                                    <th class="text-end o_cd_pivot_head">Total</th>
+                                    <th t-if="rowTotals" class="text-end o_cd_pivot_head">Total</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,15 +128,15 @@
                                     </th>
                                     <th t-esc="row.label"/>
                                     <td t-foreach="row.cells" t-as="cell" t-key="cell_index" class="text-end" t-esc="cell"/>
-                                    <td class="text-end fw-bold" t-esc="row.total"/>
+                                    <td t-if="rowTotals" class="text-end fw-bold" t-esc="row.total"/>
                                 </tr>
                             </tbody>
-                            <tfoot>
+                            <tfoot t-if="colTotals">
                                 <tr class="fw-bold">
                                     <th t-if="rowLabel" class="o_cd_pivot_corner"/>
                                     <th>Total</th>
                                     <td t-foreach="pv.columnTotals" t-as="total" t-key="total_index" class="text-end" t-esc="total"/>
-                                    <td class="text-end" t-esc="pv.grandTotal"/>
+                                    <td t-if="rowTotals" class="text-end" t-esc="pv.grandTotal"/>
                                 </tr>
                             </tfoot>
                         </table>

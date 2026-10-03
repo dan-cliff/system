@@ -83,9 +83,13 @@
                         </page>
                         <page string="Display" name="display">
                             <group>
-                                <group string="Axis Labels" invisible="type_code != 'pivot'">
+                                <group string="Rows &amp; Columns" invisible="type_code != 'pivot'">
                                     <field name="pivot_row_label" placeholder="e.g. Department"/>
                                     <field name="pivot_col_label" placeholder="e.g. Injury type"/>
+                                    <field name="pivot_hide_none_rows"/>
+                                    <field name="pivot_hide_none_columns"/>
+                                    <field name="pivot_hide_row_totals"/>
+                                    <field name="pivot_hide_column_totals"/>
                                 </group>
                                 <group string="Frame">
                                     <field name="show_border"/>
