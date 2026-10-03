@@ -53,6 +53,19 @@ MAP_POINT_PRECISION = 2
 # Odoo's own six-colour chart palette, used when no default colours are set.
 BUILTIN_COLORS = ['#4EA7F2', '#EA6175', '#43C5B1', '#F4A261', '#8481DD', '#FFD86D']
 COLOR_FIELDS = ['color', 'color_2', 'color_3', 'color_4', 'color_5', 'color_6']
+AXIS_SORTS = [
+    ('sequence', 'Sequence'),
+    ('label', 'Name'),
+    ('value_desc', 'Largest first'),
+    ('value_asc', 'Smallest first'),
+]
+PERIOD_STEPS = {
+    'day': relativedelta(days=1),
+    'week': relativedelta(weeks=1),
+    'month': relativedelta(months=1),
+    'quarter': relativedelta(months=3),
+    'year': relativedelta(years=1),
+}
 SORTS = [
     ('label', 'Group order'),
     ('value_desc', 'Largest first'),
@@ -118,6 +131,25 @@ class CustomDashboardWidget(models.Model):
     aggregate2 = fields.Selection(AGGREGATES, string='Second Aggregate', default='sum')
     sort = fields.Selection(SORTS, string='Sort', default='label', required=True)
     limit = fields.Integer(string='Limit', default=0, help='Show only the first N groups. 0 shows all.')
+
+    # Pivot table axes
+    pivot_show_all_rows = fields.Boolean(
+        string='Show All Groups',
+        help='List every possible group value, even those without records: all options of a '
+             'selection, all records of a linked model, Yes and No, or every period between the '
+             'first and last date.',
+    )
+    pivot_show_all_columns = fields.Boolean(string='Show All Series', help='Same as Show All Groups, for the columns.')
+    pivot_row_sort = fields.Selection(
+        AXIS_SORTS, string='Sort Groups By', default='sequence', required=True,
+        help='Sequence follows the field\'s own order: the linked records\' order, the order of the '
+             'selection options, Yes before No, or oldest date first.',
+    )
+    pivot_col_sort = fields.Selection(AXIS_SORTS, string='Sort Series By', default='sequence', required=True)
+    pivot_row_label = fields.Char(string='Group Label', translate=True,
+                                  help='Shown alongside the rows, e.g. "Department".')
+    pivot_col_label = fields.Char(string='Series Label', translate=True,
+                                  help='Shown above the columns, e.g. "Injury type".')
 
     # Display
     custom_colors = fields.Boolean(
@@ -246,6 +278,8 @@ class CustomDashboardWidget(models.Model):
             'x_label': self.measure_field_id.field_description or _('Count'),
             'y_label': self.measure2_field_id.field_description or _('Count'),
             'text_content': self.text_content or '',
+            'pivot_row_label': self.pivot_row_label or '',
+            'pivot_col_label': self.pivot_col_label or '',
             'map_level': self.map_level,
             'map_country_code': self.map_country_id.code or self.map_state_id.country_id.code or '',
             'map_state_key': self._map_state_key(self.map_state_id),
@@ -600,8 +634,22 @@ class CustomDashboardWidget(models.Model):
                 series.setdefault(skey, row[1])
                 cells[(key, skey)] = cells.get((key, skey), 0.0) + value
 
+        is_pivot = self.type_code == 'pivot'
+        if is_pivot and self.pivot_show_all_rows:
+            existing = [g['raw'] for g in groups.values()]
+            for raw in self._all_group_values(Model, group_field, self.groupby_interval, existing):
+                groups.setdefault(self._group_key(raw), {'raw': raw, 'value': 0.0, 'value2': 0.0, 'count': 0})
+        if is_pivot and series_field and self.pivot_show_all_columns:
+            for raw in self._all_group_values(Model, series_field, self.series_interval, list(series.values())):
+                series.setdefault(self._group_key(raw), raw)
+
         keys = list(groups)
-        if self.sort == 'value_desc':
+        if is_pivot:
+            keys = self._sort_axis(
+                Model, group_field, self.groupby_interval, self.pivot_row_sort, keys,
+                lambda k: groups[k]['raw'], lambda k: groups[k]['value'],
+            )
+        elif self.sort == 'value_desc':
             keys.sort(key=lambda k: groups[k]['value'], reverse=True)
         elif self.sort == 'value_asc':
             keys.sort(key=lambda k: groups[k]['value'])
@@ -619,7 +667,13 @@ class CustomDashboardWidget(models.Model):
         if self.uses_second_measure:
             data['values2'] = [groups[k]['value2'] for k in keys]
         if series_field:
-            series_keys = sorted(series, key=lambda s: self._sort_key(series[s]))
+            if is_pivot:
+                series_keys = self._sort_axis(
+                    Model, series_field, self.series_interval, self.pivot_col_sort, list(series),
+                    lambda s: series[s], lambda s: sum(cells.get((k, s), 0.0) for k in groups),
+                )
+            else:
+                series_keys = sorted(series, key=lambda s: self._sort_key(series[s]))
             data['series'] = [
                 {
                     'label': self._format_group(series_field, self.series_interval, series[s]),
@@ -628,6 +682,64 @@ class CustomDashboardWidget(models.Model):
                 for s in series_keys
             ]
         return data
+
+    def _all_group_values(self, Model, field, interval, existing):
+        """Every value ``field`` could be grouped by, for pivot tables that
+        list empty rows or columns too. Fields with open-ended values (text,
+        numbers) only list the values that occur."""
+        model_field = Model._fields[field.name]
+        if field.ttype == 'selection':
+            return [value for value, _label in model_field._description_selection(self.env)]
+        if field.ttype == 'boolean':
+            return [True, False]
+        if field.ttype == 'many2one':
+            # Read in the data environment, so access rules apply.
+            return list(Model.env[model_field.comodel_name].search([], limit=MAX_GROUPS))
+        if field.ttype in DATE_TYPES:
+            periods = sorted(v for v in existing if v)
+            if not periods:
+                return []
+            step, current, values = PERIOD_STEPS.get(interval or 'month'), periods[0], []
+            while current <= periods[-1] and len(values) < MAX_GROUPS:
+                values.append(current)
+                current += step
+            return values
+        return []
+
+    def _sort_axis(self, Model, field, interval, order, keys, raw_of, value_of):
+        """Order pivot ``keys`` by ``order`` (see AXIS_SORTS); empty groups last."""
+        def empty(key):
+            raw = raw_of(key)
+            return not raw and raw is not False if field.ttype == 'boolean' else not raw
+
+        if order == 'label':
+            def label_key(key):
+                return (empty(key), self._format_group(field, interval, raw_of(key)).casefold())
+            return sorted(keys, key=label_key)
+        sequence_key = self._sequence_key(Model, field, [raw_of(k) for k in keys])
+        ordered = sorted(keys, key=lambda k: (empty(k), sequence_key(raw_of(k))))
+        if order in ('value_desc', 'value_asc'):
+            # Stable sort: equal values keep their sequence order.
+            ordered.sort(key=value_of, reverse=order == 'value_desc')
+        return ordered
+
+    def _sequence_key(self, Model, field, raws):
+        """Key giving the field's natural order for the given raw values."""
+        if field.ttype == 'many2one':
+            records = [raw for raw in raws if isinstance(raw, models.BaseModel) and raw]
+            if records:
+                comodel = records[0].sudo().with_context(active_test=False)
+                ordered = comodel.search([('id', 'in', [r.id for r in records])])
+                rank = {record.id: index for index, record in enumerate(ordered)}
+            else:
+                rank = {}
+            return lambda raw: rank.get(raw.id, len(rank)) if raw else len(rank)
+        if field.ttype == 'selection':
+            options = [v for v, _l in Model._fields[field.name]._description_selection(self.env)]
+            return lambda raw: options.index(raw) if raw in options else len(options)
+        if field.ttype == 'boolean':
+            return lambda raw: 0 if raw else 1
+        return self._sort_key
 
     @api.model
     def _group_key(self, value):
