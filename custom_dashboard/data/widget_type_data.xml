@@ -337,5 +337,19 @@
             <field name="default_height">3</field>
             <field name="description">A logo or picture</field>
         </record>
+        <record id="widget_type_map" model="custom.dashboard.widget.type">
+            <field name="name">Map</field>
+            <field name="code">map</field>
+            <field name="sequence">215</field>
+            <field name="category_id" ref="widget_category_location"/>
+            <field name="icon">fa-globe</field>
+            <field name="data_mode">map</field>
+            <field name="supports_series" eval="False"/>
+            <field name="requires_series" eval="False"/>
+            <field name="uses_second_measure" eval="False"/>
+            <field name="default_width">6</field>
+            <field name="default_height">5</field>
+            <field name="description">Hotspots by country, state or contact location, on a zoomable map</field>
+        </record>
     </data>
 </odoo>

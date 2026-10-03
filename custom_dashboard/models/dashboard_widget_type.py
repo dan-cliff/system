@@ -33,6 +33,7 @@ class CustomDashboardWidgetType(models.Model):
             ('grouped', 'Grouped values'),
             ('single', 'Single value'),
             ('points', 'Record points'),
+            ('map', 'Map'),
             ('content', 'Static content'),
         ],
         string='Data Mode', required=True, default='grouped',

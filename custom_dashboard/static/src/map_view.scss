@@ -1,0 +1,69 @@
+// Map widget: blue sea behind plain land, like Power BI's filled map.
+.o_cd_card .o_cd_map {
+    position: absolute;
+    inset: 4px 10px 10px;
+    border-radius: 4px;
+    font: inherit;
+
+    &.leaflet-container {
+        background: #a9d3e6;
+    }
+
+    .leaflet-interactive:focus {
+        outline: none;
+    }
+
+    .o_cd_map_reset {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333;
+    }
+
+    .o_cd_map_tooltip,
+    .o_cd_map_popup .leaflet-popup-content {
+        font-size: 0.8rem;
+        line-height: 1.35;
+    }
+
+    .o_cd_map_label {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        color: #1f2937;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+
+        &::before {
+            display: none;
+        }
+    }
+
+    .o_cd_map_legend,
+    .o_cd_map_note {
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 4px;
+        color: #374151;
+        font-size: 0.72rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+
+    .o_cd_map_legend {
+        min-width: 120px;
+    }
+
+    .o_cd_map_legend_bar {
+        height: 8px;
+        margin: 3px 0 2px;
+        border-radius: 2px;
+    }
+
+    .o_cd_map_legend_scale {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+    }
+}

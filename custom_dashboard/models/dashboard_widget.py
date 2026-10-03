@@ -42,6 +42,14 @@ VALUE_MODES = [
     ('aggregate', 'Aggregate a measure'),
     ('elapsed', 'Time since the latest date'),
 ]
+MAP_LEVELS = [
+    ('country', 'Countries'),
+    ('state', 'States / provinces'),
+    ('point', 'Contact locations'),
+]
+# Contact locations are rounded to about 1 km so a public map never
+# pinpoints an address.
+MAP_POINT_PRECISION = 2
 SORTS = [
     ('label', 'Group order'),
     ('value_desc', 'Largest first'),
@@ -129,6 +137,26 @@ class CustomDashboardWidget(models.Model):
         help='The latest value of this field among the found records is the starting point.',
     )
     elapsed_unit = fields.Selection(ELAPSED_UNITS, string='Count In', default='day', required=True)
+    # Map widgets
+    map_address_path = fields.Char(
+        string='Address From',
+        help='Path from the record to the contact whose address places it on the map, '
+             'e.g. Customer or Employee > Work Contact. Leave empty when the model is Contacts.',
+    )
+    map_level = fields.Selection(
+        MAP_LEVELS, string='Show', default='country', required=True,
+        help='Shade countries or states by value, or plot each contact location as a bubble '
+             '(needs contacts with map coordinates).',
+    )
+    map_country_id = fields.Many2one(
+        'res.country', string='Zoom to Country',
+        help='Only count records in this country and zoom the map to it.',
+    )
+    map_state_id = fields.Many2one(
+        'res.country.state', string='Zoom to State',
+        domain="[('country_id', '=?', map_country_id)]",
+        help='Only count records in this state and zoom the map to it.',
+    )
     target_value = fields.Float(string='Target')
     gauge_min = fields.Float(string='Gauge Minimum', default=0.0)
     gauge_max = fields.Float(string='Gauge Maximum', default=100.0)
@@ -142,8 +170,10 @@ class CustomDashboardWidget(models.Model):
             for fname in ('groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id', 'elapsed_field_id'):
                 if widget[fname] and widget[fname].model_id != model:
                     widget[fname] = False
-            if widget.domain and widget.domain != '[]' and widget._origin.model_id != model:
-                widget.domain = '[]'
+            if widget._origin.model_id != model:
+                if widget.domain and widget.domain != '[]':
+                    widget.domain = '[]'
+                widget.map_address_path = False
 
     @api.constrains('model_id', 'groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id',
                     'elapsed_field_id')
@@ -199,6 +229,10 @@ class CustomDashboardWidget(models.Model):
             'x_label': self.measure_field_id.field_description or _('Count'),
             'y_label': self.measure2_field_id.field_description or _('Count'),
             'text_content': self.text_content or '',
+            'map_level': self.map_level,
+            'map_country_code': self.map_country_id.code or self.map_state_id.country_id.code or '',
+            'map_state_key': self._map_state_key(self.map_state_id),
+            'map_state_name': self.map_state_id.name or '',
             'image_url': (
                 '/web/image/custom.dashboard.widget/%s/image?unique=%s'
                 % (self.id, int(self.write_date.timestamp()) if self.write_date else 0)
@@ -261,6 +295,8 @@ class CustomDashboardWidget(models.Model):
         domain = self._get_domain(data_env)
         if self.data_mode == 'single':
             return self._compute_single(Model, domain)
+        if self.data_mode == 'map':
+            return self._compute_map(Model, domain)
         if self.data_mode == 'points':
             return self._compute_points(Model, domain)
         return self._compute_grouped(Model, domain)
@@ -345,6 +381,101 @@ class CustomDashboardWidget(models.Model):
         if unit == 'month':
             return float(delta.years * 12 + delta.months)
         return float(delta.years)
+
+    @api.onchange('map_state_id')
+    def _onchange_map_state_id(self):
+        if self.map_state_id:
+            self.map_country_id = self.map_state_id.country_id
+
+    @api.model
+    def _map_state_key(self, state):
+        """ISO 3166-2 style key (e.g. AU-VIC) used to match state shapes."""
+        if not state:
+            return ''
+        return '%s-%s' % (state.country_id.code or '', state.code or '')
+
+    def _map_partner_path(self, Model):
+        """Validate ``map_address_path`` and return it ('' for contacts)."""
+        path = (self.map_address_path or '').strip()
+        if not path:
+            if Model._name == 'res.partner':
+                return ''
+            raise UserError(_('Choose which contact\'s address places each record on the map.'))
+        current = Model
+        for name in path.split('.'):
+            field = current._fields.get(name)
+            if not field or field.type != 'many2one':
+                raise UserError(_('"%s" is not a path of single links to a contact.', path))
+            current = self.env[field.comodel_name]
+        if current._name != 'res.partner':
+            raise UserError(_('"%s" must lead to a contact (it leads to %s).', path, current._description))
+        return path
+
+    def _compute_map(self, Model, domain):
+        path = self._map_partner_path(Model)
+        prefix = path + '.' if path else ''
+        if self.map_state_id:
+            domain = domain + [(prefix + 'state_id', '=', self.map_state_id.id)]
+        elif self.map_country_id:
+            domain = domain + [(prefix + 'country_id', '=', self.map_country_id.id)]
+        self._check_field(Model, self.measure_field_id)
+        aggregates = [self._aggregate_spec(self.measure_field_id, self.aggregate), '__count']
+
+        if self.map_level == 'point':
+            return self._compute_map_points(Model, domain, path, aggregates)
+
+        groupby = prefix + ('state_id' if self.map_level == 'state' else 'country_id')
+        regions = []
+        unlocated = 0
+        for group, value, count in Model._read_group(domain, [groupby], aggregates, limit=MAX_GROUPS):
+            if not group:
+                unlocated += count
+                continue
+            group = group.sudo()
+            if self.map_level == 'state':
+                key, country = self._map_state_key(group), group.country_id.code or ''
+            else:
+                key, country = group.code or '', group.code or ''
+            regions.append({
+                'key': key,
+                'name': group.display_name if self.map_level == 'country' else group.name,
+                'country': country,
+                'value': float(value or 0),
+                'count': count,
+            })
+        return {'regions': regions, 'unlocated': unlocated}
+
+    def _compute_map_points(self, Model, domain, path, aggregates):
+        Partner = Model.env['res.partner']
+        if 'partner_latitude' not in Partner._fields:
+            return {'error': _('Contact locations need the Partners Geolocation app (base_geolocalize).')}
+        groupby = path or 'id'
+        rows = Model._read_group(domain, [groupby], aggregates, limit=MAX_POINTS)
+        # Contacts the reader may not open are left off the map.
+        partners = Partner.browse([row[0].id for row in rows if row[0]])._filtered_access('read')
+        coords = {
+            rec['id']: rec for rec in partners.read(['partner_latitude', 'partner_longitude', 'city'])
+        } if partners else {}
+        cells = {}
+        unlocated = 0
+        for partner, value, count in rows:
+            rec = coords.get(partner.id) if partner else None
+            lat, lng = (rec['partner_latitude'], rec['partner_longitude']) if rec else (0.0, 0.0)
+            if not rec or (not lat and not lng):
+                unlocated += count
+                continue
+            key = (round(lat, MAP_POINT_PRECISION), round(lng, MAP_POINT_PRECISION))
+            cell = cells.setdefault(key, {'lat': key[0], 'lng': key[1], 'value': 0.0, 'count': 0, 'cities': set()})
+            cell['value'] += float(value or 0)
+            cell['count'] += count
+            if rec['city']:
+                cell['cities'].add(rec['city'])
+        points = []
+        for cell in cells.values():
+            cities = sorted(cell.pop('cities'))
+            cell['name'] = ', '.join(cities[:3]) or _('Unknown place')
+            points.append(cell)
+        return {'points': points, 'unlocated': unlocated}
 
     def _compute_points(self, Model, domain):
         x_field, y_field = self.measure_field_id, self.measure2_field_id

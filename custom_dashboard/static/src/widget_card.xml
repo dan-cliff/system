@@ -58,6 +58,9 @@
                         </div>
                     </div>
                 </t>
+                <t t-elif="props.widget.type === 'map'">
+                    <DashboardMap widget="props.widget" data="props.data"/>
+                </t>
                 <t t-elif="isChart">
                     <div class="o_cd_chart"><canvas t-ref="canvas"/></div>
                 </t>
