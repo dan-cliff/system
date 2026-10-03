@@ -4,7 +4,7 @@
         <field name="name">custom.dashboard.kanban</field>
         <field name="model">custom.dashboard</field>
         <field name="arch" type="xml">
-            <kanban action="action_open" type="object" highlight_color="color" sample="1">
+            <kanban js_class="custom_dashboard_kanban" action="action_open" type="object" highlight_color="color" sample="1">
                 <field name="color"/>
                 <templates>
                     <t t-name="menu">
@@ -32,7 +32,7 @@
         <field name="name">custom.dashboard.list</field>
         <field name="model">custom.dashboard</field>
         <field name="arch" type="xml">
-            <list>
+            <list js_class="custom_dashboard_list">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="widget_count"/>
