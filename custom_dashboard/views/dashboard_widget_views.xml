@@ -41,9 +41,16 @@
                                            invisible="not supports_series or series_field_type not in ('date', 'datetime')"/>
                                 </group>
                                 <group>
+                                    <field name="value_mode" widget="radio" invisible="data_mode != 'single'"/>
+                                    <field name="elapsed_field_id" options="{'no_create': True}"
+                                           invisible="data_mode != 'single' or value_mode != 'elapsed' or not model_id"
+                                           required="data_mode == 'single' and value_mode == 'elapsed'"/>
+                                    <field name="elapsed_unit"
+                                           invisible="data_mode != 'single' or value_mode != 'elapsed'"/>
                                     <label for="measure_field_id" string="X Measure" invisible="data_mode != 'points'"/>
-                                    <label for="measure_field_id" invisible="data_mode == 'points'"/>
-                                    <div class="o_row" invisible="not model_id">
+                                    <label for="measure_field_id"
+                                           invisible="data_mode == 'points' or (data_mode == 'single' and value_mode == 'elapsed')"/>
+                                    <div class="o_row" invisible="not model_id or (data_mode == 'single' and value_mode == 'elapsed')">
                                         <field name="measure_field_id" options="{'no_create': True}" placeholder="Count"/>
                                         <field name="aggregate" invisible="not measure_field_id or data_mode == 'points'"/>
                                     </div>

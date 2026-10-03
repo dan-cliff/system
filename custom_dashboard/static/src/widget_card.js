@@ -61,8 +61,38 @@ export class DashboardWidgetCard extends Component {
     }
 
     // KPI / gauge ----------------------------------------------------------
+    get isElapsed() {
+        return this.props.widget.value_mode === "elapsed";
+    }
+
     get kpiValue() {
-        return this.format(this.props.data?.value || 0);
+        const value = this.props.data?.value;
+        if (this.isElapsed) {
+            return value === null || value === undefined ? "—" : this.format(Math.abs(value));
+        }
+        return this.format(value || 0);
+    }
+
+    /** "days since 14/09/2026" under an elapsed-time value. */
+    get elapsedCaption() {
+        const { widget, data } = this.props;
+        if (!this.isElapsed || !data || data.error) {
+            return "";
+        }
+        if (!data.latest) {
+            return _t("No dates found");
+        }
+        const count = Math.abs(data.value);
+        const units = {
+            day: count === 1 ? _t("day") : _t("days"),
+            week: count === 1 ? _t("week") : _t("weeks"),
+            month: count === 1 ? _t("month") : _t("months"),
+            year: count === 1 ? _t("year") : _t("years"),
+        };
+        const unit = units[widget.elapsed_unit] || units.day;
+        return data.value < 0
+            ? _t("%(unit)s until %(date)s", { unit, date: data.latest })
+            : _t("%(unit)s since %(date)s", { unit, date: data.latest });
     }
 
     get kpiTarget() {
