@@ -15,6 +15,10 @@ A visual dashboard builder powered by gridstack.js and Chart.js.
   date interval, series split, measure and filter). Users only see the
   data their access rights allow.
 * Dashboard managers build dashboards and share them with users or groups.
+* "Generate with AI" designs a whole dashboard from a plain-language request,
+  using Claude AI first and Google Gemini as the fallback. It appears when an
+  API key is set in Settings > General Settings (AI Integration Settings).
+  Claude needs the ``anthropic`` Python package on the server.
 * Export to PDF: an A3 landscape print-out with the current company's
   branding, the dashboard title in the header and "1 of 3" page numbers.
   Widgets are never split across pages.
