@@ -69,6 +69,14 @@ PERIOD_STEPS = {
     'quarter': relativedelta(months=3),
     'year': relativedelta(years=1),
 }
+# Technical: each scope is a lookup in code (see _user_scope_ids).
+USER_SCOPES = [
+    ('self', 'Self'),
+    ('manager', 'Manager'),
+    ('team', 'My Team'),
+    ('extended_team', 'My Extended Team'),
+]
+USER_FILTER_MODELS = ('res.users', 'hr.employee')
 SORTS = [
     ('label', 'Group order'),
     ('value_desc', 'Largest first'),
@@ -108,6 +116,21 @@ class CustomDashboardWidget(models.Model):
     )
     model_name = fields.Char(related='model_id.model', string='Model Name')
     domain = fields.Char(string='Filter', default='[]')
+    user_filter_scope = fields.Selection(
+        USER_SCOPES, string='Only Records Of',
+        help='Limit the records by who they belong to, relative to the person viewing the dashboard '
+             '(on public website pages, the "Show Data As" user):\n'
+             '- Self: the viewer\n'
+             '- Manager: the viewer\'s manager\n'
+             '- My Team: people whose manager is the viewer\n'
+             '- My Extended Team: the viewer and everyone below them in the hierarchy\n'
+             'Managers come from the Employees app.',
+    )
+    user_filter_path = fields.Char(
+        string='User Field',
+        help='The user or employee on the record to check, e.g. Responsible User or Employee. '
+             'Leave empty when the model is Users or Employees.',
+    )
     groupby_field_id = fields.Many2one(
         'ir.model.fields', string='Group By', ondelete='set null',
         domain="[('model_id', '=', model_id), ('store', '=', True), ('ttype', 'in', %s)]" % (list(GROUPABLE_TYPES),),
@@ -234,6 +257,7 @@ class CustomDashboardWidget(models.Model):
                 if widget.domain and widget.domain != '[]':
                     widget.domain = '[]'
                 widget.map_address_path = False
+                widget.user_filter_path = False
 
     @api.constrains('model_id', 'groupby_field_id', 'series_field_id', 'measure_field_id', 'measure2_field_id',
                     'elapsed_field_id')
@@ -357,7 +381,7 @@ class CustomDashboardWidget(models.Model):
         if self.model_name not in data_env:
             return {'error': _('Model "%s" is not available.', self.model_name)}
         Model = data_env[self.model_name]
-        domain = self._get_domain(data_env)
+        domain = self._get_domain(data_env) + self._user_filter_domain(Model)
         if self.data_mode == 'single':
             return self._compute_single(Model, domain)
         if self.data_mode == 'map':
@@ -386,6 +410,53 @@ class CustomDashboardWidget(models.Model):
         if not isinstance(domain, (list, tuple)):
             raise UserError(_('The filter of widget "%s" is not a list.', self.name))
         return list(domain)
+
+    def _user_filter_domain(self, Model):
+        """Domain limiting records to the chosen user relationship."""
+        if not self.user_filter_scope:
+            return []
+        path = (self.user_filter_path or '').strip()
+        target = Model._name
+        for name in path.split('.') if path else []:
+            field = self.env[target]._fields.get(name)
+            if not field or field.type != 'many2one':
+                raise UserError(_('"%s" is not a path of single links to a user or employee.', path))
+            target = field.comodel_name
+        if target not in USER_FILTER_MODELS:
+            if not path:
+                raise UserError(_('Choose the user or employee field to filter on.'))
+            raise UserError(_('"%s" must lead to a user or an employee.', path))
+        ids = self._user_scope_ids(Model.env, target)
+        return [(path or 'id', 'in', ids)]
+
+    def _user_scope_ids(self, env, target):
+        """Ids of ``target`` (users or employees) in the widget's scope,
+        relative to ``env``'s user. Managers come from the Employees app."""
+        scope = self.user_filter_scope
+        uid = env.uid
+        if 'hr.employee' not in env:
+            if scope == 'self' and target == 'res.users':
+                return [uid]
+            raise UserError(_('Manager and team filters need the Employees app.'))
+        # The hierarchy is read with sudo: only ids leave this method, and
+        # the records themselves are still read with the viewer's rights.
+        Employee = env['hr.employee'].sudo()
+        mine = Employee.search([('user_id', '=', uid)])
+        if scope == 'self':
+            employees = mine
+        elif scope == 'manager':
+            employees = mine.parent_id
+        elif scope == 'team':
+            employees = Employee.search([('parent_id', 'in', mine.ids)]) if mine else Employee
+        else:
+            employees = Employee.search([('id', 'child_of', mine.ids)]) if mine else Employee
+        if target == 'hr.employee':
+            return employees.ids
+        user_ids = set(employees.user_id.ids)
+        if scope in ('self', 'extended_team'):
+            # The viewer's own records always count, even without an employee.
+            user_ids.add(uid)
+        return sorted(user_ids)
 
     @api.model
     def _aggregate_spec(self, field, aggregate):

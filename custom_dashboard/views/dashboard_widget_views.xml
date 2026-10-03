@@ -80,6 +80,15 @@
                             <label for="domain" invisible="not model_id"/>
                             <field name="domain" widget="domain" invisible="not model_id"
                                    options="{'model': 'model_name', 'in_dialog': True}"/>
+                            <group invisible="not model_id" string="User Filter">
+                                <group>
+                                    <field name="user_filter_scope" placeholder="Everyone"/>
+                                    <field name="user_filter_path" widget="field_selector"
+                                           options="{'model': 'model_name', 'follow_relations': True}"
+                                           invisible="not user_filter_scope"
+                                           placeholder="The record itself (Users or Employees)"/>
+                                </group>
+                            </group>
                         </page>
                         <page string="Display" name="display">
                             <group>
