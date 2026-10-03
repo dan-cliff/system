@@ -1,6 +1,6 @@
 {
     'name': 'Custom Dashboards',
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.3.1',
     'summary': 'Build drag-and-drop dashboards of charts, KPIs and tables from any model',
     'description': """
 Custom Dashboards
@@ -18,7 +18,6 @@ A visual dashboard builder powered by gridstack.js and Chart.js.
 * "Generate with AI" designs a whole dashboard from a plain-language request,
   using Claude AI first and Google Gemini as the fallback. It appears when an
   API key is set in Settings > General Settings (AI Integration Settings).
-  Claude needs the ``anthropic`` Python package on the server.
 * Export to PDF: an A3 landscape print-out with the current company's
   branding, the dashboard title in the header and "1 of 3" page numbers.
   Widgets are never split across pages.

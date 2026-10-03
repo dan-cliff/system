@@ -30,11 +30,6 @@ from .dashboard_widget import (
     MEASURE_TYPES, SORTS, USER_FILTER_MODELS, USER_SCOPES, VALUE_MODES,
 )
 
-try:
-    import anthropic
-except ImportError:  # pragma: no cover - depends on the server
-    anthropic = None
-
 _logger = logging.getLogger(__name__)
 
 # Keys entered in Settings > General Settings (claude_ai_settings module).
@@ -44,6 +39,14 @@ GEMINI_KEY_PARAM = 'claude_ai_settings.gemini_api_key'
 CLAUDE_MODEL_PARAM = 'custom_dashboard.ai_claude_model'
 GEMINI_MODEL_PARAM = 'custom_dashboard.ai_gemini_model'
 CLAUDE_MODEL = 'claude-opus-5-5'
+CLAUDE_URL = 'https://api.anthropic.com/v1/messages'
+CLAUDE_HEADERS = {
+    'anthropic-version': '2023-06-01',
+    # fallbacks="default": a declined request is retried on Anthropic's
+    # recommended fallback model inside the same call.
+    'anthropic-beta': 'server-side-fallback-2026-07-01',
+    'content-type': 'application/json',
+}
 GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-flash-latest']
 GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent'
 # Seconds per AI call. Two calls must fit in one Odoo request (120 s by default).
@@ -71,8 +74,9 @@ HEX_COLOR = re.compile(r'^#[0-9a-fA-F]{6}$')
 SYSTEM_PROMPT = """You design dashboards for Odoo 19, an ERP system, inside a \
 custom dashboard app. You get a user's request plus a description of the data \
 the user can read, and you answer with JSON only. Use only the models, fields \
-and options listed; anything else is discarded. Write titles and labels in the \
-language of the request. Show dates as dd/mm/yyyy in any text you write."""
+and options listed; anything else is discarded. Write every name, description, \
+title, subtitle, label and text in {language}, whatever language the request or \
+the field labels are in. Show dates as dd/mm/yyyy in any text you write."""
 
 PICK_MODELS_PROMPT = """A user wants this dashboard:
 
@@ -189,6 +193,7 @@ point to, and selection fields list their values.
 
 {fields}
 
+Write the dashboard name, description and every widget's text in {language}.
 Answer with JSON only, in this shape:
 {{"name": "Dashboard name", "description": "One sentence", "widgets": [{{"type": "kpi", \
 "title": "...", "x": 0, "y": 0, "w": 3, "h": 2, "model": "...", ...}}]}}"""
@@ -360,6 +365,7 @@ class CustomDashboard(models.Model):
             map_levels=keys(MAP_LEVELS),
             user_scopes=keys(USER_SCOPES),
             fields='\n\n'.join(field_blocks),
+            language=self._ai_language(),
         )
 
     @api.model
@@ -448,62 +454,90 @@ class CustomDashboard(models.Model):
     # Engines
     # ------------------------------------------------------------------
     @api.model
+    def _ai_language(self):
+        """The language of the user's main company, e.g. "English (AU)"."""
+        company = self.env.user.company_id
+        code = company.partner_id.lang or self.env.user.lang or 'en_US'
+        lang = self.env['res.lang']._lang_get(code)
+        name = lang.name if lang else code
+        if company.country_id:
+            name = '%s, as written in %s' % (name, company.country_id.name)
+        return name
+
+    @api.model
+    def _ai_system_prompt(self):
+        return SYSTEM_PROMPT.format(language=self._ai_language())
+
+    @api.model
     def _ai_ask(self, provider, key, prompt, schema, effort='medium'):
         """Send ``prompt`` to ``provider`` and return the parsed JSON answer."""
+        system = self._ai_system_prompt()
         if provider == 'claude':
-            text = self._ai_ask_claude(key, prompt, schema, effort)
+            text = self._ai_ask_claude(key, system, prompt, schema, effort)
         else:
-            text = self._ai_ask_gemini(key, prompt, schema)
+            text = self._ai_ask_gemini(key, system, prompt, schema)
         return self._ai_parse_json(text)
 
     @api.model
-    def _ai_ask_claude(self, key, prompt, schema, effort):
-        if anthropic is None:
-            raise UserError(_('The "anthropic" Python package is not installed on this server.'))
+    def _ai_ask_claude(self, key, system, prompt, schema, effort):
+        """Call the Claude Messages API over HTTPS, with no extra Python
+        package to install on the server."""
         model = self.env['ir.config_parameter'].sudo().get_param(CLAUDE_MODEL_PARAM) or CLAUDE_MODEL
-        client = anthropic.Anthropic(api_key=key, timeout=AI_TIMEOUT, max_retries=1)
+        payload = {
+            'model': model,
+            'max_tokens': 16000,
+            'fallbacks': 'default',
+            'system': system,
+            'messages': [{'role': 'user', 'content': prompt}],
+            'output_config': {
+                'effort': effort,
+                'format': {'type': 'json_schema', 'schema': schema},
+            },
+        }
+        headers = {**CLAUDE_HEADERS, 'x-api-key': key}
         try:
-            # Streamed so a long design never hits an HTTP read timeout.
-            # fallbacks="default" lets the API retry a declined request on
-            # Anthropic's recommended fallback model.
-            with client.beta.messages.stream(
-                model=model,
-                max_tokens=16000,
-                betas=['server-side-fallback-2026-07-01'],
-                fallbacks='default',
-                system=SYSTEM_PROMPT,
-                messages=[{'role': 'user', 'content': prompt}],
-                output_config={
-                    'effort': effort,
-                    'format': {'type': 'json_schema', 'schema': schema},
-                },
-            ) as stream:
-                message = stream.get_final_message()
-        except anthropic.AuthenticationError as error:
-            raise UserError(_('Claude AI rejected the API key.')) from error
-        except anthropic.RateLimitError as error:
-            raise UserError(_('Claude AI is busy (rate limited). Try again shortly.')) from error
-        except anthropic.APIStatusError as error:
-            _logger.warning('Claude AI error %s: %s', error.status_code, error.message)
-            raise UserError(_('Claude AI returned an error (%(status)s): %(message)s',
-                              status=error.status_code, message=error.message)) from error
-        except anthropic.APIConnectionError as error:
+            response = requests.post(CLAUDE_URL, json=payload, timeout=(10, AI_TIMEOUT), headers=headers)
+            if response.status_code == 400 and 'fallback' in response.text:
+                # The refusal fallback is optional; never let it block the call.
+                payload.pop('fallbacks')
+                headers.pop('anthropic-beta')
+                response = requests.post(CLAUDE_URL, json=payload, timeout=(10, AI_TIMEOUT), headers=headers)
+        except requests.exceptions.Timeout as error:
+            raise UserError(_('Claude AI took too long to answer. Try a smaller request.')) from error
+        except requests.exceptions.RequestException as error:
             raise UserError(_('Could not reach Claude AI: %s', error)) from error
-        if message.stop_reason == 'refusal':
+        if response.status_code == 401:
+            raise UserError(_('Claude AI rejected the API key.'))
+        if response.status_code == 429:
+            raise UserError(_('Claude AI is busy (rate limited). Try again shortly.'))
+        try:
+            body = response.json()
+        except ValueError:
+            body = {}
+        if response.status_code != 200:
+            detail = (body.get('error') or {}).get('message') or response.text[:300]
+            _logger.warning('Claude AI error %s (request %s): %s',
+                            response.status_code, response.headers.get('request-id'), detail)
+            raise UserError(_('Claude AI returned an error (%(status)s): %(message)s',
+                              status=response.status_code, message=detail))
+        stop_reason = body.get('stop_reason')
+        if stop_reason == 'refusal':
             raise UserError(_('Claude AI declined this request.'))
-        if message.stop_reason == 'max_tokens':
+        if stop_reason == 'max_tokens':
             raise UserError(_('Claude AI ran out of room for this dashboard. Try a smaller request.'))
-        text = ''.join(block.text for block in message.content if block.type == 'text')
+        text = ''.join(
+            block.get('text', '') for block in body.get('content') or [] if block.get('type') == 'text'
+        )
         if not text:
             raise UserError(_('Claude AI returned an empty answer.'))
         return text
 
     @api.model
-    def _ai_ask_gemini(self, key, prompt, schema):
+    def _ai_ask_gemini(self, key, system, prompt, schema):
         configured = self.env['ir.config_parameter'].sudo().get_param(GEMINI_MODEL_PARAM)
         candidates = [configured] if configured else GEMINI_MODELS
         payload = {
-            'systemInstruction': {'parts': [{'text': SYSTEM_PROMPT}]},
+            'systemInstruction': {'parts': [{'text': system}]},
             'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
             'generationConfig': {
                 'responseMimeType': 'application/json',
