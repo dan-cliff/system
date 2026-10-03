@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="dashboard_index" name="Published Dashboards">
+        <t t-call="website.layout">
+            <t t-set="pageName" t-value="'dashboards'"/>
+            <div id="wrap" class="o_cd_public_index">
+                <div class="container py-5">
+                    <h1 class="mb-4">Dashboards</h1>
+                    <p t-if="not dashboards" class="text-muted">No dashboards have been published yet.</p>
+                    <div class="row g-3">
+                        <div t-foreach="dashboards" t-as="dashboard" class="col-12 col-md-6 col-lg-4">
+                            <a t-att-href="dashboard.website_url" class="card h-100 text-decoration-none text-reset">
+                                <div class="card-body d-flex gap-3 align-items-start">
+                                    <img src="/custom_dashboard/static/description/icon.png" alt="" width="48" height="48"/>
+                                    <div>
+                                        <h5 class="card-title mb-1" t-field="dashboard.name"/>
+                                        <p class="card-text text-muted small mb-0" t-if="dashboard.description" t-field="dashboard.description"/>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="dashboard_page" name="Published Dashboard">
+        <t t-call="website.layout">
+            <t t-set="additional_title" t-value="dashboard.name"/>
+            <t t-set="pageName" t-value="'dashboard'"/>
+            <div id="wrap" class="o_cd_public_page">
+                <div class="container-fluid py-4 px-3 px-lg-4">
+                    <div t-if="not dashboard.is_published" class="alert alert-info">
+                        This dashboard is not published. Only dashboard managers can see this preview.
+                    </div>
+                    <div class="d-flex align-items-baseline flex-wrap gap-2 mb-3">
+                        <h1 class="h2 mb-0" t-field="dashboard.name"/>
+                        <a t-if="can_edit" class="ms-auto small" t-attf-href="/odoo/action-custom_dashboard.action_custom_dashboard/{{dashboard.id}}">
+                            <i class="fa fa-pencil me-1"/>Edit in backend
+                        </a>
+                    </div>
+                    <p t-if="dashboard.description" class="text-muted" t-field="dashboard.description"/>
+                    <owl-component name="custom_dashboard_website.PublicDashboard"
+                                   t-att-props="json.dumps({'dashboardId': dashboard.id})"/>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

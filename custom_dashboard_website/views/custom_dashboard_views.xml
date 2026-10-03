@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_custom_dashboard_form_website" model="ir.ui.view">
+        <field name="name">custom.dashboard.form.website</field>
+        <field name="model">custom.dashboard</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <field name="can_publish" invisible="1"/>
+            </xpath>
+            <xpath expr="//widget[@name='web_ribbon']" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <field name="is_published" widget="website_redirect_button" invisible="not id"/>
+                </div>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Website" name="website">
+                    <div class="alert alert-warning" role="alert" invisible="not is_published">
+                        This dashboard is public: anyone on the internet can see its data at
+                        <field name="website_url" class="d-inline fw-bold" readonly="1"/>.
+                    </div>
+                    <group>
+                        <group string="Publishing">
+                            <field name="website_published" string="Published" widget="boolean_toggle"
+                                   readonly="not can_publish"/>
+                            <field name="website_id" options="{'no_create': True}" groups="website.group_multi_website"
+                                   placeholder="All websites"/>
+                            <field name="website_url" string="Page URL" readonly="1" invisible="not id"/>
+                            <field name="website_show_in_menu"/>
+                        </group>
+                        <group string="Data">
+                            <field name="website_data_user_id" options="{'no_create': True}"
+                                   required="is_published"/>
+                            <div class="text-muted small" colspan="2">
+                                Visitors see exactly what this user can see in each widget, so pick a
+                                user whose access is limited to data that may be made public.
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_list_website" model="ir.ui.view">
+        <field name="name">custom.dashboard.list.website</field>
+        <field name="model">custom.dashboard</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_list"/>
+        <field name="arch" type="xml">
+            <field name="widget_count" position="after">
+                <field name="is_published" string="On Website" widget="boolean" optional="show"/>
+                <field name="website_id" groups="website.group_multi_website" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_kanban_website" model="ir.ui.view">
+        <field name="name">custom.dashboard.kanban.website</field>
+        <field name="model">custom.dashboard</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_kanban"/>
+        <field name="arch" type="xml">
+            <field name="color" position="after">
+                <field name="is_published"/>
+            </field>
+            <xpath expr="//footer" position="inside">
+                <span class="badge text-bg-success ms-auto" invisible="not is_published">
+                    <i class="fa fa-globe me-1" title="Published"/>Published
+                </span>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_search_website" model="ir.ui.view">
+        <field name="name">custom.dashboard.search.website</field>
+        <field name="model">custom.dashboard</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_search"/>
+        <field name="arch" type="xml">
+            <filter name="archived" position="before">
+                <filter name="published" string="Published" domain="[('is_published', '=', True)]"/>
+                <filter name="unpublished" string="Not Published" domain="[('is_published', '=', False)]"/>
+                <separator/>
+            </filter>
+        </field>
+    </record>
+</odoo>

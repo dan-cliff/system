@@ -179,10 +179,15 @@ class CustomDashboardWidget(models.Model):
     def get_widget_data(self):
         """Return ``{widget_id: data}`` for each widget, computed as the
         current user so their access rights and record rules apply."""
+        return self._get_widget_data(self.env)
+
+    def _get_widget_data(self, data_env):
+        """Return ``{widget_id: data}`` with the data read through
+        ``data_env``, whose user's access rights and record rules apply."""
         result = {}
         for widget in self:
             try:
-                result[widget.id] = widget._compute_data()
+                result[widget.id] = widget._compute_data(data_env)
             except (AccessError, UserError, ValidationError) as error:
                 result[widget.id] = {'error': str(error.args[0] if error.args else error)}
             except Exception:
@@ -211,29 +216,31 @@ class CustomDashboardWidget(models.Model):
         agg = dict(self._fields['aggregate']._description_selection(self.env)).get(aggregate, '')
         return '%s (%s)' % (field.field_description, agg) if agg else field.field_description
 
-    def _compute_data(self):
+    def _compute_data(self, data_env=None):
         self.ensure_one()
+        data_env = data_env if data_env is not None else self.env
         if self.data_mode == 'content':
             return {}
         if not self.model_id:
             return {'error': _('Choose a model for this widget.')}
-        if self.model_name not in self.env:
+        if self.model_name not in data_env:
             return {'error': _('Model "%s" is not available.', self.model_name)}
-        Model = self.env[self.model_name]
-        domain = self._get_domain()
+        Model = data_env[self.model_name]
+        domain = self._get_domain(data_env)
         if self.data_mode == 'single':
             return self._compute_single(Model, domain)
         if self.data_mode == 'points':
             return self._compute_points(Model, domain)
         return self._compute_grouped(Model, domain)
 
-    def _get_domain(self):
+    def _get_domain(self, data_env=None):
         if not self.domain:
             return []
-        today = fields.Date.context_today(self)
+        data_env = data_env if data_env is not None else self.env
+        today = fields.Date.context_today(self.with_env(data_env))
         eval_context = {
-            **self.env['ir.rule']._eval_context(),
-            'uid': self.env.uid,
+            **data_env['ir.rule']._eval_context(),
+            'uid': data_env.uid,
             'datetime': safe_datetime,
             'relativedelta': dateutil.relativedelta.relativedelta,
             'context_today': lambda: today,
