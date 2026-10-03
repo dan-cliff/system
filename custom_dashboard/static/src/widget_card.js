@@ -21,12 +21,17 @@ export class DashboardWidgetCard extends Component {
 
     setup() {
         this.canvasRef = useRef("canvas");
+        this.pivotRef = useRef("pivot");
         this.chart = null;
         useEffect(
             () => {
                 this.renderChart();
             },
             () => [this.props.widget, this.props.data, this.canvasRef.el]
+        );
+        useEffect(
+            () => this.equalizePivotColumns(),
+            () => [this.props.widget, this.props.data, this.pivotRef.el]
         );
         onWillUnmount(() => this.destroyChart());
     }
@@ -145,6 +150,23 @@ export class DashboardWidgetCard extends Component {
         const columnTotals = series.map((s) => this.format(s.values.reduce((a, b) => a + b, 0)));
         const grandTotal = this.format(series.reduce((sum, s) => sum + s.values.reduce((a, b) => a + b, 0), 0));
         return { columns: series.map((s) => s.label), rows, columnTotals, grandTotal };
+    }
+
+    /** Give every value column of a pivot the width of the widest one. */
+    equalizePivotColumns() {
+        const table = this.pivotRef.el;
+        if (!table) {
+            return;
+        }
+        const cols = [...table.querySelectorAll("col.o_cd_pivot_value")];
+        cols.forEach((col) => (col.style.width = ""));
+        const widths = [...table.querySelectorAll("th.o_cd_pivot_head")].map(
+            (cell) => cell.getBoundingClientRect().width
+        );
+        const widest = Math.ceil(Math.max(0, ...widths));
+        if (widest) {
+            cols.forEach((col) => (col.style.width = `${widest}px`));
+        }
     }
 
     // Chart ----------------------------------------------------------------

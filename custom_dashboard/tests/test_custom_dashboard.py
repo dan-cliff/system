@@ -260,7 +260,13 @@ class TestCustomDashboard(TransactionCase):
     # ------------------------------------------------------------------
     # Colours
     # ------------------------------------------------------------------
+    def _clear_default_colours(self):
+        params = self.env['ir.config_parameter'].sudo()
+        for i in range(1, 7):
+            params.set_param('custom_dashboard.default_color_%d' % i, False)
+
     def test_widget_colours_fall_back_to_defaults(self):
+        self._clear_default_colours()
         widget = self._widget('pie', groupby_field_id=self._field('country_id').id)
         self.assertEqual(widget._get_config()['colors'], [])
 
@@ -285,9 +291,71 @@ class TestCustomDashboard(TransactionCase):
             widget.color_4 = 'blue-ish'
 
     def test_custom_colours_start_from_defaults(self):
+        self._clear_default_colours()
         self.env['ir.config_parameter'].sudo().set_param('custom_dashboard.default_color_1', '#123456')
         widget = self._widget('pie', groupby_field_id=self._field('country_id').id)
         widget.custom_colors = True
         widget._onchange_custom_colors()
         self.assertEqual(widget.color, '#123456')
         self.assertFalse(widget.color_2)
+
+    # ------------------------------------------------------------------
+    # Pivot table axes
+    # ------------------------------------------------------------------
+    def test_pivot_show_all_selection_rows_in_sequence(self):
+        widget = self._widget(
+            'pivot', groupby_field_id=self._field('type').id, series_field_id=self._field('is_company').id,
+            pivot_show_all_rows=True, pivot_show_all_columns=True,
+            pivot_row_label='Address type', pivot_col_label='Company?',
+        )
+        data = widget.get_widget_data()[widget.id]
+        selection = dict(self.env['res.partner']._fields['type']._description_selection(self.env))
+        # Every option, in the selection's own order, even without records
+        self.assertEqual(data['labels'], list(selection.values()))
+        self.assertEqual([s['label'] for s in data['series']], ['Yes', 'No'])
+        contact = data['labels'].index(selection['contact'])
+        self.assertEqual(data['series'][0]['values'][contact], 2.0)
+        self.assertEqual(data['series'][1]['values'][contact], 1.0)
+        self.assertEqual(sum(data['series'][0]['values']), 2.0)
+        config = widget._get_config()
+        self.assertEqual((config['pivot_row_label'], config['pivot_col_label']), ('Address type', 'Company?'))
+
+    def test_pivot_without_show_all_lists_only_used_values(self):
+        widget = self._widget('pivot', groupby_field_id=self._field('type').id,
+                              series_field_id=self._field('is_company').id)
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual(len(data['labels']), 1)
+
+    def test_pivot_axis_sorting(self):
+        widget = self._widget(
+            'pivot', groupby_field_id=self._field('country_id').id, series_field_id=self._field('is_company').id,
+            pivot_row_sort='value_asc', pivot_col_sort='label',
+        )
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual(data['labels'], [self.country_fr.display_name, self.country_be.display_name])
+        self.assertEqual([s['label'] for s in data['series']], ['No', 'Yes'])
+        widget.pivot_row_sort = 'sequence'
+        data = widget.get_widget_data()[widget.id]
+        # Countries' own order is by name
+        self.assertEqual(data['labels'], sorted(data['labels']))
+
+    def test_pivot_show_all_fills_date_gaps(self):
+        currency = self.env['res.currency'].create({'name': 'CDP', 'symbol': 'P'})
+        self.env['res.currency.rate'].create([
+            {'currency_id': currency.id, 'name': '2026-01-15', 'rate': 1.0},
+            {'currency_id': currency.id, 'name': '2026-04-02', 'rate': 1.0},
+        ])
+        widget = self.env['custom.dashboard.widget'].create({
+            'dashboard_id': self.dashboard.id,
+            'type_id': self.env.ref('custom_dashboard.widget_type_pivot').id,
+            'name': 'Rates by month',
+            'model_id': self.env['ir.model']._get('res.currency.rate').id,
+            'domain': "[('currency_id', '=', %d)]" % currency.id,
+            'groupby_field_id': self.env['ir.model.fields']._get('res.currency.rate', 'name').id,
+            'groupby_interval': 'month',
+            'series_field_id': self.env['ir.model.fields']._get('res.currency.rate', 'currency_id').id,
+            'pivot_show_all_rows': True,
+        })
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual(data['labels'], ['01/2026', '02/2026', '03/2026', '04/2026'])
+        self.assertEqual(data['series'][0]['values'], [1.0, 0.0, 0.0, 1.0])
