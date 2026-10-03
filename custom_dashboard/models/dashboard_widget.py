@@ -112,6 +112,8 @@ class CustomDashboardWidget(models.Model):
     color = fields.Char(string='Colour', help='Hex colour for single-series charts. Empty uses the palette.')
     show_legend = fields.Boolean(string='Show Legend', default=True)
     show_values = fields.Boolean(string='Show Values')
+    show_border = fields.Boolean(string='Show Border', default=True, help='Draw a thin border around the widget.')
+    show_shadow = fields.Boolean(string='Show Drop Shadow', help='Lift the widget off the page with a soft shadow.')
     decimals = fields.Integer(string='Decimals', default=0)
     prefix = fields.Char(string='Prefix', help='Shown before values, e.g. $.')
     suffix = fields.Char(string='Suffix', help='Shown after values, e.g. kg.')
@@ -180,6 +182,8 @@ class CustomDashboardWidget(models.Model):
             'color': self.color or '',
             'show_legend': self.show_legend,
             'show_values': self.show_values,
+            'show_border': self.show_border,
+            'show_shadow': self.show_shadow,
             'decimals': max(self.decimals, 0),
             'prefix': self.prefix or '',
             'suffix': self.suffix or '',

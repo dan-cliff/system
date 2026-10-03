@@ -13,6 +13,11 @@
 
     .o_cd_grid {
         min-height: 400px;
+
+        // Let widget drop shadows show; the card clips its own content.
+        > .grid-stack-item > .grid-stack-item-content {
+            overflow: visible;
+        }
     }
 
     &.o_cd_editing .o_cd_grid {
@@ -68,12 +73,23 @@
     }
 }
 
+// Backend cards sit on the grey webclient background, so use the view colour.
+.o_cd_action .o_cd_card {
+    background-color: $o-view-background-color;
+
+    .o_cd_table_wrap thead th {
+        background-color: $o-view-background-color;
+    }
+}
+
 .o_cd_editing .o_cd_card {
     .o_cd_card_header {
         cursor: move;
     }
 
+    // An outline, so widgets without a border still highlight while editing.
     &:hover {
-        border-color: $o-action;
+        outline: 1px solid $o-action;
+        outline-offset: -1px;
     }
 }

@@ -68,9 +68,15 @@
                             <field name="domain" widget="domain" invisible="not model_id"
                                    options="{'model': 'model_name', 'in_dialog': True}"/>
                         </page>
-                        <page string="Display" name="display" invisible="data_mode == 'content'">
+                        <page string="Display" name="display">
                             <group>
-                                <group>
+                                <group string="Frame">
+                                    <field name="show_border"/>
+                                    <field name="show_shadow"/>
+                                </group>
+                            </group>
+                            <group invisible="data_mode == 'content'">
+                                <group string="Values">
                                     <field name="color" widget="color" invisible="data_mode == 'single'"/>
                                     <field name="show_legend" invisible="data_mode != 'grouped' or type_code in ('table', 'pivot')"/>
                                     <field name="show_values" invisible="data_mode != 'grouped' or type_code in ('table', 'pivot')"/>
@@ -78,7 +84,7 @@
                                     <field name="prefix"/>
                                     <field name="suffix"/>
                                 </group>
-                                <group invisible="data_mode != 'single'">
+                                <group string="Target" invisible="data_mode != 'single'">
                                     <field name="target_value"/>
                                     <field name="gauge_min" invisible="type_code != 'gauge'"/>
                                     <field name="gauge_max" invisible="type_code != 'gauge'"/>
