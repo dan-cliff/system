@@ -375,3 +375,44 @@ class TestCustomDashboard(TransactionCase):
         widget.write({'aggregate': 'avg', 'map_country_id': self.country_be.id})
         data = widget.get_widget_data()[widget.id]
         self.assertEqual([(r['key'], r['value']) for r in data['regions']], [('BE', 2.5)])
+
+    def test_pivot_hide_none_and_totals(self):
+        self.env['res.partner'].create({'name': 'CD Nowhere', 'is_company': True})
+        widget = self._widget(
+            'pivot', groupby_field_id=self._field('country_id').id, series_field_id=self._field('parent_id').id,
+        )
+        data = widget.get_widget_data()[widget.id]
+        self.assertIn('None', data['labels'])
+        self.assertIn('None', [s['label'] for s in data['series']])
+        config = widget._get_config()
+        self.assertTrue(config['pivot_row_totals'] and config['pivot_column_totals'])
+
+        widget.write({
+            'pivot_hide_none_rows': True, 'pivot_hide_none_columns': True,
+            'pivot_hide_row_totals': True, 'pivot_hide_column_totals': True,
+        })
+        data = widget.get_widget_data()[widget.id]
+        self.assertNotIn('None', data['labels'])
+        self.assertEqual(sorted(data['labels']), sorted([self.country_be.display_name, self.country_fr.display_name]))
+        self.assertNotIn('None', [s['label'] for s in data['series']])
+        config = widget._get_config()
+        self.assertFalse(config['pivot_row_totals'] or config['pivot_column_totals'])
+
+    def test_pivot_boolean_no_is_not_none(self):
+        widget = self._widget(
+            'pivot', groupby_field_id=self._field('is_company').id, series_field_id=self._field('country_id').id,
+            pivot_hide_none_rows=True,
+        )
+        self.assertEqual(sorted(widget.get_widget_data()[widget.id]['labels']), ['No', 'Yes'])
+
+    def test_pivot_sequence_reversed(self):
+        self.env['res.partner'].create({'name': 'CD Nowhere'})
+        widget = self._widget(
+            'pivot', groupby_field_id=self._field('country_id').id, series_field_id=self._field('is_company').id,
+            pivot_row_sort='sequence_desc', pivot_col_sort='sequence_desc',
+        )
+        data = widget.get_widget_data()[widget.id]
+        names = sorted([self.country_be.display_name, self.country_fr.display_name])
+        # Reversed sequence, with the "None" group still last
+        self.assertEqual(data['labels'], names[::-1] + ['None'])
+        self.assertEqual([s['label'] for s in data['series']], ['No', 'Yes'])

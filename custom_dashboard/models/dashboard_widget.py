@@ -57,6 +57,7 @@ BUILTIN_COLORS = ['#4EA7F2', '#EA6175', '#43C5B1', '#F4A261', '#8481DD', '#FFD86
 COLOR_FIELDS = ['color', 'color_2', 'color_3', 'color_4', 'color_5', 'color_6']
 AXIS_SORTS = [
     ('sequence', 'Sequence'),
+    ('sequence_desc', 'Sequence (reversed)'),
     ('label', 'Name'),
     ('value_desc', 'Largest first'),
     ('value_asc', 'Smallest first'),
@@ -145,13 +146,22 @@ class CustomDashboardWidget(models.Model):
     pivot_row_sort = fields.Selection(
         AXIS_SORTS, string='Sort Groups By', default='sequence', required=True,
         help='Sequence follows the field\'s own order: the linked records\' order, the order of the '
-             'selection options, Yes before No, or oldest date first.',
+             'selection options, Yes before No, or oldest date first. Sequence (reversed) is the '
+             'opposite, e.g. newest date first.',
     )
     pivot_col_sort = fields.Selection(AXIS_SORTS, string='Sort Series By', default='sequence', required=True)
     pivot_row_label = fields.Char(string='Group Label', translate=True,
                                   help='Shown alongside the rows, e.g. "Department".')
     pivot_col_label = fields.Char(string='Series Label', translate=True,
                                   help='Shown above the columns, e.g. "Injury type".')
+    pivot_hide_none_rows = fields.Boolean(
+        string='Hide "None" Group', help='Leave out the row of records with no value for the group field.')
+    pivot_hide_none_columns = fields.Boolean(
+        string='Hide "None" Series', help='Leave out the column of records with no value for the series field.')
+    pivot_hide_row_totals = fields.Boolean(
+        string='Hide Group Totals', help='Hide the Total column that adds up each group across the series.')
+    pivot_hide_column_totals = fields.Boolean(
+        string='Hide Series Totals', help='Hide the Total row that adds up each series across the groups.')
 
     # Display
     custom_colors = fields.Boolean(
@@ -282,6 +292,8 @@ class CustomDashboardWidget(models.Model):
             'text_content': self.text_content or '',
             'pivot_row_label': self.pivot_row_label or '',
             'pivot_col_label': self.pivot_col_label or '',
+            'pivot_row_totals': not self.pivot_hide_row_totals,
+            'pivot_column_totals': not self.pivot_hide_column_totals,
             'map_level': self.map_level,
             'map_country_code': self.map_country_id.code or self.map_state_id.country_id.code or '',
             'map_state_key': self._map_state_key(self.map_state_id),
@@ -701,6 +713,10 @@ class CustomDashboardWidget(models.Model):
         if is_pivot and series_field and self.pivot_show_all_columns:
             for raw in self._all_group_values(Model, series_field, self.series_interval, list(series.values())):
                 series.setdefault(self._group_key(raw), raw)
+        if is_pivot and self.pivot_hide_none_rows:
+            groups = {k: g for k, g in groups.items() if not self._is_none_group(group_field, g['raw'])}
+        if is_pivot and series_field and self.pivot_hide_none_columns:
+            series = {k: raw for k, raw in series.items() if not self._is_none_group(series_field, raw)}
 
         keys = list(groups)
         if is_pivot:
@@ -765,11 +781,19 @@ class CustomDashboardWidget(models.Model):
             return values
         return []
 
+    @api.model
+    def _is_none_group(self, field, raw):
+        """Whether ``raw`` is the "None" group (no value). False is "No" for booleans."""
+        if field.ttype == 'boolean':
+            return raw is None
+        if field.ttype == 'integer':
+            return raw is None or raw is False
+        return not raw
+
     def _sort_axis(self, Model, field, interval, order, keys, raw_of, value_of):
         """Order pivot ``keys`` by ``order`` (see AXIS_SORTS); empty groups last."""
         def empty(key):
-            raw = raw_of(key)
-            return not raw and raw is not False if field.ttype == 'boolean' else not raw
+            return self._is_none_group(field, raw_of(key))
 
         if order == 'label':
             def label_key(key):
@@ -777,6 +801,10 @@ class CustomDashboardWidget(models.Model):
             return sorted(keys, key=label_key)
         sequence_key = self._sequence_key(Model, field, [raw_of(k) for k in keys])
         ordered = sorted(keys, key=lambda k: (empty(k), sequence_key(raw_of(k))))
+        if order == 'sequence_desc':
+            # Reverse the order but keep empty groups at the end.
+            filled = [k for k in ordered if not empty(k)]
+            return filled[::-1] + [k for k in ordered if empty(k)]
         if order in ('value_desc', 'value_asc'):
             # Stable sort: equal values keep their sequence order.
             ordered.sort(key=value_of, reverse=order == 'value_desc')
