@@ -39,5 +39,8 @@ A visual dashboard builder powered by gridstack.js and Chart.js.
     },
     'installable': True,
     'application': True,
+    # Not icon.png: browsers cache that URL for a week, so a new name
+    # makes the Apps list pick up the current artwork.
+    'icon': '/custom_dashboard/static/description/app_icon.png',
     'license': 'LGPL-3',
 }

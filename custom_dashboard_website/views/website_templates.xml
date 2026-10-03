@@ -11,7 +11,7 @@
                         <div t-foreach="dashboards" t-as="dashboard" class="col-12 col-md-6 col-lg-4">
                             <a t-att-href="dashboard.website_url" class="card h-100 text-decoration-none text-reset">
                                 <div class="card-body d-flex gap-3 align-items-start">
-                                    <img src="/custom_dashboard/static/description/icon.png" alt="" width="48" height="48"/>
+                                    <img src="/custom_dashboard/static/description/app_icon.png" alt="" width="48" height="48"/>
                                     <div>
                                         <h5 class="card-title mb-1" t-field="dashboard.name"/>
                                         <p class="card-text text-muted small mb-0" t-if="dashboard.description" t-field="dashboard.description"/>
