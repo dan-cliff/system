@@ -1,6 +1,6 @@
 {
     'name': 'Custom Dashboards',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'summary': 'Build drag-and-drop dashboards of charts, KPIs and tables from any model',
     'description': """
 Custom Dashboards
@@ -15,6 +15,10 @@ A visual dashboard builder powered by gridstack.js and Chart.js.
   date interval, series split, measure and filter). Users only see the
   data their access rights allow.
 * Dashboard managers build dashboards and share them with users or groups.
+* "Generate with AI" designs a whole dashboard from a plain-language request,
+  using Claude AI first and Google Gemini as the fallback. It appears when an
+  API key is set in Settings > General Settings (AI Integration Settings).
+  Claude needs the ``anthropic`` Python package on the server.
 """,
     'category': 'Productivity',
     'author': "Cliff's Country Crafts",

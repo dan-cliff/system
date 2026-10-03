@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="custom_dashboard.AIButtons">
+        <button t-if="dashboardAI.state.providers.length" type="button"
+                class="btn btn-secondary o_cd_ai_button" t-on-click="() => dashboardAI.open()">
+            <i class="fa fa-magic me-1"/>Generate with AI
+        </button>
+    </t>
+
+    <t t-name="custom_dashboard.GenerateDashboardDialog">
+        <Dialog title.translate="Generate with AI" size="'lg'">
+            <p class="text-muted mb-2">
+                Describe the dashboard you need: what it is for, which figures matter, how they should be
+                broken down and over what period. The AI picks the data, widgets and layout for you, and you can
+                fine-tune everything afterwards.
+            </p>
+            <textarea t-ref="prompt" class="form-control o_cd_ai_prompt" rows="7"
+                      t-model="state.prompt" t-att-disabled="state.busy" t-on-keydown="onKeydown"
+                      placeholder="e.g. A sales dashboard for the last 12 months: revenue and order count KPIs, revenue by month split by salesperson, top 10 customers, and sales by country on a map."/>
+            <div t-if="state.busy" class="d-flex align-items-center gap-2 mt-3 text-muted o_cd_ai_status">
+                <i class="fa fa-circle-o-notch fa-spin"/>
+                <span t-esc="state.status"/>
+            </div>
+            <div t-if="state.errors.length and !state.busy" class="alert alert-danger mt-3 mb-0 o_cd_ai_errors" role="alert">
+                <div class="fw-bold mb-1">The dashboard could not be generated.</div>
+                <div t-foreach="state.errors" t-as="error" t-key="error_index" class="small" t-esc="error"/>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary o_cd_ai_generate" t-att-disabled="!canGenerate" t-on-click="onGenerate">
+                    <i class="fa fa-magic me-1"/>Generate
+                </button>
+                <button class="btn btn-secondary o_cd_ai_cancel" t-on-click="() => props.close()">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
