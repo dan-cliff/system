@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.custom_dashboard</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="95"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Dashboards" id="custom_dashboard" string="Dashboards" name="custom_dashboard"
+                     logo="/custom_dashboard/static/description/app_icon.png"
+                     groups="custom_dashboard.group_dashboard_manager">
+                    <block title="Widget Colours" id="custom_dashboard_colors">
+                        <setting id="custom_dashboard_default_colors" string="Default Colours"
+                                 help="Widgets without custom colours cycle through these, starting again from the first when there are more series or slices. Leave all empty to use Odoo's chart colours.">
+                            <div class="content-group">
+                                <div class="o_row mt8">
+                                    <field name="cd_default_color_1" widget="color"/>
+                                    <field name="cd_default_color_2" widget="color"/>
+                                    <field name="cd_default_color_3" widget="color"/>
+                                    <field name="cd_default_color_4" widget="color"/>
+                                    <field name="cd_default_color_5" widget="color"/>
+                                    <field name="cd_default_color_6" widget="color"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_custom_dashboard_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'custom_dashboard', 'bin_size': False}</field>
+    </record>
+</odoo>

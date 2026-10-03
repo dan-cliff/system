@@ -66,12 +66,16 @@ export function makeFormatter(widget) {
     };
 }
 
-function paletteColor(index, count) {
+/**
+ * Colour ``index`` of ``count`` for a widget: its own or the default colours
+ * (cycling when there are more items than colours), else Odoo's palette.
+ */
+export function colorAt(widget, index, count) {
+    const colors = widget.colors || [];
+    if (colors.length) {
+        return colors[index % colors.length];
+    }
     return getColor(index, colorScheme(), count);
-}
-
-function singleColor(widget) {
-    return widget.color || paletteColor(0, 1);
 }
 
 /**
@@ -209,11 +213,11 @@ export function buildChartConfig(widget, data) {
     const groupDatasets = (opts = {}) => {
         if (hasSeries) {
             return series.map((s, i) => {
-                const color = paletteColor(i, series.length);
+                const color = colorAt(widget, i, series.length);
                 return { label: s.label, data: s.values, backgroundColor: color, borderColor: color, ...opts };
             });
         }
-        const color = singleColor(widget);
+        const color = colorAt(widget, 0, 1);
         return [{ label: widget.measure_label, data: values, backgroundColor: color, borderColor: color, ...opts }];
     };
 
@@ -285,8 +289,8 @@ export function buildChartConfig(widget, data) {
             return base;
         }
         case "combo": {
-            const barColor = singleColor(widget);
-            const lineColor = paletteColor(1, 6);
+            const barColor = colorAt(widget, 0, 1);
+            const lineColor = colorAt(widget, 1, 6);
             base.type = "bar";
             base.data.datasets = [
                 {
@@ -334,7 +338,7 @@ export function buildChartConfig(widget, data) {
                     displayValues: [...values, total],
                     backgroundColor: [
                         ...values.map((v) => (v >= 0 ? POSITIVE : NEGATIVE)),
-                        widget.color || paletteColor(0, 1),
+                        colorAt(widget, 0, 1),
                     ],
                     borderRadius: 2,
                     maxBarThickness: 48,
@@ -353,7 +357,7 @@ export function buildChartConfig(widget, data) {
                     label: widget.measure_label,
                     data: values.map((v) => [(max - v) / 2, (max + v) / 2]),
                     displayValues: values,
-                    backgroundColor: labels.map((_, i) => widget.color || paletteColor(i, labels.length)),
+                    backgroundColor: labels.map((_, i) => colorAt(widget, i, labels.length)),
                     barPercentage: 0.95,
                     categoryPercentage: 1,
                 },
@@ -370,7 +374,7 @@ export function buildChartConfig(widget, data) {
         case "pie":
         case "donut":
         case "polar_area": {
-            const colors = labels.map((_, i) => paletteColor(i, labels.length));
+            const colors = labels.map((_, i) => colorAt(widget, i, labels.length));
             base.type = type === "polar_area" ? "polarArea" : type === "donut" ? "doughnut" : "pie";
             base.data.datasets = [
                 {
@@ -412,7 +416,7 @@ export function buildChartConfig(widget, data) {
             return base;
         }
         case "scatter": {
-            const color = singleColor(widget);
+            const color = colorAt(widget, 0, 1);
             const points = data.points || [];
             base.type = "scatter";
             base.data.labels = points.map((p) => p.label);
@@ -440,7 +444,7 @@ export function buildChartConfig(widget, data) {
             const maxCount = Math.max(...counts, 1);
             base.type = "bubble";
             base.data.datasets = labels.map((label, i) => {
-                const color = paletteColor(i, labels.length);
+                const color = colorAt(widget, i, labels.length);
                 return {
                     label,
                     data: [{ x: values[i], y: (data.values2 || [])[i] || 0, r: 4 + (20 * counts[i]) / maxCount }],
@@ -461,7 +465,7 @@ export function buildChartConfig(widget, data) {
             const min = widget.gauge_min || 0;
             const max = widget.gauge_max > min ? widget.gauge_max : min + 100;
             const value = Math.min(Math.max(data.value || 0, min), max);
-            let color = widget.color || paletteColor(0, 1);
+            let color = colorAt(widget, 0, 1);
             if (widget.target) {
                 color = (data.value || 0) >= widget.target ? POSITIVE : NEGATIVE;
             }
