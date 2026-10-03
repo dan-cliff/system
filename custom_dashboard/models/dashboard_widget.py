@@ -50,6 +50,8 @@ MAP_LEVELS = [
 # Contact locations are rounded to about 1 km so a public map never
 # pinpoints an address.
 MAP_POINT_PRECISION = 2
+# Records read when a map's address path can only be followed in Python.
+MAP_MAX_RECORDS = 20000
 # Odoo's own six-colour chart palette, used when no default colours are set.
 BUILTIN_COLORS = ['#4EA7F2', '#EA6175', '#43C5B1', '#F4A261', '#8481DD', '#FFD86D']
 COLOR_FIELDS = ['color', 'color_2', 'color_3', 'color_4', 'color_5', 'color_6']
@@ -516,21 +518,16 @@ class CustomDashboardWidget(models.Model):
 
     def _compute_map(self, Model, domain):
         path = self._map_partner_path(Model)
-        prefix = path + '.' if path else ''
-        if self.map_state_id:
-            domain = domain + [(prefix + 'state_id', '=', self.map_state_id.id)]
-        elif self.map_country_id:
-            domain = domain + [(prefix + 'country_id', '=', self.map_country_id.id)]
         self._check_field(Model, self.measure_field_id)
         aggregates = [self._aggregate_spec(self.measure_field_id, self.aggregate), '__count']
 
         if self.map_level == 'point':
             return self._compute_map_points(Model, domain, path, aggregates)
 
-        groupby = prefix + ('state_id' if self.map_level == 'state' else 'country_id')
+        target = 'state_id' if self.map_level == 'state' else 'country_id'
         regions = []
         unlocated = 0
-        for group, value, count in Model._read_group(domain, [groupby], aggregates, limit=MAX_GROUPS):
+        for group, value, count in self._map_read_group(Model, domain, path, target, aggregates, MAX_GROUPS):
             if not group:
                 unlocated += count
                 continue
@@ -548,12 +545,74 @@ class CustomDashboardWidget(models.Model):
             })
         return {'regions': regions, 'unlocated': unlocated}
 
+    def _map_read_group(self, Model, domain, path, target, aggregates, limit):
+        """``[(group, value, count)]`` with records grouped by the contact at
+        ``path`` (or its ``target`` field, e.g. country_id).
+
+        The database groups the records when every step of the path is a
+        stored field. Paths through computed fields (e.g. an employee's
+        User Partner) can't be grouped in SQL, so those records are read
+        and grouped here instead.
+        """
+        steps = path.split('.') if path else []
+        current, stored = Model, True
+        for name in steps:
+            field = current._fields[name]
+            stored = stored and field.store
+            current = Model.env[field.comodel_name]
+        # Zoom to Country / State also limits the records counted.
+        focus_field, focus = (
+            ('state_id', self.map_state_id) if self.map_state_id
+            else ('country_id', self.map_country_id) if self.map_country_id
+            else (None, None)
+        )
+        if stored:
+            if focus:
+                domain = domain + [('.'.join(steps + [focus_field]), '=', focus.id)]
+            groupby = '.'.join(steps + [target]) if target else (path or 'id')
+            return Model._read_group(domain, [groupby], aggregates, limit=limit)
+
+        measure = self.measure_field_id.name if self.measure_field_id else None
+        records = Model.search_fetch(domain, [measure] if measure else [], limit=MAP_MAX_RECORDS)
+        buckets = {}
+        for record in records:
+            group = record
+            for name in steps:
+                group = group[name]
+            if focus and group[focus_field] != focus:
+                continue
+            if target:
+                group = group[target]
+            bucket = buckets.setdefault(group.id, [group, []])
+            bucket[1].append(record[measure] if measure else None)
+        result = [
+            (group, self._aggregate_values(values), len(values))
+            for group, values in buckets.values()
+        ]
+        return result[:limit]
+
+    def _aggregate_values(self, values):
+        """Python version of the widget's SQL aggregate (empty values skipped)."""
+        if not self.measure_field_id:
+            return float(len(values))
+        present = [v for v in values if v is not False and v is not None]
+        if self.aggregate == 'count_distinct':
+            return float(len(set(present)))
+        if not present:
+            return 0.0
+        if self.aggregate == 'avg':
+            return float(sum(present)) / len(present)
+        if self.aggregate == 'min':
+            return float(min(present))
+        if self.aggregate == 'max':
+            return float(max(present))
+        return float(sum(present))
+
     def _compute_map_points(self, Model, domain, path, aggregates):
         Partner = Model.env['res.partner']
         if 'partner_latitude' not in Partner._fields:
             return {'error': _('Contact locations need the Partners Geolocation app (base_geolocalize).')}
-        groupby = path or 'id'
-        rows = Model._read_group(domain, [groupby], aggregates, limit=MAX_POINTS)
+        rows = self._map_read_group(Model, domain, path, None, aggregates, MAX_POINTS)
         # Contacts the reader may not open are left off the map.
         partners = Partner.browse([row[0].id for row in rows if row[0]])._filtered_access('read')
         coords = {
