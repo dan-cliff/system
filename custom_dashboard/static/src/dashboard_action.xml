@@ -8,6 +8,10 @@
                         <button class="btn btn-secondary" t-on-click="onRefresh" title="Refresh data">
                             <i class="fa fa-refresh"/>
                         </button>
+                        <button t-if="!state.editing and state.widgets.length" class="btn btn-secondary o_cd_export_pdf"
+                                t-on-click="onExportPDF" t-att-disabled="state.exporting" title="Export an A3 PDF for printing">
+                            <i t-attf-class="fa {{state.exporting ? 'fa-circle-o-notch fa-spin' : 'fa-file-pdf-o'}} me-1"/>Export PDF
+                        </button>
                         <t t-if="state.dashboard.can_edit">
                             <button t-if="!state.editing" class="btn btn-primary" t-on-click="onToggleEdit">
                                 <i class="fa fa-pencil me-1"/>Edit Layout

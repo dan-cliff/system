@@ -1,7 +1,20 @@
+import base64
+import re
+
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 
 MANAGER_GROUP = 'custom_dashboard.group_dashboard_manager'
+
+# PDF export: A3 landscape less the margins of paperformat_dashboard_a3 and
+# the report body's container padding (12 px a side), in mm.
+PDF_PAGE_WIDTH = 393.0
+PDF_PAGE_HEIGHT = 248.0
+PDF_GAP = 1.5
+COLUMNS = 12
+# On screen a grid row is 80 px; a column is a twelfth of the grid width.
+DEFAULT_ROW_RATIO = 0.7
+PNG_DATA_URI = re.compile(r'^data:image/(png|jpeg);base64,[A-Za-z0-9+/=]+$')
 
 
 class CustomDashboard(models.Model):
@@ -129,3 +142,103 @@ class CustomDashboard(models.Model):
             'height': max(int(h or widget_type.default_height or 4), 1),
         })
         return widget._get_config()
+
+    # ------------------------------------------------------------------
+    # PDF export
+    # ------------------------------------------------------------------
+    def export_pdf(self, items, row_ratio=None):
+        """Render the dashboard as an A3 PDF and return it base64-encoded.
+
+        ``items`` are ``{"id", "x", "y", "w", "h", "image"}`` dicts: the grid
+        position of each widget and a PNG snapshot taken in the browser, so
+        the PDF shows exactly what the user sees. ``row_ratio`` is the height
+        of a grid row divided by the width of a grid column on screen.
+        """
+        self.ensure_one()
+        self.check_access('read')
+        widget_ids = set(self.widget_ids.ids)
+        items = [
+            item for item in items or []
+            if item.get('id') in widget_ids and PNG_DATA_URI.match(item.get('image') or '')
+        ]
+        if not items:
+            raise UserError(_('There is nothing to export on this dashboard.'))
+        report = self.env.ref('custom_dashboard.action_report_dashboard_pdf')
+        now = fields.Datetime.context_timestamp(self, fields.Datetime.now())
+        data = {
+            'company_id': self.env.company.id,
+            'printed': now.strftime('%d/%m/%Y %H:%M'),
+            'pages': self._pdf_pages(items, row_ratio),
+            'page_width': PDF_PAGE_WIDTH,
+            'page_height': PDF_PAGE_HEIGHT,
+            'gap': PDF_GAP,
+        }
+        pdf, _report_type = self.env['ir.actions.report'].with_company(self.env.company)._render_qweb_pdf(
+            report.report_name, self.ids, data=data,
+        )
+        return {
+            'filename': '%s.pdf' % re.sub(r'[\\/:*?"<>|]+', '-', self.name).strip(),
+            'content': base64.b64encode(pdf).decode(),
+        }
+
+    @api.model
+    def _pdf_pages(self, items, row_ratio=None):
+        """Lay the widgets out on pages, keeping the dashboard's arrangement.
+
+        Widgets keep their columns and rows. When a widget would cross the
+        bottom of a page, a new page starts at that widget's row, so no
+        widget is ever cut in two. A widget taller than a page is shrunk to
+        fit one page.
+        """
+        try:
+            ratio = float(row_ratio or DEFAULT_ROW_RATIO)
+        except (TypeError, ValueError):
+            ratio = DEFAULT_ROW_RATIO
+        ratio = min(max(ratio, 0.2), 2.0)
+        col_mm = PDF_PAGE_WIDTH / COLUMNS
+        row_mm = col_mm * ratio
+
+        def number(item, key, low, high, default):
+            try:
+                return min(max(int(item.get(key)), low), high)
+            except (TypeError, ValueError):
+                return default
+
+        widgets = []
+        for item in items:
+            w = number(item, 'w', 1, COLUMNS, COLUMNS)
+            widgets.append({
+                'x': number(item, 'x', 0, COLUMNS - w, 0),
+                'y': number(item, 'y', 0, 10000, 0),
+                'w': w,
+                'h': number(item, 'h', 1, 1000, 1),
+                'image': item['image'],
+            })
+        widgets.sort(key=lambda widget: (widget['y'], widget['x']))
+
+        pages = []
+        start = None
+        for widget in widgets:
+            widget['height'] = min(widget['h'] * row_mm, PDF_PAGE_HEIGHT)
+            if start is None or (widget['y'] - start) * row_mm + widget['height'] > PDF_PAGE_HEIGHT + 0.01:
+                # Start the next page at this widget's row, taking along the
+                # widgets of the same row already placed, so rows stay whole.
+                start = widget['y']
+                moved = [other for other in pages[-1] if other['y'] >= start] if pages else []
+                if moved:
+                    pages[-1] = [other for other in pages[-1] if other['y'] < start]
+                pages.append(moved)
+            pages[-1].append(widget)
+        return [
+            [
+                {
+                    'left': round(widget['x'] * col_mm, 2),
+                    'top': round((widget['y'] - min(other['y'] for other in page)) * row_mm, 2),
+                    'width': round(widget['w'] * col_mm, 2),
+                    'height': round(widget['height'], 2),
+                    'image': widget['image'],
+                }
+                for widget in page
+            ]
+            for page in pages if page
+        ]

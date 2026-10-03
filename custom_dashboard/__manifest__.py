@@ -1,6 +1,6 @@
 {
     'name': 'Custom Dashboards',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.3.0',
     'summary': 'Build drag-and-drop dashboards of charts, KPIs and tables from any model',
     'description': """
 Custom Dashboards
@@ -15,6 +15,9 @@ A visual dashboard builder powered by gridstack.js and Chart.js.
   date interval, series split, measure and filter). Users only see the
   data their access rights allow.
 * Dashboard managers build dashboards and share them with users or groups.
+* Export to PDF: an A3 landscape print-out with the current company's
+  branding, the dashboard title in the header and "1 of 3" page numbers.
+  Widgets are never split across pages.
 """,
     'category': 'Productivity',
     'author': "Cliff's Country Crafts",
@@ -32,6 +35,7 @@ A visual dashboard builder powered by gridstack.js and Chart.js.
         'views/dashboard_views.xml',
         'views/res_config_settings_views.xml',
         'views/menus.xml',
+        'report/dashboard_report.xml',
     ],
     'assets': {
         'web.assets_backend': [

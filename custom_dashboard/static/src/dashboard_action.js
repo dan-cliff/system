@@ -18,6 +18,8 @@ import { DashboardWidgetCard } from "./widget_card";
 
 const GRIDSTACK_JS = "/custom_dashboard/static/lib/gridstack/gridstack-all.js";
 const GRIDSTACK_CSS = "/custom_dashboard/static/lib/gridstack/gridstack.min.css";
+const HTML_TO_IMAGE_JS = "/custom_dashboard/static/lib/html-to-image/html-to-image.js";
+const CELL_HEIGHT = 80;
 const COLUMNS = 12;
 const SAVE_DELAY = 500;
 
@@ -53,6 +55,7 @@ export class CustomDashboardAction extends Component {
             widgets: [],
             data: {},
             editing: false,
+            exporting: false,
         });
 
         onWillStart(async () => {
@@ -152,7 +155,7 @@ export class CustomDashboardAction extends Component {
         this.grid = window.GridStack.init(
             {
                 column: COLUMNS,
-                cellHeight: 80,
+                cellHeight: CELL_HEIGHT,
                 margin: 6,
                 float: false,
                 staticGrid: true,
@@ -253,6 +256,75 @@ export class CustomDashboardAction extends Component {
             views: [[false, "form"]],
             target: "current",
         });
+    }
+
+    /**
+     * Snapshot every widget as shown on screen and let the server lay the
+     * snapshots out on branded A3 pages.
+     */
+    async onExportPDF() {
+        if (this.state.exporting || !this.state.widgets.length) {
+            return;
+        }
+        this.state.exporting = true;
+        try {
+            await loadJS(HTML_TO_IMAGE_JS);
+            // Let charts finish their entry animation before the snapshot.
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            const fullGrid = this.grid && this.grid.getColumn() === COLUMNS;
+            const nodes = new Map((this.grid?.engine.nodes || []).map((n) => [n.el?.dataset.widgetId, n]));
+            const items = [];
+            for (const widget of this.state.widgets) {
+                const el = this.gridRef.el.querySelector(`.grid-stack-item[data-widget-id="${widget.id}"] .o_cd_card`);
+                if (!el) {
+                    continue;
+                }
+                // The phone layout stacks widgets; use the saved layout then.
+                const node = fullGrid ? nodes.get(String(widget.id)) : null;
+                const image = await window.htmlToImage.toPng(el, {
+                    pixelRatio: 2,
+                    backgroundColor: "#ffffff",
+                    // Leave out the edit tools and the map's zoom buttons.
+                    filter: (child) =>
+                        !child.classList?.contains("o_cd_card_tools") && !child.classList?.contains("leaflet-bar"),
+                });
+                items.push({
+                    id: widget.id,
+                    x: node ? node.x : widget.x,
+                    y: node ? node.y : widget.y,
+                    w: node ? node.w : widget.w,
+                    h: node ? node.h : widget.h,
+                    image,
+                });
+            }
+            const columnWidth = fullGrid ? this.gridRef.el.clientWidth / COLUMNS : 0;
+            const rowRatio = columnWidth ? CELL_HEIGHT / columnWidth : null;
+            const result = await this.orm.call("custom.dashboard", "export_pdf", [[this.dashboardId], items], {
+                row_ratio: rowRatio,
+            });
+            this.downloadPDF(result);
+        } catch (error) {
+            if (error?.data || error?.exceptionName) {
+                throw error;
+            }
+            this.notification.add(_t("The dashboard could not be exported: %s", error?.message || error), {
+                type: "danger",
+            });
+        } finally {
+            this.state.exporting = false;
+        }
+    }
+
+    downloadPDF({ filename, content }) {
+        const bytes = Uint8Array.from(atob(content), (c) => c.charCodeAt(0));
+        const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
     }
 
     onOpenDashboards() {

@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, freeze_time, new_test_user, tagged
 
 
@@ -495,3 +495,80 @@ class TestCustomDashboard(TransactionCase):
         self.assertIn('error', widget.get_widget_data()[widget.id])
         widget.user_filter_path = 'user_id'
         self.assertNotIn('error', widget.get_widget_data()[widget.id])
+
+
+PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+
+
+@tagged('post_install', '-at_install')
+class TestDashboardPdf(TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.dashboard = cls.env['custom.dashboard'].create({'name': 'Board Report'})
+        text = cls.env.ref('custom_dashboard.widget_type_text')
+        cls.widgets = cls.env['custom.dashboard.widget'].create([
+            {'dashboard_id': cls.dashboard.id, 'type_id': text.id, 'name': 'W%s' % i} for i in range(4)
+        ])
+
+    def _item(self, index, x, y, w, h):
+        return {'id': self.widgets[index].id, 'x': x, 'y': y, 'w': w, 'h': h, 'image': PNG}
+
+    def test_widgets_never_cross_pages(self):
+        # Ratio 0.6: a row is 32.75 * 0.6 = 19.65 mm, so a page holds 12.6 rows.
+        pages = self.env['custom.dashboard']._pdf_pages([
+            self._item(0, 0, 0, 6, 4),
+            self._item(1, 6, 0, 6, 8),
+            self._item(2, 0, 4, 6, 6),   # rows 4-10: fits
+            self._item(3, 0, 10, 12, 4),  # rows 10-14: crosses, so a new page
+        ], 0.6)
+        self.assertEqual(len(pages), 2)
+        self.assertEqual(len(pages[0]), 3)
+        self.assertEqual(pages[1][0]['top'], 0)
+        self.assertEqual(pages[1][0]['height'], 78.6)
+        for page in pages:
+            for item in page:
+                self.assertLessEqual(item['top'] + item['height'], 248.01)
+        self.assertEqual(pages[0][1]['left'], 196.5)
+        self.assertEqual(pages[0][2]['top'], 78.6)
+
+    def test_row_moves_together(self):
+        pages = self.env['custom.dashboard']._pdf_pages([
+            self._item(0, 0, 0, 12, 10),
+            self._item(1, 0, 10, 6, 2),   # fits on page 1 on its own (rows 10-12)
+            self._item(2, 6, 10, 6, 4),   # does not fit: the whole row moves
+        ], 0.6)
+        self.assertEqual([len(page) for page in pages], [1, 2])
+        self.assertEqual({item['top'] for item in pages[1]}, {0})
+
+    def test_tall_widget_is_shrunk_to_one_page(self):
+        pages = self.env['custom.dashboard']._pdf_pages([self._item(0, 0, 0, 12, 40)], 0.6)
+        self.assertEqual(pages[0][0]['height'], 248)
+
+    def test_export_renders_branded_pages(self):
+        self.env.company.write({'name': 'CD Crafts Ltd', 'primary_color': '#123456'})
+        html, _type = self.env['ir.actions.report']._render_qweb_html(
+            'custom_dashboard.report_dashboard', self.dashboard.ids, data={
+                'company_id': self.env.company.id,
+                'printed': '03/10/2026 10:00',
+                'pages': self.env['custom.dashboard']._pdf_pages(
+                    [self._item(0, 0, 0, 12, 10), self._item(1, 0, 10, 12, 10)], 0.6),
+                'page_width': 393, 'page_height': 248, 'gap': 1.5,
+            })
+        html = html.decode()
+        self.assertIn('Board Report', html)
+        self.assertIn('CD Crafts Ltd', html)
+        self.assertIn('#123456', html)
+        self.assertIn('<span class="page"></span> of <span class="topage"></span>', html)
+        self.assertEqual(html.count('page-break-after: always'), 1)
+
+    def test_export_pdf_validates_items(self):
+        other = self.env['custom.dashboard'].create({'name': 'Other'})
+        with self.assertRaises(UserError):
+            other.export_pdf([self._item(0, 0, 0, 6, 4)])
+        with self.assertRaises(UserError):
+            self.dashboard.export_pdf([{**self._item(0, 0, 0, 6, 4), 'image': 'javascript:alert(1)'}])
+        result = self.dashboard.export_pdf([self._item(0, 0, 0, 6, 4)], 0.7)
+        self.assertEqual(result['filename'], 'Board Report.pdf')
+        self.assertTrue(result['content'])
