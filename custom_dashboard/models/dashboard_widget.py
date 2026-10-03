@@ -50,6 +50,9 @@ MAP_LEVELS = [
 # Contact locations are rounded to about 1 km so a public map never
 # pinpoints an address.
 MAP_POINT_PRECISION = 2
+# Odoo's own six-colour chart palette, used when no default colours are set.
+BUILTIN_COLORS = ['#4EA7F2', '#EA6175', '#43C5B1', '#F4A261', '#8481DD', '#FFD86D']
+COLOR_FIELDS = ['color', 'color_2', 'color_3', 'color_4', 'color_5', 'color_6']
 SORTS = [
     ('label', 'Group order'),
     ('value_desc', 'Largest first'),
@@ -117,7 +120,20 @@ class CustomDashboardWidget(models.Model):
     limit = fields.Integer(string='Limit', default=0, help='Show only the first N groups. 0 shows all.')
 
     # Display
-    color = fields.Char(string='Colour', help='Hex colour for single-series charts. Empty uses the palette.')
+    custom_colors = fields.Boolean(
+        string='Custom Colours',
+        help='Use this widget\'s own colours instead of the default colours from Settings.',
+    )
+    color = fields.Char(string='Colour 1')
+    color_2 = fields.Char(string='Colour 2')
+    color_3 = fields.Char(string='Colour 3')
+    color_4 = fields.Char(string='Colour 4')
+    color_5 = fields.Char(string='Colour 5')
+    color_6 = fields.Char(string='Colour 6')
+    colors_preview = fields.Html(
+        string='Colours', compute='_compute_colors_preview', sanitize=False,
+        help='Charts cycle through these colours in order, repeating them when there are more series or slices.',
+    )
     show_legend = fields.Boolean(string='Show Legend', default=True)
     show_values = fields.Boolean(string='Show Values')
     show_border = fields.Boolean(string='Show Border', default=True, help='Draw a thin border around the widget.')
@@ -209,7 +225,8 @@ class CustomDashboardWidget(models.Model):
             'y': self.pos_y,
             'w': self.width,
             'h': self.height,
-            'color': self.color or '',
+            'colors': self._get_colors(),
+            'color': (self._get_colors() or [''])[0],
             'show_legend': self.show_legend,
             'show_values': self.show_values,
             'show_border': self.show_border,
@@ -381,6 +398,58 @@ class CustomDashboardWidget(models.Model):
         if unit == 'month':
             return float(delta.years * 12 + delta.months)
         return float(delta.years)
+
+    @api.model
+    def _get_default_colors(self):
+        """Default colours from Settings, in order, skipping empty slots."""
+        params = self.env['ir.config_parameter'].sudo()
+        colors = [params.get_param('custom_dashboard.default_color_%d' % i) for i in range(1, 7)]
+        return [c for c in colors if c]
+
+    def _get_colors(self):
+        """Colours the widget cycles through; empty means Odoo's chart palette."""
+        self.ensure_one()
+        if self.custom_colors:
+            colors = [self[fname] for fname in COLOR_FIELDS if self[fname]]
+            if colors:
+                return colors
+        return self._get_default_colors()
+
+    @api.depends('custom_colors', *COLOR_FIELDS)
+    def _compute_colors_preview(self):
+        defaults = None
+        for widget in self:
+            colors = [widget[f] for f in COLOR_FIELDS if widget[f]] if widget.custom_colors else []
+            if not colors:
+                if defaults is None:
+                    defaults = self._get_default_colors() or BUILTIN_COLORS
+                colors = defaults
+            swatches = ''.join(
+                '<span class="d-inline-block rounded me-1" title="%s" '
+                'style="width:22px;height:22px;background:%s;border:1px solid rgba(0,0,0,.15)"></span>'
+                % (color, color) for color in colors if self._is_hex_color(color)
+            )
+            widget.colors_preview = '<div class="d-flex">%s</div>' % swatches
+
+    @api.model
+    def _is_hex_color(self, value):
+        value = (value or '').lstrip('#')
+        return len(value) in (3, 6, 8) and all(c in '0123456789abcdefABCDEF' for c in value)
+
+    @api.onchange('custom_colors')
+    def _onchange_custom_colors(self):
+        """Start custom colours from the current defaults."""
+        for widget in self:
+            if widget.custom_colors and not any(widget[f] for f in COLOR_FIELDS):
+                for fname, color in zip(COLOR_FIELDS, self._get_default_colors() or BUILTIN_COLORS):
+                    widget[fname] = color
+
+    @api.constrains(*COLOR_FIELDS)
+    def _check_colors(self):
+        for widget in self:
+            for fname in COLOR_FIELDS:
+                if widget[fname] and not self._is_hex_color(widget[fname]):
+                    raise ValidationError(_('"%s" is not a colour.', widget[fname]))
 
     @api.onchange('map_state_id')
     def _onchange_map_state_id(self):

@@ -36,7 +36,8 @@
                         <t t-set="target" t-value="kpiTarget"/>
                         <div t-if="target" class="o_cd_kpi_target w-75 mt-2">
                             <div class="progress" style="height: 6px;">
-                                <div class="progress-bar" t-att-class="target.reached ? 'bg-success' : 'bg-warning'" t-attf-style="width: {{target.width}}%"/>
+                                <div class="progress-bar" t-att-class="props.widget.colors?.length ? '' : (target.reached ? 'bg-success' : 'bg-warning')"
+                                     t-attf-style="width: {{target.width}}%; {{props.widget.colors?.length ? 'background-color: ' + props.widget.colors[0] : ''}}"/>
                             </div>
                             <div class="small text-muted mt-1 text-center">
                                 <t t-esc="target.percent"/>% of <t t-esc="target.label"/>

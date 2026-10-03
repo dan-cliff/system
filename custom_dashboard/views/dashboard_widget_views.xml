@@ -83,10 +83,27 @@
                                     <field name="show_border"/>
                                     <field name="show_shadow"/>
                                 </group>
+                                <group string="Colours" invisible="type_code in ('table', 'pivot', 'text', 'image')">
+                                    <field name="custom_colors"/>
+                                    <field name="colors_preview" nolabel="1" colspan="2" invisible="custom_colors"/>
+                                    <label for="color" string="Colours" invisible="not custom_colors"/>
+                                    <div class="o_row" invisible="not custom_colors">
+                                        <field name="color" widget="color"/>
+                                        <field name="color_2" widget="color"/>
+                                        <field name="color_3" widget="color"/>
+                                        <field name="color_4" widget="color"/>
+                                        <field name="color_5" widget="color"/>
+                                        <field name="color_6" widget="color"/>
+                                    </div>
+                                    <div class="text-muted small" colspan="2">
+                                        Charts use these colours in order and start again from the first when
+                                        there are more series or slices. Without custom colours the widget uses
+                                        the default colours from Dashboards &gt; Configuration &gt; Settings.
+                                    </div>
+                                </group>
                             </group>
                             <group invisible="data_mode == 'content'">
                                 <group string="Values">
-                                    <field name="color" widget="color" invisible="data_mode == 'single'"/>
                                     <field name="show_legend" invisible="data_mode not in ('grouped', 'map') or type_code in ('table', 'pivot')"/>
                                     <field name="show_values" invisible="data_mode not in ('grouped', 'map') or type_code in ('table', 'pivot')"/>
                                     <field name="decimals"/>

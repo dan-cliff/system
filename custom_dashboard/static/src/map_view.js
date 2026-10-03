@@ -79,7 +79,7 @@ export class DashboardMap extends Component {
     }
 
     get color() {
-        return this.props.widget.color || DEFAULT_COLOR;
+        return (this.props.widget.colors || [])[0] || DEFAULT_COLOR;
     }
 
     // ------------------------------------------------------------------

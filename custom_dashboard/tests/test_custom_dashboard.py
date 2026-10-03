@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, freeze_time, new_test_user, tagged
 
 
@@ -256,3 +256,38 @@ class TestCustomDashboard(TransactionCase):
         self.assertEqual(data['points'], [{
             'lat': -36.76, 'lng': 144.28, 'value': 3.0, 'count': 3, 'name': 'Bendigo',
         }])
+
+    # ------------------------------------------------------------------
+    # Colours
+    # ------------------------------------------------------------------
+    def test_widget_colours_fall_back_to_defaults(self):
+        widget = self._widget('pie', groupby_field_id=self._field('country_id').id)
+        self.assertEqual(widget._get_config()['colors'], [])
+
+        settings = self.env['res.config.settings'].create({
+            'cd_default_color_1': '#112233', 'cd_default_color_3': '#445566',
+        })
+        settings.execute()
+        widget.invalidate_recordset()
+        self.assertEqual(widget._get_config()['colors'], ['#112233', '#445566'])
+        self.assertEqual(widget._get_config()['color'], '#112233')
+        self.assertIn('#445566', widget.colors_preview)
+
+        widget.write({'custom_colors': True, 'color': '#aa0000', 'color_2': '#00aa00'})
+        self.assertEqual(widget._get_config()['colors'], ['#aa0000', '#00aa00'])
+        # Custom colours switched on but all empty still use the defaults
+        widget.write({'color': False, 'color_2': False})
+        self.assertEqual(widget._get_config()['colors'], ['#112233', '#445566'])
+
+    def test_widget_colours_must_be_colours(self):
+        widget = self._widget('pie', groupby_field_id=self._field('country_id').id)
+        with self.assertRaises(ValidationError):
+            widget.color_4 = 'blue-ish'
+
+    def test_custom_colours_start_from_defaults(self):
+        self.env['ir.config_parameter'].sudo().set_param('custom_dashboard.default_color_1', '#123456')
+        widget = self._widget('pie', groupby_field_id=self._field('country_id').id)
+        widget.custom_colors = True
+        widget._onchange_custom_colors()
+        self.assertEqual(widget.color, '#123456')
+        self.assertFalse(widget.color_2)
