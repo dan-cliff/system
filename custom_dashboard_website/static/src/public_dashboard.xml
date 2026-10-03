@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="custom_dashboard_website.PublicDashboard">
+        <div class="o_cd_public">
+            <div t-if="state.error" class="alert alert-warning">This dashboard could not be loaded. Please try again later.</div>
+            <div t-elif="!state.dashboard" class="text-center text-muted py-5"><i class="fa fa-circle-o-notch fa-spin fa-2x"/></div>
+            <div t-elif="!state.dashboard.widgets.length" class="text-center text-muted py-5">This dashboard has no widgets yet.</div>
+            <div t-else="" class="o_cd_public_grid" t-attf-style="--cd-rows: {{rows}};">
+                <div t-foreach="state.dashboard.widgets" t-as="widget" t-key="widget.id"
+                     class="o_cd_public_item" t-att-style="widgetStyle(widget)">
+                    <DashboardWidgetCard widget="widget" data="widgetData(widget)" editing="false"
+                                         onEdit.bind="noop" onDuplicate.bind="noop" onRemove.bind="noop"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
