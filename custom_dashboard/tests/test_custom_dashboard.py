@@ -359,3 +359,19 @@ class TestCustomDashboard(TransactionCase):
         data = widget.get_widget_data()[widget.id]
         self.assertEqual(data['labels'], ['01/2026', '02/2026', '03/2026', '04/2026'])
         self.assertEqual(data['series'][0]['values'], [1.0, 0.0, 0.0, 1.0])
+
+    def test_map_address_path_through_computed_field(self):
+        # res.partner.self is computed (not stored), like an employee's User
+        # Partner: the database can't group by it, so it's grouped in Python.
+        widget = self._map_widget(
+            map_level='country', map_address_path='self',
+            measure_field_id=self._field('color').id, aggregate='sum',
+        )
+        data = widget.get_widget_data()[widget.id]
+        self.assertNotIn('error', data)
+        regions = {r['key']: (r['value'], r['count']) for r in data['regions']}
+        self.assertEqual(regions, {'BE': (5.0, 2), 'FR': (5.0, 1)})
+
+        widget.write({'aggregate': 'avg', 'map_country_id': self.country_be.id})
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual([(r['key'], r['value']) for r in data['regions']], [('BE', 2.5)])
