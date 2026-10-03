@@ -195,34 +195,57 @@ class TestDashboardAI(TransactionCase):
             with self.assertRaises(UserError):
                 self.Dashboard._ai_ask('gemini', 'bad', 'prompt', {'type': 'object'})
 
+    def _claude_response(self, status=200, body=None):
+        response = MagicMock(status_code=status, headers={})
+        response.json.return_value = body or {}
+        response.text = json.dumps(body or {})
+        return response
+
     def test_claude_request(self):
-        if dashboard_ai.anthropic is None:
-            with self.assertRaises(UserError):
-                self.Dashboard._ai_ask('claude', 'sk', 'prompt', {'type': 'object'})
-            return
-        message = MagicMock(stop_reason='end_turn')
-        message.content = [MagicMock(type='text', text='{"models": ["res.partner"]}')]
-        stream = MagicMock()
-        stream.__enter__.return_value.get_final_message.return_value = message
-        client = MagicMock()
-        client.beta.messages.stream.return_value = stream
-        with patch.object(dashboard_ai.anthropic, 'Anthropic', return_value=client) as factory:
+        body = {'stop_reason': 'end_turn', 'content': [
+            {'type': 'thinking', 'thinking': ''},
+            {'type': 'text', 'text': '{"models": ["res.partner"]}'},
+        ]}
+        with patch.object(dashboard_ai.requests, 'post', return_value=self._claude_response(body=body)) as post:
             answer = self.Dashboard._ai_ask('claude', 'sk-key', 'prompt', {'type': 'object'}, effort='low')
         self.assertEqual(answer, {'models': ['res.partner']})
-        self.assertEqual(factory.call_args.kwargs['api_key'], 'sk-key')
-        kwargs = client.beta.messages.stream.call_args.kwargs
-        self.assertEqual(kwargs['model'], dashboard_ai.CLAUDE_MODEL)
-        self.assertEqual(kwargs['output_config']['effort'], 'low')
-        self.assertEqual(kwargs['output_config']['format']['type'], 'json_schema')
+        self.assertEqual(post.call_args.args[0], dashboard_ai.CLAUDE_URL)
+        headers = post.call_args.kwargs['headers']
+        self.assertEqual(headers['x-api-key'], 'sk-key')
+        self.assertEqual(headers['anthropic-version'], '2023-06-01')
+        payload = post.call_args.kwargs['json']
+        self.assertEqual(payload['model'], dashboard_ai.CLAUDE_MODEL)
+        self.assertEqual(payload['output_config']['effort'], 'low')
+        self.assertEqual(payload['output_config']['format']['type'], 'json_schema')
+        self.assertIn(self.Dashboard._ai_language(), payload['system'])
 
-    def test_claude_refusal(self):
-        if dashboard_ai.anthropic is None:
-            self.skipTest('anthropic is not installed')
-        message = MagicMock(stop_reason='refusal', content=[])
-        stream = MagicMock()
-        stream.__enter__.return_value.get_final_message.return_value = message
-        client = MagicMock()
-        client.beta.messages.stream.return_value = stream
-        with patch.object(dashboard_ai.anthropic, 'Anthropic', return_value=client):
-            with self.assertRaises(UserError):
-                self.Dashboard._ai_ask('claude', 'sk-key', 'prompt', {'type': 'object'})
+    def test_claude_errors(self):
+        cases = [
+            self._claude_response(401, {'error': {'message': 'invalid x-api-key'}}),
+            self._claude_response(429),
+            self._claude_response(400, {'error': {'message': 'bad request'}}),
+            self._claude_response(body={'stop_reason': 'refusal', 'content': []}),
+            self._claude_response(body={'stop_reason': 'max_tokens', 'content': []}),
+        ]
+        for response in cases:
+            with patch.object(dashboard_ai.requests, 'post', return_value=response):
+                with self.assertRaises(UserError):
+                    self.Dashboard._ai_ask('claude', 'sk-key', 'prompt', {'type': 'object'})
+
+    def test_language_follows_main_company(self):
+        company = self.manager.company_id
+        company.partner_id.lang = 'en_US'
+        company.country_id = self.env.ref('base.au')
+        language = self.Dashboard._ai_language()
+        self.assertIn('English', language)
+        self.assertIn('Australia', language)
+        self.assertIn(language, self.Dashboard._ai_system_prompt())
+        self.assertIn(language, self.Dashboard._ai_design_prompt('Contacts', ['res.partner']))
+
+    def test_claude_retries_without_fallbacks(self):
+        rejected = self._claude_response(400, {'error': {'message': 'fallbacks: not supported'}})
+        ok = self._claude_response(body={'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': '{}'}]})
+        with patch.object(dashboard_ai.requests, 'post', side_effect=[rejected, ok]) as post:
+            self.assertEqual(self.Dashboard._ai_ask('claude', 'sk-key', 'prompt', {'type': 'object'}), {})
+        self.assertNotIn('fallbacks', post.call_args.kwargs['json'])
+        self.assertNotIn('anthropic-beta', post.call_args.kwargs['headers'])
