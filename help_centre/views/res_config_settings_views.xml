@@ -56,18 +56,6 @@
                         </setting>
                     </block>
 
-                    <block title="Integrations" invisible="not help_centre_helpdesk_installed">
-                        <setting string="Enable Helpdesk Ticket Creation"
-                                 help="When enabled, authenticated users will see a 'Lodge Ticket' tab in the Help Centre widget.">
-                            <field name="help_centre_helpdesk_enabled"/>
-                        </setting>
-                        <setting string="Helpdesk Team"
-                                 help="Which Team should receive helpdesk tickets from the Help widget?"
-                                 invisible="not help_centre_helpdesk_enabled">
-                            <field name="help_centre_helpdesk_team_id"/>
-                        </setting>
-                    </block>
-
                 </app>
             </xpath>
         </field>

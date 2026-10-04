@@ -368,50 +368,13 @@ class HelpCentreController(http.Controller):
     def widget_config(self, **kwargs):
         """Return widget configuration for JS — helpdesk integration state, auth, and branding."""
         params = request.env['ir.config_parameter'].sudo()
-        helpdesk_enabled = params.get_param('help_centre.helpdesk_enabled', 'False') == 'True'
         return {
-            'helpdesk_enabled': helpdesk_enabled,
+            'helpdesk_enabled': request.env['res.config.settings']._help_centre_helpdesk_enabled(),
             'user_authenticated': bool(request.session.uid),
             # Branding
             'ai_name': params.get_param('help_centre.ai_name', 'KC Bot'),
             'ai_welcome_message': params.get_param('help_centre.ai_welcome_message', ''),
             'primary_color': params.get_param('help_centre.primary_color', '#5b4fc8'),
-        }
-
-    @http.route('/help/api/create_ticket', type='jsonrpc', auth='public', csrf=False)
-    def create_ticket(self, subject, description='', **kwargs):
-        """Create a helpdesk ticket from the Help widget.  Requires an authenticated session."""
-        if not request.session.uid:
-            return {'error': 'auth_required', 'message': 'You must be logged in to lodge a ticket.'}
-
-        params = request.env['ir.config_parameter'].sudo()
-        if params.get_param('help_centre.helpdesk_enabled', 'False') != 'True':
-            return {'error': 'helpdesk_disabled', 'message': 'Helpdesk integration is not enabled.'}
-
-        if not subject or not subject.strip():
-            return {'error': 'subject_required', 'message': 'Please enter a subject for your ticket.'}
-
-        if 'helpdesk.ticket' not in request.env:
-            return {'error': 'helpdesk_not_installed', 'message': 'Helpdesk module is not installed.'}
-
-        team_id = int(params.get_param('help_centre.helpdesk_team_id', '0') or '0')
-        user = request.env['res.users'].sudo().browse(request.session.uid)
-
-        vals = {
-            'name': subject.strip(),
-            'description': description or '',
-            'user_id': request.session.uid,
-            'partner_id': user.partner_id.id,
-        }
-        if team_id:
-            vals['team_id'] = team_id
-
-        ticket = request.env['helpdesk.ticket'].sudo().create(vals)
-        _logger.info('Help Centre: created helpdesk ticket #%s for user %s', ticket.id, user.name)
-
-        return {
-            'ticket_id': ticket.id,
-            'ticket_name': ticket.name,
         }
 
     # ─────────────────────────────────────────────────────────────────────────

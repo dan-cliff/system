@@ -66,43 +66,10 @@ class ResConfigSettings(models.TransientModel):
     )
 
     # ── Helpdesk integration ───────────────────────────────────────────────────
+    # Provided by the help_centre_helpdesk bridge module, which installs
+    # automatically alongside the Helpdesk app and overrides this hook.
 
-    help_centre_helpdesk_installed = fields.Boolean(
-        compute='_compute_helpdesk_installed',
-        string='Helpdesk Installed',
-    )
-    help_centre_helpdesk_enabled = fields.Boolean(
-        'Enable Helpdesk Ticket Creation from Help Widget',
-        config_parameter='help_centre.helpdesk_enabled',
-    )
-    help_centre_helpdesk_team_id = fields.Many2one(
-        'helpdesk.team',
-        string='Helpdesk Team',
-        help='Which Team should receive helpdesk tickets from the Help widget?',
-    )
-
-    def _compute_helpdesk_installed(self):
-        installed = bool(self.env['ir.module.module'].sudo().search_count([
-            ('name', '=', 'helpdesk'), ('state', '=', 'installed'),
-        ]))
-        for rec in self:
-            rec.help_centre_helpdesk_installed = installed
-
-    def get_values(self):
-        res = super().get_values()
-        team_id = int(
-            self.env['ir.config_parameter'].sudo().get_param(
-                'help_centre.helpdesk_team_id', '0'
-            ) or '0'
-        )
-        if team_id:
-            res['help_centre_helpdesk_team_id'] = team_id
-        return res
-
-    def set_values(self):
-        super().set_values()
-        self.env['ir.config_parameter'].sudo().set_param(
-            'help_centre.helpdesk_team_id',
-            str(self.help_centre_helpdesk_team_id.id)
-            if self.help_centre_helpdesk_team_id else '0',
-        )
+    @api.model
+    def _help_centre_helpdesk_enabled(self):
+        """Whether the Help widget offers helpdesk ticket creation."""
+        return False

@@ -353,7 +353,7 @@
         <div id="hc-widget-root"
              t-att-data-centre-name="_hc_p.get_param('help_centre.name', 'Help Centre')"
              t-att-data-position="_hc_p.get_param('help_centre.widget_position', 'bottom_right')"
-             t-att-data-helpdesk-enabled="'1' if _hc_p.get_param('help_centre.helpdesk_enabled', 'False') == 'True' else '0'"
+             t-att-data-helpdesk-enabled="'1' if request.env['res.config.settings']._help_centre_helpdesk_enabled() else '0'"
              t-att-data-user-authenticated="'1' if request.session.uid else '0'"
              t-att-data-ai-name="(_hc_p.get_param('help_centre.ai_name', '') or 'KC Bot').strip()"
              t-att-data-ai-welcome="_hc_p.get_param('help_centre.ai_welcome_message', '')"

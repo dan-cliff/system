@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_help_centre_helpdesk" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.help.centre.helpdesk</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="help_centre.res_config_settings_view_form_help_centre"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='help_centre']" position="inside">
+                <block title="Integrations">
+                    <setting string="Enable Helpdesk Ticket Creation"
+                             help="When enabled, authenticated users will see a 'Lodge Ticket' tab in the Help Centre widget.">
+                        <field name="help_centre_helpdesk_enabled"/>
+                    </setting>
+                    <setting string="Helpdesk Team"
+                             help="Which Team should receive helpdesk tickets from the Help widget?"
+                             invisible="not help_centre_helpdesk_enabled">
+                        <field name="help_centre_helpdesk_team_id"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
