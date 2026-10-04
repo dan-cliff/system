@@ -36,14 +36,14 @@
                                            required="data_mode == 'grouped'"/>
                                     <field name="groupby_interval"
                                            invisible="data_mode != 'grouped' or groupby_field_type not in ('date', 'datetime')"/>
-                                    <field name="pivot_row_sort" invisible="type_code != 'pivot'"/>
+                                    <field name="pivot_row_sort" invisible="data_mode != 'grouped'"/>
                                     <field name="pivot_show_all_rows" invisible="type_code != 'pivot'"/>
                                     <field name="series_field_id" options="{'no_create': True}"
                                            invisible="not supports_series or not model_id"
                                            required="requires_series"/>
                                     <field name="series_interval"
                                            invisible="not supports_series or series_field_type not in ('date', 'datetime')"/>
-                                    <field name="pivot_col_sort" invisible="type_code != 'pivot'"/>
+                                    <field name="pivot_col_sort" invisible="not supports_series or not series_field_id"/>
                                     <field name="pivot_show_all_columns" invisible="type_code != 'pivot'"/>
                                     <field name="map_address_path" widget="field_selector"
                                            options="{'model': 'model_name', 'follow_relations': True}"
@@ -75,7 +75,6 @@
                                         <field name="measure2_field_id" options="{'no_create': True}" placeholder="Count"/>
                                         <field name="aggregate2" invisible="not measure2_field_id or data_mode == 'points'"/>
                                     </div>
-                                    <field name="sort" invisible="data_mode != 'grouped' or type_code == 'pivot'"/>
                                     <field name="limit" invisible="data_mode not in ('grouped', 'points')"/>
                                 </group>
                             </group>

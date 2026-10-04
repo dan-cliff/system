@@ -60,7 +60,7 @@ class TestCustomDashboard(TransactionCase):
             groupby_field_id=self._field('country_id').id,
             measure_field_id=self._field('color').id,
             aggregate='sum',
-            sort='value_desc',
+            pivot_row_sort='value_desc',
             limit=1,
         )
         data = widget.get_widget_data()[widget.id]
@@ -338,6 +338,16 @@ class TestCustomDashboard(TransactionCase):
         data = widget.get_widget_data()[widget.id]
         # Countries' own order is by name
         self.assertEqual(data['labels'], sorted(data['labels']))
+
+    def test_chart_axis_sorting(self):
+        widget = self._widget(
+            'stacked_column', groupby_field_id=self._field('country_id').id,
+            series_field_id=self._field('is_company').id,
+            pivot_row_sort='value_asc', pivot_col_sort='sequence_desc',
+        )
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual(data['labels'], [self.country_fr.display_name, self.country_be.display_name])
+        self.assertEqual([s['label'] for s in data['series']], ['No', 'Yes'])
 
     def test_pivot_show_all_fills_date_gaps(self):
         currency = self.env['res.currency'].create({'name': 'CDP', 'symbol': 'P'})

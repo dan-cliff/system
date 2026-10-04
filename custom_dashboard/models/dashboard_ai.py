@@ -27,7 +27,7 @@ from odoo.exceptions import AccessError, UserError
 from .dashboard import MANAGER_GROUP
 from .dashboard_widget import (
     AGGREGATES, AXIS_SORTS, DATE_TYPES, ELAPSED_UNITS, GROUPABLE_TYPES, INTERVALS, MAP_LEVELS,
-    MEASURE_TYPES, RECORD_COLOR_TYPES, SORTS, USER_FILTER_MODELS, USER_SCOPES, VALUE_MODES,
+    MEASURE_TYPES, RECORD_COLOR_TYPES, USER_FILTER_MODELS, USER_SCOPES, VALUE_MODES,
 )
 
 _logger = logging.getLogger(__name__)
@@ -171,9 +171,11 @@ colours. Only use fields you know exist on that model.
 - "measure", "measure2": numeric field names (types {measures}); null counts \
 records. Combo charts draw "measure" as columns and "measure2" as a line.
 - "aggregate", "aggregate2": {aggregates}.
-- "sort": {sorts} (not for pivot). "limit": show only the first N groups \
-(0 = all); use it with value sorts for "top 10" style charts.
-- Pivot only: "pivot_row_sort", "pivot_col_sort": {axis_sorts}; \
+- "pivot_row_sort", "pivot_col_sort": how groups and series are ordered, for \
+every grouped widget: {axis_sorts}. "sequence" is the field's own order \
+(oldest date first); "label" is alphabetical. "limit": show only the first N \
+groups (0 = all); use it with value sorts for "top 10" style charts.
+- Pivot only: \
 "pivot_show_all_rows", "pivot_show_all_columns": true to list every option of \
 the field even without records; "pivot_row_label", "pivot_col_label": axis \
 captions; "pivot_hide_none_rows", "pivot_hide_none_columns", \
@@ -368,7 +370,6 @@ class CustomDashboard(models.Model):
             measures=', '.join(MEASURE_TYPES),
             intervals=keys(INTERVALS),
             aggregates=keys(AGGREGATES),
-            sorts=keys(SORTS),
             axis_sorts=keys(AXIS_SORTS),
             value_modes=keys(VALUE_MODES),
             elapsed_units=keys(ELAPSED_UNITS),
@@ -415,7 +416,6 @@ class CustomDashboard(models.Model):
                 'aggregate': enum(AGGREGATES),
                 'measure2': _nullable(string),
                 'aggregate2': enum(AGGREGATES),
-                'sort': enum(SORTS),
                 'limit': _nullable(integer),
                 'pivot_row_sort': enum(AXIS_SORTS),
                 'pivot_col_sort': enum(AXIS_SORTS),
@@ -773,7 +773,6 @@ class CustomDashboard(models.Model):
                 if series and series.type in DATE_TYPES:
                     option('series_interval', INTERVALS)
                 color_field('series_color_field', series, 'series_color_field_id')
-            option('sort', SORTS)
             option('pivot_row_sort', AXIS_SORTS)
             option('pivot_col_sort', AXIS_SORTS)
             if isinstance(spec.get('limit'), int) and spec['limit'] > 0:
