@@ -3,7 +3,7 @@ from odoo import api, fields, models
 
 class RiskTemplate(models.Model):
     _name = 'risk.template'
-    _inherit = ['risk.ai.mixin']
+    _inherit = ['risk.ai.mixin', 'risk.activity.mixin']
     _description = 'Risk Assessment Template'
     _order = 'name'
 

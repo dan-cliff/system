@@ -7,7 +7,7 @@ from odoo.exceptions import AccessError, UserError
 class RiskAssessment(models.Model):
     _name = 'risk.assessment'
     _description = 'Risk Assessment'
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'risk.ai.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'risk.ai.mixin', 'risk.activity.mixin']
     _order = 'date desc, id desc'
 
     _ai_line_model = 'risk.assessment.line'
@@ -43,6 +43,9 @@ class RiskAssessment(models.Model):
     active = fields.Boolean(default=True)
     category_id = fields.Many2one('risk.category', string='Risk Category')
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company, required=True)
+
+    # Starting At is optional on Risk Templates, but every Risk Assessment needs one.
+    activity_start = fields.Datetime(required=True)
 
     template_ids = fields.Many2many('risk.template', string='Risk Assessment Templates')
     line_ids = fields.One2many('risk.assessment.line', 'assessment_id', string='Risks', copy=True)
@@ -122,6 +125,7 @@ class RiskAssessment(models.Model):
     def _sync_template_lines(self):
         skipped = []
         for assessment in self:
+            assessment._copy_activity_details_from(assessment.template_ids)
             existing_source_ids = set(assessment.line_ids.mapped('source_template_line_id').ids)
             template_lines = assessment.template_ids.line_ids.filtered(
                 lambda line: line.id not in existing_source_ids

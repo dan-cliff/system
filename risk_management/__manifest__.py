@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management',
-    'version': '19.0.1.15.0',
+    'version': '19.0.1.16.0',
     'category': 'Operations/Risk Management',
     'summary': 'Risk assessment templates, risk assessments, a controls library and a risk matrix',
     'description': """
@@ -43,10 +43,15 @@ Risk Management
   Risk Assessment Owner. Risks can also have ad-hoc Actions added
   directly. The Risk Assessment's "Actions" smart button shows every
   To-Do across the assessment's risks and the count still open.
+* Risk Assessments and Risk Templates record Activity Details (location,
+  Activity Leader, Safety Officer, Starting At / Finishing At), a Minimum
+  Equipment / Facilities checklist and Governing Bodies / Associations /
+  Legislation questions, each answered Yes, No or N/A with a Comments /
+  Further Information box shown for Yes or No answers.
 * A Risk Assessment can be exported to an A4 landscape PDF (the
   "Export to PDF" button), with the linked Company's branding in the
-  header, the assessment's details followed immediately by its Risks
-  table, an Actions table starting on its own page, and "n of N" page
+  header, the assessment's details, Activity Details and checklists on
+  page 1, its Risks table starting on page 2, an Actions table starting on its own page, and "n of N" page
   numbers in the footer.
 """,
     'author': 'Bendigo Scouts',
