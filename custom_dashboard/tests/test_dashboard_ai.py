@@ -92,7 +92,7 @@ class TestDashboardAI(TransactionCase):
             {'type': 'kpi', 'title': 'Contacts', 'x': 0, 'y': 0, 'w': 3, 'h': 2, 'model': 'res.partner',
              'domain': "[('active', '=', True)]", 'target': 100, 'show_shadow': True},
             {'type': 'column', 'title': 'By Country', 'x': 0, 'y': 2, 'w': 6, 'h': 4, 'model': 'res.partner',
-             'group_by': 'country_id', 'series': 'is_company', 'sort': 'value_desc', 'limit': 10,
+             'group_by': 'country_id', 'series': 'is_company', 'pivot_row_sort': 'value_desc', 'limit': 10,
              'colors': ['#112233', 'red', '#AABBCC']},
             {'type': 'pivot', 'title': 'Matrix', 'x': 6, 'y': 2, 'w': 6, 'h': 4, 'model': 'res.partner',
              'group_by': 'country_id', 'series': 'is_company', 'pivot_row_label': 'Country',
@@ -114,7 +114,7 @@ class TestDashboardAI(TransactionCase):
         self.assertTrue(kpi.show_shadow)
         self.assertEqual(column.groupby_field_id.name, 'country_id')
         self.assertEqual(column.series_field_id.name, 'is_company')
-        self.assertEqual((column.sort, column.limit), ('value_desc', 10))
+        self.assertEqual((column.pivot_row_sort, column.limit), ('value_desc', 10))
         self.assertTrue(column.custom_colors)
         self.assertEqual((column.color, column.color_2), ('#112233', '#aabbcc'))
         self.assertEqual(pivot.pivot_row_label, 'Country')

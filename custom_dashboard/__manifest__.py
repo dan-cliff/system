@@ -1,6 +1,6 @@
 {
     'name': 'Custom Dashboards',
-    'version': '19.0.1.4.0',
+    'version': '19.0.1.5.0',
     'summary': 'Build drag-and-drop dashboards of charts, KPIs and tables from any model',
     'description': """
 Custom Dashboards

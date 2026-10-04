@@ -82,11 +82,6 @@ USER_SCOPES = [
     ('extended_team', 'My Extended Team'),
 ]
 USER_FILTER_MODELS = ('res.users', 'hr.employee')
-SORTS = [
-    ('label', 'Group order'),
-    ('value_desc', 'Largest first'),
-    ('value_asc', 'Smallest first'),
-]
 
 
 class CustomDashboardWidget(models.Model):
@@ -175,8 +170,16 @@ class CustomDashboardWidget(models.Model):
         help='Leave empty to count records.',
     )
     aggregate2 = fields.Selection(AGGREGATES, string='Second Aggregate', default='sum')
-    sort = fields.Selection(SORTS, string='Sort', default='label', required=True)
     limit = fields.Integer(string='Limit', default=0, help='Show only the first N groups. 0 shows all.')
+
+    # Group and series ordering, used by every grouped widget (pivot tables included).
+    pivot_row_sort = fields.Selection(
+        AXIS_SORTS, string='Sort Groups By', default='sequence', required=True,
+        help='Sequence follows the field\'s own order: the linked records\' order, the order of the '
+             'selection options, Yes before No, or oldest date first. Sequence (reversed) is the '
+             'opposite, e.g. newest date first.',
+    )
+    pivot_col_sort = fields.Selection(AXIS_SORTS, string='Sort Series By', default='sequence', required=True)
 
     # Pivot table axes
     pivot_show_all_rows = fields.Boolean(
@@ -186,13 +189,6 @@ class CustomDashboardWidget(models.Model):
              'first and last date.',
     )
     pivot_show_all_columns = fields.Boolean(string='Show All Series', help='Same as Show All Groups, for the columns.')
-    pivot_row_sort = fields.Selection(
-        AXIS_SORTS, string='Sort Groups By', default='sequence', required=True,
-        help='Sequence follows the field\'s own order: the linked records\' order, the order of the '
-             'selection options, Yes before No, or oldest date first. Sequence (reversed) is the '
-             'opposite, e.g. newest date first.',
-    )
-    pivot_col_sort = fields.Selection(AXIS_SORTS, string='Sort Series By', default='sequence', required=True)
     pivot_row_label = fields.Char(string='Group Label', translate=True,
                                   help='Shown alongside the rows, e.g. "Department".')
     pivot_col_label = fields.Char(string='Series Label', translate=True,
@@ -817,18 +813,10 @@ class CustomDashboardWidget(models.Model):
         if is_pivot and series_field and self.pivot_hide_none_columns:
             series = {k: raw for k, raw in series.items() if not self._is_none_group(series_field, raw)}
 
-        keys = list(groups)
-        if is_pivot:
-            keys = self._sort_axis(
-                Model, group_field, self.groupby_interval, self.pivot_row_sort, keys,
-                lambda k: groups[k]['raw'], lambda k: groups[k]['value'],
-            )
-        elif self.sort == 'value_desc':
-            keys.sort(key=lambda k: groups[k]['value'], reverse=True)
-        elif self.sort == 'value_asc':
-            keys.sort(key=lambda k: groups[k]['value'])
-        else:
-            keys.sort(key=lambda k: self._sort_key(groups[k]['raw']))
+        keys = self._sort_axis(
+            Model, group_field, self.groupby_interval, self.pivot_row_sort, list(groups),
+            lambda k: groups[k]['raw'], lambda k: groups[k]['value'],
+        )
         limit = min(self.limit or MAX_GROUPS, MAX_GROUPS)
         keys = keys[:limit]
 
@@ -844,13 +832,10 @@ class CustomDashboardWidget(models.Model):
         if self.uses_second_measure:
             data['values2'] = [groups[k]['value2'] for k in keys]
         if series_field:
-            if is_pivot:
-                series_keys = self._sort_axis(
-                    Model, series_field, self.series_interval, self.pivot_col_sort, list(series),
-                    lambda s: series[s], lambda s: sum(cells.get((k, s), 0.0) for k in groups),
-                )
-            else:
-                series_keys = sorted(series, key=lambda s: self._sort_key(series[s]))
+            series_keys = self._sort_axis(
+                Model, series_field, self.series_interval, self.pivot_col_sort, list(series),
+                lambda s: series[s], lambda s: sum(cells.get((k, s), 0.0) for k in groups),
+            )
             series_colors = self._record_colors(
                 series_field, self.series_color_field_id, [series[s] for s in series_keys],
             ) or [None] * len(series_keys)
@@ -924,7 +909,7 @@ class CustomDashboardWidget(models.Model):
         return not raw
 
     def _sort_axis(self, Model, field, interval, order, keys, raw_of, value_of):
-        """Order pivot ``keys`` by ``order`` (see AXIS_SORTS); empty groups last."""
+        """Order group or series ``keys`` by ``order`` (see AXIS_SORTS); empty groups last."""
         def empty(key):
             return self._is_none_group(field, raw_of(key))
 
