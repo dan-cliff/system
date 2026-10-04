@@ -33,7 +33,7 @@ class RiskActivityMixin(models.AbstractModel):
     activity_location = fields.Text(string='Activity Location')
     activity_leader_id = fields.Many2one('res.users', string='Activity Leader Name')
     safety_officer_id = fields.Many2one('res.users', string="Safety Officer's Name")
-    activity_start = fields.Datetime(string='Starting At', required=True)
+    activity_start = fields.Datetime(string='Starting At')
     activity_end = fields.Datetime(string='Finishing At')
 
     # Minimum Equipment / Facilities

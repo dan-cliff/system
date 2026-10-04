@@ -44,6 +44,9 @@ class RiskAssessment(models.Model):
     category_id = fields.Many2one('risk.category', string='Risk Category')
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company, required=True)
 
+    # Starting At is optional on Risk Templates, but every Risk Assessment needs one.
+    activity_start = fields.Datetime(required=True)
+
     template_ids = fields.Many2many('risk.template', string='Risk Assessment Templates')
     line_ids = fields.One2many('risk.assessment.line', 'assessment_id', string='Risks', copy=True)
     risk_count = fields.Integer(compute='_compute_risk_summary')
