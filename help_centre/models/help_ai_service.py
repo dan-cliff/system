@@ -2,11 +2,10 @@
 Help Centre AI Service
 ======================
 Abstract model that provides AI text generation for article creation and the
-chat bot.  Automatically discovers the configured provider by checking (in
-order):
-  1. ai.anthropic_key  → Anthropic Claude
-  2. ai.openai_key     → OpenAI GPT-4o
-  3. ai.google_key     → Google Gemini
+chat bot.  Uses the API keys entered under Settings → General Settings → Integrations
+(claude_ai_settings), checking in order:
+  1. claude_ai_settings.api_key         → Claude AI
+  2. claude_ai_settings.gemini_api_key  → Google Gemini
 """
 
 import logging
@@ -69,16 +68,12 @@ class HelpAiService(models.AbstractModel):
         """Returns (provider, model, api_key) for the first configured provider."""
         params = self.env['ir.config_parameter'].sudo()
 
-        anthropic_key = params.get_param('ai.anthropic_key', '')
+        anthropic_key = params.get_param('claude_ai_settings.api_key', '')
         if anthropic_key:
             model = params.get_param('help_centre.ai_model', 'claude-sonnet-4-5')
             return 'anthropic', model, anthropic_key
 
-        openai_key = params.get_param('ai.openai_key', '')
-        if openai_key:
-            return 'openai', 'gpt-4o', openai_key
-
-        gemini_key = params.get_param('ai.google_key', '')
+        gemini_key = params.get_param('claude_ai_settings.gemini_api_key', '')
         if gemini_key:
             return 'gemini', 'gemini-2.5-flash', gemini_key
 
@@ -88,7 +83,8 @@ class HelpAiService(models.AbstractModel):
         if not provider:
             raise UserError(
                 _('No AI provider configured. '
-                  'Go to Settings → AI and enter an Anthropic, OpenAI, or Gemini API key.')
+                  'Go to Settings → General Settings → Integrations and enter a '
+                  'Claude AI or Google Gemini API key.')
             )
 
     # ── Public API ─────────────────────────────────────────────────────────────
@@ -131,15 +127,13 @@ class HelpAiService(models.AbstractModel):
         try:
             if provider == 'anthropic':
                 return self._anthropic(api_key, model, system, messages, temperature)
-            elif provider == 'openai':
-                return self._openai(api_key, model, system, messages, temperature)
             elif provider == 'gemini':
                 return self._gemini(api_key, model, system, messages, temperature)
         except _requests.exceptions.Timeout:
             raise UserError(_('The AI provider timed out. Please try again.'))
         except _requests.exceptions.HTTPError as e:
             status = e.response.status_code if e.response is not None else '?'
-            raise UserError(_('AI provider returned HTTP %s. Check your API key in Settings → AI.') % status)
+            raise UserError(_('AI provider returned HTTP %s. Check your API key in Settings → General Settings → Integrations.') % status)
         raise UserError(_('Unknown AI provider: %s') % provider)
 
     # ── Provider implementations ───────────────────────────────────────────────
@@ -163,25 +157,6 @@ class HelpAiService(models.AbstractModel):
         )
         resp.raise_for_status()
         return resp.json()['content'][0]['text']
-
-    def _openai(self, api_key, model, system, messages, temperature):
-        all_messages = [{'role': 'system', 'content': system}] + messages
-        resp = _requests.post(
-            'https://api.openai.com/v1/chat/completions',
-            headers={
-                'Authorization': f'Bearer {api_key}',
-                'Content-Type': 'application/json',
-            },
-            json={
-                'model': model,
-                'temperature': temperature,
-                'messages': all_messages,
-                'max_tokens': 4096,
-            },
-            timeout=90,
-        )
-        resp.raise_for_status()
-        return resp.json()['choices'][0]['message']['content']
 
     def _gemini(self, api_key, model, system, messages, temperature):
         # Convert to Gemini format

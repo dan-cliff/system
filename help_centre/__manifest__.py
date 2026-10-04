@@ -1,10 +1,10 @@
 {
     'name': 'Help Centre',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'summary': 'AI-powered Help Centre — including a AI chatbot seatch modal, website integration, comprehnsive knowledge base and AI powered nightly article generation',
     'category': 'Website/Website',
     'author': "Cliff's Country Crafts",
-    'depends': ['base', 'web', 'website', 'portal', 'mail'],
+    'depends': ['base', 'web', 'website', 'portal', 'mail', 'claude_ai_settings'],
     'data': [
         'security/help_centre_security.xml',
         'security/ir.model.access.csv',
