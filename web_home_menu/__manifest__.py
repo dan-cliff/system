@@ -1,6 +1,6 @@
 {
     'name': 'Home Menu',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.1.1',
     'category': 'Extra Tools',
     'summary': 'Enterprise-style app grid home screen for the /odoo page',
     'description': """

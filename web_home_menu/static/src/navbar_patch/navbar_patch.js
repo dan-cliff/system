@@ -5,6 +5,7 @@ import { useBus } from "@web/core/utils/hooks";
 // Systray icons that stay visible while the home screen is showing.
 const HOME_SCREEN_SYSTRAY_KEYS = [
     "global_search.SystrayButton",
+    "help_centre.help_button",
     "UserSwitchSystray",
     "mail.messaging_menu",
     "mail.activity_menu",
