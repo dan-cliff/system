@@ -46,7 +46,8 @@ export class GenerateDashboardDialog extends Component {
                         provider.code,
                     ]);
                     this.props.close();
-                    await this.props.onGenerated(result);
+                    // Say why an earlier engine was skipped, e.g. Claude failed.
+                    await this.props.onGenerated({ ...result, skipped: [...this.state.errors] });
                     return;
                 } catch (error) {
                     this.state.errors.push(`${provider.name}: ${errorMessage(error)}`);
@@ -80,6 +81,13 @@ export function useDashboardAI() {
 
     async function onGenerated(result) {
         notification.add(_t('"%(name)s" was created with %(provider)s.', result), { type: "success" });
+        if (result.skipped?.length) {
+            notification.add(result.skipped.join("\n"), {
+                title: _t("Used %s because an earlier AI engine failed", result.provider),
+                type: "warning",
+                sticky: true,
+            });
+        }
         if (result.warnings?.length) {
             notification.add(result.warnings.join("\n"), {
                 title: _t("Some parts of the design were left out"),

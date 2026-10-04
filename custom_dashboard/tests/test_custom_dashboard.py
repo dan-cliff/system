@@ -163,8 +163,8 @@ class TestCustomDashboard(TransactionCase):
         widget.elapsed_field_id = False
         self.assertIn('error', widget.get_widget_data()[widget.id])
 
-    @freeze_time('2026-10-03 10:00:00')
     def test_kpi_time_since_latest_datetime(self):
+        # No frozen clock: create_date comes from the database's real time.
         widget = self._widget(
             'kpi', value_mode='elapsed', elapsed_unit='day',
             elapsed_field_id=self._field('create_date').id,

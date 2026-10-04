@@ -36,7 +36,7 @@ class TestDashboardAI(TransactionCase):
 
         # A plain function, not a MagicMock: the ORM scans model methods for
         # attributes such as _ondelete, which a mock would claim to have.
-        def fake_ask(model, provider, key, prompt, schema, effort='medium'):
+        def fake_ask(model, provider, key, prompt, schema, effort='medium', timeout=None):
             calls.append(prompt)
             return answers[len(calls) - 1]
 
@@ -249,3 +249,23 @@ class TestDashboardAI(TransactionCase):
             self.assertEqual(self.Dashboard._ai_ask('claude', 'sk-key', 'prompt', {'type': 'object'}), {})
         self.assertNotIn('fallbacks', post.call_args.kwargs['json'])
         self.assertNotIn('anthropic-beta', post.call_args.kwargs['headers'])
+
+    def test_claude_skips_schemas_over_its_limit(self):
+        ok = self._claude_response(body={'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': '{}'}]})
+        Dashboard = self.Dashboard
+        self.assertGreater(Dashboard._ai_optional_count(Dashboard._ai_design_schema()), 24)
+        self.assertEqual(Dashboard._ai_optional_count(Dashboard._ai_models_schema()), 0)
+        with patch.object(dashboard_ai.requests, 'post', return_value=ok) as post:
+            Dashboard._ai_ask('claude', 'sk-key', 'prompt', Dashboard._ai_design_schema())
+        self.assertNotIn('format', post.call_args.kwargs['json']['output_config'])
+        with patch.object(dashboard_ai.requests, 'post', return_value=ok) as post:
+            Dashboard._ai_ask('claude', 'sk-key', 'prompt', Dashboard._ai_models_schema())
+        self.assertIn('format', post.call_args.kwargs['json']['output_config'])
+
+    def test_claude_retries_without_rejected_schema(self):
+        rejected = self._claude_response(400, {'error': {'message': 'Schemas contains too many optional parameters'}})
+        ok = self._claude_response(body={'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': '{"a": 1}'}]})
+        with patch.object(dashboard_ai.requests, 'post', side_effect=[rejected, ok]) as post:
+            answer = self.Dashboard._ai_ask('claude', 'sk-key', 'prompt', self.Dashboard._ai_models_schema())
+        self.assertEqual(answer, {'a': 1})
+        self.assertNotIn('format', post.call_args.kwargs['json']['output_config'])
