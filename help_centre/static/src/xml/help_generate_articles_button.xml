@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!--
+    Template for the "Generate Missing Articles" dialog.
+    Rendered inside Odoo's ActionDialog (target: 'new' client action).
+
+    The Python method syncs the module list immediately (fast) then triggers
+    the nightly cron to do AI generation in the background.  This dialog
+    shows what was queued rather than live per-module results.
+
+    States: loading → done (queued / all-up-to-date) | error.
+-->
+<t t-name="help_centre.RunGenerateArticles">
+    <div class="hc-spb-body">
+
+        <!-- ── Loading ──────────────────────────────────────────────── -->
+        <div t-if="state.status === 'loading'" class="hc-spb-loading">
+            <div class="spinner-border text-primary hc-spb-spinner" role="status">
+                <span class="visually-hidden">Checking…</span>
+            </div>
+            <div class="text-center mt-3">
+                <h5 class="mb-1 fw-semibold">Checking for Missing Articles</h5>
+                <p class="text-muted mb-0 hc-spb-subtext">
+                    Syncing module list<span class="hc-spb-dots"><span>.</span><span>.</span><span>.</span></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- ── Done ─────────────────────────────────────────────────── -->
+        <div t-elif="state.status === 'done'">
+
+            <!-- New modules discovered banner -->
+            <div t-if="state.newModules > 0"
+                 class="alert alert-info d-flex align-items-center gap-2 mb-3">
+                <i class="fa fa-plus-circle fa-lg flex-shrink-0"/>
+                <div>
+                    <strong><t t-esc="state.newModules"/> new module(s)</strong> discovered and added to the coverage list.
+                </div>
+            </div>
+
+            <!-- Nothing pending -->
+            <div t-if="state.queuedCount === 0" class="hc-spb-empty">
+                <i class="fa fa-check-circle fa-3x text-success mb-3"/>
+                <h6 class="fw-semibold text-muted mb-1">All modules are up to date.</h6>
+                <p class="text-muted small mb-0">
+                    No modules are pending article generation.
+                </p>
+                <div class="alert alert-secondary mt-3 text-start w-100 small">
+                    <i class="fa fa-info-circle me-1"/>
+                    To regenerate articles for a module, open <strong>Configuration → Module Coverage</strong>
+                    and reset the module status to Pending.
+                </div>
+            </div>
+
+            <!-- Jobs queued for background generation -->
+            <div t-else="">
+                <div class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i class="fa fa-check-circle fa-lg flex-shrink-0"/>
+                    <div>
+                        <strong>
+                            <t t-esc="state.queuedCount"/> of <t t-esc="state.pendingCount"/>
+                            pending module(s) queued for generation.
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="alert alert-secondary d-flex align-items-start gap-2 mb-3">
+                    <i class="fa fa-info-circle fa-lg flex-shrink-0 mt-1"/>
+                    <div class="small">
+                        <strong>Articles are being generated in the background.</strong>
+                        AI article generation takes several minutes per module — the scheduler
+                        cron has been triggered and will process up to
+                        <strong><t t-esc="state.maxPerRun"/></strong> module(s) this run.
+                        You can close this dialog and continue working; the articles will
+                        appear in the list once generation is complete.
+                        <t t-if="remainingAfterRun > 0">
+                            <br/><br/>
+                            <i class="fa fa-refresh me-1"/>
+                            <strong><t t-esc="remainingAfterRun"/> more module(s)</strong> will be
+                            processed in subsequent runs — click <strong>Generate Missing Articles</strong>
+                            again to queue the next batch.
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── Error ─────────────────────────────────────────────────── -->
+        <div t-elif="state.status === 'error'">
+            <div class="alert alert-danger d-flex align-items-start gap-2">
+                <i class="fa fa-exclamation-circle fa-lg flex-shrink-0 mt-1"/>
+                <div>
+                    <strong>Something went wrong.</strong>
+                    <div class="mt-1 small" t-esc="state.error"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Footer buttons ────────────────────────────────────────── -->
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top"
+             t-if="state.status !== 'loading'">
+            <button t-if="state.status === 'error'"
+                    class="btn btn-secondary" t-on-click="retry">
+                <i class="fa fa-refresh me-1"/>Retry
+            </button>
+            <button class="btn btn-primary" t-on-click="close">
+                Close
+            </button>
+        </div>
+
+    </div>
+</t>
+
+</templates>

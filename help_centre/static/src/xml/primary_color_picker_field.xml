@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+<!--
+    Help Centre — Primary Colour Picker field template.
+    Paired with primary_color_picker_field.js.
+
+    Shows a native <input type="color"> swatch (opens the OS colour picker
+    on click) and a monospace hex-code text input side by side.
+    Both inputs are disabled in readonly mode.
+-->
+<t t-name="help_centre.PrimaryColorPickerField">
+    <div class="hc-color-field d-flex align-items-center gap-2">
+
+        <!-- Native OS colour picker swatch -->
+        <input type="color"
+               class="hc-color-swatch"
+               t-att-value="hexValue"
+               t-att-disabled="props.readonly ? true : undefined"
+               t-on-change="onSwatchChange"
+               title="Open colour picker"/>
+
+        <!-- Editable hex text input -->
+        <input type="text"
+               class="o_input hc-color-text-input"
+               t-att-value="hexValue"
+               t-att-readonly="props.readonly ? true : undefined"
+               maxlength="7"
+               placeholder="#5b4fc8"
+               t-on-change="onTextCommit"
+               t-on-blur="onTextCommit"/>
+
+    </div>
+</t>
+
+</templates>

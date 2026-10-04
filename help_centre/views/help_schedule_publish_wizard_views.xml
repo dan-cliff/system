@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_help_schedule_publish_wizard_form" model="ir.ui.view">
+        <field name="name">help.schedule.publish.wizard.form</field>
+        <field name="model">help.schedule.publish.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Schedule Publish">
+
+                <field name="article_id" invisible="1"/>
+                <field name="has_existing_schedule" invisible="1"/>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h2>
+                            <i class="fa fa-clock-o me-2 text-primary" title="Schedule"/>
+                            Schedule Publish
+                        </h2>
+                        <h5 class="text-muted mb-3">
+                            <field name="article_name" readonly="1"/>
+                        </h5>
+                    </div>
+
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-3"
+                         role="alert" invisible="not has_existing_schedule">
+                        <i class="fa fa-clock-o mt-1" title="Already scheduled"/>
+                        <div>
+                            <strong>Already scheduled</strong> — currently set to publish on
+                            <field name="current_publish_date" readonly="1" nolabel="1"
+                                   options='{"numeric": true}'/>.
+                            Saving a new date will replace it.
+                        </div>
+                    </div>
+
+                    <group>
+                        <field name="publish_date" options='{"numeric": true}'/>
+                    </group>
+
+                    <p class="text-muted small mt-1">
+                        <i class="fa fa-info-circle me-1"/>
+                        The article will be published automatically by the hourly cron —
+                        expect it to go live within one hour of the scheduled time.
+                    </p>
+                </sheet>
+
+                <footer>
+                    <button name="action_schedule" type="object"
+                            string="Schedule"
+                            class="btn-primary"/>
+                    <button name="action_clear_schedule" type="object"
+                            string="Clear Schedule"
+                            class="btn-danger"
+                            invisible="not has_existing_schedule"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+
+            </form>
+        </field>
+    </record>
+
+</odoo>

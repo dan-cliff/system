@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_help_generate_wizard_form" model="ir.ui.view">
+        <field name="name">help.generate.wizard.form</field>
+        <field name="model">help.generate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate Article with AI">
+
+                <field name="wizard_state" invisible="1"/>
+                <field name="article_id" invisible="1"/>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h2 invisible="wizard_state == 'generated'">
+                            <i class="fa fa-robot me-2 text-primary"/>
+                            Generate Article with AI
+                        </h2>
+                        <h2 invisible="wizard_state == 'prompt'">
+                            <i class="fa fa-check-circle me-2 text-success"/>
+                            Review &amp; Apply Generated Content
+                        </h2>
+                    </div>
+
+                    <!-- ── Step 1: Prompt ──────────────────────────────────────── -->
+                    <div invisible="wizard_state == 'generated'">
+                        <div class="alert alert-info mb-4" role="status">
+                            <strong>How it works:</strong> Describe what you want the article to cover.
+                            Be specific — include context like which Odoo workflow, which user role, and
+                            what outcome the reader should achieve.
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="topic" class="o_form_label fw-bold">What to write about</label>
+                            <field name="topic" nolabel="1"
+                                   placeholder="e.g. How to create a Purchase Order, receive goods into stock, and process the vendor bill in Odoo 19…"
+                                   style="min-height: 120px; width: 100%;"/>
+                        </div>
+
+                        <group>
+                            <group string="Article settings">
+                                <field name="audience" widget="radio" options='{"horizontal": true}'/>
+                                <field name="style"/>
+                                <field name="module_ids" widget="many2many_tags"/>
+                            </group>
+                            <group string="Optional extra instructions">
+                                <field name="extra_instructions" nolabel="1"
+                                       placeholder="e.g. Focus on the accounting manager workflow. Include a warning about VAT implications."/>
+                            </group>
+                        </group>
+                    </div>
+
+                    <!-- ── Step 2: Preview ─────────────────────────────────────── -->
+                    <div invisible="wizard_state == 'prompt'">
+                        <div class="alert alert-success mb-3" role="status">
+                            <i class="fa fa-check-circle me-2"/>
+                            Content generated! Review it below — you can edit it freely in the
+                            article editor after applying.
+                        </div>
+                        <div class="border rounded p-3 bg-light"
+                             style="max-height: 500px; overflow-y: auto;">
+                            <field name="generated_content" nolabel="1" readonly="0"/>
+                        </div>
+                    </div>
+                </sheet>
+
+                <footer>
+                    <!-- Step 1 footer -->
+                    <button name="action_generate" type="object"
+                            string="✨  Generate"
+                            class="btn-primary"
+                            invisible="wizard_state == 'generated'"/>
+
+                    <!-- Step 2 footer -->
+                    <button name="action_apply" type="object"
+                            string="Apply to Article"
+                            class="btn-success"
+                            invisible="wizard_state == 'prompt'"/>
+                    <button name="action_back" type="object"
+                            string="← Back &amp; Re-generate"
+                            class="btn-secondary"
+                            invisible="wizard_state == 'prompt'"/>
+
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

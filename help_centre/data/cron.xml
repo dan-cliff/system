@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!--
+            Nightly Help Centre module coverage sync.
+            Runs at 02:00 each night:
+              1. Discovers newly installed modules and creates coverage records.
+              2. Generates draft articles (overview + per-model) for up to
+                 `help_centre.coverage_max_per_run` (default 5) pending modules.
+            Articles are created in Draft state for editor review.
+        -->
+        <record id="ir_cron_help_centre_nightly_sync" model="ir.cron">
+            <field name="name">Help Centre: Nightly Module Coverage Sync</field>
+            <field name="model_id" ref="model_help_module_coverage"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_nightly_sync()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="nextcall" eval="(datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d') + ' 02:00:00'"/>
+        </record>
+
+        <!--
+            Hourly scheduled publish check.
+            Publishes any draft articles whose publish_date has arrived.
+        -->
+        <record id="ir_cron_help_centre_scheduled_publish" model="ir.cron">
+            <field name="name">Help Centre: Scheduled Article Publish</field>
+            <field name="model_id" ref="model_help_article"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_scheduled_publish()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active">True</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="nextcall" eval="(datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%d %H:00:00')"/>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Top-level app icon ──────────────────────────────────────────────────── -->
+    <menuitem
+        id="menu_help_centre_root"
+        name="Help Centre"
+        web_icon="help_centre,static/src/img/app_icon.png"
+        sequence="70"
+        groups="help_centre.group_help_centre_editor"/>
+
+    <!-- ── Main section ───────────────────────────────────────────────────────── -->
+    <menuitem
+        id="menu_help_centre"
+        name="Help Centre"
+        parent="menu_help_centre_root"
+        sequence="1"/>
+
+    <menuitem
+        id="menu_help_article"
+        name="Articles"
+        parent="menu_help_centre"
+        action="action_help_article"
+        sequence="10"
+        groups="help_centre.group_help_centre_editor"/>
+
+    <menuitem
+        id="menu_help_chatbot"
+        name="Chat History"
+        parent="menu_help_centre"
+        action="action_help_chatbot_session"
+        sequence="20"
+        groups="help_centre.group_help_centre_manager"/>
+
+    <!-- ── Configuration ──────────────────────────────────────────────────────── -->
+    <menuitem
+        id="menu_help_config"
+        name="Configuration"
+        parent="menu_help_centre_root"
+        sequence="90"
+        groups="help_centre.group_help_centre_manager"/>
+
+    <menuitem
+        id="menu_help_category"
+        name="Categories"
+        parent="menu_help_config"
+        action="action_help_category"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_help_tag"
+        name="Tags"
+        parent="menu_help_config"
+        action="action_help_tag"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_help_module_coverage"
+        name="Module Coverage"
+        parent="menu_help_config"
+        action="action_help_module_coverage"
+        sequence="30"/>
+
+    <record id="action_help_centre_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'help_centre'}</field>
+    </record>
+
+    <menuitem
+        id="menu_help_centre_settings"
+        name="Settings"
+        parent="menu_help_config"
+        action="action_help_centre_config_settings"
+        sequence="100"
+        groups="help_centre.group_help_centre_manager"/>
+
+</odoo>

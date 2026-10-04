@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_help_bulk_update_wizard_form" model="ir.ui.view">
+        <field name="name">help.bulk.update.wizard.form</field>
+        <field name="model">help.bulk.update.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bulk Update Articles">
+
+                <field name="article_ids" invisible="1" widget="many2many"/>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h2>
+                            <i class="fa fa-pencil-square-o me-2 text-primary"/>
+                            Bulk Update Articles
+                        </h2>
+                        <p class="text-muted mb-0">
+                            Updating <strong><field name="article_count" readonly="1" nolabel="1"/></strong>
+                            article(s). Tick the fields you want to change — unticked fields are left as-is.
+                        </p>
+                    </div>
+
+                    <div class="mt-3">
+
+                        <!-- ── Category ────────────────────────────────────── -->
+                        <group col="4" class="mb-0">
+                            <field name="update_category" nolabel="1"/>
+                            <field name="category_id" string="Category" colspan="3"
+                                   readonly="not update_category"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <hr class="mt-0 mb-0"/>
+
+                        <!-- ── Audience ─────────────────────────────────────── -->
+                        <group col="4" class="mb-0">
+                            <field name="update_audience" nolabel="1"/>
+                            <field name="audience" string="Audience" colspan="3"
+                                   readonly="not update_audience"
+                                   widget="radio" options='{"horizontal": true}'/>
+                        </group>
+                        <hr class="mt-0 mb-0"/>
+
+                        <!-- ── Featured ─────────────────────────────────────── -->
+                        <group col="4" class="mb-0">
+                            <field name="update_is_featured" nolabel="1"/>
+                            <field name="is_featured" string="Featured" colspan="3"
+                                   readonly="not update_is_featured"/>
+                        </group>
+                        <hr class="mt-0 mb-0"/>
+
+                        <!-- ── Author ───────────────────────────────────────── -->
+                        <group col="4" class="mb-0">
+                            <field name="update_author" nolabel="1"/>
+                            <field name="author_id" string="Author" colspan="3"
+                                   readonly="not update_author"
+                                   widget="many2one_avatar_user"
+                                   domain="[('share', '=', False)]"/>
+                        </group>
+                        <hr class="mt-0 mb-0"/>
+
+                        <!-- ── Scheduled Publish ─────────────────────────────── -->
+                        <group col="4" class="mb-0">
+                            <field name="update_publish_date" nolabel="1"/>
+                            <field name="publish_date_action" string="Scheduled Publish"
+                                   colspan="3"
+                                   readonly="not update_publish_date"
+                                   widget="radio" options='{"horizontal": true}'/>
+                        </group>
+                        <group invisible="not update_publish_date or publish_date_action == 'clear'">
+                            <field name="publish_date" string="Publish At"
+                                   options='{"numeric": true}'
+                                   required="update_publish_date and publish_date_action == 'set'"/>
+                        </group>
+
+                    </div>
+                </sheet>
+
+                <footer>
+                    <button name="action_apply" type="object"
+                            string="Apply"
+                            class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+
+            </form>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Help Centre Index  /help
+════════════════════════════════════════════════════════════════════════════ -->
+<template id="website_help_index" name="Help Centre — Index">
+    <t t-call="website.layout">
+        <t t-set="head">
+            <title><t t-esc="centre_name"/> — Help Centre</title>
+        </t>
+        <div id="wrap" class="hc-page">
+
+            <!-- Hero: bg-primary uses the website configured primary colour
+                  (the "primary" CSS variable) so the header adapts to the active theme. -->
+            <div class="hc-hero bg-primary text-white">
+                <div class="container py-5 text-center">
+                    <h1 class="hc-hero-title"><t t-esc="centre_name"/></h1>
+                    <p class="hc-hero-tagline"><t t-esc="tagline"/></p>
+                    <form action="/help/search" method="GET" class="hc-search-form mt-4">
+                        <div class="input-group hc-search-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fa fa-search text-muted"/>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-0"
+                                   name="q" t-att-value="search_query"
+                                   placeholder="Search articles…" autocomplete="off"/>
+                            <button class="btn btn-primary px-4" type="submit">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="container py-5">
+
+                <!-- Search results mode -->
+                <t t-if="search_query">
+                    <h4 class="mb-4 text-muted">
+                        <i class="fa fa-search me-2"/>
+                        <t t-if="articles">
+                            <t t-esc="len(articles)"/> result(s) for "<t t-esc="search_query"/>"
+                        </t>
+                        <t t-else="">No results for "<t t-esc="search_query"/>"</t>
+                    </h4>
+                    <div class="row g-3">
+                        <t t-foreach="articles" t-as="a">
+                            <div class="col-md-6">
+                                <t t-call="help_centre.website_help_article_card"/>
+                            </div>
+                        </t>
+                    </div>
+                    <t t-if="not articles">
+                        <div class="alert alert-info">
+                            No articles found. Try different keywords or
+                            <a href="/help">browse all articles</a>.
+                        </div>
+                    </t>
+                </t>
+
+                <!-- Normal browse mode -->
+                <t t-if="not search_query">
+
+                    <!-- Featured articles -->
+                    <t t-if="featured">
+                        <h4 class="hc-section-title mb-3">
+                            <i class="fa fa-star text-warning me-2"/>Featured
+                        </h4>
+                        <div class="row g-3 mb-5">
+                            <t t-foreach="featured" t-as="a">
+                                <div class="col-md-6 col-lg-4">
+                                    <t t-call="help_centre.website_help_article_card"/>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- By category -->
+                    <t t-if="categories">
+                        <t t-foreach="categories" t-as="cat">
+                            <div class="mb-5">
+                                <h4 class="hc-section-title mb-3">
+                                    <i t-attf-class="fa #{cat.icon or 'fa-folder'} me-2 text-primary"/>
+                                    <t t-esc="cat.name"/>
+                                    <span class="badge bg-secondary ms-2 fs-6">
+                                        <t t-esc="cat.article_count"/>
+                                    </span>
+                                </h4>
+                                <t t-if="cat.description">
+                                    <p class="text-muted mb-3"><t t-esc="cat.description"/></p>
+                                </t>
+                                <div class="row g-3">
+                                    <t t-foreach="cat.article_ids.filtered(lambda a: a.state == 'published')[:6]" t-as="a">
+                                        <div class="col-md-6 col-lg-4">
+                                            <t t-call="help_centre.website_help_article_card"/>
+                                        </div>
+                                    </t>
+                                </div>
+                                <t t-if="cat.article_count > 6">
+                                    <div class="mt-3">
+                                        <a t-attf-href="/help/search?category=#{cat.id}"
+                                           class="btn btn-outline-secondary btn-sm">
+                                            View all <t t-esc="cat.article_count"/> articles →
+                                        </a>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </t>
+
+                    <!-- Uncategorised / recent fallback -->
+                    <t t-if="not categories and recent">
+                        <h4 class="hc-section-title mb-3">
+                            <i class="fa fa-clock-o me-2 text-muted"/>Recently Updated
+                        </h4>
+                        <div class="row g-3">
+                            <t t-foreach="recent" t-as="a">
+                                <div class="col-md-6 col-lg-4">
+                                    <t t-call="help_centre.website_help_article_card"/>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <t t-if="not categories and not recent and not featured">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-book fa-3x mb-3"/>
+                            <h5>No articles published yet.</h5>
+                        </div>
+                    </t>
+
+                </t>
+
+            </div>
+        </div>
+    </t>
+</template>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Article card snippet (reused in index and search)
+════════════════════════════════════════════════════════════════════════════ -->
+<template id="website_help_article_card" name="Help Article Card">
+    <a t-attf-href="/help/article/#{a.slug}" class="text-decoration-none">
+        <div class="card hc-article-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title mb-0 hc-article-card-title">
+                        <t t-esc="a.name"/>
+                    </h6>
+                    <t t-if="is_internal and a.audience == 'internal'">
+                        <span class="badge bg-secondary ms-2 flex-shrink-0" title="Internal Only">
+                            <i class="fa fa-lock"/>
+                        </span>
+                    </t>
+                </div>
+                <t t-if="a.summary">
+                    <p class="card-text small text-muted hc-article-summary">
+                        <t t-esc="a.summary"/>
+                    </p>
+                </t>
+                <div class="d-flex align-items-center gap-3 mt-2 text-muted" style="font-size: 0.78rem;">
+                    <t t-if="a.category_id">
+                        <span><i class="fa fa-folder-o me-1"/><t t-esc="a.category_id.name"/></span>
+                    </t>
+                    <span><i class="fa fa-clock-o me-1"/><t t-esc="a.read_time_minutes"/> min</span>
+                    <span><i class="fa fa-eye me-1"/><t t-esc="a.view_count"/></span>
+                </div>
+            </div>
+        </div>
+    </a>
+</template>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Article detail page  /help/article/<slug>
+════════════════════════════════════════════════════════════════════════════ -->
+<template id="website_help_article" name="Help Centre — Article">
+    <t t-call="website.layout">
+        <t t-set="head">
+            <title><t t-esc="article.name"/> — <t t-esc="centre_name"/></title>
+        </t>
+        <div id="wrap" class="hc-page">
+            <div class="container py-5">
+                <div class="row">
+
+                    <!-- Main article column -->
+                    <div class="col-lg-8">
+
+                        <!-- Breadcrumb -->
+                        <nav aria-label="breadcrumb" class="mb-4">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="/help"><t t-esc="centre_name"/></a>
+                                </li>
+                                <t t-if="article.category_id">
+                                    <li class="breadcrumb-item">
+                                        <t t-esc="article.category_id.name"/>
+                                    </li>
+                                </t>
+                                <li class="breadcrumb-item active"><t t-esc="article.name"/></li>
+                            </ol>
+                        </nav>
+
+                        <!-- Audience badge -->
+                        <t t-if="is_internal and article.audience == 'internal'">
+                            <div class="alert alert-secondary d-flex align-items-center gap-2 mb-4">
+                                <i class="fa fa-lock"/>
+                                <span><strong>Internal Article</strong> — not visible to the public.</span>
+                            </div>
+                        </t>
+
+                        <!-- Article header -->
+                        <h1 class="hc-article-title mb-3"><t t-esc="article.name"/></h1>
+
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-4 text-muted hc-article-meta">
+                            <span>
+                                <i class="fa fa-user me-1"/>
+                                <t t-esc="article.author_id.name"/>
+                            </span>
+                            <span>
+                                <i class="fa fa-calendar me-1"/>
+                                <t t-esc="article.write_date.strftime('%d/%m/%Y')"/>
+                            </span>
+                            <span>
+                                <i class="fa fa-clock-o me-1"/>
+                                <t t-esc="article.read_time_minutes"/> min read
+                            </span>
+                            <span>
+                                <i class="fa fa-eye me-1"/>
+                                <t t-esc="article.view_count"/> views
+                            </span>
+                            <t t-if="article.tag_ids">
+                                <t t-foreach="article.tag_ids" t-as="tag">
+                                    <span class="badge bg-light text-dark border">
+                                        <t t-esc="tag.name"/>
+                                    </span>
+                                </t>
+                            </t>
+                        </div>
+
+                        <!-- Article body -->
+                        <div class="hc-article-body">
+                            <t t-out="article.content"/>
+                        </div>
+
+                        <!-- Helpfulness rating -->
+                        <div class="hc-rating-box mt-5 p-4 border rounded text-center">
+                            <p class="mb-3 fw-semibold">Was this article helpful?</p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <button class="btn btn-outline-success hc-rate-btn"
+                                        t-att-data-article-id="article.id"
+                                        data-helpful="1">
+                                    <i class="fa fa-thumbs-up me-2"/>
+                                    Yes
+                                    <span class="ms-2 badge bg-success" id="hc-helpful-count">
+                                        <t t-esc="article.helpful_count"/>
+                                    </span>
+                                </button>
+                                <button class="btn btn-outline-danger hc-rate-btn"
+                                        t-att-data-article-id="article.id"
+                                        data-helpful="0">
+                                    <i class="fa fa-thumbs-down me-2"/>
+                                    No
+                                    <span class="ms-2 badge bg-danger" id="hc-not-helpful-count">
+                                        <t t-esc="article.not_helpful_count"/>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4 mt-5 mt-lg-0">
+
+                        <!-- Related articles -->
+                        <t t-if="related">
+                            <div class="hc-sidebar-card mb-4">
+                                <h6 class="hc-sidebar-title">
+                                    <i class="fa fa-link me-2"/>Related Articles
+                                </h6>
+                                <ul class="list-unstyled mb-0">
+                                    <t t-foreach="related" t-as="r">
+                                        <li class="hc-related-item">
+                                            <a t-attf-href="/help/article/#{r.slug}">
+                                                <t t-esc="r.name"/>
+                                            </a>
+                                            <small class="text-muted ms-2">
+                                                <i class="fa fa-clock-o"/>
+                                                <t t-esc="r.read_time_minutes"/> min
+                                            </small>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </t>
+
+                        <!-- Module tags -->
+                        <t t-if="article.module_ids">
+                            <div class="hc-sidebar-card mb-4">
+                                <h6 class="hc-sidebar-title">
+                                    <i class="fa fa-cube me-2"/>Odoo Modules
+                                </h6>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <t t-foreach="article.module_ids" t-as="mod">
+                                        <span class="badge bg-primary">
+                                            <t t-esc="mod.shortdesc or mod.name"/>
+                                        </span>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div class="hc-sidebar-card">
+                            <a href="/help" class="btn btn-outline-secondary w-100">
+                                <i class="fa fa-arrow-left me-2"/>Back to Help Centre
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</template>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     KC Bot widget injected into every website page
+     (always rendered; visibility controlled by JS / settings)
+════════════════════════════════════════════════════════════════════════════ -->
+<template id="website_help_kc_widget" name="Help Centre KC Bot Widget"
+          inherit_id="website.layout" active="True">
+
+    <!-- Inject branding CSS custom properties into <head> so they cascade
+         across all page elements including the widget and /help content pages. -->
+    <xpath expr="//head" position="inside">
+        <t t-set="_hc_params" t-value="request.env['ir.config_parameter'].sudo()"/>
+        <t t-set="_hc_color" t-value="(_hc_params.get_param('help_centre.primary_color', '') or '#5b4fc8').strip()"/>
+        <style>
+            :root {
+                --hc-primary: <t t-esc="_hc_color"/>;
+                --hc-primary-d: <t t-esc="_hc_color"/>;
+            }
+        </style>
+    </xpath>
+
+    <!-- Widget root element — float toggle button + sliding panel.
+         All config is passed as data-* attributes so the vanilla-JS widget
+         never needs a separate API call on page load. -->
+    <xpath expr="//body" position="inside">
+        <t t-set="_hc_p" t-value="request.env['ir.config_parameter'].sudo()"/>
+        <div id="hc-widget-root"
+             t-att-data-centre-name="_hc_p.get_param('help_centre.name', 'Help Centre')"
+             t-att-data-position="_hc_p.get_param('help_centre.widget_position', 'bottom_right')"
+             t-att-data-helpdesk-enabled="'1' if _hc_p.get_param('help_centre.helpdesk_enabled', 'False') == 'True' else '0'"
+             t-att-data-user-authenticated="'1' if request.session.uid else '0'"
+             t-att-data-ai-name="(_hc_p.get_param('help_centre.ai_name', '') or 'KC Bot').strip()"
+             t-att-data-ai-welcome="_hc_p.get_param('help_centre.ai_welcome_message', '')"
+             t-att-data-primary-color="(_hc_p.get_param('help_centre.primary_color', '') or '#5b4fc8').strip()">
+        </div>
+    </xpath>
+</template>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Help Centre Contents — /help/contents
+     Full navigation tree: categories → sub-categories → articles.
+     Listed as a Website page so it appears in Website → Pages.
+════════════════════════════════════════════════════════════════════════════ -->
+<template id="website_help_contents" name="Help Centre — Contents"
+          key="help_centre.website_help_contents">
+    <t t-call="website.layout">
+        <t t-set="head">
+            <title>Contents — <t t-esc="centre_name"/></title>
+        </t>
+        <div id="wrap" class="hc-page">
+
+            <!-- Hero bar — bg-primary for consistent theme colouring -->
+            <div class="hc-hero bg-primary text-white">
+                <div class="container py-4 text-center">
+                    <h1 class="hc-hero-title">
+                        <i class="fa fa-sitemap me-3 opacity-75"/>
+                        <t t-esc="centre_name"/> — Contents
+                    </h1>
+                    <p class="hc-hero-tagline">
+                        Browse all <strong><t t-esc="total_articles"/></strong> articles
+                        across <strong><t t-esc="total_categories"/></strong> categories
+                    </p>
+                    <!-- Search -->
+                    <form action="/help/search" method="GET" class="hc-search-form mt-3">
+                        <div class="input-group hc-search-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fa fa-search text-muted"/>
+                            </span>
+                            <input type="text" name="q"
+                                   class="form-control border-start-0 ps-0"
+                                   placeholder="Search articles…" autocomplete="off"/>
+                            <button class="btn btn-primary px-4" type="submit">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="container py-5">
+                <div class="row g-4">
+
+                    <!-- ── Left nav tree ───────────────────────────────────── -->
+                    <div class="col-lg-3">
+                        <div class="hc-sidebar-card sticky-top" style="top: 80px;">
+                            <h6 class="hc-sidebar-title">
+                                <i class="fa fa-list me-2"/>Quick Jump
+                            </h6>
+                            <ul class="list-unstyled mb-0 hc-nav-tree">
+                                <!-- Top-level / uncategorised shortcut -->
+                                <li class="mb-1">
+                                    <a href="/help" class="hc-nav-link">
+                                        <i class="fa fa-home me-2 text-muted"/>Home
+                                    </a>
+                                </li>
+                                <t t-foreach="root_categories" t-as="cat">
+                                    <li class="mt-2">
+                                        <a t-attf-href="#cat-#{cat.id}"
+                                           class="hc-nav-link fw-semibold">
+                                            <i t-attf-class="fa #{cat.icon or 'fa-folder'} me-2 text-primary"/>
+                                            <t t-esc="cat.name"/>
+                                            <span class="badge bg-light text-dark ms-1">
+                                                <t t-esc="cat.article_count"/>
+                                            </span>
+                                        </a>
+                                        <!-- Sub-categories in sidebar nav -->
+                                        <t t-if="cat.child_ids">
+                                            <ul class="list-unstyled ms-3 mt-1">
+                                                <t t-foreach="cat.child_ids" t-as="sub">
+                                                    <li>
+                                                        <a t-attf-href="#cat-#{sub.id}"
+                                                           class="hc-nav-link small text-muted">
+                                                            <i class="fa fa-angle-right me-1"/>
+                                                            <t t-esc="sub.name"/>
+                                                        </a>
+                                                    </li>
+                                                </t>
+                                            </ul>
+                                        </t>
+                                    </li>
+                                </t>
+                                <t t-if="uncategorised">
+                                    <li class="mt-2">
+                                        <a href="#cat-uncategorised" class="hc-nav-link fw-semibold">
+                                            <i class="fa fa-folder-open me-2 text-muted"/>
+                                            Uncategorised
+                                            <span class="badge bg-light text-dark ms-1">
+                                                <t t-esc="len(uncategorised)"/>
+                                            </span>
+                                        </a>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ── Main content tree ───────────────────────────────── -->
+                    <div class="col-lg-9">
+
+                        <t t-foreach="root_categories" t-as="cat">
+                            <!-- Category heading -->
+                            <div t-attf-id="cat-#{cat.id}" class="hc-contents-section mb-5">
+                                <h3 class="hc-contents-cat-title d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                    <i t-attf-class="fa #{cat.icon or 'fa-folder'} text-primary"/>
+                                    <t t-esc="cat.name"/>
+                                    <span class="badge bg-secondary ms-2 fs-6">
+                                        <t t-esc="cat.article_count"/>
+                                    </span>
+                                </h3>
+                                <t t-if="cat.description">
+                                    <p class="text-muted mb-3">
+                                        <t t-esc="cat.description"/>
+                                    </p>
+                                </t>
+
+                                <!-- Articles directly in this category (no sub-cat) -->
+                                <t t-set="direct_articles" t-value="articles_by_cat.get(cat.id, [])"/>
+                                <t t-if="direct_articles and not cat.child_ids">
+                                    <div class="row g-2">
+                                        <t t-foreach="direct_articles" t-as="a">
+                                            <div class="col-md-6">
+                                                <t t-call="help_centre.website_help_contents_article_row"/>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+
+                                <!-- Sub-categories with their articles -->
+                                <t t-if="cat.child_ids">
+                                    <!-- Direct articles first -->
+                                    <t t-if="direct_articles">
+                                        <div class="row g-2 mb-4">
+                                            <t t-foreach="direct_articles" t-as="a">
+                                                <div class="col-md-6">
+                                                    <t t-call="help_centre.website_help_contents_article_row"/>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </t>
+                                    <t t-foreach="cat.child_ids" t-as="sub">
+                                        <t t-set="sub_articles" t-value="articles_by_cat.get(sub.id, [])"/>
+                                        <t t-if="sub_articles">
+                                            <div t-attf-id="cat-#{sub.id}" class="mb-4 ms-2">
+                                                <h5 class="d-flex align-items-center gap-2 mb-2 text-secondary">
+                                                    <i class="fa fa-angle-right"/>
+                                                    <t t-esc="sub.name"/>
+                                                    <span class="badge bg-light text-secondary ms-1">
+                                                        <t t-esc="len(sub_articles)"/>
+                                                    </span>
+                                                </h5>
+                                                <div class="row g-2">
+                                                    <t t-foreach="sub_articles" t-as="a">
+                                                        <div class="col-md-6">
+                                                            <t t-call="help_centre.website_help_contents_article_row"/>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </t>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- Uncategorised articles -->
+                        <t t-if="uncategorised">
+                            <div id="cat-uncategorised" class="hc-contents-section mb-5">
+                                <h3 class="hc-contents-cat-title d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                    <i class="fa fa-folder-open text-muted"/>
+                                    Uncategorised
+                                    <span class="badge bg-secondary ms-2 fs-6">
+                                        <t t-esc="len(uncategorised)"/>
+                                    </span>
+                                </h3>
+                                <div class="row g-2">
+                                    <t t-foreach="uncategorised" t-as="a">
+                                        <div class="col-md-6">
+                                            <t t-call="help_centre.website_help_contents_article_row"/>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+
+                        <t t-if="not root_categories and not uncategorised">
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa fa-book fa-3x mb-3"/>
+                                <h5>No articles published yet.</h5>
+                                <a href="/help" class="btn btn-outline-secondary mt-2">
+                                    <i class="fa fa-arrow-left me-2"/>Back to Help Centre
+                                </a>
+                            </div>
+                        </t>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</template>
+
+
+<!-- ── Article row snippet (used inside the contents tree) ──────────────── -->
+<template id="website_help_contents_article_row" name="Help Centre Contents — Article Row">
+    <a t-attf-href="/help/article/#{a.slug}"
+       class="d-flex align-items-start gap-2 p-2 rounded hc-contents-article-row text-decoration-none">
+        <i class="fa fa-file-text-o text-primary mt-1 flex-shrink-0"/>
+        <div class="flex-grow-1 min-w-0">
+            <div class="hc-article-row-title text-dark fw-semibold text-truncate">
+                <t t-esc="a.name"/>
+            </div>
+            <div class="d-flex gap-2 mt-1" style="font-size: 0.75rem; color: #6c757d;">
+                <span><i class="fa fa-clock-o me-1"/><t t-esc="a.read_time_minutes"/> min</span>
+                <span><i class="fa fa-eye me-1"/><t t-esc="a.view_count"/></span>
+            </div>
+        </div>
+        <t t-if="a.is_featured">
+            <i class="fa fa-star text-warning flex-shrink-0 mt-1" title="Featured"/>
+        </t>
+    </a>
+</template>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Website Pages — registers /help, /help/contents with Website → Pages
+     noupdate="1" so website-builder edits are not overwritten on upgrade.
+     IMPORTANT: must come AFTER the templates above are defined so the ref=
+     lookups resolve correctly on a fresh install.
+════════════════════════════════════════════════════════════════════════════ -->
+<data noupdate="1">
+    <record id="website_page_help_index" model="website.page">
+        <field name="view_id" ref="website_help_index"/>
+        <field name="url">/help</field>
+        <field name="is_published">True</field>
+        <field name="website_indexed">True</field>
+    </record>
+    <record id="website_page_help_contents" model="website.page">
+        <field name="view_id" ref="website_help_contents"/>
+        <field name="url">/help/contents</field>
+        <field name="is_published">True</field>
+        <field name="website_indexed">True</field>
+    </record>
+</data>
+
+</odoo>
+

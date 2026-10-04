@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── List ──────────────────────────────────────────────────────────────── -->
+    <record id="view_help_module_coverage_list" model="ir.ui.view">
+        <field name="name">help.module.coverage.list</field>
+        <field name="model">help.module.coverage</field>
+        <field name="arch" type="xml">
+            <list string="Module Coverage">
+                <field name="id" string="ID"/>
+                <field name="app_name" string="App Name"/>
+                <field name="module_name" string="Technical Name"/>
+                <field name="module_category" string="Category"/>
+                <field name="is_app" string="App" optional="show"/>
+                <field name="coverage_status" widget="badge"
+                       decoration-success="coverage_status == 'generated'"
+                       decoration-warning="coverage_status == 'pending'"
+                       decoration-info="coverage_status == 'generating'"
+                       decoration-danger="coverage_status == 'error'"
+                       decoration-muted="coverage_status in ('skipped',)"/>
+                <field name="article_count" string="Articles"/>
+                <field name="last_generated" string="Last Generated"
+                       options='{"numeric": true}' optional="show"/>
+                <field name="skip" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form ──────────────────────────────────────────────────────────────── -->
+    <record id="view_help_module_coverage_form" model="ir.ui.view">
+        <field name="name">help.module.coverage.form</field>
+        <field name="model">help.module.coverage</field>
+        <field name="arch" type="xml">
+            <form string="Module Coverage">
+                <header>
+                    <button name="action_generate"
+                            string="Generate Articles"
+                            type="object"
+                            class="btn-primary"
+                            invisible="skip or coverage_status == 'generating'"/>
+                    <button name="action_reset_pending"
+                            string="Reset to Pending"
+                            type="object"
+                            invisible="coverage_status not in ('generated', 'error')"/>
+                    <field name="coverage_status" widget="statusbar"
+                           statusbar_visible="pending,generating,generated"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object"
+                                name="action_view_articles"
+                                class="oe_stat_button"
+                                icon="fa-book"
+                                invisible="article_count == 0">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="article_count" nolabel="1"/>
+                                </span>
+                                <span class="o_stat_text">Articles</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="module_id"/>
+                        <h1><field name="module_id" readonly="1"/></h1>
+                    </div>
+
+                    <group>
+                        <group string="Module Details">
+                            <field name="module_name" readonly="1"/>
+                            <field name="module_category" readonly="1"/>
+                            <field name="is_app" readonly="1"/>
+                        </group>
+                        <group string="Coverage Settings">
+                            <field name="skip"/>
+                            <field name="last_generated"
+                                   options='{"numeric": true}'
+                                   readonly="1"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-danger mt-3" role="alert"
+                         invisible="not error_message">
+                        <strong>Last Generation Error:</strong>
+                        <div class="mt-2">
+                            <field name="error_message" nolabel="1" readonly="1"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search ────────────────────────────────────────────────────────────── -->
+    <record id="view_help_module_coverage_search" model="ir.ui.view">
+        <field name="name">help.module.coverage.search</field>
+        <field name="model">help.module.coverage</field>
+        <field name="arch" type="xml">
+            <search string="Search Module Coverage">
+                <field name="app_name" string="App Name"/>
+                <field name="module_name" string="Technical Name"/>
+                <field name="module_category" string="Category"/>
+                <separator/>
+                <filter name="pending"   string="Pending"
+                        domain="[('coverage_status','=','pending')]"/>
+                <filter name="generated" string="Generated"
+                        domain="[('coverage_status','=','generated')]"/>
+                <filter name="error"     string="Error"
+                        domain="[('coverage_status','=','error')]"/>
+                <separator/>
+                <filter name="apps_only"    string="Apps Only"
+                        domain="[('is_app','=',True)]"/>
+                <filter name="not_skipped"  string="Not Skipped"
+                        domain="[('skip','=',False)]"/>
+                <group name="group_by">
+                    <filter name="group_status"   string="Status"
+                            context="{'group_by': 'coverage_status'}"/>
+                    <filter name="group_category" string="Category"
+                            context="{'group_by': 'module_category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────────────── -->
+    <record id="action_help_module_coverage" model="ir.actions.act_window">
+        <field name="name">Module Coverage</field>
+        <field name="res_model">help.module.coverage</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_not_skipped': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No modules tracked yet
+            </p>
+            <p>
+                Use <strong>Sync Now</strong> from the action menu to populate
+                this list with all installed Odoo apps. The nightly cron will
+                then automatically generate Help Centre articles for each one.
+            </p>
+        </field>
+    </record>
+
+    <!-- ── Server action: Sync Now (appears in Action menu on the list) ──────── -->
+    <record id="action_help_module_coverage_sync" model="ir.actions.server">
+        <field name="name">Sync Installed Modules</field>
+        <field name="model_id" ref="model_help_module_coverage"/>
+        <field name="binding_model_id" ref="model_help_module_coverage"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = model.action_sync_now()</field>
+    </record>
+
+    <!-- ── Server action: Generate (multi-select from list) ──────────────────── -->
+    <record id="action_help_module_coverage_generate" model="ir.actions.server">
+        <field name="name">Generate Articles</field>
+        <field name="model_id" ref="model_help_module_coverage"/>
+        <field name="binding_model_id" ref="model_help_module_coverage"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_generate()</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_help_tag_list" model="ir.ui.view">
+        <field name="name">help.tag.list</field>
+        <field name="model">help.tag</field>
+        <field name="arch" type="xml">
+            <list string="Help Tags">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="color" widget="color_picker"/>
+                <field name="article_count" string="Articles"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_help_tag_form" model="ir.ui.view">
+        <field name="name">help.tag.form</field>
+        <field name="model">help.tag</field>
+        <field name="arch" type="xml">
+            <form string="Help Tag">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Tag name…"/></h1>
+                    </div>
+                    <group>
+                        <field name="color" widget="color_picker"/>
+                        <field name="active"/>
+                        <field name="article_count"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_help_tag" model="ir.actions.act_window">
+        <field name="name">Tags</field>
+        <field name="res_model">help.tag</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>
