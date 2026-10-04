@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Chat Sessions ─────────────────────────────────────────────────────── -->
+
+    <record id="view_help_chatbot_session_list" model="ir.ui.view">
+        <field name="name">help.chatbot.session.list</field>
+        <field name="model">help.chatbot.session</field>
+        <field name="arch" type="xml">
+            <list string="Chat Sessions" create="false" edit="false" delete="true">
+                <field name="id" string="ID"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="visitor_ip"/>
+                <field name="message_count" string="Messages"/>
+                <field name="create_date" string="Started" options='{"numeric": true}'/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_help_chatbot_session_form" model="ir.ui.view">
+        <field name="name">help.chatbot.session.form</field>
+        <field name="model">help.chatbot.session</field>
+        <field name="arch" type="xml">
+            <form string="Chat Session" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="visitor_ip"/>
+                            <field name="create_date" string="Started" options='{"numeric": true}'/>
+                        </group>
+                        <group>
+                            <field name="session_token"/>
+                            <field name="message_count"/>
+                        </group>
+                    </group>
+                    <separator string="Conversation"/>
+                    <field name="message_ids" nolabel="1">
+                        <list create="false" edit="false" delete="false">
+                            <field name="id" string="ID"/>
+                            <field name="role" widget="badge"
+                                   decoration-info="role == 'user'"
+                                   decoration-success="role == 'assistant'"/>
+                            <field name="content"/>
+                            <field name="create_date" string="Time" options='{"numeric": true}'/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_help_chatbot_session" model="ir.actions.act_window">
+        <field name="name">Chat History</field>
+        <field name="res_model">help.chatbot.session</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

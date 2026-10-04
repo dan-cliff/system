@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+<!--
+    Help Centre Systray KC Bot Panel
+    Provides the full Gainsight-style KC Bot experience in the Odoo backend top bar.
+    Tabs: Home (search + articles) | Ask AI (chat) | Article viewer
+
+    IMPORTANT: This template must have a single root element (OWL requirement for
+    systray components). The panel is position:fixed so it does not affect layout.
+-->
+<t t-name="help_centre.SystrayItem">
+
+    <!-- Single root wrapper — required by OWL for systray components -->
+    <div class="o_help_centre_systray_wrap">
+
+        <!-- ── Systray button ── -->
+        <div class="o_nav_entry o_help_centre_systray" t-on-click="toggle"
+             role="button" tabindex="0" title="Help Centre" aria-label="Open Help Centre"
+             t-att-aria-expanded="state.isOpen">
+            <i class="fa fa-question-circle" style="font-size: 16px;"/>
+            <span class="ms-1 d-none d-lg-inline" style="font-size: 13px; font-weight: 500;">Help</span>
+        </div>
+
+        <!-- ── KC Bot Panel (position:fixed — lives in DOM here but visually overlays) ── -->
+        <t t-if="state.isOpen">
+            <div class="hc-backend-panel" role="dialog" aria-label="Help Centre panel"
+                 t-att-style="panelColorStyle">
+
+                <!-- Header -->
+                <div class="hc-panel-header">
+                    <span class="hc-panel-title"><t t-esc="getPanelTitle()"/></span>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="hc-icon-btn" t-on-click="openFullSite" title="Open full Help Centre">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                        </button>
+                        <button class="hc-icon-btn" t-on-click="close" title="Close">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab bar (hidden when viewing an article) -->
+                <div t-if="state.activeTab !== 'article'" class="hc-tabs">
+                    <button class="hc-tab" t-att-class="{ active: state.activeTab === 'home' }"
+                            t-on-click="() => this.switchTab('home')"
+                            t-att-aria-selected="state.activeTab === 'home'">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        Home
+                    </button>
+                    <button class="hc-tab" t-att-class="{ active: state.activeTab === 'chat' }"
+                            t-on-click="() => this.switchTab('chat')"
+                            t-att-aria-selected="state.activeTab === 'chat'">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Ask AI
+                    </button>
+                    <button t-if="state.helpdeskEnabled"
+                            class="hc-tab" t-att-class="{ active: state.activeTab === 'ticket' }"
+                            t-on-click="() => this.switchTab('ticket')"
+                            t-att-aria-selected="state.activeTab === 'ticket'">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-4-4z"/>
+                            <polyline points="15 5 15 9 19 9"/>
+                        </svg>
+                        Lodge Ticket
+                    </button>
+                </div>
+
+                <!-- Panel body -->
+                <div class="hc-panel-body">
+
+                    <!-- ═══ HOME PANE ═══ -->
+                    <t t-if="state.activeTab === 'home'">
+                        <div class="hc-tab-pane-inner">
+
+                            <!-- Search box -->
+                            <div class="hc-search-wrap" style="position: relative;">
+                                <div class="hc-search-inner">
+                                    <svg class="hc-search-icon" width="15" height="15" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="8"/>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                    </svg>
+                                    <input type="text"
+                                           t-model="state.searchQuery"
+                                           t-on-input="onSearchInput"
+                                           t-on-keydown="onSearchKeydown"
+                                           placeholder="Search articles…"
+                                           autocomplete="off"
+                                           aria-label="Search articles"/>
+                                    <button t-if="state.searchQuery" class="hc-search-clear"
+                                            t-on-click="clearSearch" title="Clear search">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- Suggestions dropdown -->
+                                <div t-if="state.showSuggestions" class="hc-suggestions hc-suggestions--open">
+                                    <t t-if="state.suggestions.length">
+                                        <t t-foreach="state.suggestions" t-as="s" t-key="s.id">
+                                            <div class="hc-suggestion-item" role="option" tabindex="0"
+                                                 t-on-click="() => this.openArticle(s.id, s.name)"
+                                                 t-on-keydown="(e) => e.key === 'Enter' &amp;&amp; this.openArticle(s.id, s.name)">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                    <polyline points="14 2 14 8 20 8"/>
+                                                </svg>
+                                                <span class="flex-grow-1"><t t-esc="s.name"/></span>
+                                                <span class="hc-suggestion-meta"><t t-esc="s.read_time"/> min</span>
+                                            </div>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="hc-suggestion-empty">No results found</div>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Article list -->
+                            <div class="hc-home-content">
+                                <t t-if="state.homeLoading or !state.homeLoaded">
+                                    <div class="hc-loading-spinner">
+                                        <div class="hc-spinner"/>
+                                        <span>Loading…</span>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <!-- Featured -->
+                                    <t t-if="state.homeFeatured.length">
+                                        <h6 class="hc-section-label">⭐ Featured</h6>
+                                        <t t-foreach="state.homeFeatured" t-as="a" t-key="a.id">
+                                            <div class="hc-article-row" role="button" tabindex="0"
+                                                 t-on-click="() => this.openArticle(a.id, a.name)"
+                                                 t-on-keydown="(e) => e.key === 'Enter' &amp;&amp; this.openArticle(a.id, a.name)">
+                                                <div class="hc-article-row-title"><t t-esc="a.name"/></div>
+                                                <div class="hc-article-row-meta">
+                                                    <t t-if="a.category"><span><t t-esc="a.category"/></span></t>
+                                                    <span><t t-esc="a.read_time"/> min</span>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </t>
+                                    <!-- Recently updated -->
+                                    <t t-if="state.homeRecent.length">
+                                        <h6 class="hc-section-label">🕒 Recently Updated</h6>
+                                        <t t-foreach="state.homeRecent" t-as="a" t-key="a.id">
+                                            <div class="hc-article-row" role="button" tabindex="0"
+                                                 t-on-click="() => this.openArticle(a.id, a.name)"
+                                                 t-on-keydown="(e) => e.key === 'Enter' &amp;&amp; this.openArticle(a.id, a.name)">
+                                                <div class="hc-article-row-title"><t t-esc="a.name"/></div>
+                                                <div class="hc-article-row-meta">
+                                                    <t t-if="a.category"><span><t t-esc="a.category"/></span></t>
+                                                    <span><t t-esc="a.read_time"/> min</span>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </t>
+                                    <t t-if="!state.homeFeatured.length and !state.homeRecent.length">
+                                        <p class="hc-empty-state">No articles published yet.</p>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- ═══ CHAT PANE ═══ -->
+                    <t t-if="state.activeTab === 'chat'">
+                        <div class="hc-tab-pane-inner hc-chat-pane">
+                            <div class="hc-chat-messages" t-ref="chatMessages" role="log" aria-live="polite">
+                                <t t-foreach="state.chatMessages" t-as="msg" t-key="msg_index">
+                                    <div class="hc-chat-msg" t-att-class="'hc-chat-msg--' + msg.role">
+                                        <t t-if="msg.role === 'assistant'">
+                                            <div class="hc-chat-avatar">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="10"/>
+                                                    <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/>
+                                                    <circle cx="12" cy="17" r=".5" fill="currentColor"/>
+                                                </svg>
+                                            </div>
+                                            <div class="hc-chat-bubble" t-out="getChatBubbleHtml(msg.content)"/>
+                                        </t>
+                                        <t t-else="">
+                                            <div class="hc-chat-bubble"><t t-esc="msg.content"/></div>
+                                        </t>
+                                    </div>
+                                    <!-- Article suggestion chips -->
+                                    <t t-if="msg.articles and msg.articles.length">
+                                        <div class="hc-chat-articles">
+                                            <p class="hc-chat-articles-label">📚 Related articles</p>
+                                            <t t-foreach="msg.articles" t-as="art" t-key="art.id">
+                                                <div class="hc-chat-article-chip" role="button" tabindex="0"
+                                                     t-on-click="() => this.openArticle(art.id, art.name)"
+                                                     t-on-keydown="(e) => e.key === 'Enter' &amp;&amp; this.openArticle(art.id, art.name)">
+                                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                        <polyline points="14 2 14 8 20 8"/>
+                                                    </svg>
+                                                    <t t-esc="art.name"/>
+                                                    <span class="hc-chip-time"><t t-esc="art.read_time"/> min</span>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </t>
+                                </t>
+                                <!-- Typing indicator -->
+                                <t t-if="state.chatLoading">
+                                    <div class="hc-chat-msg hc-chat-msg--assistant">
+                                        <div class="hc-chat-avatar">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                            </svg>
+                                        </div>
+                                        <div class="hc-chat-bubble hc-typing-bubble">
+                                            <span class="hc-typing-dot"/>
+                                            <span class="hc-typing-dot"/>
+                                            <span class="hc-typing-dot"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                            <div class="hc-chat-input-wrap">
+                                <div class="hc-chat-input-row">
+                                    <input type="text"
+                                           placeholder="Ask me anything about Odoo…"
+                                           t-att-value="state.chatInput"
+                                           t-on-input="onChatInput"
+                                           t-on-keydown="onChatKeydown"
+                                           maxlength="1000"
+                                           t-att-disabled="state.chatLoading"
+                                           aria-label="Type your question"/>
+                                    <button class="hc-send-btn" t-on-click="sendChat"
+                                            t-att-disabled="state.chatLoading" title="Send">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"/>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="hc-chat-hint">Powered by AI · Responses may not be 100% accurate</p>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- ═══ ARTICLE PANE ═══ -->
+                    <t t-if="state.activeTab === 'article'">
+                        <div class="hc-tab-pane-inner">
+                            <!-- Navigation bar -->
+                            <div class="hc-article-nav">
+                                <button class="hc-back-btn" t-on-click="goBack">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="15 18 9 12 15 6"/>
+                                    </svg>
+                                    Back
+                                </button>
+                                <button t-if="state.article and state.article.url"
+                                        class="hc-full-link btn btn-link p-0"
+                                        t-on-click="openArticleFullPage"
+                                        title="Open article in a new tab">
+                                    Open full page ↗
+                                </button>
+                            </div>
+
+                            <!-- Loading state -->
+                            <t t-if="state.articleLoading">
+                                <div class="hc-loading-spinner" style="padding: 2rem;">
+                                    <div class="hc-spinner"/>
+                                    <span>Loading…</span>
+                                </div>
+                            </t>
+
+                            <!-- Article content -->
+                            <t t-elif="state.article">
+                                <t t-if="state.article.error === 'auth_required'">
+                                    <div class="hc-auth-wall">
+                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                        </svg>
+                                        <p>This article is for internal users only.</p>
+                                    </div>
+                                </t>
+                                <t t-elif="state.article.error">
+                                    <p class="text-danger p-3">Article not found.</p>
+                                </t>
+                                <t t-else="">
+                                    <div class="hc-article-content">
+                                        <div class="hc-article-header">
+                                            <h5><t t-esc="state.article.name"/></h5>
+                                            <div class="hc-article-meta-row">
+                                                <t t-if="state.article.category">
+                                                    <span><t t-esc="state.article.category"/></span>
+                                                </t>
+                                                <span><t t-esc="state.article.read_time"/> min read</span>
+                                                <span><t t-esc="state.article.view_count or 0"/> views</span>
+                                            </div>
+                                            <t t-if="state.article.tags and state.article.tags.length">
+                                                <div class="hc-tags mt-1">
+                                                    <t t-foreach="state.article.tags" t-as="tag" t-key="tag">
+                                                        <span class="hc-tag"><t t-esc="tag"/></span>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                            <t t-if="state.article.summary">
+                                                <p class="hc-article-summary"><t t-esc="state.article.summary"/></p>
+                                            </t>
+                                        </div>
+                                        <div class="hc-article-body" t-out="getArticleContent()"/>
+                                    </div>
+                                    <!-- Rating -->
+                                    <div class="hc-article-rating">
+                                        <t t-if="!state.rateSubmitted">
+                                            <p>Was this helpful?</p>
+                                            <div class="d-flex gap-2">
+                                                <button class="hc-rate-btn-yes" t-on-click="() => this.rateArticle(true)">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                                                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                                    </svg>
+                                                    Yes
+                                                </button>
+                                                <button class="hc-rate-btn-no" t-on-click="() => this.rateArticle(false)">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                                                        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                                                    </svg>
+                                                    No
+                                                </button>
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="hc-rate-thanks">Thanks for your feedback! ✓</span>
+                                        </t>
+                                    </div>
+                                </t>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- ═══ LODGE TICKET PANE ═══ -->
+                    <t t-if="state.activeTab === 'ticket' and state.helpdeskEnabled">
+                        <div class="hc-tab-pane-inner">
+                            <div class="hc-ticket-wrap">
+
+                                <!-- Success state -->
+                                <t t-if="state.ticketSubmitted">
+                                    <div class="hc-ticket-success">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#198754" stroke-width="1.5">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                            <polyline points="22 4 12 14.01 9 11.01"/>
+                                        </svg>
+                                        <h6>Ticket Submitted!</h6>
+                                        <p>Ticket #<t t-esc="state.ticketId"/> has been lodged. Someone will be in touch shortly.</p>
+                                        <button class="hc-ticket-new-btn" t-on-click="resetTicket">Submit Another</button>
+                                    </div>
+                                </t>
+
+                                <!-- Form -->
+                                <t t-else="">
+                                    <p class="hc-ticket-intro">
+                                        Can't find what you're looking for? Lodge a support ticket and our team will get back to you.
+                                    </p>
+                                    <div class="mb-3">
+                                        <label class="hc-form-label">Subject <span style="color:#dc3545">*</span></label>
+                                        <input type="text" class="hc-form-input"
+                                               t-att-class="{ 'is-invalid': state.ticketSubjectError }"
+                                               t-att-value="state.ticketSubject"
+                                               t-on-input="onTicketSubjectInput"
+                                               t-on-keydown="(e) => e.key === 'Enter' &amp;&amp; this.submitTicket()"
+                                               placeholder="Brief description of your issue"
+                                               maxlength="200"
+                                               t-att-disabled="state.ticketSubmitting"/>
+                                        <div t-if="state.ticketSubjectError" class="hc-field-error">
+                                            <t t-esc="state.ticketSubjectError"/>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="hc-form-label">Description</label>
+                                        <textarea class="hc-form-input" rows="4"
+                                                  placeholder="Describe the issue in more detail…"
+                                                  t-att-value="state.ticketDesc"
+                                                  t-on-input="onTicketDescInput"
+                                                  t-att-disabled="state.ticketSubmitting"/>
+                                    </div>
+                                    <div t-if="state.ticketError" class="hc-ticket-error">
+                                        <t t-esc="state.ticketError"/>
+                                    </div>
+                                    <button class="hc-ticket-submit-btn"
+                                            t-on-click="submitTicket"
+                                            t-att-disabled="state.ticketSubmitting">
+                                        <t t-if="state.ticketSubmitting">
+                                            <span class="hc-spinner-sm"/>  Submitting…
+                                        </t>
+                                        <t t-else="">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                            </svg>
+                                            Submit Ticket
+                                        </t>
+                                    </button>
+                                </t>
+
+                            </div>
+                        </div>
+                    </t>
+
+                </div><!-- /hc-panel-body -->
+            </div><!-- /hc-backend-panel -->
+        </t>
+
+    </div><!-- /o_help_centre_systray_wrap -->
+
+</t>
+
+</templates>

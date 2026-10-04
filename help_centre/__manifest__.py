@@ -1,0 +1,48 @@
+{
+    'name': 'Help Centre',
+    'version': '19.0.1.2.0',
+    'summary': 'AI-powered Help Centre — including a AI chatbot seatch modal, website integration, comprehnsive knowledge base and AI powered nightly article generation',
+    'category': 'Website/Website',
+    'author': "Cliff's Country Crafts",
+    'depends': ['base', 'web', 'website', 'portal', 'mail'],
+    'data': [
+        'security/help_centre_security.xml',
+        'security/ir.model.access.csv',
+        'data/res_lang_data.xml',
+        'data/cron.xml',
+        'views/help_category_views.xml',
+        'views/help_tag_views.xml',
+        'views/help_article_views.xml',
+        'views/help_chatbot_views.xml',
+        'views/help_generate_wizard_views.xml',
+        'views/help_schedule_publish_wizard_views.xml',
+        'views/help_bulk_update_wizard_views.xml',
+        'views/help_module_coverage_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/menus.xml',
+        'templates/website_help.xml',
+    ],
+    'assets': {
+        # Public website: widget bubble + panel
+        'web.assets_frontend': [
+            'help_centre/static/src/css/help_centre.css',
+            'help_centre/static/src/js/help_widget.js',
+        ],
+        # Odoo backend: systray button + KC Bot panel (OWL)
+        'web.assets_backend': [
+            'help_centre/static/src/css/help_centre_backend.css',
+            'help_centre/static/src/xml/help_centre_systray.xml',
+            'help_centre/static/src/js/help_centre_systray.js',
+            'help_centre/static/src/xml/help_publish_cron_button.xml',
+            'help_centre/static/src/js/help_publish_cron_button.js',
+            'help_centre/static/src/xml/help_generate_articles_button.xml',
+            'help_centre/static/src/js/help_generate_articles_button.js',
+            'help_centre/static/src/xml/primary_color_picker_field.xml',
+            'help_centre/static/src/js/primary_color_picker_field.js',
+        ],
+    },
+    'post_init_hook': 'post_init_hook',
+    'auto_install': False,
+    'license': 'LGPL-3',
+    'application': True,
+}

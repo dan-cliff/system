@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_help_category_list" model="ir.ui.view">
+        <field name="name">help.category.list</field>
+        <field name="model">help.category</field>
+        <field name="arch" type="xml">
+            <list string="Help Categories">
+                <field name="id" string="ID"/>
+                <field name="name"/>
+                <field name="icon"/>
+                <field name="parent_id"/>
+                <field name="article_count" string="Articles"/>
+                <field name="sequence" widget="handle"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_help_category_form" model="ir.ui.view">
+        <field name="name">help.category.form</field>
+        <field name="model">help.category</field>
+        <field name="arch" type="xml">
+            <form string="Help Category">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Category name…"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="parent_id"/>
+                            <field name="icon" placeholder="fa-folder"/>
+                            <field name="color" widget="color_picker"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="article_count"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional description shown on the Help Centre home page…"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_help_category" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">help.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

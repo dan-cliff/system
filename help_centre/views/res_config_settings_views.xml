@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_help_centre" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.help.centre</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Help Centre" name="help_centre"
+                     logo="/help_centre/static/src/img/app_icon.png"
+                     groups="help_centre.group_help_centre_manager">
+
+                    <block title="Branding">
+                        <setting string="Help Centre name"
+                                 help="Appears as the page heading on /help and in the KC Bot widget.">
+                            <field name="help_centre_name"/>
+                        </setting>
+                        <setting string="Tagline"
+                                 help="Shown beneath the heading on the Help Centre home page.">
+                            <field name="help_centre_tagline"/>
+                        </setting>
+                        <setting string="Primary colour"
+                                 help="Hex colour code for buttons, highlights, the widget toggle, and the chatbot header — applied across both the website and backend widget. Example: #5b4fc8">
+                            <field name="help_centre_primary_color"
+                                   widget="primary_color_picker"/>
+                        </setting>
+                    </block>
+
+                    <block title="KC Bot Widget">
+                        <setting string="Show widget on all website pages"
+                                 help="When enabled the floating Help widget appears on every page, not just /help.">
+                            <field name="help_centre_widget_all_pages"/>
+                        </setting>
+                        <setting string="Widget position"
+                                 help="Corner of the page where the floating KC Bot button is anchored on the public website.">
+                            <field name="help_centre_widget_position" widget="radio" options='{"horizontal": true}'/>
+                        </setting>
+                    </block>
+
+                    <block title="AI">
+                        <setting string="AI assistant name"
+                                 help="Friendly name shown in the chatbot panel header and used in search result snippets.">
+                            <field name="help_centre_ai_name" placeholder="KC Bot"/>
+                        </setting>
+                        <setting string="Welcome message"
+                                 help="Opening message shown when a user first opens the Ask AI tab. Leave blank to use the default greeting.">
+                            <field name="help_centre_ai_welcome_message"
+                                   widget="text"
+                                   placeholder="Hi! I'm here to help. Ask me anything about Odoo…"
+                                   style="min-height: 80px;"/>
+                        </setting>
+                        <setting string="AI model override"
+                                 help="Leave blank to use the default model for the configured provider. Example: claude-opus-4-5">
+                            <field name="help_centre_ai_model" placeholder="Leave blank for default"/>
+                        </setting>
+                    </block>
+
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

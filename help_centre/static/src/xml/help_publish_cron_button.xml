@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!--
+    Template for the "Run Scheduled Publish" dialog.
+    Rendered inside Odoo's ActionDialog (target: 'new' client action).
+    States: loading → done (articles listed or empty) | error.
+-->
+<t t-name="help_centre.RunScheduledPublish">
+    <div class="hc-spb-body">
+
+        <!-- ── Loading ──────────────────────────────────────────────── -->
+        <div t-if="state.status === 'loading'" class="hc-spb-loading">
+            <div class="spinner-border text-primary hc-spb-spinner" role="status">
+                <span class="visually-hidden">Publishing…</span>
+            </div>
+            <div class="text-center mt-3">
+                <h5 class="mb-1 fw-semibold">Running Scheduled Publish</h5>
+                <p class="text-muted mb-0 hc-spb-subtext">
+                    Checking for articles due for publishing<span class="hc-spb-dots"><span>.</span><span>.</span><span>.</span></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- ── Done ─────────────────────────────────────────────────── -->
+        <div t-elif="state.status === 'done'">
+
+            <!-- Nothing to publish -->
+            <div t-if="state.published.length === 0" class="hc-spb-empty">
+                <i class="fa fa-clock-o fa-3x text-muted mb-3"/>
+                <h6 class="fw-semibold text-muted mb-1">No articles were due for publishing.</h6>
+                <p class="text-muted small mb-0">
+                    All scheduled articles are set for a future date, or are missing content.
+                </p>
+                <div t-if="state.skipped > 0" class="alert alert-warning mt-3 text-start w-100">
+                    <i class="fa fa-exclamation-triangle me-2"/>
+                    <t t-esc="state.skipped"/> article(s) had a past scheduled date but were skipped
+                    — they are missing content or a URL slug.
+                </div>
+            </div>
+
+            <!-- Articles published -->
+            <div t-else="">
+                <div class="alert alert-success d-flex align-items-center gap-2 mb-3 mb-md-4">
+                    <i class="fa fa-check-circle fa-lg flex-shrink-0"/>
+                    <div>
+                        <strong><t t-esc="state.published.length"/> article(s) published successfully.</strong>
+                        <span t-if="state.skipped > 0" class="ms-2 text-muted small">
+                            (<t t-esc="state.skipped"/> skipped — missing content or URL slug)
+                        </span>
+                    </div>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    <li t-foreach="state.published" t-as="art" t-key="art.id"
+                        class="list-group-item d-flex align-items-center gap-3 px-0 py-2">
+                        <i class="fa fa-check-circle text-success flex-shrink-0"/>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-truncate" t-esc="art.name"/>
+                            <div t-if="art.category" class="text-muted small mt-1">
+                                <i class="fa fa-folder-o me-1"/>
+                                <t t-esc="art.category"/>
+                            </div>
+                        </div>
+                        <a t-att-href="art.website_url" target="_blank"
+                           class="btn btn-sm btn-outline-primary flex-shrink-0"
+                           title="View on website">
+                            <i class="fa fa-external-link me-1"/>View
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ── Error ─────────────────────────────────────────────────── -->
+        <div t-elif="state.status === 'error'">
+            <div class="alert alert-danger d-flex align-items-start gap-2">
+                <i class="fa fa-exclamation-circle fa-lg flex-shrink-0 mt-1"/>
+                <div>
+                    <strong>Something went wrong.</strong>
+                    <div class="mt-1 small" t-esc="state.error"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Footer buttons ────────────────────────────────────────── -->
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top"
+             t-if="state.status !== 'loading'">
+            <button t-if="state.status === 'error'"
+                    class="btn btn-secondary" t-on-click="retry">
+                <i class="fa fa-refresh me-1"/>Retry
+            </button>
+            <button class="btn btn-primary" t-on-click="close">
+                Close
+            </button>
+        </div>
+
+    </div>
+</t>
+
+</templates>
