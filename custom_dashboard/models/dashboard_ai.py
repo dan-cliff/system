@@ -49,8 +49,13 @@ CLAUDE_HEADERS = {
 }
 GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-flash-latest']
 GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent'
-# Seconds per AI call. Two calls must fit in one Odoo request (120 s by default).
-AI_TIMEOUT = 50
+# Seconds per AI call. Both calls must fit in one Odoo request (120 s by default).
+PICK_TIMEOUT = 20
+DESIGN_TIMEOUT = 90
+# Claude's structured outputs accept at most 24 optional properties per
+# schema; the widget design has more, so that step relies on the prompt
+# (and the validation in _ai_create_dashboard) instead of a strict schema.
+CLAUDE_MAX_OPTIONAL = 24
 PROVIDERS = [
     ('claude', 'Claude AI', CLAUDE_KEY_PARAM),
     ('gemini', 'Google Gemini', GEMINI_KEY_PARAM),
@@ -250,13 +255,13 @@ class CustomDashboard(models.Model):
             request=prompt,
             catalogue='\n'.join('%s: %s' % item for item in catalogue.items()),
             max_models=MAX_MODELS,
-        ), self._ai_models_schema(), effort='low')
+        ), self._ai_models_schema(), effort='low', timeout=PICK_TIMEOUT)
         model_names = [m for m in (picked.get('models') or []) if m in catalogue][:MAX_MODELS]
         if not model_names:
             raise UserError(_('%s did not find any data for this request.', names[provider]))
 
         design = self._ai_ask(provider, key, self._ai_design_prompt(prompt, model_names),
-                              self._ai_design_schema(), effort='medium')
+                              self._ai_design_schema(), effort='medium', timeout=DESIGN_TIMEOUT)
         dashboard, warnings = self._ai_create_dashboard(design, set(model_names), prompt)
         return {
             'dashboard_id': dashboard.id,
@@ -469,17 +474,29 @@ class CustomDashboard(models.Model):
         return SYSTEM_PROMPT.format(language=self._ai_language())
 
     @api.model
-    def _ai_ask(self, provider, key, prompt, schema, effort='medium'):
+    def _ai_ask(self, provider, key, prompt, schema, effort='medium', timeout=DESIGN_TIMEOUT):
         """Send ``prompt`` to ``provider`` and return the parsed JSON answer."""
         system = self._ai_system_prompt()
         if provider == 'claude':
-            text = self._ai_ask_claude(key, system, prompt, schema, effort)
+            text = self._ai_ask_claude(key, system, prompt, schema, effort, timeout)
         else:
-            text = self._ai_ask_gemini(key, system, prompt, schema)
+            text = self._ai_ask_gemini(key, system, prompt, schema, timeout)
         return self._ai_parse_json(text)
 
     @api.model
-    def _ai_ask_claude(self, key, system, prompt, schema, effort):
+    @api.model
+    def _ai_optional_count(self, schema):
+        """Number of optional properties in ``schema``, nested ones included."""
+        if isinstance(schema, list):
+            return sum(self._ai_optional_count(item) for item in schema)
+        if not isinstance(schema, dict):
+            return 0
+        properties = schema.get('properties') or {}
+        count = len(set(properties) - set(schema.get('required') or []))
+        return count + sum(self._ai_optional_count(value) for value in schema.values())
+
+    @api.model
+    def _ai_ask_claude(self, key, system, prompt, schema, effort, timeout=DESIGN_TIMEOUT):
         """Call the Claude Messages API over HTTPS, with no extra Python
         package to install on the server."""
         model = self.env['ir.config_parameter'].sudo().get_param(CLAUDE_MODEL_PARAM) or CLAUDE_MODEL
@@ -489,19 +506,23 @@ class CustomDashboard(models.Model):
             'fallbacks': 'default',
             'system': system,
             'messages': [{'role': 'user', 'content': prompt}],
-            'output_config': {
-                'effort': effort,
-                'format': {'type': 'json_schema', 'schema': schema},
-            },
+            'output_config': {'effort': effort},
         }
+        if schema and self._ai_optional_count(schema) <= CLAUDE_MAX_OPTIONAL:
+            payload['output_config']['format'] = {'type': 'json_schema', 'schema': schema}
         headers = {**CLAUDE_HEADERS, 'x-api-key': key}
         try:
-            response = requests.post(CLAUDE_URL, json=payload, timeout=(10, AI_TIMEOUT), headers=headers)
+            response = requests.post(CLAUDE_URL, json=payload, timeout=(10, timeout), headers=headers)
             if response.status_code == 400 and 'fallback' in response.text:
                 # The refusal fallback is optional; never let it block the call.
                 payload.pop('fallbacks')
                 headers.pop('anthropic-beta')
-                response = requests.post(CLAUDE_URL, json=payload, timeout=(10, AI_TIMEOUT), headers=headers)
+                response = requests.post(CLAUDE_URL, json=payload, timeout=(10, timeout), headers=headers)
+            if response.status_code == 400 and 'format' in payload['output_config'] and 'chema' in response.text:
+                # A schema the API cannot compile: the prompt still describes
+                # the JSON, and the answer is validated anyway.
+                payload['output_config'].pop('format')
+                response = requests.post(CLAUDE_URL, json=payload, timeout=(10, timeout), headers=headers)
         except requests.exceptions.Timeout as error:
             raise UserError(_('Claude AI took too long to answer. Try a smaller request.')) from error
         except requests.exceptions.RequestException as error:
@@ -533,7 +554,7 @@ class CustomDashboard(models.Model):
         return text
 
     @api.model
-    def _ai_ask_gemini(self, key, system, prompt, schema):
+    def _ai_ask_gemini(self, key, system, prompt, schema, timeout=DESIGN_TIMEOUT):
         configured = self.env['ir.config_parameter'].sudo().get_param(GEMINI_MODEL_PARAM)
         candidates = [configured] if configured else GEMINI_MODELS
         payload = {
@@ -549,7 +570,7 @@ class CustomDashboard(models.Model):
         for model in candidates:
             try:
                 response = requests.post(
-                    GEMINI_URL % model, json=payload, timeout=AI_TIMEOUT,
+                    GEMINI_URL % model, json=payload, timeout=(10, timeout),
                     headers={'x-goog-api-key': key},
                 )
             except requests.exceptions.RequestException as error:
@@ -564,7 +585,7 @@ class CustomDashboard(models.Model):
                 # describes the expected JSON, so ask again without it.
                 payload['generationConfig'].pop('responseJsonSchema')
                 response = requests.post(
-                    GEMINI_URL % model, json=payload, timeout=AI_TIMEOUT,
+                    GEMINI_URL % model, json=payload, timeout=(10, timeout),
                     headers={'x-goog-api-key': key},
                 )
             if response.status_code in (401, 403):
