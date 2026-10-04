@@ -25,6 +25,46 @@
                         <field name="category_id"/>
                         <field name="description"/>
                     </group>
+                    <separator string="Activity Details"/>
+                    <group name="activity_details">
+                        <group>
+                            <field name="activity_location"/>
+                            <field name="activity_leader_id"/>
+                            <field name="safety_officer_id"/>
+                        </group>
+                        <group>
+                            <field name="activity_start" options="{'numeric': True}"/>
+                            <field name="activity_end" options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <separator string="Minimum Equipment / Facilities"/>
+                    <group name="minimum_equipment">
+                        <field name="equip_first_aid" widget="selection_badge"/>
+                        <field name="equip_first_aid_comment" string="Comments / Further Information" invisible="equip_first_aid not in ('yes', 'no')"/>
+                        <field name="equip_sun_safety" widget="selection_badge"/>
+                        <field name="equip_sun_safety_comment" string="Comments / Further Information" invisible="equip_sun_safety not in ('yes', 'no')"/>
+                        <field name="equip_drinking_water" widget="selection_badge"/>
+                        <field name="equip_drinking_water_comment" string="Comments / Further Information" invisible="equip_drinking_water not in ('yes', 'no')"/>
+                        <field name="equip_clothing_ppe" widget="selection_badge"/>
+                        <field name="equip_clothing_ppe_comment" string="Comments / Further Information" invisible="equip_clothing_ppe not in ('yes', 'no')"/>
+                        <field name="equip_communications" widget="selection_badge"/>
+                        <field name="equip_communications_comment" string="Comments / Further Information" invisible="equip_communications not in ('yes', 'no')"/>
+                        <field name="equip_shelter" widget="selection_badge"/>
+                        <field name="equip_shelter_comment" string="Comments / Further Information" invisible="equip_shelter not in ('yes', 'no')"/>
+                        <field name="equip_navigation" widget="selection_badge"/>
+                        <field name="equip_navigation_comment" string="Comments / Further Information" invisible="equip_navigation not in ('yes', 'no')"/>
+                        <field name="equip_standards" widget="selection_badge"/>
+                        <field name="equip_standards_comment" string="Comments / Further Information" invisible="equip_standards not in ('yes', 'no')"/>
+                        <field name="equip_site_access" widget="selection_badge"/>
+                        <field name="equip_site_access_comment" string="Comments / Further Information" invisible="equip_site_access not in ('yes', 'no')"/>
+                    </group>
+                    <separator string="Governing Bodies / Associations / Legislation"/>
+                    <group name="governing_bodies">
+                        <field name="gov_guidelines_exist" widget="selection_badge"/>
+                        <field name="gov_guidelines_exist_comment" string="Comments / Further Information" invisible="gov_guidelines_exist not in ('yes', 'no')"/>
+                        <field name="gov_guidelines_followed" widget="selection_badge"/>
+                        <field name="gov_guidelines_followed_comment" string="Comments / Further Information" invisible="gov_guidelines_followed not in ('yes', 'no')"/>
+                    </group>
                     <separator string="Summary of Activity"/>
                     <field name="summary_of_activity" nolabel="1"
                            placeholder="Describe the activity so AI can suggest relevant risks and controls..."/>

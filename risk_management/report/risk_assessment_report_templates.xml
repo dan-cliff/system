@@ -50,33 +50,68 @@
                             <div t-field="o.description"/>
                         </div>
 
-                        <h4>Risks</h4>
-                        <table class="table table-sm table-bordered o_risk_report_table">
-                            <thead class="o_risk_report_thead">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Risk</th>
-                                    <th>Unwanted Event</th>
-                                    <th>Inherent Risk</th>
-                                    <th>Residual Risk</th>
-                                    <th>Controls</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr t-foreach="o.line_ids" t-as="line">
-                                    <td><span t-esc="line_index + 1"/></td>
-                                    <td><span t-field="line.name"/></td>
-                                    <td><span t-field="line.unwanted_event"/></td>
-                                    <td class="o_risk_report_score" t-attf-style="background-color: #{line.inherent_bg_color or ''}; color: #{line.inherent_text_color or ''};">
-                                        <span t-esc="line.inherent_label"/>
-                                    </td>
-                                    <td class="o_risk_report_score" t-attf-style="background-color: #{line.residual_bg_color or ''}; color: #{line.residual_text_color or ''};">
-                                        <span t-esc="line.residual_label"/>
-                                    </td>
-                                    <td><span t-esc="', '.join(line.control_ids.mapped('name'))"/></td>
-                                </tr>
-                            </tbody>
+                        <h4>Activity Details</h4>
+                        <table class="table table-sm table-borderless mb-4 o_risk_report_table">
+                            <tr>
+                                <td><strong>Activity Leader Name:</strong> <span t-esc="o.activity_leader_id.name"/></td>
+                                <td><strong>Safety Officer's Name:</strong> <span t-esc="o.safety_officer_id.name"/></td>
+                                <td><strong>Starting At:</strong> <span t-field="o.activity_start" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                                <td><strong>Finishing At:</strong> <span t-field="o.activity_end" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4"><strong>Activity Location:</strong> <span t-field="o.activity_location"/></td>
+                            </tr>
                         </table>
+
+                        <t t-foreach="[('Minimum Equipment / Facilities', 'equipment'), ('Governing Bodies / Associations / Legislation', 'governing')]" t-as="section">
+                            <h4 t-esc="section[0]"/>
+                            <table class="table table-sm table-bordered mb-4 o_risk_report_table">
+                                <thead class="o_risk_report_thead">
+                                    <tr>
+                                        <th style="width: 45%;">Question</th>
+                                        <th style="width: 10%;">Answer</th>
+                                        <th>Comments / Further Information</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="o._checklist_rows(section[1])" t-as="row">
+                                        <td><span t-esc="row[0]"/></td>
+                                        <td class="text-center"><span t-esc="row[1]"/></td>
+                                        <td style="white-space: pre-wrap;"><span t-esc="row[2]"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <div style="page-break-before: always;">
+                            <h4>Risks</h4>
+                            <table class="table table-sm table-bordered o_risk_report_table">
+                                <thead class="o_risk_report_thead">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Risk</th>
+                                        <th>Unwanted Event</th>
+                                        <th>Inherent Risk</th>
+                                        <th>Residual Risk</th>
+                                        <th>Controls</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="o.line_ids" t-as="line">
+                                        <td><span t-esc="line_index + 1"/></td>
+                                        <td><span t-field="line.name"/></td>
+                                        <td><span t-field="line.unwanted_event"/></td>
+                                        <td class="o_risk_report_score" t-attf-style="background-color: #{line.inherent_bg_color or ''}; color: #{line.inherent_text_color or ''};">
+                                            <span t-esc="line.inherent_label"/>
+                                        </td>
+                                        <td class="o_risk_report_score" t-attf-style="background-color: #{line.residual_bg_color or ''}; color: #{line.residual_text_color or ''};">
+                                            <span t-esc="line.residual_label"/>
+                                        </td>
+                                        <td><span t-esc="', '.join(line.control_ids.mapped('name'))"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
                         <div style="page-break-before: always;">
                             <h4>Actions</h4>

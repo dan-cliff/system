@@ -10,6 +10,7 @@ from . import risk_severity
 from . import risk_score
 from . import risk_line_mixin
 from . import risk_ai_mixin
+from . import risk_activity_mixin
 from . import risk_template
 from . import risk_template_action
 from . import risk_template_line

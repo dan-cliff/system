@@ -7,7 +7,7 @@ from odoo.exceptions import AccessError, UserError
 class RiskAssessment(models.Model):
     _name = 'risk.assessment'
     _description = 'Risk Assessment'
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'risk.ai.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'risk.ai.mixin', 'risk.activity.mixin']
     _order = 'date desc, id desc'
 
     _ai_line_model = 'risk.assessment.line'
