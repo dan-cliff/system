@@ -54,6 +54,11 @@ MAP_POINT_PRECISION = 2
 MAP_MAX_RECORDS = 20000
 # Odoo's own six-colour chart palette, used when no default colours are set.
 BUILTIN_COLORS = ['#4EA7F2', '#EA6175', '#43C5B1', '#F4A261', '#8481DD', '#FFD86D']
+# Odoo's colour-index palette ($o-colors): index 1-11 of an Integer "color"
+# field such as a tag colour. 0 means no colour.
+INDEX_COLORS = ['', '#ee2d2d', '#dc8534', '#e8bb1d', '#5794dd', '#9f628f', '#db8865',
+                '#41a9a2', '#304be0', '#ee2f8a', '#61c36e', '#9872e6']
+RECORD_COLOR_TYPES = ('char', 'integer')
 COLOR_FIELDS = ['color', 'color_2', 'color_3', 'color_4', 'color_5', 'color_6']
 AXIS_SORTS = [
     ('sequence', 'Sequence'),
@@ -142,6 +147,21 @@ class CustomDashboardWidget(models.Model):
         domain="[('model_id', '=', model_id), ('store', '=', True), ('ttype', 'in', %s)]" % (list(GROUPABLE_TYPES),),
     )
     series_field_type = fields.Selection(related='series_field_id.ttype', string='Series Type')
+    groupby_relation = fields.Char(related='groupby_field_id.relation', string='Group By Model')
+    series_relation = fields.Char(related='series_field_id.relation', string='Series Model')
+    groupby_color_field_id = fields.Many2one(
+        'ir.model.fields', string='Group Colours From', ondelete='set null',
+        domain="[('model', '=', groupby_relation), ('ttype', 'in', %s)]" % (list(RECORD_COLOR_TYPES),),
+        help='Colour each group with the colour stored on its record, e.g. the colour of a risk '
+             'rating. Works with hex colour fields (#d9534f) and colour-index fields. Groups '
+             'without a colour use the widget colours.',
+    )
+    series_color_field_id = fields.Many2one(
+        'ir.model.fields', string='Series Colours From', ondelete='set null',
+        domain="[('model', '=', series_relation), ('ttype', 'in', %s)]" % (list(RECORD_COLOR_TYPES),),
+        help='Colour each series with the colour stored on its record. Series without a colour '
+             'use the widget colours.',
+    )
     series_interval = fields.Selection(INTERVALS, string='Series Interval', default='year')
     measure_field_id = fields.Many2one(
         'ir.model.fields', string='Measure', ondelete='set null',
@@ -245,6 +265,14 @@ class CustomDashboardWidget(models.Model):
     gauge_max = fields.Float(string='Gauge Maximum', default=100.0)
     text_content = fields.Html(string='Text', sanitize=True)
     image = fields.Image(string='Image', max_width=1920, max_height=1920)
+
+    @api.onchange('groupby_field_id', 'series_field_id')
+    def _onchange_color_source(self):
+        for widget in self:
+            if widget.groupby_color_field_id.model != widget.groupby_field_id.relation:
+                widget.groupby_color_field_id = False
+            if widget.series_color_field_id.model != widget.series_field_id.relation:
+                widget.series_color_field_id = False
 
     @api.onchange('model_id')
     def _onchange_model_id(self):
@@ -810,6 +838,9 @@ class CustomDashboardWidget(models.Model):
             'values': [groups[k]['value'] for k in keys],
             'counts': [groups[k]['count'] for k in keys],
         }
+        group_colors = self._record_colors(group_field, self.groupby_color_field_id, [groups[k]['raw'] for k in keys])
+        if group_colors:
+            data['colors'] = group_colors
         if self.uses_second_measure:
             data['values2'] = [groups[k]['value2'] for k in keys]
         if series_field:
@@ -820,14 +851,45 @@ class CustomDashboardWidget(models.Model):
                 )
             else:
                 series_keys = sorted(series, key=lambda s: self._sort_key(series[s]))
+            series_colors = self._record_colors(
+                series_field, self.series_color_field_id, [series[s] for s in series_keys],
+            ) or [None] * len(series_keys)
             data['series'] = [
                 {
                     'label': self._format_group(series_field, self.series_interval, series[s]),
                     'values': [cells.get((k, s), 0.0) for k in keys],
+                    'color': color,
                 }
-                for s in series_keys
+                for s, color in zip(series_keys, series_colors)
             ]
         return data
+
+    @api.model
+    def _record_colors(self, group_field, color_field, raws):
+        """Colour of each grouped record, read from ``color_field`` on the
+        records ``group_field`` links to; None when none of them has one."""
+        if not color_field or group_field.ttype != 'many2one' or color_field.model != group_field.relation:
+            return None
+        colors = [self._record_color(raw, color_field.name) for raw in raws]
+        return colors if any(colors) else None
+
+    @api.model
+    def _record_color(self, record, fname):
+        """A CSS colour for ``record``'s ``fname`` value, or None."""
+        if not record or not isinstance(record, models.BaseModel) or fname not in record._fields:
+            return None
+        value = record.sudo()[fname]
+        if record._fields[fname].type == 'integer':
+            if value and 0 < value < len(INDEX_COLORS):
+                return INDEX_COLORS[value]
+            return None
+        value = (value or '').strip()
+        if not self._is_hex_color(value):
+            return None
+        digits = value.lstrip('#').lower()
+        if len(digits) == 3:
+            digits = ''.join(c * 2 for c in digits)
+        return '#' + digits[:6]
 
     def _all_group_values(self, Model, field, interval, existing):
         """Every value ``field`` could be grouped by, for pivot tables that

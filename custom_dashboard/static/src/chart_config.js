@@ -79,6 +79,19 @@ export function colorAt(widget, index, count) {
 }
 
 /**
+ * Colour of group ``index``: the colour stored on the grouped record when the
+ * widget uses record colours, else the widget colours.
+ */
+export function groupColorAt(widget, data, index, count) {
+    return (data.colors || [])[index] || colorAt(widget, index, count);
+}
+
+/** Colour of a series: its record's colour, else the widget colours. */
+export function seriesColorAt(widget, series, index, count) {
+    return series[index]?.color || colorAt(widget, index, count);
+}
+
+/**
  * Draws each value next to its bar, point or slice when the widget asks for
  * value labels. Datasets can carry ``displayValues`` when the plotted value
  * differs from the value to show (100% stacks, waterfalls, funnels).
@@ -164,6 +177,9 @@ export function buildChartConfig(widget, data) {
     const values = data.values || [];
     const series = data.series || [];
     const hasSeries = series.length > 0;
+    const groupColors = data.colors?.some(Boolean)
+        ? labels.map((_, i) => groupColorAt(widget, data, i, labels.length))
+        : null;
 
     const base = {
         data: { labels, datasets: [] },
@@ -213,12 +229,24 @@ export function buildChartConfig(widget, data) {
     const groupDatasets = (opts = {}) => {
         if (hasSeries) {
             return series.map((s, i) => {
-                const color = colorAt(widget, i, series.length);
+                const color = seriesColorAt(widget, series, i, series.length);
                 return { label: s.label, data: s.values, backgroundColor: color, borderColor: color, ...opts };
             });
         }
         const color = colorAt(widget, 0, 1);
-        return [{ label: widget.measure_label, data: values, backgroundColor: color, borderColor: color, ...opts }];
+        // One dataset: each bar or point can still take its record's colour.
+        const perGroup = groupColors || color;
+        return [
+            {
+                label: widget.measure_label,
+                data: values,
+                backgroundColor: perGroup,
+                borderColor: color,
+                pointBackgroundColor: perGroup,
+                pointBorderColor: perGroup,
+                ...opts,
+            },
+        ];
     };
 
     switch (type) {
@@ -297,7 +325,7 @@ export function buildChartConfig(widget, data) {
                     type: "bar",
                     label: widget.measure_label,
                     data: values,
-                    backgroundColor: barColor,
+                    backgroundColor: groupColors || barColor,
                     borderRadius: 3,
                     maxBarThickness: 48,
                     yAxisID: "y",
@@ -357,7 +385,7 @@ export function buildChartConfig(widget, data) {
                     label: widget.measure_label,
                     data: values.map((v) => [(max - v) / 2, (max + v) / 2]),
                     displayValues: values,
-                    backgroundColor: labels.map((_, i) => colorAt(widget, i, labels.length)),
+                    backgroundColor: labels.map((_, i) => groupColorAt(widget, data, i, labels.length)),
                     barPercentage: 0.95,
                     categoryPercentage: 1,
                 },
@@ -374,7 +402,7 @@ export function buildChartConfig(widget, data) {
         case "pie":
         case "donut":
         case "polar_area": {
-            const colors = labels.map((_, i) => colorAt(widget, i, labels.length));
+            const colors = labels.map((_, i) => groupColorAt(widget, data, i, labels.length));
             base.type = type === "polar_area" ? "polarArea" : type === "donut" ? "doughnut" : "pie";
             base.data.datasets = [
                 {
@@ -444,7 +472,7 @@ export function buildChartConfig(widget, data) {
             const maxCount = Math.max(...counts, 1);
             base.type = "bubble";
             base.data.datasets = labels.map((label, i) => {
-                const color = colorAt(widget, i, labels.length);
+                const color = groupColorAt(widget, data, i, labels.length);
                 return {
                     label,
                     data: [{ x: values[i], y: (data.values2 || [])[i] || 0, r: 4 + (20 * counts[i]) / maxCount }],

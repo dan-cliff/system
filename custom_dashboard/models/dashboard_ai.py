@@ -27,7 +27,7 @@ from odoo.exceptions import AccessError, UserError
 from .dashboard import MANAGER_GROUP
 from .dashboard_widget import (
     AGGREGATES, AXIS_SORTS, DATE_TYPES, ELAPSED_UNITS, GROUPABLE_TYPES, INTERVALS, MAP_LEVELS,
-    MEASURE_TYPES, SORTS, USER_FILTER_MODELS, USER_SCOPES, VALUE_MODES,
+    MEASURE_TYPES, RECORD_COLOR_TYPES, SORTS, USER_FILTER_MODELS, USER_SCOPES, VALUE_MODES,
 )
 
 _logger = logging.getLogger(__name__)
@@ -163,6 +163,11 @@ in domains can use context_today() and relativedelta, e.g. \
 Use "[]" for no filter.
 - "group_by", "series": field names; must be groupable (types {groupable}).
 - "group_by_interval", "series_interval": {intervals}.
+- "group_color_field", "series_color_field": when "group_by" or "series" is a \
+many2one, the name of a colour field on the linked model (a hex colour char \
+field such as "color" or "bg_color", or an integer colour index) so each group \
+or series uses its record's own colour, e.g. risk ratings in their rating \
+colours. Only use fields you know exist on that model.
 - "measure", "measure2": numeric field names (types {measures}); null counts \
 records. Combo charts draw "measure" as columns and "measure2" as a line.
 - "aggregate", "aggregate2": {aggregates}.
@@ -404,6 +409,8 @@ class CustomDashboard(models.Model):
                 'group_by_interval': enum(INTERVALS),
                 'series': _nullable(string),
                 'series_interval': enum(INTERVALS),
+                'group_color_field': _nullable(string),
+                'series_color_field': _nullable(string),
                 'measure': _nullable(string),
                 'aggregate': enum(AGGREGATES),
                 'measure2': _nullable(string),
@@ -745,14 +752,27 @@ class CustomDashboard(models.Model):
             vals[target] = ir_field.id
             return model_field
 
+        def color_field(key, linked, target):
+            name = spec.get(key)
+            if not name or not linked or linked.type != 'many2one':
+                return
+            comodel = self.env[linked.comodel_name]
+            if name in comodel._fields and comodel._fields[name].type in RECORD_COLOR_TYPES:
+                vals[target] = self.env['ir.model.fields']._get(linked.comodel_name, name).id
+            else:
+                warnings.append(_('Ignored colour field "%(field)s" on %(model)s.',
+                                  field=name, model=linked.comodel_name))
+
         if mode == 'grouped':
             groupby = field('group_by', GROUPABLE_TYPES, 'groupby_field_id', required=True)
             if groupby.type in DATE_TYPES:
                 option('group_by_interval', INTERVALS, 'groupby_interval')
+            color_field('group_color_field', groupby, 'groupby_color_field_id')
             if widget_type.supports_series:
                 series = field('series', GROUPABLE_TYPES, 'series_field_id', required=widget_type.requires_series)
                 if series and series.type in DATE_TYPES:
                     option('series_interval', INTERVALS)
+                color_field('series_color_field', series, 'series_color_field_id')
             option('sort', SORTS)
             option('pivot_row_sort', AXIS_SORTS)
             option('pivot_col_sort', AXIS_SORTS)
