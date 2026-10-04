@@ -77,7 +77,7 @@
                             </thead>
                             <tbody>
                                 <tr t-foreach="tableRows" t-as="row" t-key="row_index">
-                                    <td t-esc="row.label"/>
+                                    <td><span t-if="row.color" class="o_cd_record_color" t-attf-style="background-color: {{row.color}};"/><t t-esc="row.label"/></td>
                                     <td class="text-end" t-esc="row.value"/>
                                     <td class="text-end" t-esc="row.value2"/>
                                 </tr>
@@ -116,7 +116,9 @@
                                 <tr>
                                     <th t-if="rowLabel" class="o_cd_pivot_corner"/>
                                     <th t-esc="rowLabel ? '' : props.widget.groupby_label"/>
-                                    <th t-foreach="pv.columns" t-as="col" t-key="col_index" class="text-end o_cd_pivot_head" t-esc="col"/>
+                                    <th t-foreach="pv.columns" t-as="col" t-key="col_index" class="text-end o_cd_pivot_head">
+                                        <span t-if="col.color" class="o_cd_record_color" t-attf-style="background-color: {{col.color}};"/><t t-esc="col.label"/>
+                                    </th>
                                     <th t-if="rowTotals" class="text-end o_cd_pivot_head">Total</th>
                                 </tr>
                             </thead>
@@ -126,7 +128,7 @@
                                         class="o_cd_pivot_axis_label o_cd_pivot_vertical">
                                         <span t-esc="rowLabel"/>
                                     </th>
-                                    <th t-esc="row.label"/>
+                                    <th><span t-if="row.color" class="o_cd_record_color" t-attf-style="background-color: {{row.color}};"/><t t-esc="row.label"/></th>
                                     <td t-foreach="row.cells" t-as="cell" t-key="cell_index" class="text-end" t-esc="cell"/>
                                     <td t-if="rowTotals" class="text-end fw-bold" t-esc="row.total"/>
                                 </tr>

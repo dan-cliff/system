@@ -497,6 +497,50 @@ class TestCustomDashboard(TransactionCase):
         self.assertNotIn('error', widget.get_widget_data()[widget.id])
 
 
+    def test_record_colours_for_groups_and_series(self):
+        company = self.env.company
+        company.primary_color = '#ABC'
+        parent = self.env['res.partner'].create({'name': 'CD Parent', 'color': 1})
+        self.env['res.partner'].create([
+            {'name': 'CD Child', 'parent_id': parent.id, 'company_id': company.id},
+            {'name': 'CD Orphan', 'company_id': company.id},
+        ])
+        Fields = self.env['ir.model.fields']
+        widget = self._widget(
+            'stacked_column',
+            domain="[('name', 'in', ['CD Child', 'CD Orphan'])]",
+            groupby_field_id=self._field('company_id').id,
+            groupby_color_field_id=Fields._get('res.company', 'primary_color').id,
+            series_field_id=self._field('parent_id').id,
+            series_color_field_id=Fields._get('res.partner', 'color').id,
+        )
+        data = widget.get_widget_data()[widget.id]
+        self.assertEqual(data['colors'], ['#aabbcc'])
+        colors = {s['label']: s['color'] for s in data['series']}
+        self.assertEqual(colors['CD Parent'], '#ee2d2d')
+        self.assertIsNone(colors['None'])
+
+        # A colour field of another model is ignored rather than misread.
+        widget.groupby_color_field_id = Fields._get('res.partner', 'color')
+        self.assertNotIn('colors', widget.get_widget_data()[widget.id])
+
+    def test_record_colour_values(self):
+        Widget = self.env['custom.dashboard.widget']
+        partner = self.env['res.partner'].create({'name': 'CD Colour', 'color': 0})
+        self.assertIsNone(Widget._record_color(partner, 'color'))
+        partner.color = 10
+        self.assertEqual(Widget._record_color(partner, 'color'), '#61c36e')
+        partner.color = 99
+        self.assertIsNone(Widget._record_color(partner, 'color'))
+        company = self.env.company
+        for value, expected in (('#FF0000', '#ff0000'), ('0f0', '#00ff00'), ('#11223344', '#112233'),
+                                ('red', None), (False, None)):
+            company.primary_color = value
+            self.assertEqual(Widget._record_color(company, 'primary_color'), expected)
+        self.assertIsNone(Widget._record_color(company, 'no_such_field'))
+        self.assertIsNone(Widget._record_color(False, 'color'))
+
+
 PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
 

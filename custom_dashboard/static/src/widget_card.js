@@ -128,6 +128,7 @@ export class DashboardWidgetCard extends Component {
         const data = this.props.data || {};
         return (data.labels || []).map((label, i) => ({
             label,
+            color: (data.colors || [])[i] || "",
             value: this.format(data.values[i]),
             value2: data.values2 ? this.format(data.values2[i]) : "",
         }));
@@ -144,12 +145,14 @@ export class DashboardWidgetCard extends Component {
         const series = data.series || [];
         const rows = (data.labels || []).map((label, i) => ({
             label,
+            color: (data.colors || [])[i] || "",
             cells: series.map((s) => this.format(s.values[i])),
             total: this.format(series.reduce((sum, s) => sum + (s.values[i] || 0), 0)),
         }));
         const columnTotals = series.map((s) => this.format(s.values.reduce((a, b) => a + b, 0)));
         const grandTotal = this.format(series.reduce((sum, s) => sum + s.values.reduce((a, b) => a + b, 0), 0));
-        return { columns: series.map((s) => s.label), rows, columnTotals, grandTotal };
+        const columns = series.map((s) => ({ label: s.label, color: s.color || "" }));
+        return { columns, rows, columnTotals, grandTotal };
     }
 
     /** Give every value column of a pivot the width of the widest one. */
