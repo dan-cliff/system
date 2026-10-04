@@ -125,6 +125,7 @@ class RiskAssessment(models.Model):
     def _sync_template_lines(self):
         skipped = []
         for assessment in self:
+            assessment._copy_activity_details_from(assessment.template_ids)
             existing_source_ids = set(assessment.line_ids.mapped('source_template_line_id').ids)
             template_lines = assessment.template_ids.line_ids.filtered(
                 lambda line: line.id not in existing_source_ids

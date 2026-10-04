@@ -5,6 +5,11 @@ from odoo.exceptions import ValidationError
 # Information" field only when it is answered Yes or No, so the values are technical.
 CHECKLIST_ANSWERS = [('yes', 'Yes'), ('no', 'No'), ('na', 'N/A')]
 
+# Activity Details fields, copied from Risk Templates into empty Risk Assessment fields.
+ACTIVITY_DETAIL_FIELDS = [
+    'activity_location', 'activity_leader_id', 'safety_officer_id', 'activity_start', 'activity_end',
+]
+
 # (field name, question) - each question also has a "<field name>_comment" field.
 EQUIPMENT_QUESTIONS = [
     ('equip_first_aid', 'First aid kit suitable for activity available?'),
@@ -67,6 +72,33 @@ class RiskActivityMixin(models.AbstractModel):
         for record in self:
             if record.activity_end and record.activity_start and record.activity_end < record.activity_start:
                 raise ValidationError('Finishing At cannot be before Starting At.')
+
+    def _copy_activity_details_from(self, templates):
+        """Fill this record's empty Activity Details and checklist answers from templates.
+
+        Values already set are never replaced or cleared, so answers given on the Risk
+        Assessment (or copied from an earlier template) are kept. When several templates
+        have a value, the first one wins. A question's comment is only copied with the
+        answer it was written for.
+        """
+        self.ensure_one()
+        for name in ACTIVITY_DETAIL_FIELDS:
+            if not self[name]:
+                source = templates.filtered(lambda template: template[name])[:1]
+                if source:
+                    self[name] = source[name]
+        for name, _question in EQUIPMENT_QUESTIONS + GOVERNING_QUESTIONS:
+            comment = name + '_comment'
+            if not self[name]:
+                source = templates.filtered(lambda template: template[name])[:1]
+                if source:
+                    self[name] = source[name]
+            if self[name] and not self[comment]:
+                source = templates.filtered(
+                    lambda template: template[name] == self[name] and template[comment]
+                )[:1]
+                if source:
+                    self[comment] = source[comment]
 
     def _checklist_rows(self, section):
         """Return [(question, answer label, comment), ...] for 'equipment' or 'governing'."""
