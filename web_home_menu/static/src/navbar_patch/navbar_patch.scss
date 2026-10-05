@@ -1,0 +1,21 @@
+// The Home Menu button (a house icon) in the navbar is always white, whatever the
+// navbar's own entry colour (e.g. a light company Toolbar colour), and its
+// icon is drawn larger than the default navbar icon size.
+// The colour is set on the icon itself as well as the button (and via the
+// Bootstrap button variables) so no state-specific button rule can dim it.
+.o_main_navbar .o_navbar_apps_menu .btn {
+    --btn-color: #fff;
+    --btn-hover-color: #fff;
+    --btn-active-color: #fff;
+
+    &, &:hover, &:focus, &:active {
+        color: #fff !important;
+        opacity: 1 !important;
+    }
+
+    .o_home_menu_navbar_icon {
+        color: #fff !important;
+        opacity: 1 !important;
+        font-size: 2.1875em; // 1.75em (75% larger) x 1.25
+    }
+}

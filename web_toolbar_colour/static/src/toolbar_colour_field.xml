@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_toolbar_colour.ToolbarColourField">
+        <div class="o_toolbar_colour_field d-flex align-items-center gap-2">
+            <input type="color"
+                   class="o_toolbar_colour_swatch"
+                   t-att-value="hexValue or '#714b67'"
+                   t-att-disabled="props.readonly"
+                   t-on-change="onSwatchChange"
+                   title="Pick a colour"/>
+            <input type="text"
+                   class="o_input o_toolbar_colour_text"
+                   t-att-value="hexValue"
+                   t-att-readonly="props.readonly"
+                   maxlength="7"
+                   placeholder="Odoo default"
+                   t-on-change="onTextCommit"/>
+            <button t-if="hexValue and !props.readonly"
+                    type="button"
+                    class="btn btn-link p-0"
+                    t-on-click="onClear"
+                    title="Use the Odoo default colour">
+                <i class="fa fa-times"/> Reset to default
+            </button>
+        </div>
+    </t>
+</templates>

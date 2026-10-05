@@ -1,6 +1,6 @@
 {
     'name': 'Home Menu',
-    'version': '19.0.1.1.1',
+    'version': '19.0.1.1.4',
     'category': 'Extra Tools',
     'summary': 'Enterprise-style app grid home screen for the /odoo page',
     'description': """
@@ -57,6 +57,7 @@ layout" mode, and see them after everyone's buttons.
             'web_home_menu/static/src/home_screen/home_screen.scss',
             'web_home_menu/static/src/navbar_patch/navbar_patch.js',
             'web_home_menu/static/src/navbar_patch/navbar_patch.xml',
+            'web_home_menu/static/src/navbar_patch/navbar_patch.scss',
             'web_home_menu/static/src/webclient_patch/webclient_patch.js',
         ],
     },

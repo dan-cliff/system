@@ -1,0 +1,28 @@
+// Only applied when the active company has a Toolbar colour set; otherwise
+// the navbar keeps Odoo's default styling untouched.
+.o_toolbar_colour_set .o_main_navbar {
+    --NavBar-entry-backgroundColor: var(--o-toolbar-colour);
+    --NavBar-entry-color: var(--o-toolbar-text-colour);
+    --NavBar-entry-color--hover: var(--o-toolbar-text-colour);
+    --NavBar-entry-color--active: var(--o-toolbar-text-colour);
+    --NavBar-brand-color: var(--o-toolbar-text-colour);
+
+    background: var(--o-toolbar-colour) !important;
+    border-bottom-color: color-mix(in srgb, var(--o-toolbar-colour) 85%, black) !important;
+    color: var(--o-toolbar-text-colour);
+}
+
+.o_toolbar_colour_field {
+    .o_toolbar_colour_swatch {
+        width: 2.5rem;
+        height: 1.75rem;
+        padding: 0;
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .o_toolbar_colour_text {
+        max-width: 7rem;
+        font-family: monospace;
+    }
+}
