@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_attendance_kiosk_rule_list" model="ir.ui.view">
+        <field name="name">attendance.kiosk.rule.list</field>
+        <field name="model">attendance.kiosk.rule</field>
+        <field name="arch" type="xml">
+            <list string="Sign In Rules">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="rule_type"/>
+                <field name="required_course_ids" widget="many2many_tags"/>
+                <field name="any_course_ids" widget="many2many_tags"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_attendance_kiosk_rule_form" model="ir.ui.view">
+        <field name="name">attendance.kiosk.rule.form</field>
+        <field name="model">attendance.kiosk.rule</field>
+        <field name="arch" type="xml">
+            <form string="Sign In Rule">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Contractors need a site induction"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="rule_type" widget="radio"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="kiosk_id" invisible="1"/>
+                            <field name="message" placeholder="Shown on the kiosk when this rule refuses someone"/>
+                        </group>
+                    </group>
+                    <separator string="Applies To"/>
+                    <field name="applies_domain" widget="domain"
+                           options="{'model': 'hr.employee', 'in_dialog': True}"/>
+                    <div invisible="rule_type != 'require'">
+                        <separator string="Employee Requirements"/>
+                        <field name="requirement_domain" widget="domain"
+                               options="{'model': 'hr.employee', 'in_dialog': True}"/>
+                        <separator string="Learning Capabilities"/>
+                        <group>
+                            <field name="required_course_ids" widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                            <field name="any_course_ids" widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <p class="text-muted">
+                            A capability is current when the employee has a completed Learning record
+                            for the course that has not expired.
+                        </p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Questionnaires -->
+    <record id="view_attendance_kiosk_questionnaire_list" model="ir.ui.view">
+        <field name="name">attendance.kiosk.questionnaire.list</field>
+        <field name="model">attendance.kiosk.questionnaire</field>
+        <field name="arch" type="xml">
+            <list string="Kiosk Questionnaires">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="question_count" string="Questions"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_attendance_kiosk_questionnaire_form" model="ir.ui.view">
+        <field name="name">attendance.kiosk.questionnaire.form</field>
+        <field name="model">attendance.kiosk.questionnaire</field>
+        <field name="arch" type="xml">
+            <form string="Kiosk Questionnaire">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Fit for Work Declaration"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="introduction" placeholder="Shown above the questions"/>
+                            <field name="blocked_message"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   placeholder="All companies"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Questions" name="questions">
+                            <field name="question_ids">
+                                <list string="Questions">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="question_type"/>
+                                    <field name="required"/>
+                                    <field name="blocking_answer"
+                                           invisible="question_type != 'yes_no'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_attendance_kiosk_questionnaire_search" model="ir.ui.view">
+        <field name="name">attendance.kiosk.questionnaire.search</field>
+        <field name="model">attendance.kiosk.questionnaire</field>
+        <field name="arch" type="xml">
+            <search string="Kiosk Questionnaires">
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_attendance_kiosk_questionnaire" model="ir.actions.act_window">
+        <field name="name">Kiosk Questionnaires</field>
+        <field name="res_model">attendance.kiosk.questionnaire</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a kiosk questionnaire</p>
+            <p>Questionnaires pop up on the kiosk when workers sign in. Add them to a kiosk
+               and choose when they are asked.</p>
+        </field>
+    </record>
+
+    <!-- Questions -->
+    <record id="view_attendance_kiosk_question_form" model="ir.ui.view">
+        <field name="name">attendance.kiosk.question.form</field>
+        <field name="model">attendance.kiosk.question</field>
+        <field name="arch" type="xml">
+            <form string="Question">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="help_text" placeholder="Optional extra guidance shown under the question"/>
+                        <field name="question_type" widget="radio" options="{'horizontal': true}"/>
+                        <field name="required"/>
+                        <field name="blocking_answer" widget="radio" options="{'horizontal': true}"
+                               invisible="question_type != 'yes_no'"/>
+                    </group>
+                    <field name="option_ids" invisible="question_type != 'choice'">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="blocks_sign_in"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Questionnaire triggers (on the kiosk) -->
+    <record id="view_attendance_kiosk_questionnaire_line_form" model="ir.ui.view">
+        <field name="name">attendance.kiosk.questionnaire.line.form</field>
+        <field name="model">attendance.kiosk.questionnaire.line</field>
+        <field name="arch" type="xml">
+            <form string="Kiosk Questionnaire">
+                <sheet>
+                    <group>
+                        <field name="kiosk_id" invisible="1"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="questionnaire_id"/>
+                        <field name="trigger" widget="radio"/>
+                    </group>
+                    <separator string="Ask"/>
+                    <field name="employee_domain" widget="domain"
+                           options="{'model': 'hr.employee', 'in_dialog': True}"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

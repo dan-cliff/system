@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_attendance_tree_kiosk" model="ir.ui.view">
+        <field name="name">hr.attendance.list.kiosk</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.view_attendance_tree"/>
+        <field name="arch" type="xml">
+            <field name="in_mode" position="before">
+                <field name="in_kiosk_id" optional="show"/>
+                <field name="kiosk_work_location_id" optional="hide"/>
+                <field name="out_kiosk_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_attendance_tree_management_kiosk" model="ir.ui.view">
+        <field name="name">hr.attendance.list.management.kiosk</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.view_attendance_tree_management"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="in_kiosk_id" optional="show"/>
+                <field name="kiosk_work_location_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance_view_form_kiosk" model="ir.ui.view">
+        <field name="name">hr.attendance.form.kiosk</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='check_in_group']/group/group" position="inside">
+                <field name="in_kiosk_id" invisible="not in_kiosk_id"/>
+                <field name="kiosk_work_location_id" invisible="not kiosk_work_location_id"/>
+                <field name="kiosk_offline_in" invisible="not kiosk_offline_in"/>
+            </xpath>
+            <xpath expr="//group[@name='check_out_group']/group/group" position="inside">
+                <field name="out_kiosk_id" invisible="not out_kiosk_id"/>
+                <field name="kiosk_transferred" invisible="not kiosk_transferred"/>
+                <field name="kiosk_offline_out" invisible="not kiosk_offline_out"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <div invisible="not kiosk_response_ids">
+                    <separator string="Questionnaire Responses"/>
+                    <field name="kiosk_response_ids" readonly="1">
+                        <list decoration-danger="blocked">
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="questionnaire_id"/>
+                            <field name="blocked"/>
+                        </list>
+                    </field>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance_view_filter_kiosk" model="ir.ui.view">
+        <field name="name">hr.attendance.search.kiosk</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_filter"/>
+        <field name="arch" type="xml">
+            <field name="check_in" position="after">
+                <field name="in_kiosk_id"/>
+                <field name="kiosk_work_location_id"/>
+            </field>
+            <filter name="nocheckout" position="after">
+                <filter string="Signed In at a Kiosk" name="kiosk" domain="[('in_kiosk_id', '!=', False)]"/>
+                <filter string="Recorded Offline" name="kiosk_offline"
+                        domain="['|', ('kiosk_offline_in', '=', True), ('kiosk_offline_out', '=', True)]"/>
+            </filter>
+            <filter name="groupby_mode_in" position="after">
+                <filter string="Kiosk" name="groupby_kiosk" context="{'group_by': 'in_kiosk_id'}"/>
+                <filter string="Work Location" name="groupby_kiosk_location" context="{'group_by': 'kiosk_work_location_id'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

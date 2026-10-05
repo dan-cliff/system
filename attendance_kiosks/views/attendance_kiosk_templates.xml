@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="kiosk_app" name="Attendance Kiosk">
+        &lt;!DOCTYPE html&gt;
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+                <meta name="theme-color" content="#0f172a"/>
+                <meta name="mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+                <meta name="apple-mobile-web-app-title" t-att-content="kiosk.name"/>
+                <meta name="robots" content="noindex, nofollow"/>
+                <title t-out="kiosk.name + ' - Sign In'"/>
+                <link rel="manifest" t-att-href="'/kiosk/%s/manifest.webmanifest' % token"/>
+                <link rel="icon" type="image/png" href="/attendance_kiosks/static/src/img/icon-192.png"/>
+                <link rel="apple-touch-icon" href="/attendance_kiosks/static/src/img/icon-192.png"/>
+                <link rel="stylesheet" href="/attendance_kiosks/static/src/kiosk/kiosk.css"/>
+            </head>
+            <body t-att-data-token="token">
+                <header class="k-header">
+                    <div class="k-header-main">
+                        <div class="k-kiosk-name" id="k-kiosk-name" t-out="kiosk.name"/>
+                        <div class="k-kiosk-place" id="k-kiosk-place"
+                             t-out="'%s · %s' % (kiosk.work_location_id.name, kiosk.company_id.name)"/>
+                    </div>
+                    <div class="k-header-side">
+                        <div class="k-clock" id="k-clock"/>
+                        <div class="k-date" id="k-date"/>
+                    </div>
+                </header>
+
+                <main class="k-main">
+                    <!-- Home -->
+                    <section class="k-screen k-active" id="screen-home">
+                        <div class="k-welcome" id="k-welcome"/>
+                        <div class="k-badge-hint" id="k-badge-hint" hidden="hidden">
+                            <span class="k-badge-icon" aria-hidden="true">&#x1F4B3;</span>
+                            <span>Scan your badge to sign in or out</span>
+                            <button type="button" class="k-btn k-btn-light" id="k-camera-btn" hidden="hidden">Use camera</button>
+                        </div>
+                        <div class="k-name-select" id="k-name-select" hidden="hidden">
+                            <input type="search" class="k-search" id="k-search" autocomplete="off"
+                                   placeholder="Type your name" aria-label="Type your name"/>
+                            <div class="k-grid" id="k-grid"/>
+                        </div>
+                    </section>
+
+                    <!-- PIN -->
+                    <section class="k-screen" id="screen-pin">
+                        <div class="k-person" id="k-pin-person"/>
+                        <div class="k-pin-title">Enter your PIN</div>
+                        <div class="k-pin-dots" id="k-pin-dots"/>
+                        <div class="k-pin-message" id="k-pin-message"/>
+                        <div class="k-keypad" id="k-keypad"/>
+                        <button type="button" class="k-btn k-btn-light k-back">Cancel</button>
+                    </section>
+
+                    <!-- Employee -->
+                    <section class="k-screen" id="screen-employee">
+                        <div class="k-person" id="k-emp-person"/>
+                        <div class="k-status" id="k-emp-status"/>
+                        <ul class="k-notes k-notes-warning" id="k-emp-warnings"/>
+                        <ul class="k-notes k-notes-danger" id="k-emp-reasons"/>
+                        <div class="k-actions" id="k-emp-actions"/>
+                        <button type="button" class="k-btn k-btn-light k-back">Cancel</button>
+                    </section>
+
+                    <!-- Questionnaire -->
+                    <section class="k-screen" id="screen-questionnaire">
+                        <form id="k-questionnaire-form" novalidate="novalidate">
+                            <div id="k-questionnaires"/>
+                            <div class="k-form-message" id="k-questionnaire-message"/>
+                            <div class="k-actions">
+                                <button type="submit" class="k-btn k-btn-primary k-btn-lg">Sign In</button>
+                            </div>
+                        </form>
+                        <button type="button" class="k-btn k-btn-light k-back">Cancel</button>
+                    </section>
+
+                    <!-- Result -->
+                    <section class="k-screen" id="screen-result">
+                        <div class="k-result" id="k-result"/>
+                        <button type="button" class="k-btn k-btn-light k-back">Done</button>
+                    </section>
+                </main>
+
+                <footer class="k-footer">
+                    <span class="k-conn" id="k-conn">Connecting...</span>
+                    <span class="k-pending" id="k-pending" hidden="hidden"/>
+                    <button type="button" class="k-btn k-btn-link" id="k-install-btn" hidden="hidden">Install app</button>
+                </footer>
+
+                <div class="k-camera" id="k-camera" hidden="hidden">
+                    <video id="k-camera-video" playsinline="playsinline" muted="muted"/>
+                    <button type="button" class="k-btn k-btn-light" id="k-camera-close">Close camera</button>
+                </div>
+
+                <script src="/attendance_kiosks/static/src/kiosk/kiosk.js"/>
+            </body>
+        </html>
+    </template>
+</odoo>

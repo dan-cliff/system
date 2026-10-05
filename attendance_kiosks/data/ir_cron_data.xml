@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_attendance_kiosk_auto_sign_out" model="ir.cron">
+        <field name="name">Attendance Kiosks: Automatic Sign Out</field>
+        <field name="model_id" ref="model_attendance_kiosk"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_auto_sign_out()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+    </record>
+</odoo>
