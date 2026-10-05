@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_attendance_kiosk_list" model="ir.ui.view">
+        <field name="name">attendance.kiosk.list</field>
+        <field name="model">attendance.kiosk</field>
+        <field name="arch" type="xml">
+            <list string="Kiosks">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="work_location_id"/>
+                <field name="present_count"/>
+                <field name="auto_sign_out" optional="show"/>
+                <field name="offline_enabled" optional="hide"/>
+                <field name="last_contact" options="{'numeric': True}" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_attendance_kiosk_form" model="ir.ui.view">
+        <field name="name">attendance.kiosk.form</field>
+        <field name="model">attendance.kiosk</field>
+        <field name="arch" type="xml">
+            <form string="Kiosk">
+                <header>
+                    <button name="action_open_kiosk" type="object" string="Open Kiosk"
+                            class="btn-primary" invisible="not id"/>
+                    <button name="action_regenerate_url" type="object" string="Regenerate URL"
+                            invisible="not id" groups="hr_attendance.group_hr_attendance_manager"
+                            confirm="Devices using the current URL will stop working until they are set up with the new URL. Continue?"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_attendances" type="object" class="oe_stat_button"
+                                icon="fa-sign-in" context="{'present_only': True}">
+                            <field name="present_count" widget="statinfo" string="Signed In"/>
+                        </button>
+                        <button name="action_view_attendances" type="object" class="oe_stat_button"
+                                icon="fa-clock-o">
+                            <field name="attendance_count" widget="statinfo" string="Attendances"/>
+                        </button>
+                        <button name="action_view_eligible_employees" type="object" class="oe_stat_button"
+                                icon="fa-users">
+                            <field name="eligible_employee_count" widget="statinfo" string="Can Sign In"/>
+                        </button>
+                        <button name="action_view_responses" type="object" class="oe_stat_button"
+                                icon="fa-list-alt">
+                            <field name="response_count" widget="statinfo" string="Responses"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Workshop Front Door"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="work_location_id"/>
+                            <field name="tz"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="kiosk_url" widget="CopyClipboardChar" invisible="not id"/>
+                            <field name="last_contact" options="{'numeric': True}" invisible="not id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Who Can Sign In" name="access">
+                            <group>
+                                <group string="Identification">
+                                    <field name="identify_badge"/>
+                                    <field name="identify_name"/>
+                                    <field name="require_pin" invisible="not identify_name"/>
+                                </group>
+                                <group string="Capabilities">
+                                    <field name="required_course_ids" widget="many2many_tags"
+                                           options="{'no_create': True}"/>
+                                    <field name="expiry_warning_days"/>
+                                </group>
+                            </group>
+                            <group string="Who Can Sign In">
+                                <field name="restrict_to_company"/>
+                            </group>
+                            <field name="employee_domain" widget="domain"
+                                   options="{'model': 'hr.employee', 'in_dialog': True}"/>
+                            <separator string="Sign In Rules"/>
+                            <p class="text-muted">
+                                Rules are checked in order for everyone who passes the filter above.
+                                A rule applies to the employees it matches and either refuses them
+                                or requires them to meet extra requirements and hold Learning capabilities.
+                            </p>
+                            <field name="rule_ids" context="{'default_kiosk_id': id}"/>
+                        </page>
+                        <page string="Questionnaires" name="questionnaires">
+                            <field name="questionnaire_line_ids" context="{'default_kiosk_id': id}">
+                                <list string="Questionnaires">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="questionnaire_id"/>
+                                    <field name="trigger"/>
+                                    <field name="employee_domain" string="Ask" widget="domain"
+                                           options="{'model': 'hr.employee'}" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sign Out" name="sign_out">
+                            <group>
+                                <group string="Automatic Sign Out">
+                                    <field name="auto_sign_out"/>
+                                    <field name="auto_sign_out_type" widget="radio"
+                                           invisible="not auto_sign_out"/>
+                                    <field name="auto_sign_out_hours" widget="float_time"
+                                           invisible="not auto_sign_out or auto_sign_out_type != 'duration'"/>
+                                    <field name="auto_sign_out_time" widget="float_time"
+                                           invisible="not auto_sign_out or auto_sign_out_type != 'time'"/>
+                                </group>
+                                <group string="Workers Signed In Here Who...">
+                                    <field name="other_sign_in_action" widget="radio"/>
+                                    <field name="other_sign_out_action" widget="radio"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Kiosk Display" name="display">
+                            <group>
+                                <group string="Home Screen">
+                                    <field name="welcome_message" placeholder="e.g. Hard hats and hi-vis must be worn past this point."/>
+                                </group>
+                                <group string="Offline">
+                                    <field name="offline_enabled"/>
+                                    <field name="roster_refresh_minutes"/>
+                                </group>
+                            </group>
+                            <div class="text-muted">
+                                <p>
+                                    Open the kiosk URL on the device and use the browser's
+                                    <strong>Install</strong> or <strong>Add to Home Screen</strong> option to
+                                    install it as an app. Each kiosk has its own URL and its own app.
+                                </p>
+                                <p>
+                                    Keep the URL private: anyone with it can use the kiosk. Use
+                                    <strong>Regenerate URL</strong> if it gets out.
+                                </p>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_attendance_kiosk_search" model="ir.ui.view">
+        <field name="name">attendance.kiosk.search</field>
+        <field name="model">attendance.kiosk</field>
+        <field name="arch" type="xml">
+            <search string="Kiosks">
+                <field name="name"/>
+                <field name="work_location_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
+                    <filter string="Work Location" name="group_location" context="{'group_by': 'work_location_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_attendance_kiosk" model="ir.actions.act_window">
+        <field name="name">Kiosks</field>
+        <field name="res_model">attendance.kiosk</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a sign in kiosk</p>
+            <p>Each kiosk has its own URL, sign in rules, questionnaires and automatic sign out,
+               and can be installed on a tablet as an app that works offline.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_attendance_kiosk_response_list" model="ir.ui.view">
+        <field name="name">attendance.kiosk.response.list</field>
+        <field name="model">attendance.kiosk.response</field>
+        <field name="arch" type="xml">
+            <list string="Questionnaire Responses" create="false" edit="false"
+                  decoration-danger="blocked">
+                <field name="date" options="{'numeric': True}"/>
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="questionnaire_id"/>
+                <field name="kiosk_id"/>
+                <field name="work_location_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="blocked" optional="show"/>
+                <field name="offline" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_attendance_kiosk_response_form" model="ir.ui.view">
+        <field name="name">attendance.kiosk.response.form</field>
+        <field name="model">attendance.kiosk.response</field>
+        <field name="arch" type="xml">
+            <form string="Questionnaire Response" create="false" edit="false">
+                <sheet>
+                    <widget name="web_ribbon" title="Sign In Refused" bg_color="text-bg-danger" invisible="not blocked"/>
+                    <div class="oe_title">
+                        <h1><field name="questionnaire_id" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" widget="many2one_avatar_employee"/>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="attendance_id"/>
+                        </group>
+                        <group>
+                            <field name="kiosk_id"/>
+                            <field name="work_location_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="offline"/>
+                            <field name="blocked" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <list decoration-danger="blocks_sign_in">
+                            <field name="question"/>
+                            <field name="answer"/>
+                            <field name="blocks_sign_in"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_attendance_kiosk_response_search" model="ir.ui.view">
+        <field name="name">attendance.kiosk.response.search</field>
+        <field name="model">attendance.kiosk.response</field>
+        <field name="arch" type="xml">
+            <search string="Questionnaire Responses">
+                <field name="employee_id"/>
+                <field name="questionnaire_id"/>
+                <field name="kiosk_id"/>
+                <field name="work_location_id"/>
+                <filter string="Sign In Refused" name="blocked" domain="[('blocked', '=', True)]"/>
+                <filter string="Recorded Offline" name="offline" domain="[('offline', '=', True)]"/>
+                <separator/>
+                <filter string="Date" name="filter_date" date="date"/>
+                <group>
+                    <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Questionnaire" name="group_questionnaire" context="{'group_by': 'questionnaire_id'}"/>
+                    <filter string="Kiosk" name="group_kiosk" context="{'group_by': 'kiosk_id'}"/>
+                    <filter string="Work Location" name="group_location" context="{'group_by': 'work_location_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_attendance_kiosk_response" model="ir.actions.act_window">
+        <field name="name">Questionnaire Responses</field>
+        <field name="res_model">attendance.kiosk.response</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No questionnaire responses yet</p>
+            <p>Answers given on the kiosks when workers sign in appear here.</p>
+        </field>
+    </record>
+</odoo>

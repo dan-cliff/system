@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="rule_attendance_kiosk_company" model="ir.rule">
+            <field name="name">Attendance Kiosk: multi-company</field>
+            <field name="model_id" ref="model_attendance_kiosk"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_attendance_kiosk_rule_company" model="ir.rule">
+            <field name="name">Attendance Kiosk Rule: multi-company</field>
+            <field name="model_id" ref="model_attendance_kiosk_rule"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_attendance_kiosk_questionnaire_line_company" model="ir.rule">
+            <field name="name">Attendance Kiosk Questionnaire Trigger: multi-company</field>
+            <field name="model_id" ref="model_attendance_kiosk_questionnaire_line"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_attendance_kiosk_questionnaire_company" model="ir.rule">
+            <field name="name">Attendance Kiosk Questionnaire: multi-company</field>
+            <field name="model_id" ref="model_attendance_kiosk_questionnaire"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_attendance_kiosk_response_company" model="ir.rule">
+            <field name="name">Attendance Kiosk Response: multi-company</field>
+            <field name="model_id" ref="model_attendance_kiosk_response"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+    </data>
+</odoo>

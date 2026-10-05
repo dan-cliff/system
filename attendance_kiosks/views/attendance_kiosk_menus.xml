@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_attendance_kiosks_root"
+              name="Kiosks"
+              parent="hr_attendance.menu_hr_attendance_root"
+              sequence="8"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+
+    <menuitem id="menu_attendance_kiosk"
+              name="Kiosks"
+              parent="menu_attendance_kiosks_root"
+              action="action_attendance_kiosk"
+              sequence="10"/>
+
+    <menuitem id="menu_attendance_kiosk_response"
+              name="Questionnaire Responses"
+              parent="menu_attendance_kiosks_root"
+              action="action_attendance_kiosk_response"
+              sequence="20"/>
+
+    <menuitem id="menu_attendance_kiosk_questionnaire"
+              name="Kiosk Questionnaires"
+              parent="hr_attendance.menu_hr_attendance_configuration"
+              action="action_attendance_kiosk_questionnaire"
+              sequence="50"
+              groups="hr_attendance.group_hr_attendance_manager"/>
+</odoo>

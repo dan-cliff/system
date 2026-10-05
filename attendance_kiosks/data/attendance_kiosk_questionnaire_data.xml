@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="questionnaire_fit_for_work" model="attendance.kiosk.questionnaire">
+            <field name="name">Fit for Work Declaration</field>
+            <field name="introduction">Please answer these questions honestly before starting work.</field>
+            <field name="blocked_message">Based on your answers you cannot start work yet. Please speak to your supervisor before signing in.</field>
+        </record>
+
+        <record id="question_fit_for_work_unwell" model="attendance.kiosk.question">
+            <field name="questionnaire_id" ref="questionnaire_fit_for_work"/>
+            <field name="sequence">10</field>
+            <field name="name">Are you feeling unwell or showing symptoms of an illness?</field>
+            <field name="question_type">yes_no</field>
+            <field name="blocking_answer">yes</field>
+        </record>
+
+        <record id="question_fit_for_work_impaired" model="attendance.kiosk.question">
+            <field name="questionnaire_id" ref="questionnaire_fit_for_work"/>
+            <field name="sequence">20</field>
+            <field name="name">Are you affected by alcohol, drugs, medication or fatigue that could make you unsafe at work?</field>
+            <field name="question_type">yes_no</field>
+            <field name="blocking_answer">yes</field>
+        </record>
+
+        <record id="question_fit_for_work_ppe" model="attendance.kiosk.question">
+            <field name="questionnaire_id" ref="questionnaire_fit_for_work"/>
+            <field name="sequence">30</field>
+            <field name="name">Do you have the personal protective equipment you need for today's work?</field>
+            <field name="question_type">yes_no</field>
+            <field name="blocking_answer">no</field>
+        </record>
+
+        <record id="questionnaire_site_induction" model="attendance.kiosk.questionnaire">
+            <field name="name">Site Safety Briefing</field>
+            <field name="introduction">Welcome to this site. Please confirm you understand the site safety arrangements.</field>
+            <field name="blocked_message">Please ask a supervisor to take you through the site safety briefing before signing in.</field>
+        </record>
+
+        <record id="question_site_induction_exits" model="attendance.kiosk.question">
+            <field name="questionnaire_id" ref="questionnaire_site_induction"/>
+            <field name="sequence">10</field>
+            <field name="name">Do you know where the emergency exits and assembly area are?</field>
+            <field name="question_type">yes_no</field>
+            <field name="blocking_answer">no</field>
+        </record>
+
+        <record id="question_site_induction_first_aid" model="attendance.kiosk.question">
+            <field name="questionnaire_id" ref="questionnaire_site_induction"/>
+            <field name="sequence">20</field>
+            <field name="name">Do you know where the first aid kit is and who the first aid officer is?</field>
+            <field name="question_type">yes_no</field>
+            <field name="blocking_answer">no</field>
+        </record>
+
+    </data>
+</odoo>
