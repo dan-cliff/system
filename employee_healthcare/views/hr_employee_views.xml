@@ -20,14 +20,18 @@
                         groups="employee_healthcare.group_employee_healthcare_employee"/>
             </xpath>
 
-            <!-- Healthcare indicators displayed below the job title -->
-            <xpath expr="//field[@name='job_title']" position="after">
+            <!-- Healthcare indicators displayed below the manager. In Odoo 19
+                 these fields sit in a labelled <group>, so the field must keep
+                 its label: a nolabel field fills only one grid cell and shifts
+                 every label after it into the value column. -->
+            <xpath expr="//field[@name='parent_id']" position="after">
                 <field name="healthcare_indicator_ids"
+                       string="Health Indicators"
                        widget="many2many_tags"
                        options="{'color_field': 'color', 'no_create': True}"
                        readonly="1"
-                       groups="employee_healthcare.group_employee_healthcare_employee"
-                       nolabel="1"/>
+                       invisible="not healthcare_indicator_ids"
+                       groups="employee_healthcare.group_employee_healthcare_employee"/>
             </xpath>
 
             <!-- Healthcare page tab -->

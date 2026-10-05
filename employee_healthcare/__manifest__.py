@@ -1,6 +1,6 @@
 {
     'name': 'Employee Healthcare',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'summary': 'Employee healthcare information management',
     'description': (
         'Allows employees to record and manage their personal healthcare information, '
