@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_offline_access_device_list" model="ir.ui.view">
+        <field name="name">offline.access.device.list</field>
+        <field name="model">offline.access.device</field>
+        <field name="arch" type="xml">
+            <list string="Devices" create="0" edit="0"
+                  decoration-muted="state == 'stale'" decoration-danger="state == 'revoked'">
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="name"/>
+                <field name="installed" optional="show"/>
+                <field name="last_seen" options="{'numeric': True}"/>
+                <field name="first_seen" options="{'numeric': True}" optional="hide"/>
+                <field name="storage_used_mb" optional="show"/>
+                <field name="storage_quota_mb" optional="hide"/>
+                <field name="app_version" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'" decoration-danger="state == 'revoked'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_offline_access_device_form" model="ir.ui.view">
+        <field name="name">offline.access.device.form</field>
+        <field name="model">offline.access.device</field>
+        <field name="arch" type="xml">
+            <form string="Device" create="0" edit="0">
+                <header>
+                    <button name="action_revoke" type="object" string="Revoke" class="btn-danger"
+                            invisible="state == 'revoked'"
+                            confirm="This signs the device out now and wipes the data Odoo has stored in its browser the next time it connects. Continue?"/>
+                    <button name="action_cancel_revoke" type="object" string="Cancel Revoke"
+                            invisible="state != 'revoked' or wipe_sent_at"/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,stale,revoked"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Device">
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="browser"/>
+                            <field name="platform"/>
+                            <field name="installed"/>
+                            <field name="app_version"/>
+                        </group>
+                        <group string="Activity">
+                            <field name="first_seen" options="{'numeric': True}"/>
+                            <field name="last_seen" options="{'numeric': True}"/>
+                            <field name="storage_used_mb"/>
+                            <field name="storage_quota_mb"/>
+                        </group>
+                        <group string="Revoked" invisible="state != 'revoked'">
+                            <field name="revoked_at" options="{'numeric': True}"/>
+                            <field name="revoked_by_id"/>
+                            <field name="wipe_sent_at" options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <group string="Technical">
+                        <field name="device_uid"/>
+                        <field name="user_agent"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_offline_access_device_search" model="ir.ui.view">
+        <field name="name">offline.access.device.search</field>
+        <field name="model">offline.access.device</field>
+        <field name="arch" type="xml">
+            <search string="Devices">
+                <field name="user_id"/>
+                <field name="name"/>
+                <field name="device_uid"/>
+                <filter name="filter_active" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="filter_stale" string="Stale" domain="[('state', '=', 'stale')]"/>
+                <filter name="filter_revoked" string="Revoked" domain="[('state', '=', 'revoked')]"/>
+                <separator/>
+                <filter name="filter_installed" string="Installed as App" domain="[('installed', '=', True)]"/>
+                <separator/>
+                <filter name="filter_last_seen" string="Last Seen" date="last_seen"/>
+                <group>
+                    <filter name="group_user" string="User" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_platform" string="Operating System" context="{'group_by': 'platform'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_offline_access_device" model="ir.actions.act_window">
+        <field name="name">Devices</field>
+        <field name="res_model">offline.access.device</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_active': 1, 'search_default_filter_stale': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No devices yet</p>
+            <p>Devices appear here once offline access is switched on in Settings and people use Odoo on them.</p>
+        </field>
+    </record>
+</odoo>

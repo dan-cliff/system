@@ -3,19 +3,6 @@ import json
 from odoo import http
 from odoo.http import request
 
-# A minimal "network first, fail soft" worker - just enough to satisfy the browser's
-# installability requirement (a fetch handler must be registered). No offline asset
-# caching: the Scanner screens need a live connection to the database anyway.
-SERVICE_WORKER_JS = """
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
-self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        fetch(event.request).catch(() => new Response('', { status: 503, statusText: 'Offline' }))
-    );
-});
-"""
-
 
 class ScannerAppController(http.Controller):
 
@@ -43,14 +30,4 @@ class ScannerAppController(http.Controller):
         return request.make_response(
             json.dumps(manifest),
             headers=[('Content-Type', 'application/manifest+json')],
-        )
-
-    @http.route('/scanner_app/service-worker.js', type='http', auth='public', csrf=False)
-    def service_worker(self):
-        return request.make_response(
-            SERVICE_WORKER_JS,
-            headers=[
-                ('Content-Type', 'text/javascript'),
-                ('Service-Worker-Allowed', '/odoo'),
-            ],
         )

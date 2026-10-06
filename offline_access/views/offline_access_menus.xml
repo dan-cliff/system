@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_offline_access_root"
+              name="Offline Access"
+              parent="base.menu_administration"
+              groups="base.group_system"
+              sequence="90"/>
+
+    <menuitem id="menu_offline_access_device"
+              name="Devices"
+              parent="menu_offline_access_root"
+              action="action_offline_access_device"
+              sequence="10"/>
+</odoo>
