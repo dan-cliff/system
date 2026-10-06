@@ -5,10 +5,11 @@
  * service worker for /odoo, so this extends Odoo's rather than registering
  * another one.
  *
- * Odoo's part caches the /odoo page itself and shows its offline page. This
- * part caches what that page needs to start without a connection: the asset
- * bundles and static files, plus the menus and translations. Odoo's part
- * answers page navigations, so this part leaves those alone.
+ * Odoo's part caches the /odoo page itself and shows its offline page (which
+ * this module replaces with the offline screens). This part caches what those
+ * pages need without a connection: the asset bundles and static files, plus
+ * the menus and translations. Odoo's part answers page navigations, so this
+ * part leaves those alone.
  *
  * Kept in a block so its names can't clash with Odoo's.
  */
@@ -21,8 +22,19 @@
     const MAX_ASSETS = 400;
     const NETWORK_TIMEOUT = 5000;
     const DATA_PATHS = ["/web/webclient/load_menus", "/web/webclient/translations"];
+    const PRECACHE = __OFFLINE_ACCESS_PRECACHE__;
+    // The offline records the web client keeps (see offline_store.js).
+    const RECORDS_DB = "offline_access";
 
-    self.addEventListener("install", () => self.skipWaiting());
+    self.addEventListener("install", (event) => {
+        self.skipWaiting();
+        event.waitUntil(
+            caches
+                .open(ASSETS_CACHE)
+                .then((cache) => cache.addAll(PRECACHE))
+                .catch(() => {})
+        );
+    });
 
     self.addEventListener("activate", (event) => {
         event.waitUntil(
@@ -77,7 +89,8 @@
     // Static files keep their URL between versions: use the cached copy, refresh it behind the scenes.
     const staleWhileRevalidate = async (request, event) => {
         const cache = await caches.open(ASSETS_CACHE);
-        const cached = await cache.match(request);
+        const cached =
+            (await cache.match(request)) || (await cache.match(request, { ignoreSearch: true }));
         const network = fetch(request).then((response) => {
             if (response.ok) {
                 return cache.put(request, response.clone()).then(() => response);
@@ -134,7 +147,16 @@
 
     self.addEventListener("message", (event) => {
         if (event.data === "user_logout") {
-            event.waitUntil(caches.delete(DATA_CACHE));
+            // Offline records belong to the user signing out.
+            event.waitUntil(
+                Promise.all([
+                    caches.delete(DATA_CACHE),
+                    new Promise((resolve) => {
+                        const deletion = indexedDB.deleteDatabase(RECORDS_DB);
+                        deletion.onsuccess = deletion.onerror = deletion.onblocked = resolve;
+                    }),
+                ])
+            );
         }
     });
 }

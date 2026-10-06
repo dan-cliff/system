@@ -11,4 +11,21 @@
               parent="menu_offline_access_root"
               action="action_offline_access_device"
               sequence="10"/>
+
+    <menuitem id="menu_offline_access_sync_log"
+              name="Sync Log"
+              parent="menu_offline_access_root"
+              action="action_offline_access_sync_log"
+              sequence="20"/>
+
+    <menuitem id="menu_offline_access_config"
+              name="Configuration"
+              parent="menu_offline_access_root"
+              sequence="90"/>
+
+    <menuitem id="menu_offline_access_model"
+              name="Offline Models"
+              parent="menu_offline_access_config"
+              action="action_offline_access_model"
+              sequence="10"/>
 </odoo>

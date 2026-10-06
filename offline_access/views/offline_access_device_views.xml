@@ -10,6 +10,8 @@
                 <field name="name"/>
                 <field name="installed" optional="show"/>
                 <field name="last_seen" options="{'numeric': True}"/>
+                <field name="last_sync" options="{'numeric': True}" optional="show"/>
+                <field name="offline_record_count" optional="show"/>
                 <field name="first_seen" options="{'numeric': True}" optional="hide"/>
                 <field name="storage_used_mb" optional="show"/>
                 <field name="storage_quota_mb" optional="hide"/>
@@ -34,6 +36,11 @@
                     <field name="state" widget="statusbar" statusbar_visible="active,stale,revoked"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sync_log" type="object" class="oe_stat_button" icon="fa-refresh">
+                            <field name="sync_log_count" widget="statinfo" string="Syncs"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1><field name="name"/></h1>
                     </div>
@@ -48,6 +55,8 @@
                         <group string="Activity">
                             <field name="first_seen" options="{'numeric': True}"/>
                             <field name="last_seen" options="{'numeric': True}"/>
+                            <field name="last_sync" options="{'numeric': True}"/>
+                            <field name="offline_record_count"/>
                             <field name="storage_used_mb"/>
                             <field name="storage_quota_mb"/>
                         </group>

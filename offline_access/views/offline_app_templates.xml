@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The offline screens (/odoo/offline). Odoo's service worker caches this
+         page when it installs and shows it whenever the server can't be
+         reached, so it must not contain any user data: the records come from
+         the browser's own storage. -->
+    <template id="offline_app" name="Offline Access: Offline Screens">&lt;!DOCTYPE html&gt;
+        <html t-att-lang="(request.env.lang or 'en_US').replace('_', '-')">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="theme-color" t-att-content="theme_color"/>
+                <title t-out="app_name"/>
+                <link rel="manifest" href="/web/manifest.webmanifest" crossorigin="use-credentials"/>
+                <link rel="icon" t-att-href="icon_url"/>
+                <link rel="apple-touch-icon" t-att-href="icon_url"/>
+                <link rel="stylesheet" t-attf-href="/offline_access/static/src/offline_app/offline_app.css?v=#{version}"/>
+                <script type="module" t-attf-src="/offline_access/static/src/offline_app/offline_app.js?v=#{version}"/>
+            </head>
+            <body t-att-data-db="db" t-att-data-app-name="app_name" t-attf-style="--oa-theme: #{theme_color};">
+                <header class="oa-header">
+                    <button type="button" class="oa-back" id="oa-back" aria-label="Back" hidden="">&#8592;</button>
+                    <img class="oa-logo" t-att-src="icon_url" alt=""/>
+                    <div class="oa-title">
+                        <h1 id="oa-title" t-out="app_name"/>
+                        <div class="oa-subtitle" id="oa-subtitle"/>
+                    </div>
+                    <span class="oa-status" id="oa-status">Offline</span>
+                </header>
+                <div class="oa-banner" id="oa-banner" hidden="">
+                    <span id="oa-banner-text"/>
+                    <a href="/odoo" class="oa-button" id="oa-banner-button">Open Odoo</a>
+                </div>
+                <main id="oa-main">
+                    <noscript>Turn on JavaScript to see your offline records.</noscript>
+                </main>
+            </body>
+        </html>
+    </template>
+</odoo>

@@ -19,6 +19,25 @@
                             </div>
                             <button name="action_open_offline_access_devices" type="object"
                                     string="Devices" icon="oi-arrow-right" class="btn-link"/>
+                            <button name="action_open_offline_access_sync_log" type="object"
+                                    string="Sync Log" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="offline_access_records_setting" string="Offline Records"
+                             invisible="not offline_access_enabled"
+                             help="Records saved on each device while it's online, so people can look them up without a connection. Each user only gets what they can see.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="offline_access_model_count" string="Models offline" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_model_count" class="col-lg-2"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="offline_access_max_offline_days" string="Remove if not synced for" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_max_offline_days" class="col-lg-2"/>
+                                <span class="col-lg-2">days</span>
+                            </div>
+                            <button name="action_open_offline_access_models" type="object"
+                                    string="Offline Models" icon="oi-arrow-right" class="btn-link"/>
                         </div>
                     </setting>
                     <setting id="offline_access_app_setting" string="App"
@@ -52,6 +71,11 @@
                             <div class="row mt8">
                                 <label for="offline_access_stale_days" string="Stale after" class="col-lg-4 o_light_label"/>
                                 <field name="offline_access_stale_days" class="col-lg-2"/>
+                                <span class="col-lg-2">days</span>
+                            </div>
+                            <div class="row mt8">
+                                <label for="offline_access_log_days" string="Keep sync log" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_log_days" class="col-lg-2"/>
                                 <span class="col-lg-2">days</span>
                             </div>
                         </div>

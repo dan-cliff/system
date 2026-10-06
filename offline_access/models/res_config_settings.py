@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 
-from .offline_access_device import DEFAULT_HEARTBEAT_MINUTES, DEFAULT_STALE_DAYS, DEFAULT_THEME_COLOR
+from .offline_access_device import (
+    DEFAULT_HEARTBEAT_MINUTES, DEFAULT_LOG_DAYS, DEFAULT_MAX_OFFLINE_DAYS, DEFAULT_STALE_DAYS, DEFAULT_THEME_COLOR,
+)
 
 
 class ResConfigSettings(models.TransientModel):
@@ -16,15 +18,25 @@ class ResConfigSettings(models.TransientModel):
     offline_access_stale_days = fields.Integer(
         string='Stale After (days)', config_parameter='offline_access.stale_days',
         default=DEFAULT_STALE_DAYS)
+    offline_access_max_offline_days = fields.Integer(
+        string='Keep Offline Data For (days)', config_parameter='offline_access.max_offline_days',
+        default=DEFAULT_MAX_OFFLINE_DAYS,
+        help='A device that has not synced for this long removes its offline records.')
+    offline_access_log_days = fields.Integer(
+        string='Keep Sync Log For (days)', config_parameter='offline_access.log_days',
+        default=DEFAULT_LOG_DAYS)
     # Stored as a public attachment rather than a config parameter: the app
     # icon is served to browsers before anyone has signed in.
     offline_access_icon = fields.Binary(string='App Icon', attachment=False)
-    offline_access_device_count = fields.Integer(compute='_compute_offline_access_device_count')
+    offline_access_device_count = fields.Integer(compute='_compute_offline_access_counts')
+    offline_access_model_count = fields.Integer(compute='_compute_offline_access_counts')
 
-    def _compute_offline_access_device_count(self):
-        count = self.env['offline.access.device'].search_count([('state', '!=', 'revoked')])
+    def _compute_offline_access_counts(self):
+        device_count = self.env['offline.access.device'].search_count([('state', '!=', 'revoked')])
+        model_count = self.env['offline.access.model'].search_count([])
         for settings in self:
-            settings.offline_access_device_count = count
+            settings.offline_access_device_count = device_count
+            settings.offline_access_model_count = model_count
 
     @api.model
     def get_values(self):
@@ -52,3 +64,9 @@ class ResConfigSettings(models.TransientModel):
 
     def action_open_offline_access_devices(self):
         return self.env['ir.actions.act_window']._for_xml_id('offline_access.action_offline_access_device')
+
+    def action_open_offline_access_models(self):
+        return self.env['ir.actions.act_window']._for_xml_id('offline_access.action_offline_access_model')
+
+    def action_open_offline_access_sync_log(self):
+        return self.env['ir.actions.act_window']._for_xml_id('offline_access.action_offline_access_sync_log')

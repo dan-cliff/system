@@ -1,3 +1,4 @@
+import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { session } from "@web/session";
 
@@ -9,22 +10,34 @@ import {
     jsonRpc,
     wipeDevice,
 } from "./device";
+import { applySync, getCursors } from "./offline_store";
 
 const FIRST_REPORT_DELAY = 5000;
+const OFFLINE_URL = "/odoo/offline";
 
 /**
- * Offline Access in the web client: brands the page from Settings and reports
- * this device in while it is used (Settings > Offline Access > Devices). A
- * revoked device is wiped and signed out.
+ * Offline Access in the web client: brands the page from Settings, reports
+ * this device in while it is used (Settings > Offline Access > Devices) and
+ * keeps the Offline Models' records in the browser for the offline screens.
+ * A revoked device is wiped and signed out.
  */
 export const offlineAccessService = {
-    start() {
+    dependencies: ["notification"],
+
+    start(env, { notification }) {
         const config = session.offline_access;
         if (!config) {
             return;
         }
         if (!config.enabled) {
             clearOfflineCaches().catch(() => {});
+            return;
+        }
+
+        // Started from the cached page with no connection: Odoo's screens need
+        // the server, so go to the offline screens instead.
+        if (!navigator.onLine) {
+            window.location.replace(OFFLINE_URL);
             return;
         }
 
@@ -37,14 +50,37 @@ export const offlineAccessService = {
 
         let interval = config.heartbeat_minutes;
         let timer = null;
+        let syncing = false;
+        let offlineNotice = null;
+
+        async function sync(deviceUid) {
+            if (syncing) {
+                return;
+            }
+            syncing = true;
+            try {
+                const result = await jsonRpc("/offline_access/sync", {
+                    device_uid: deviceUid,
+                    cursors: await getCursors(),
+                });
+                if (result.wipe) {
+                    await wipeDevice();
+                } else if (result.enabled && !result.error) {
+                    await applySync(result);
+                }
+            } finally {
+                syncing = false;
+            }
+        }
 
         async function report() {
             if (!navigator.onLine) {
                 return;
             }
             const estimate = (await navigator.storage?.estimate?.().catch(() => null)) || {};
+            const deviceUid = ensureDeviceUid();
             const result = await jsonRpc("/offline_access/heartbeat", {
-                device_uid: ensureDeviceUid(),
+                device_uid: deviceUid,
                 ...describeBrowser(),
                 installed: isInstalledApp(),
                 app_version: config.app_version,
@@ -53,9 +89,14 @@ export const offlineAccessService = {
             });
             if (result.wipe) {
                 await wipeDevice();
-            } else if (result.heartbeat_minutes && result.heartbeat_minutes !== interval) {
+                return;
+            }
+            if (result.heartbeat_minutes && result.heartbeat_minutes !== interval) {
                 interval = result.heartbeat_minutes;
                 schedule();
+            }
+            if (result.enabled) {
+                await sync(deviceUid);
             }
         }
 
@@ -68,9 +109,32 @@ export const offlineAccessService = {
             timer = setInterval(reportSoon, interval * 60 * 1000);
         }
 
+        function showOfflineNotice() {
+            offlineNotice?.();
+            offlineNotice = notification.add(
+                _t("You're offline. Records saved on this device are still available."),
+                {
+                    type: "warning",
+                    sticky: true,
+                    buttons: [
+                        {
+                            name: _t("Open offline records"),
+                            primary: true,
+                            onClick: () => window.location.assign(OFFLINE_URL),
+                        },
+                    ],
+                }
+            );
+        }
+
         setTimeout(reportSoon, FIRST_REPORT_DELAY);
         schedule();
-        window.addEventListener("online", reportSoon);
+        window.addEventListener("online", () => {
+            offlineNotice?.();
+            offlineNotice = null;
+            reportSoon();
+        });
+        window.addEventListener("offline", showOfflineNotice);
     },
 };
 
