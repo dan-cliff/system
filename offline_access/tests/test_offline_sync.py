@@ -47,25 +47,36 @@ class TestOfflineSync(HttpCase):
     def sync(self, cursors=None):
         return self.rpc('/offline_access/sync', device_uid=DEVICE_UID, cursors=cursors or {})
 
-    # ── Layout ───────────────────────────────────────────────────────────────
+    # ── Views ────────────────────────────────────────────────────────────────
 
-    def test_layout_follows_the_form(self):
-        layout = self.partners.with_user(self.worker)._get_layout()
-        fields_by_name = {f['name']: f for s in layout['sections'] for f in s['fields']}
-        self.assertIn('name', fields_by_name)
-        self.assertTrue(set(layout['list_columns']) <= set(fields_by_name))
-        types = {f['type'] for f in fields_by_name.values()}
-        self.assertTrue(types <= offline_access_model.SUPPORTED_TYPES)
-        # Contacts are lines on the company form, with the inline list's columns.
-        self.assertEqual(fields_by_name['child_ids']['type'], 'one2many')
-        self.assertTrue(any(s['title'] for s in layout['sections']), 'Sections come from pages and groups')
+    def test_views_and_specification(self):
+        offline = self.partners.with_user(self.worker)
+        actions, bundles, models = offline._get_offline_views()
+        default = bundles[0]
+        self.assertFalse(default['action_id'])
+        self.assertEqual({'list', 'form', 'search'}, set(default['result']['views']))
+        self.assertIn('res.partner', models)
+        spec = offline._get_specification(bundles, models)
+        # Everything the form and list show, as the web client reads it.
+        self.assertIn('name', spec)
+        self.assertEqual(spec['display_name'], {})
+        self.assertEqual(spec['parent_id'], {'fields': {'display_name': {}}})
+        # Contacts are lines on the company form, read with their own fields.
+        self.assertIn('display_name', spec['child_ids']['fields'])
+        self.assertTrue(len(spec['child_ids']['fields']) > 1)
+        self.assertNotIn('image_1920', spec)  # too large to keep on every device
 
-    def test_layout_override(self):
-        fields = self.env['ir.model.fields']._get('res.partner', 'city') | self.env['ir.model.fields']._get('res.partner', 'name')
-        self.partners.write({'field_ids': [(6, 0, fields.ids)], 'list_field_ids': [(6, 0, fields[:1].ids)]})
-        layout = self.partners.with_user(self.worker)._get_layout()
-        self.assertEqual(sorted(f['name'] for s in layout['sections'] for f in s['fields']), ['city', 'name'])
-        self.assertEqual(layout['list_columns'], ['city'])
+    def test_views_from_menus(self):
+        action = self.env['ir.actions.act_window'].create({
+            'name': 'Offline Companies', 'res_model': 'res.partner', 'view_mode': 'list,form',
+            'path': 'offline-companies',
+        })
+        self.env['ir.ui.menu'].create({'name': 'Offline Companies', 'action': f'ir.actions.act_window,{action.id}'})
+        actions, bundles, models = self.partners.with_user(self.worker)._get_offline_views()
+        self.assertEqual([a['id'] for a in actions], [action.id])
+        self.assertEqual(actions[0]['path'], 'offline-companies')
+        self.assertEqual(bundles[1]['action_id'], action.id)
+        self.assertEqual([view_type for __, view_type in bundles[1]['views']], ['list', 'form', 'search'])
 
     # ── Sync ─────────────────────────────────────────────────────────────────
 
@@ -77,15 +88,20 @@ class TestOfflineSync(HttpCase):
         [payload] = result['models']
         self.assertEqual(payload['ids'], [self.acme.id])
         self.assertTrue(payload['full'])
+        self.assertTrue(payload['meta']['bundles'])
+        self.assertEqual(payload['meta']['order'], self.env['res.partner']._order)
         [record] = payload['records']
         self.assertEqual(record['display_name'], 'Acme Offline')
-        self.assertEqual(record['child_ids']['count'], 1)
-        self.assertEqual(record['child_ids']['lines'][0]['display_name'], 'Acme Offline, Jo Offline')
+        # As web_read gives them: lines with their fields, many2one with their name.
+        [contact] = record['child_ids']
+        self.assertEqual(contact['id'], self.contact.id)
+        self.assertEqual(contact['display_name'], 'Acme Offline, Jo Offline')
 
         # Nothing changed: no records sent again, the ids are still there.
         result = self.sync({str(payload['id']): payload['cursor']})
         [payload2] = result['models']
         self.assertFalse(payload2['full'])
+        self.assertIsNone(payload2['meta'])  # views only come with a full sync
         self.assertEqual(payload2['records'], [])
         self.assertEqual(payload2['ids'], [self.acme.id])
 
@@ -166,18 +182,17 @@ class TestOfflineSync(HttpCase):
         self.assertFalse(old.exists())
         self.assertTrue(recent.exists())
 
-    # ── Offline page and service worker ──────────────────────────────────────
+    # ── Service worker ───────────────────────────────────────────────────────
 
-    def test_offline_page(self):
-        page = self.url_open('/odoo/offline')
-        self.assertEqual(page.status_code, 200)
-        self.assertIn('/offline_access/static/src/offline_app/offline_app.js?v=', page.text)
-        self.assertNotIn('offline_sync', page.text)  # cached for everyone: no user data
-        self.env['ir.config_parameter'].sudo().set_param('offline_access.enabled', False)
-        self.assertNotIn('offline_app.js', self.url_open('/odoo/offline').text)
-
-    def test_service_worker_precaches_offline_screens(self):
+    def test_service_worker_answers_offline(self):
         script = self.url_open('/web/service-worker.js').text
-        self.assertIn('/offline_access/static/src/offline_app/offline_app.js?v=', script)
-        self.assertIn('/offline_access/static/src/offline_store.js?v=', script)
-        self.assertNotIn('__OFFLINE_ACCESS_PRECACHE__', script)
+        prelude = script.index('offlineAccessReadSession')
+        odoo = script.index('const cacheName = "odoo-sw-cache"')
+        main = script.index('offlineCallKw(method')
+        self.assertLess(prelude, odoo, 'The prelude runs before Odoo\'s own code')
+        self.assertLess(odoo, main)
+        self.assertNotIn('__OFFLINE_ACCESS_RPC__', script)
+        self.assertNotIn('__OFFLINE_ACCESS_VERSION__', script)
+
+    def test_odoo_offline_page_kept(self):
+        self.assertEqual(self.url_open('/odoo/offline').status_code, 200)

@@ -24,12 +24,13 @@ Offline Access - this module has no app of its own on the main menu.
   data Odoo has stored in that browser the next time it connects.
 * Offline records: Settings > Offline Access > Configuration > Offline
   Models chooses which records each device saves while online (starting
-  with the Risk, Incident, Asset and Zoo records of the apps installed).
-  Each user only gets the records and fields they can see. With no
-  connection, the app opens simple offline screens: a list per model with
-  search, and each record laid out like its normal form, with its lines
-  and tags. Records are removed on logout, on Revoke, and after a set
-  number of days without a sync. Every sync is in the Sync Log.
+  with the Risk, Incident, Asset and Zoo records of the apps installed),
+  along with the menus' screens that show them. Each user only gets the
+  records and fields they can see. With no connection, those normal list,
+  kanban and form screens still open - with search, filters and grouping -
+  but read-only: creating, editing, deleting and buttons need the server.
+  Records are removed on logout, on Revoke, and after a set number of days
+  without a sync. Every sync is in the Sync Log.
 """,
     'author': "Cliff's Country Crafts",
     'license': 'LGPL-3',
@@ -41,7 +42,6 @@ Offline Access - this module has no app of its own on the main menu.
         'views/offline_access_device_views.xml',
         'views/offline_access_model_views.xml',
         'views/offline_access_sync_log_views.xml',
-        'views/offline_app_templates.xml',
         'views/res_config_settings_views.xml',
         'views/offline_access_menus.xml',
     ],
@@ -49,6 +49,9 @@ Offline Access - this module has no app of its own on the main menu.
         'web.assets_backend': [
             'offline_access/static/src/device.js',
             'offline_access/static/src/offline_store.js',
+            'offline_access/static/src/offline_state.js',
+            'offline_access/static/src/offline_readonly.js',
+            'offline_access/static/src/offline_indicator.js',
             'offline_access/static/src/offline_access_service.js',
         ],
         'web.assets_frontend': [

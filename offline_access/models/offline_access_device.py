@@ -1,5 +1,4 @@
 import hashlib
-import json
 import logging
 import re
 import time
@@ -16,14 +15,11 @@ DEFAULT_MAX_OFFLINE_DAYS = 14
 DEFAULT_LOG_DAYS = 30
 DEVICE_UID_RE = re.compile(r'^[A-Za-z0-9-]{16,64}$')
 _logger = logging.getLogger(__name__)
-SERVICE_WORKER_FILE = 'offline_access/static/src/service_worker.js'
-# The offline screens: cached by the service worker when it installs, so
-# they open even if the device has never shown them while online.
-OFFLINE_APP_FILES = [
-    'offline_access/static/src/offline_store.js',
-    'offline_access/static/src/offline_app/offline_app.js',
-    'offline_access/static/src/offline_app/offline_app.css',
-]
+# Odoo's service worker is extended by: a prelude that runs before Odoo's own
+# code, and the main part (with the offline data logic inserted) after it.
+SERVICE_WORKER_PRELUDE = 'offline_access/static/src/sw/prelude.js'
+SERVICE_WORKER_MAIN = 'offline_access/static/src/sw/service_worker.js'
+SERVICE_WORKER_OFFLINE_RPC = 'offline_access/static/src/sw/offline_rpc.js'
 
 
 def _positive_int(value, default):
@@ -124,23 +120,20 @@ class OfflineAccessDevice(models.Model):
 
     @api.model
     def _get_service_worker_extension(self):
-        """The script appended to Odoo's service worker, with its version filled in.
+        """The scripts that extend Odoo's service worker: (prelude, main part,
+        version). The prelude goes before Odoo's own code, the main part after.
 
-        The version is a hash of the script and the offline screens, so browsers
-        pick up a new service worker (and drop old cached files) whenever they
-        change."""
-        digest = hashlib.sha256()
-        with file_open(SERVICE_WORKER_FILE) as f:
-            script = f.read()
-        digest.update(script.encode())
-        for path in OFFLINE_APP_FILES:
-            with file_open(path, 'rb') as f:
-                digest.update(f.read())
-        version = digest.hexdigest()[:12]
-        precache = [f'/{path}?v={version}' for path in OFFLINE_APP_FILES]
-        script = script.replace('__OFFLINE_ACCESS_VERSION__', version)
-        script = script.replace('__OFFLINE_ACCESS_PRECACHE__', json.dumps(precache))
-        return script, version
+        The version is a hash of the scripts, so browsers pick up a new service
+        worker (and drop old cached files) whenever they change."""
+        with file_open(SERVICE_WORKER_PRELUDE) as f:
+            prelude = f.read()
+        with file_open(SERVICE_WORKER_MAIN) as f:
+            main = f.read()
+        with file_open(SERVICE_WORKER_OFFLINE_RPC) as f:
+            offline_rpc = f.read()
+        main = main.replace('/* __OFFLINE_ACCESS_RPC__ */', offline_rpc)
+        version = hashlib.sha256((prelude + main).encode()).hexdigest()[:12]
+        return prelude, main.replace('__OFFLINE_ACCESS_VERSION__', version), version
 
     # ── Reports from the browser ─────────────────────────────────────────────
 

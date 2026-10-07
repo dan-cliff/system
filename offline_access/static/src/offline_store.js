@@ -1,12 +1,20 @@
 /**
  * Offline Access: the records a device keeps for offline use, in the
- * browser's IndexedDB. Written by the web client when it syncs, read by the
- * offline screens (/odoo/offline). No imports, so the offline screens can
- * load it as a plain module without the web client.
+ * browser's IndexedDB. Written by the web client when it syncs; read by the
+ * service worker (sw/service_worker.js, which opens the same database) to
+ * answer the web client's requests while the server can't be reached.
+ *
+ * Stores:
+ *   meta     {key: "state", ...} about the last sync, and
+ *            {key: "session_info", value} the page's session info, so the
+ *            web client can start from a cold start without a connection
+ *   models   one per Offline Model: its actions, views, fields and the
+ *            web_read specification its records were read with
+ *   records  [model_id, id] -> the record as web_read returned it
  */
 
 export const DB_NAME = "offline_access";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function promisify(request) {
     return new Promise((resolve, reject) => {
@@ -31,6 +39,9 @@ export function openStore() {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
             request.onupgradeneeded = () => {
                 const db = request.result;
+                for (const name of [...db.objectStoreNames]) {
+                    db.deleteObjectStore(name); // older layouts: the next sync fills it again
+                }
                 db.createObjectStore("meta", { keyPath: "key" });
                 db.createObjectStore("models", { keyPath: "id" });
                 const records = db.createObjectStore("records", { keyPath: ["model_id", "id"] });
@@ -63,33 +74,6 @@ export async function getModels() {
     const db = await openStore();
     const models = await promisify(db.transaction("models").objectStore("models").getAll());
     return models.sort((a, b) => a.sequence - b.sequence || a.id - b.id);
-}
-
-export async function getModel(modelId) {
-    const db = await openStore();
-    return (await promisify(db.transaction("models").objectStore("models").get(modelId))) || null;
-}
-
-export async function getRecords(modelId) {
-    const db = await openStore();
-    const index = db.transaction("records").objectStore("records").index("model_id");
-    return promisify(index.getAll(modelId));
-}
-
-export async function getRecord(modelId, recordId) {
-    const db = await openStore();
-    return (await promisify(db.transaction("records").objectStore("records").get([modelId, recordId]))) || null;
-}
-
-/** Find a kept record by model name, e.g. to follow a link to another offline record. */
-export async function findRecord(modelName, recordId) {
-    for (const model of await getModels()) {
-        if (model.model === modelName) {
-            const record = await getRecord(model.id, recordId);
-            return record ? { model, record } : null;
-        }
-    }
-    return null;
 }
 
 /** What to send back on the next sync, per Offline Model id. */
@@ -141,15 +125,16 @@ export async function applySync(result) {
             recordStore.put({ ...record, model_id: model.id });
         }
         recordCount += model.ids.length;
+        const previous = otherUser ? null : await promisify(modelStore.get(model.id));
         modelStore.put({
             id: model.id,
             model: model.model,
             name: model.name,
             sequence: model.sequence,
-            layout: model.layout,
-            cursor: model.cursor,
+            // Views and actions only come with a full sync.
+            meta: model.meta || previous?.meta || null,
+            cursor: model.meta || previous?.meta ? model.cursor : null,
             count: model.ids.length,
-            order: model.ids,
         });
     }
     metaStore.put({
@@ -164,6 +149,14 @@ export async function applySync(result) {
     });
     await done(transaction);
     return recordCount;
+}
+
+/** Keep the page's session info, for starting the web client offline. */
+export async function putSessionInfo(value) {
+    const db = await openStore();
+    const transaction = db.transaction("meta", "readwrite");
+    transaction.objectStore("meta").put({ key: "session_info", value });
+    await done(transaction);
 }
 
 /** Remove everything kept for offline use. */

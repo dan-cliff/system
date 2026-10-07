@@ -16,6 +16,6 @@ class IrHttp(models.AbstractModel):
                 'heartbeat_minutes': config['heartbeat_minutes'],
                 'theme_color': config['theme_color'],
                 'icon_version': config['icon_version'],
-                'app_version': Device._get_service_worker_extension()[1] if config['enabled'] else False,
+                'app_version': Device._get_service_worker_extension()[2] if config['enabled'] else False,
             }
         return session_info

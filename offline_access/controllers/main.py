@@ -6,7 +6,6 @@
     POST /offline_access/heartbeat        A signed-in browser reporting in
     POST /offline_access/device_status    Any browser asking whether it was revoked
     POST /offline_access/sync             Records a signed-in browser keeps for offline use
-    GET  /odoo/offline                    Odoo's offline page, replaced by the offline screens
 """
 import base64
 
@@ -46,26 +45,8 @@ class OfflineAccessWebManifest(WebManifest):
         Device = request.env['offline.access.device']
         if not Device._get_offline_access_config()['enabled']:
             return body
-        return body + '\n' + Device._get_service_worker_extension()[0]
-
-    @http.route()
-    def offline(self):
-        """The page Odoo's service worker shows when it can't reach the server:
-        the offline screens, which read the records kept on the device. It is
-        cached when the service worker installs, so it holds no user data."""
-        Device = request.env['offline.access.device']
-        config = Device._get_offline_access_config()
-        if not config['enabled']:
-            return super().offline()
-        version = Device._get_service_worker_extension()[1]
-        return request.render('offline_access.offline_app', {
-            'app_name': request.env['ir.config_parameter'].sudo().get_param('web.web_app_name') or 'Odoo',
-            'theme_color': config['theme_color'],
-            'icon_url': (f"/offline_access/icon/192?v={config['icon_version']}" if config['icon']
-                         else '/web/static/img/odoo-icon-192x192.png'),
-            'version': version,
-            'db': request.db or '',
-        })
+        prelude, extension, __ = Device._get_service_worker_extension()
+        return '\n'.join([prelude, body, extension])
 
 
 class OfflineAccessController(http.Controller):

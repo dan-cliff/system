@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 from datetime import timedelta
 
 from lxml import etree
@@ -8,25 +9,16 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 
-# Field types the offline screens can show.
-SUPPORTED_TYPES = {
-    'char', 'text', 'html', 'integer', 'float', 'monetary', 'date', 'datetime',
-    'boolean', 'selection', 'many2one', 'one2many', 'many2many',
-}
+from odoo.addons.web.controllers.utils import clean_action
+
+_logger = logging.getLogger(__name__)
+
 X2MANY_TYPES = {'one2many', 'many2many'}
-HIDDEN_VALUES = {'1', 'True', 'true'}
-# Widgets whose value still reads well as plain text. A field drawn by any
-# other widget (e.g. a body part picker storing JSON) is left out offline.
-TEXT_WIDGETS = {
-    None, 'char', 'text', 'html', 'email', 'phone', 'url', 'CopyClipboardChar', 'integer', 'float',
-    'monetary', 'percentage', 'date', 'datetime', 'boolean', 'boolean_toggle', 'selection', 'radio',
-    'selection_badge', 'badge', 'statusbar', 'priority', 'many2one', 'many2one_avatar',
-    'many2one_avatar_user', 'many2one_avatar_employee', 'many2many_tags', 'many2many_tags_avatar',
-    'many2many_avatar_user', 'many2many_checkboxes', 'one2many', 'many2many',
-    'risk_score_badge', 'risk_matrix_selector',
-}
-MAX_LINES_PER_FIELD = 200
-MAX_LIST_COLUMNS = 6
+# Too large to keep on every device: shown as empty offline.
+SKIPPED_TYPES = {'binary', 'image'}
+# Fields widgets often need without the view listing them.
+EXTRA_FIELDS = ('display_name', 'currency_id', 'company_id', 'write_date')
+VIEW_TYPES_WITH_DATA = ('list', 'form', 'kanban')
 # Records are only re-sent when they change, but a full refresh this often
 # also picks up changes Odoo doesn't record on the record itself (e.g. lines).
 FULL_REFRESH_AFTER = timedelta(hours=24)
@@ -54,11 +46,6 @@ SUGGESTED_MODELS = [
 ]
 
 
-def _hidden(node):
-    return (node.get('invisible') in HIDDEN_VALUES or node.get('column_invisible') in HIDDEN_VALUES
-            or (node.tag == 'field' and node.get('widget') not in TEXT_WIDGETS))
-
-
 class OfflineAccessModel(models.Model):
     _name = 'offline.access.model'
     _description = 'Offline Model'
@@ -75,14 +62,6 @@ class OfflineAccessModel(models.Model):
                          help='Which records go offline. Each user only gets the records they can see.')
     record_limit = fields.Integer(string='Record Limit', default=500, required=True,
                                   help='Most records each device keeps, the most recently changed first.')
-    field_ids = fields.Many2many(
-        'ir.model.fields', 'offline_access_model_field_rel', 'offline_model_id', 'field_id',
-        string='Fields', domain="[('model_id', '=', model_id), ('ttype', 'in', %s)]" % sorted(SUPPORTED_TYPES),
-        help='Leave empty to show the same fields, in the same sections, as the normal form.')
-    list_field_ids = fields.Many2many(
-        'ir.model.fields', 'offline_access_model_list_field_rel', 'offline_model_id', 'field_id',
-        string='List Columns', domain="[('model_id', '=', model_id), ('ttype', 'in', %s)]" % sorted(SUPPORTED_TYPES),
-        help='Leave empty to use the columns of the normal list.')
 
     _model_uniq = models.Constraint('UNIQUE(model_id)', 'This model is already available offline.')
     _record_limit_positive = models.Constraint('CHECK(record_limit > 0)', 'The record limit must be at least 1.')
@@ -128,123 +107,132 @@ class OfflineAccessModel(models.Model):
             'params': {'type': 'info', 'message': self.env._('All the suggested models are already here.')},
         }
 
-    # ── Layout: what the offline screens show ────────────────────────────────
+    # ── Views: what the web client needs to show the records offline ────────
 
-    def _get_layout(self):
-        """The fields, sections and list columns for this model, as the
-        current user sees them in the normal form and list views."""
+    def _get_offline_views(self):
+        """The actions that open this model from the menus the current user
+        can see, and their views as ``get_views`` returns them, so the web
+        client can open the normal screens without the server. Returns the
+        actions, a bundle of views per action, and the fields of the models
+        the views use."""
         self.ensure_one()
         Model = self.env[self.model_name]
-        fields_info = Model.fields_get(attributes=['string', 'type', 'relation', 'selection', 'digits'])
+        Menu = self.env['ir.ui.menu']
+        menus = Menu.browse(Menu._visible_menu_ids())
+        actions = self.env['ir.actions.act_window']
+        for menu in menus:
+            action = menu.sudo().action
+            if action and action._name == 'ir.actions.act_window' and action.res_model == self.model_name:
+                actions |= action
+        default_views = [[False, 'list'], [False, 'form'], [False, 'search']]
+        results = [(False, default_views, Model.get_views(default_views, {'load_filters': True, 'toolbar': True}))]
+        action_dicts = []
+        for action in actions.sorted('id'):
+            try:
+                action_dict = clean_action(action._get_action_dict(), env=self.env)
+                views = [list(view) for view in action_dict.get('views') or []]
+                search_view = action_dict.get('search_view_id')
+                views.append([search_view[0] if isinstance(search_view, (list, tuple)) else search_view or False,
+                              'search'])
+                result = Model.with_context(**self._view_refs(action_dict)).get_views(
+                    views, {'action_id': action.id, 'load_filters': True, 'toolbar': True})
+            except Exception:  # noqa: BLE001 - one broken action shouldn't stop the others
+                _logger.warning("Offline Access: can't prepare action %s offline", action.id, exc_info=True)
+                continue
+            action_dicts.append(action_dict)
+            results.append((action.id, views, result))
+        # The fields of every model involved, once, rather than in each bundle.
+        models_info = {}
+        for __, __, result in results:
+            for model_name, info in result.get('models', {}).items():
+                models_info.setdefault(model_name, {}).setdefault('fields', {}).update(info.get('fields', {}))
+        bundles = [{'action_id': action_id, 'views': views, 'result': {'views': result['views']}}
+                   for action_id, views, result in results]
+        return action_dicts, bundles, models_info
 
-        def field_meta(name, info, node=None):
-            meta = {
-                'name': name,
-                'string': (node.get('string') if node is not None else None) or info['string'],
-                'type': info['type'],
-            }
-            if info['type'] == 'selection':
-                meta['selection'] = info.get('selection') or []
-            if info['type'] in ('float', 'monetary') and info.get('digits'):
-                meta['digits'] = info['digits'][1]
-            if info.get('relation'):
-                meta['relation'] = info['relation']
-            return meta
+    def _view_refs(self, action_dict):
+        """The ``*_view_ref`` keys of an action's context, which pick its views."""
+        context = action_dict.get('context') or {}
+        if isinstance(context, str):
+            try:
+                context = safe_eval(context, dict(self.env['ir.rule']._eval_context(), uid=self.env.uid,
+                                                  active_id=False, active_ids=[], context={}))
+            except Exception:  # noqa: BLE001 - only used to choose views
+                context = {}
+        return {key: value for key, value in context.items() if key.endswith('_view_ref')}
 
-        def supported(name):
-            return name in fields_info and fields_info[name]['type'] in SUPPORTED_TYPES and name != 'id'
+    def _get_specification(self, bundles, models):
+        """The ``web_read`` specification for every field the views show,
+        including their lines' fields, as the web client asks for them."""
+        self.ensure_one()
+        models_info = {name: info.get('fields', {}) for name, info in models.items()}
 
-        def sub_columns(node, relation):
-            """Columns for lines and tags: the inline list's, else just their name."""
-            columns = []
-            sub_list = node.find('list')
-            if sub_list is not None and relation in self.env:
-                sub_info = self.env[relation].fields_get(
-                    attributes=['string', 'type', 'relation', 'selection', 'digits'])
-                for child in sub_list.iter('field'):
-                    name = child.get('name')
-                    if (child.getparent() is sub_list and not _hidden(child) and name in sub_info and name != 'id'
-                            and sub_info[name]['type'] in SUPPORTED_TYPES - X2MANY_TYPES):
-                        columns.append(field_meta(name, sub_info[name], child))
-            return columns[:MAX_LIST_COLUMNS]
+        def merge(target, source):
+            for name, sub in source.items():
+                if name in target and isinstance(target[name], dict):
+                    if 'fields' in sub:
+                        merge(target[name].setdefault('fields', {}), sub['fields'])
+                else:
+                    target[name] = sub
+            return target
 
-        sections = []
-        seen = set()
-        field_nodes = {}
-
-        def add(name, node, section):
-            if name in seen or not supported(name):
-                return
-            seen.add(name)
-            meta = field_meta(name, fields_info[name], node)
-            if meta['type'] in X2MANY_TYPES:
-                meta['columns'] = sub_columns(node, meta.get('relation')) if node is not None else []
-            section['fields'].append(meta)
-            field_nodes[name] = node
-
-        def walk(node, section):
+        def field_nodes(node):
             for child in node:
-                if not isinstance(child.tag, str) or _hidden(child):
+                if not isinstance(child.tag, str):
                     continue
                 if child.tag == 'field':
-                    add(child.get('name'), child, section)
-                elif child.tag in ('button', 'chatter', 'widget', 'script'):
-                    continue
-                elif child.tag == 'div' and 'oe_button_box' in (child.get('class') or ''):
-                    continue
-                elif child.tag in ('page', 'group') and child.get('string'):
-                    sub_section = {'title': child.get('string'), 'fields': []}
-                    sections.append(sub_section)
-                    walk(child, sub_section)
+                    yield child
                 else:
-                    walk(child, section)
+                    yield from field_nodes(child)
 
-        # Users can't read ir.model.fields: only the names are needed here.
-        field_names = self.sudo().field_ids.sorted('id').mapped('name')
-        list_field_names = self.sudo().list_field_ids.sorted('id').mapped('name')
-        if field_names:
-            main = {'title': '', 'fields': []}
-            sections.append(main)
-            for name in field_names:
-                add(name, None, main)
-        else:
-            form_arch = etree.fromstring(Model.get_view(view_type='form')['arch'])
-            main = {'title': '', 'fields': []}
-            sections.append(main)
-            walk(form_arch, main)
-        sections = [s for s in sections if s['fields']]
+        def view_spec(node, model_name):
+            fields_info = models_info.get(model_name, {})
+            spec = {}
+            for field_node in field_nodes(node):
+                info = fields_info.get(field_node.get('name'))
+                if not info or info['type'] in SKIPPED_TYPES:
+                    continue
+                if info['type'] == 'many2one':
+                    field_spec = {'fields': {'display_name': {}}}
+                elif info['type'] in X2MANY_TYPES:
+                    sub_spec = {'display_name': {}}
+                    for sub_view in field_node:
+                        if isinstance(sub_view.tag, str) and sub_view.tag in VIEW_TYPES_WITH_DATA:
+                            merge(sub_spec, view_spec(sub_view, info.get('relation')))
+                    field_spec = {'fields': sub_spec}
+                else:
+                    field_spec = {}
+                merge(spec, {field_node.get('name'): field_spec})
+            return spec
 
-        if list_field_names:
-            list_columns = [name for name in list_field_names if supported(name)]
-        else:
-            list_arch = etree.fromstring(Model.get_view(view_type='list')['arch'])
-            list_columns = [
-                node.get('name') for node in list_arch.iter('field')
-                if node.getparent() is list_arch and not _hidden(node) and supported(node.get('name'))
-                and fields_info[node.get('name')]['type'] not in X2MANY_TYPES
-            ]
-        list_columns = list(dict.fromkeys(list_columns))[:MAX_LIST_COLUMNS]
-        for name in list_columns:
-            if name not in seen:
-                add(name, None, sections[0] if sections else main)
-        if not sections:
-            sections = [main]
-
-        return {'sections': sections, 'list_columns': list_columns}
+        spec = {}
+        for bundle in bundles:
+            for view_type, view in bundle['result'].get('views', {}).items():
+                if view_type in VIEW_TYPES_WITH_DATA:
+                    merge(spec, view_spec(etree.fromstring(view['arch']), self.model_name))
+        fields_info = models_info.get(self.model_name, {})
+        for name in EXTRA_FIELDS:
+            if name in fields_info and name not in spec:
+                spec[name] = {'fields': {'display_name': {}}} if fields_info[name]['type'] == 'many2one' else {}
+        return spec
 
     # ── Sync ─────────────────────────────────────────────────────────────────
 
     def _sync_payload(self, cursor):
-        """Records for this model, as the current user. ``cursor`` is what the
-        device sent back from the last sync: {'time': ..., 'layout': ...}."""
+        """Records for this model, as the current user, in the shape the web
+        client reads them. ``cursor`` is what the device sent back from the
+        last sync: {'time': ..., 'layout': ...}. The views and actions are only
+        sent when they changed (or on the daily full sync)."""
         self.ensure_one()
         Model = self.env[self.model_name]
         try:
             Model.check_access('read')
         except AccessError:
             return None
-        layout = self._get_layout()
-        layout_hash = hashlib.sha256(json.dumps(layout, sort_keys=True, default=str).encode()).hexdigest()[:16]
+        actions, bundles, models = self._get_offline_views()
+        spec = self._get_specification(bundles, models)
+        meta = {'spec': spec, 'order': Model._order, 'actions': actions, 'bundles': bundles, 'models': models}
+        layout_hash = hashlib.sha256(json.dumps(meta, sort_keys=True, default=str).encode()).hexdigest()[:16]
         domain = self._get_domain()
         records = Model.search(domain, limit=self.record_limit, order='write_date desc, id desc')
         now = self.env.cr.now()
@@ -258,38 +246,9 @@ class OfflineAccessModel(models.Model):
             'model': self.model_name,
             'name': self.name,
             'sequence': self.sequence,
-            'layout': layout,
-            'layout_hash': layout_hash,
+            'meta': meta if full else None,
             'ids': records.ids,
             'full': full,
-            'records': self._read_records(changed, layout),
+            'records': changed.web_read(spec) if changed else [],
             'cursor': {'time': fields.Datetime.to_string(now - SYNC_OVERLAP), 'layout': layout_hash},
         }
-
-    def _read_records(self, records, layout):
-        if not records:
-            return []
-        all_fields = [f for section in layout['sections'] for f in section['fields']]
-        names = [f['name'] for f in all_fields]
-        values = records.read(names + ['display_name'])
-        for field in all_fields:
-            if field['type'] not in X2MANY_TYPES:
-                continue
-            sub_ids = list({sub_id for vals in values for sub_id in vals[field['name']][:MAX_LINES_PER_FIELD]})
-            sub_values = {}
-            if sub_ids and field.get('relation'):
-                try:
-                    sub_records = self.env[field['relation']].browse(sub_ids)
-                    sub_values = {
-                        vals['id']: vals for vals in sub_records.read(
-                            [c['name'] for c in field['columns']] + ['display_name'])
-                    }
-                except AccessError:
-                    sub_values = {}
-            for vals in values:
-                ids = vals[field['name']]
-                vals[field['name']] = {
-                    'count': len(ids),
-                    'lines': [sub_values[i] for i in ids[:MAX_LINES_PER_FIELD] if i in sub_values],
-                }
-        return values

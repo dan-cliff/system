@@ -42,21 +42,10 @@
                                    invisible="not model_id"/>
                         </group>
                     </group>
-                    <notebook invisible="not model_id">
-                        <page string="Fields" name="fields">
-                            <p class="text-muted">
-                                Offline, records are laid out like their normal form: the same fields, in the
-                                same sections, with lines and tags. Each user only gets the records and
-                                fields they can see. Choose fields here only to show something different.
-                            </p>
-                            <group>
-                                <field name="field_ids" widget="many2many_tags"
-                                       options="{'no_create': True}" placeholder="Same as the normal form"/>
-                                <field name="list_field_ids" widget="many2many_tags"
-                                       options="{'no_create': True}" placeholder="Same as the normal list"/>
-                            </group>
-                        </page>
-                    </notebook>
+                    <p class="text-muted" invisible="not model_id">
+                        Offline, these records open in the normal list, kanban and form screens of the menus
+                        that show them, read-only. Each user only gets the records and fields they can see.
+                    </p>
                 </sheet>
             </form>
         </field>
@@ -80,8 +69,8 @@
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Choose what is available offline</p>
-            <p>Records of these models are saved on each device while it's online, so they can be looked up
-                without a connection. Use "Add Suggested Models" to start with the Risk, Incident, Asset and
+            <p>Records of these models are saved on each device while it's online, so their normal screens
+                still open, read-only, without a connection. Use "Add Suggested Models" to start with the Risk, Incident, Asset and
                 Zoo records.</p>
         </field>
     </record>
