@@ -9,15 +9,17 @@ The nightly cron job (``cron_nightly_sync``) does three things each night:
    creates a ``pending`` coverage record for every newly-installed module that
    isn't in the skip list.
 
-2. **Generate**: For every ``pending`` record (that isn't manually skipped)
-   it calls the AI service to produce:
+2. **Generate**: For up to ``help_centre.coverage_max_per_run`` ``pending``
+   records (that aren't manually skipped) it calls the AI service to produce:
        * One overview article covering the whole module.
        * Up to ``_MAX_MODEL_ARTICLES`` articles for the module's principal
          user-facing models (those that appear behind a menu via an act_window
          action).
 
-3. **Commit per module**: Each module is committed individually so a single
-   slow or failing AI call never rolls back successfully-generated articles.
+3. **Commit per article**: Each article is committed as soon as it's
+   generated, and the job reports its progress so Odoo re-runs it straight
+   away to carry on with the rest (a single run can't fit more than an AI
+   call or so in the cron worker's 120s limit).
 
 All generated articles are created in ``draft`` state so editors can review
 and approve them before publishing.
@@ -27,6 +29,7 @@ import logging
 import re
 
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -245,7 +248,8 @@ class HelpModuleCoverage(models.Model):
         exceed the Odoo RPC request timeout if run inline.  Instead this method:
           1. Syncs the module coverage table immediately (fast, DB only).
           2. Triggers the nightly cron to run straight away in a background
-             worker — it has no RPC time limit and commits per module.
+             worker, which commits after each article and keeps
+             re-running itself until the batch is done.
           3. Returns immediately with the counts so the dialog can show the
              user what was queued.
         """
@@ -293,39 +297,97 @@ class HelpModuleCoverage(models.Model):
         """
         Nightly scheduled action:
 
-        1. Sync the coverage table with installed modules.
-        2. Process up to ``help_centre.coverage_max_per_run`` (default 5)
-           pending modules — generate overview + model articles for each.
-        3. Commit after each module so failures are isolated.
+        1. If no batch is in progress, sync the coverage table with installed
+           modules and start a new batch: mark up to
+           ``help_centre.coverage_max_per_run`` (default 5) pending modules as
+           ``generating``.
+        2. Generate the batch's missing articles one at a time, committing
+           after each. An AI call can take a minute or more, so a module's
+           articles don't fit in one cron run (Odoo kills cron workers after
+           120s); progress is reported so Odoo runs the job again straight
+           away to carry on, until the batch is finished.
+        3. A module whose articles are all there is marked ``generated``; one
+           whose generation fails is marked ``error`` and left out.
         """
-        self.sync_installed_modules()
-
-        max_per_run = int(
-            self.env['ir.config_parameter'].sudo().get_param(
-                'help_centre.coverage_max_per_run', default='5',
-            )
-        )
-
-        pending = self.sudo().search([
-            ('coverage_status', '=', 'pending'),
+        cron = self.env['ir.cron']
+        batch = self.sudo().search([
+            ('coverage_status', '=', 'generating'),
             ('skip', '=', False),
-        ], limit=max_per_run)
-
-        _logger.info(
-            'Help Centre nightly sync: %d/%d pending module(s) selected for generation',
-            len(pending), max_per_run,
-        )
-
-        for rec in pending:
-            try:
-                rec._generate_for_module()
-                self.env.cr.commit()
-            except Exception:
-                _logger.exception(
-                    'Help Centre: article generation failed for module %s',
-                    rec.module_name,
+        ])
+        if not batch:
+            self.sync_installed_modules()
+            max_per_run = int(
+                self.env['ir.config_parameter'].sudo().get_param(
+                    'help_centre.coverage_max_per_run', default='5',
                 )
-                self.env.cr.rollback()
+            )
+            batch = self.sudo().search([
+                ('coverage_status', '=', 'pending'),
+                ('skip', '=', False),
+            ], limit=max_per_run)
+            batch.write({'coverage_status': 'generating', 'error_message': False})
+            _logger.info(
+                'Help Centre nightly sync: %d/%d pending module(s) selected for generation',
+                len(batch), max_per_run,
+            )
+
+        todo = {rec: rec._get_missing_article_steps() for rec in batch}
+        time_left = cron._commit_progress(remaining=sum(map(len, todo.values())))
+        ai = self.env['help.ai.service']
+        for rec, steps in todo.items():
+            category = rec._get_or_create_category(rec.module_id) if steps else None
+            for model_rec in steps:
+                # Only start an AI call while this run has time left; once it
+                # hasn't, Odoo starts a fresh run (and time limit) for the rest.
+                if not time_left:
+                    return
+                try:
+                    if model_rec:
+                        rec._gen_model_article(rec.module_id, model_rec, category, ai)
+                    else:
+                        rec._gen_overview_article(rec.module_id, category, ai)
+                except Exception as exc:  # noqa: BLE001 - one failing module mustn't stop the rest
+                    self.env.cr.rollback()
+                    _logger.exception(
+                        'Help Centre: article generation failed for module %s',
+                        rec.module_name,
+                    )
+                    rec.write({
+                        'coverage_status': 'error',
+                        'error_message': str(exc)[:2000],
+                    })
+                    time_left = cron._commit_progress(1)
+                    break
+                time_left = cron._commit_progress(1)
+            else:
+                rec.write({
+                    'coverage_status': 'generated',
+                    'last_generated': fields.Datetime.now(),
+                    'error_message': False,
+                })
+                time_left = cron._commit_progress()
+                _logger.info('Help Centre: finished generating articles for module %s', rec.module_name)
+
+    def _get_missing_article_steps(self):
+        """
+        Return the articles still to generate for this module, as a list of
+        ``ir.model`` records (an article per model) with ``None`` standing for
+        the module overview. Articles already created — e.g. by an earlier
+        cron run that ran out of time — are left out.
+        """
+        self.ensure_one()
+        module = self.module_id
+        app_name = module.shortdesc or module.name
+        existing = set(self.env['help.article'].sudo().search([
+            ('module_ids', 'in', module.ids),
+            ('ai_generated', '=', True),
+        ]).mapped('name'))
+        steps = [None] if f"{app_name} — Overview" not in existing else []
+        steps += [
+            model_rec for model_rec in self._get_main_models(module)[:_MAX_MODEL_ARTICLES]
+            if f"{app_name} — {model_rec.name}" not in existing
+        ]
+        return steps
 
     # ── Core generation ───────────────────────────────────────────────────────
 
