@@ -436,6 +436,7 @@ class LmsPortal(CustomerPortal):
             ('state', '=', 'open'),
             ('is_public', '=', True),
             ('available_seats', '>', 0),
+            ('course_id.applicable_company_ids', 'in', employee.company_id.ids),
         ]
         if course_id:
             try:

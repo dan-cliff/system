@@ -90,6 +90,24 @@ class LmsCourse(models.Model):
     is_mandatory = fields.Boolean(string='Mandatory', tracking=True)
     active = fields.Boolean(default=True)
 
+    # Company / branch applicability
+    company_ids = fields.Many2many(
+        'res.company',
+        'lms_course_company_rel',
+        'course_id',
+        'company_id',
+        string='Companies',
+        help='Companies or branches this course applies to. Selecting a company also '
+             'applies the course to all of its branches. Leave empty to apply to all companies.',
+    )
+    applicable_company_ids = fields.Many2many(
+        'res.company',
+        string='Applies To',
+        compute='_compute_applicable_company_ids',
+        search='_search_applicable_company_ids',
+        help='The selected companies plus all of their branches.',
+    )
+
     # Assessment
     assessment_template_id = fields.Many2one(
         'lms.assessment.template', string='Assessment Template',
@@ -117,6 +135,31 @@ class LmsCourse(models.Model):
     def _compute_session_count(self):
         for rec in self:
             rec.session_count = len(rec.session_ids)
+
+    @api.depends('company_ids')
+    def _compute_applicable_company_ids(self):
+        Company = self.env['res.company']
+        for rec in self:
+            if rec.company_ids:
+                rec.applicable_company_ids = Company.search([('id', 'child_of', rec.company_ids.ids)])
+            else:
+                rec.applicable_company_ids = Company.search([])
+
+    def _search_applicable_company_ids(self, operator, value):
+        if operator not in ('in', '='):
+            return NotImplemented
+        company_ids = value if isinstance(value, (list, tuple, set)) else [value]
+        company_ids = [cid for cid in company_ids if cid]
+        if not company_ids:
+            return [('id', '=', False)]
+        # A course applies to a company when it is unrestricted, or when one of its
+        # selected companies is that company or one of its parents.
+        return ['|', ('company_ids', '=', False), ('company_ids', 'parent_of', company_ids)]
+
+    def _is_applicable_to_company(self, company):
+        """True when this course applies to ``company`` (directly or via a parent company)."""
+        self.ensure_one()
+        return not self.company_ids or bool(self.company_ids & company.parent_ids)
 
     def _compute_record_count(self):
         for rec in self:

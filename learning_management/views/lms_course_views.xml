@@ -65,6 +65,8 @@
                 <field name="duration_hours"/>
                 <field name="validity_months"/>
                 <field name="is_mandatory"/>
+                <field name="company_ids" widget="many2many_tags" optional="show"
+                       groups="base.group_multi_company"/>
                 <field name="session_count" string="Sessions"/>
                 <field name="active" column_invisible="True"/>
             </list>
@@ -152,6 +154,14 @@
                             <field name="validity_months"
                                    help="0 = no expiry. Enter the number of months this licence/qualification remains valid."/>
                         </group>
+                        <group string="Companies / Branches" name="companies"
+                               groups="base.group_multi_company">
+                            <field name="company_ids" widget="many2many_tags"
+                                   placeholder="All companies"
+                                   options="{'no_create': True}"/>
+                            <field name="applicable_company_ids" widget="many2many_tags"
+                                   invisible="not company_ids"/>
+                        </group>
                         <group string="Settings">
                             <field name="is_mandatory"/>
                             <field name="requires_upload"/>
@@ -220,12 +230,17 @@
             <search string="Search Courses">
                 <field name="name" string="Course" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
                 <field name="category_id"/>
+                <field name="applicable_company_ids" string="Company / Branch"
+                       groups="base.group_multi_company"/>
                 <filter name="type_licence" string="Licences" domain="[('course_type', '=', 'licence')]"/>
                 <filter name="type_qualification" string="Qualifications" domain="[('course_type', '=', 'qualification')]"/>
                 <filter name="type_training" string="Training" domain="[('course_type', '=', 'training')]"/>
                 <filter name="type_elearning" string="eLearning" domain="[('course_type', '=', 'elearning')]"/>
                 <separator/>
                 <filter name="mandatory" string="Mandatory" domain="[('is_mandatory', '=', True)]"/>
+                <filter name="my_companies" string="My Companies"
+                        domain="[('applicable_company_ids', 'in', allowed_company_ids)]"
+                        groups="base.group_multi_company"/>
                 <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                 <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
                 <separator/>

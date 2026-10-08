@@ -1,6 +1,6 @@
 {
     'name': 'Learning Management System',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Licences, Qualifications, Training & eLearning Management',
     'description': '''
         A comprehensive Learning Management System for tracking employee licences,
