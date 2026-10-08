@@ -7,7 +7,9 @@
             Runs at 02:00 each night:
               1. Discovers newly installed modules and creates coverage records.
               2. Generates draft articles (overview + per-model) for up to
-                 `help_centre.coverage_max_per_run` (default 5) pending modules.
+                 `help_centre.coverage_max_per_run` (default 5) pending modules,
+                 one article at a time; the job reports its progress so Odoo
+                 re-runs it straight away until the batch is done.
             Articles are created in Draft state for editor review.
         -->
         <record id="ir_cron_help_centre_nightly_sync" model="ir.cron">
