@@ -114,10 +114,14 @@ class LmsCourseGroupAssignment(models.Model):
         return records
 
     def _create_employee_records(self):
-        """Auto-create an lms.employee.record for each course in the package."""
+        """Auto-create an lms.employee.record for each course in the package that
+        applies to the employee's company or branch."""
         self.ensure_one()
         existing_courses = self.record_ids.mapped('course_id')
+        company = self.employee_id.company_id
         for course in self.course_group_id.course_ids:
+            if not course._is_applicable_to_company(company):
+                continue
             if course not in existing_courses:
                 self.env['lms.employee.record'].create({
                     'employee_id': self.employee_id.id,
