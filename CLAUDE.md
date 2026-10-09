@@ -40,3 +40,40 @@ for every module we create or edit.
   (read for users, full for the app's administrators).
 - Exceptions: technical states that code depends on (e.g. a record's workflow
   `state`), or when a request explicitly asks for a fixed selection.
+
+## Organisation structure (Division / Business Unit / Location / Department)
+
+Every **primary model** carries the four Organisation fields and follows the
+same rules. A primary model is any model an app opens from its menus outside
+that app's **Configuration** or **Settings** menu (option lists and setup
+models are not primary). This applies to core Odoo apps and our own modules.
+
+- `org_structure` adds the fields automatically to the primary models of
+  every installed app (`org_structure/models/ir_model_fields.py`):
+  `org_division_id`, `org_business_unit_id`, `org_location_id`,
+  `org_department_id`, plus `org_show_*` flags. Don't define fields with
+  these names yourself, and don't add a second set under other names.
+- So a new model gets them as long as it is opened from the app's menus
+  outside Configuration/Settings. Put option and setup models under the
+  app's Configuration menu (see Choice fields) so they are left alone.
+- A model that isn't opened from a menu but should still carry the fields:
+  depend on `org_structure` and inherit `org.scope.mixin`.
+- Forms: an **Organisation** section with the four fields is added
+  automatically (before the notebook, or at the end of the sheet). Each
+  field only shows when its level has units, and the section only shows
+  once Divisions exist. To place it yourself, add the four fields in a
+  `<group string="Organisation">` with `invisible="not org_show_<level>"`
+  on each; the automatic section is then skipped.
+- Picking a lower level fills in the levels above it; changing a higher
+  level clears lower levels that don't belong to it.
+- Child records inherit from their parent: a record created with a parent
+  (e.g. a Feed for an Enclosure, a Task for a Project) copies the parent's
+  four values unless given its own. The parent is the first required
+  Many2one to another Organisation-aware model, else the Many2one that is
+  the inverse of the parent's One2many. When that isn't the right field, set
+  `_org_parent_field = '<field>'` on the model (or `False` to turn it off).
+- Record scoping (users' "Scope all apps" and App Specific Scoping) applies
+  to these models automatically; records with no Division stay visible.
+- Never scoped: technical and identity models (`ir.*`, `res.*` including
+  `res.partner`/`res.users`, `mail.*`, `bus.*`, `org.*`), transient/abstract
+  models and SQL views.

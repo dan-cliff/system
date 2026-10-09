@@ -105,7 +105,8 @@ class ResUsersOrgScope(models.Model):
                 [('share', '=', False)])
         else:
             users = users.sudo().filtered(lambda user: not user.share)
-        apps = self.env['ir.ui.menu'].sudo().search(APP_MENU_DOMAIN)
+        # Callers may pass active_test=False (e.g. ir.ui.menu.unlink); only active apps count.
+        apps = self.env['ir.ui.menu'].sudo().with_context(active_test=True).search(APP_MENU_DOMAIN)
         existing = self.search([('user_id', 'in', users.ids)])
         stale = existing.filtered(lambda line: line.menu_id not in apps)
         if stale:
@@ -121,14 +122,19 @@ class ResUsersOrgScope(models.Model):
             self.create(missing)
 
     def _get_app_models(self):
-        """Models opened by window actions anywhere under this app's menus."""
+        """Models opened by window or server actions anywhere under this app's menus."""
         self.ensure_one()
         menus = self.env['ir.ui.menu'].sudo().search([('id', 'child_of', self.menu_id.id)])
-        return {
-            menu.action.res_model
-            for menu in menus
-            if menu.action and menu.action._name == 'ir.actions.act_window' and menu.action.res_model
-        }
+        models = set()
+        for menu in menus:
+            action = menu.action
+            if not action:
+                continue
+            if action._name == 'ir.actions.act_window' and action.res_model:
+                models.add(action.res_model)
+            elif action._name == 'ir.actions.server' and action.model_id:
+                models.add(action.model_id.model)
+        return models
 
     def _get_record_domain(self):
         """Cumulative domain for scoped records, or None when no units are set."""

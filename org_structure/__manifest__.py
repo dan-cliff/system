@@ -1,6 +1,6 @@
 {
     'name': 'Organisation Structure',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.1.0',
     'category': 'Administration',
     'summary': 'Divisions, Business Units, Locations and Departments with per-user record scoping',
     'description': """
@@ -13,7 +13,11 @@ parent. Users get a Home Division / Business Unit / Location / Department,
 can be scoped across all apps to one of those levels, and can have
 app-specific scoping to any combination of org units.
 
-Record scoping applies to models that inherit ``org.scope.mixin``.
+Every primary model of every installed app (opened from the app's menus
+outside Configuration / Settings) automatically gets Division, Business
+Unit, Location and Department fields, an Organisation section on its form,
+and record scoping. Records created from a parent record copy the parent's
+Organisation. Other models can inherit ``org.scope.mixin``.
 """,
     'author': "Cliff's Country Crafts",
     'depends': ['base'],
