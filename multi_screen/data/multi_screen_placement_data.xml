@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting placements; administrators can rename, archive or add more
+         under Workspaces > Configuration > Placements. -->
+    <data noupdate="1">
+        <record id="placement_full" model="multi.screen.placement">
+            <field name="name">Full screen</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="placement_left_half" model="multi.screen.placement">
+            <field name="name">Left half</field>
+            <field name="sequence">20</field>
+            <field name="width_pct">50</field>
+        </record>
+        <record id="placement_right_half" model="multi.screen.placement">
+            <field name="name">Right half</field>
+            <field name="sequence">30</field>
+            <field name="left_pct">50</field>
+            <field name="width_pct">50</field>
+        </record>
+        <record id="placement_top_half" model="multi.screen.placement">
+            <field name="name">Top half</field>
+            <field name="sequence">40</field>
+            <field name="height_pct">50</field>
+        </record>
+        <record id="placement_bottom_half" model="multi.screen.placement">
+            <field name="name">Bottom half</field>
+            <field name="sequence">50</field>
+            <field name="top_pct">50</field>
+            <field name="height_pct">50</field>
+        </record>
+        <record id="placement_left_two_thirds" model="multi.screen.placement">
+            <field name="name">Left two-thirds</field>
+            <field name="sequence">60</field>
+            <field name="width_pct">66.7</field>
+        </record>
+        <record id="placement_right_third" model="multi.screen.placement">
+            <field name="name">Right third</field>
+            <field name="sequence">70</field>
+            <field name="left_pct">66.7</field>
+            <field name="width_pct">33.3</field>
+        </record>
+    </data>
+</odoo>

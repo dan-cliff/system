@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_multi_screen_placement_list" model="ir.ui.view">
+        <field name="name">multi.screen.placement.list</field>
+        <field name="model">multi.screen.placement</field>
+        <field name="arch" type="xml">
+            <list string="Placements" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="left_pct"/>
+                <field name="top_pct"/>
+                <field name="width_pct"/>
+                <field name="height_pct"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_multi_screen_placement_form" model="ir.ui.view">
+        <field name="name">multi.screen.placement.form</field>
+        <field name="model">multi.screen.placement</field>
+        <field name="arch" type="xml">
+            <form string="Placement">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Position on the screen">
+                            <field name="left_pct"/>
+                            <field name="top_pct"/>
+                            <field name="width_pct"/>
+                            <field name="height_pct"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_multi_screen_placement" model="ir.actions.act_window">
+        <field name="name">Placements</field>
+        <field name="res_model">multi.screen.placement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
