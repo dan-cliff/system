@@ -140,7 +140,7 @@ class TestOrgStructure(TransactionCase):
     def test_app_list_prefilled_with_all_apps(self):
         apps = self.env['ir.ui.menu'].search([('parent_id', '=', False), ('web_icon', '!=', False)])
         self.assertTrue(apps)
-        self.assertEqual(self.user.org_app_scope_ids.menu_id, apps)
+        self.assertCountEqual(self.user.org_app_scope_ids.menu_id.ids, apps.ids)
         # Installing a new app adds it to every internal user's list.
         new_app = self.env['ir.ui.menu'].create({
             'name': 'New App', 'web_icon': 'org_structure,static/description/icon.png'})
@@ -151,7 +151,8 @@ class TestOrgStructure(TransactionCase):
         sub_menu = self.env['ir.ui.menu'].create({'name': 'Sub', 'parent_id': new_app.id})
         self.assertNotIn(sub_menu, self.user.org_app_scope_ids.menu_id)
         new_app.unlink()
-        self.assertEqual(self.user.org_app_scope_ids.menu_id, apps)
+        self.env.invalidate_all()
+        self.assertCountEqual(self.user.org_app_scope_ids.menu_id.ids, apps.ids)
 
     def test_portal_users_have_no_app_list(self):
         portal = self.env['res.users'].create({
@@ -160,3 +161,20 @@ class TestOrgStructure(TransactionCase):
         self.assertFalse(portal.org_app_scope_ids)
         portal.write({'group_ids': [(6, 0, self.env.ref('base.group_user').ids)]})
         self.assertTrue(portal.org_app_scope_ids)
+
+    def test_form_section_placement(self):
+        from lxml import etree
+        Model = self.env['res.users.org.scope']
+        with_notebook = etree.fromstring('<form><sheet><group/><notebook/></sheet></form>')
+        Model._org_add_form_section(with_notebook)
+        section = with_notebook.xpath('//group[@name="org_structure"]')[0]
+        self.assertEqual(section.getnext().tag, 'notebook')
+        self.assertEqual(section.get('invisible'), 'not org_show_division')
+        self.assertEqual(
+            [f.get('name') for f in section if f.get('invisible') != '1'],
+            ['org_division_id', 'org_business_unit_id', 'org_location_id', 'org_department_id'])
+        self.assertEqual(section.xpath('field[@name="org_location_id"]')[0].get('invisible'),
+                         'not org_show_location')
+        plain = etree.fromstring('<form><group/></form>')
+        Model._org_add_form_section(plain)
+        self.assertEqual(plain[-1].get('name'), 'org_structure')
