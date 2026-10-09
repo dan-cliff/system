@@ -2,7 +2,7 @@ from lxml import etree
 
 from odoo import api, models
 
-from .org_scope_mixin import ORG_FIELD_NAMES, ORG_LEVELS
+from .org_scope_mixin import ORG_FIELD_NAMES, ORG_LEVEL_MODELS, ORG_LEVELS
 
 
 class Base(models.AbstractModel):
@@ -45,31 +45,65 @@ class Base(models.AbstractModel):
         return cache[self._name]
 
     def _org_values_from_parent(self, parent_id):
+        """The parent's four Organisation values (all False when it has none,
+        so the child stays unassigned like its parent)."""
         parent_field = self._org_parent_field_name()
         parent = self.env[self._fields[parent_field].comodel_name].sudo().browse(parent_id).exists()
-        if not parent or not parent.org_division_id:
+        if not parent:
             return {}
         return {name: parent[name].id for name in ORG_FIELD_NAMES}
 
-    # Records created from a parent (e.g. a Feed for an Animal) take the
-    # parent's Organisation unless they were given their own.
+    def _org_values_from_user(self):
+        """The logged-in user's Home Division / Business Unit / Location /
+        Department, or nothing when no home is set."""
+        user = self.env.user
+        if not user.home_division_id:
+            return {}
+        return {f'org_{level}_id': user[f'home_{level}_id'].id for level in ORG_LEVELS}
+
+    # New records take their Organisation from the parent they are created
+    # from (e.g. a Feed for an Enclosure); otherwise from the logged-in
+    # user's home units. Values given explicitly always win.
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
-        if self._org_is_scoped() and (parent_field := self._org_parent_field_name()):
-            parent_id = res.get(parent_field)
-            if parent_id and not any(res.get(name) for name in ORG_FIELD_NAMES):
-                values = self._org_values_from_parent(parent_id)
-                res.update({name: value for name, value in values.items() if name in fields})
+        if not self._org_is_scoped() or any(res.get(name) for name in ORG_FIELD_NAMES):
+            return res
+        parent_field = self._org_parent_field_name()
+        parent_id = parent_field and res.get(parent_field)
+        values = self._org_values_from_parent(parent_id) if parent_id else self._org_values_from_user()
+        res.update({name: value for name, value in values.items() if name in fields})
         return res
 
     @api.model_create_multi
     def create(self, vals_list):
-        if self._org_is_scoped() and (parent_field := self._org_parent_field_name()):
+        if self._org_is_scoped():
+            parent_field = self._org_parent_field_name()
             for vals in vals_list:
-                if vals.get(parent_field) and not any(vals.get(name) for name in ORG_FIELD_NAMES):
+                if any(vals.get(name) for name in ORG_FIELD_NAMES):
+                    self._org_complete_values(vals)
+                elif parent_field and vals.get(parent_field):
+                    # Explicit (possibly empty) values, so the user's home
+                    # units don't override the parent's through default_get.
                     vals.update(self._org_values_from_parent(vals[parent_field]))
         return super().create(vals_list)
+
+    def _org_complete_values(self, vals):
+        """Fill the levels missing from ``vals`` from the units given: levels
+        above the lowest given unit come from it, levels below stay empty.
+        This keeps default_get (the user's home units) from mixing in."""
+        units = {
+            level: self.env[model].browse(vals[f'org_{level}_id'])
+            for level, model in ORG_LEVEL_MODELS.items() if vals.get(f'org_{level}_id')
+        }
+        lowest = [level for level in ORG_LEVELS if level in units][-1]
+        unit = units[lowest]
+        # org units store all their parents, e.g. a department's division_id
+        above = ORG_LEVELS[:ORG_LEVELS.index(lowest)]
+        for level in ORG_LEVELS:
+            name = f'org_{level}_id'
+            if name not in vals:
+                vals[name] = unit[f'{level}_id'].id if level in above else False
 
     # Forms of Organisation-aware models get an Organisation section, shown
     # only for the levels that have units.
