@@ -1,6 +1,9 @@
 from odoo import api, fields, models
 from odoo.fields import Domain
 
+# Top-level menus shown as apps on the home screen.
+APP_MENU_DOMAIN = [('parent_id', '=', False), ('web_icon', '!=', False)]
+
 
 class ResUsersOrgScope(models.Model):
     """App Specific Scoping: limit one app's records for one user.
@@ -25,7 +28,7 @@ class ResUsersOrgScope(models.Model):
         string='App',
         required=True,
         ondelete='cascade',
-        domain="[('parent_id', '=', False)]",
+        domain=APP_MENU_DOMAIN,
     )
     menu_sequence = fields.Integer(related='menu_id.sequence', store=True)
     app_icon = fields.Binary(related='menu_id.web_icon_data', string='Icon')
@@ -69,6 +72,35 @@ class ResUsersOrgScope(models.Model):
         for rec in self:
             rec.unit_count = (len(rec.division_ids) + len(rec.business_unit_ids)
                               + len(rec.location_ids) + len(rec.department_ids))
+
+    @api.model
+    def _sync_app_lines(self, users=None):
+        """Give every internal user one line per installed app.
+
+        Missing lines are added and lines for menus that are no longer apps
+        are removed, so each user's App Specific Scoping always lists every
+        app. A line with no org units selected leaves that app unscoped.
+        """
+        self = self.sudo()
+        if users is None:
+            users = self.env['res.users'].sudo().with_context(active_test=False).search(
+                [('share', '=', False)])
+        else:
+            users = users.sudo().filtered(lambda user: not user.share)
+        apps = self.env['ir.ui.menu'].sudo().search(APP_MENU_DOMAIN)
+        existing = self.search([('user_id', 'in', users.ids)])
+        stale = existing.filtered(lambda line: line.menu_id not in apps)
+        if stale:
+            stale.unlink()
+        have = {(line.user_id.id, line.menu_id.id) for line in existing - stale}
+        missing = [
+            {'user_id': user.id, 'menu_id': app.id}
+            for user in users
+            for app in apps
+            if (user.id, app.id) not in have
+        ]
+        if missing:
+            self.create(missing)
 
     def _get_app_models(self):
         """Models opened by window actions anywhere under this app's menus."""

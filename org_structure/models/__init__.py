@@ -6,3 +6,4 @@ from . import org_scope_mixin
 from . import res_users_org_scope
 from . import res_users
 from . import ir_rule
+from . import ir_ui_menu

@@ -18,7 +18,7 @@ class TestOrgStructure(TransactionCase):
         cls.loc_b = cls.env['org.location'].create({'name': 'Loc B', 'business_unit_id': cls.bu_b.id})
         cls.dept_a = cls.env['org.department'].create({'name': 'Dept A', 'location_id': cls.loc_a.id})
         cls.user = cls.env['res.users'].create({'name': 'Scoped User', 'login': 'org_scoped_user'})
-        cls.app = cls.env['ir.ui.menu'].search([('parent_id', '=', False)], limit=1)
+        cls.app = cls.env['ir.ui.menu'].search([('parent_id', '=', False), ('web_icon', '!=', False)], limit=1)
 
     def test_parents_and_company_inherited(self):
         self.assertEqual(self.dept_a.location_id, self.loc_a)
@@ -80,9 +80,8 @@ class TestOrgStructure(TransactionCase):
 
     def test_app_scope_cumulative_and_overrides_global(self):
         self.user.write({'home_division_id': self.div_a.id, 'org_scope_division': True})
-        line = self.env['res.users.org.scope'].create({
-            'user_id': self.user.id,
-            'menu_id': self.app.id,
+        line = self.user.org_app_scope_ids.filtered(lambda l: l.menu_id == self.app)
+        line.write({
             'division_ids': [(6, 0, self.div_a.ids)],
             'location_ids': [(6, 0, self.loc_b.ids)],
         })
@@ -102,3 +101,27 @@ class TestOrgStructure(TransactionCase):
             self.user._get_org_scope_domain(model),
             Domain('org_division_id', '=', self.div_a.id) | Domain('org_division_id', '=', False),
         )
+
+    def test_app_list_prefilled_with_all_apps(self):
+        apps = self.env['ir.ui.menu'].search([('parent_id', '=', False), ('web_icon', '!=', False)])
+        self.assertTrue(apps)
+        self.assertEqual(self.user.org_app_scope_ids.menu_id, apps)
+        # Installing a new app adds it to every internal user's list.
+        new_app = self.env['ir.ui.menu'].create({
+            'name': 'New App', 'web_icon': 'org_structure,static/description/icon.png'})
+        self.assertIn(new_app, self.user.org_app_scope_ids.menu_id)
+        admin = self.env.ref('base.user_admin')
+        self.assertIn(new_app, admin.org_app_scope_ids.menu_id)
+        # Plain (non-app) menus are not listed, and removed apps drop out.
+        sub_menu = self.env['ir.ui.menu'].create({'name': 'Sub', 'parent_id': new_app.id})
+        self.assertNotIn(sub_menu, self.user.org_app_scope_ids.menu_id)
+        new_app.unlink()
+        self.assertEqual(self.user.org_app_scope_ids.menu_id, apps)
+
+    def test_portal_users_have_no_app_list(self):
+        portal = self.env['res.users'].create({
+            'name': 'Portal', 'login': 'org_portal_user',
+            'group_ids': [(6, 0, self.env.ref('base.group_portal').ids)]})
+        self.assertFalse(portal.org_app_scope_ids)
+        portal.write({'group_ids': [(6, 0, self.env.ref('base.group_user').ids)]})
+        self.assertTrue(portal.org_app_scope_ids)

@@ -4,7 +4,7 @@
         <field name="name">res.users.org.scope.list</field>
         <field name="model">res.users.org.scope</field>
         <field name="arch" type="xml">
-            <list string="App Specific Scoping">
+            <list string="App Specific Scoping" create="0" delete="0">
                 <field name="app_icon" widget="image" options="{'size': [24, 24]}" nolabel="1"/>
                 <field name="menu_id"/>
                 <field name="division_ids" widget="many2many_tags"/>
@@ -22,15 +22,15 @@
             <form string="App Specific Scoping">
                 <sheet>
                     <group>
-                        <field name="menu_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="menu_id" readonly="1" options="{'no_open': True}"/>
                     </group>
                     <div class="text-muted mb-3">
                         In this app, the user only sees records linked to the org units below.
                         Levels add up: records under any selected Division, Business Unit,
                         Location or Department are visible, even when those units don't sit
                         under each other. Records with no Division stay visible. This replaces
-                        "scope all apps" for this app. Leave every level empty to remove the
-                        scoping.
+                        "scope all apps" for this app. Leave every level empty to leave the app
+                        unscoped.
                     </div>
                     <group>
                         <field name="division_ids" widget="many2many_tags" options="{'no_create': True}"/>
@@ -84,8 +84,12 @@
                         below.
                     </div>
                     <separator string="App Specific Scoping"/>
+                    <div class="text-muted mb-2">
+                        Every installed app is listed. Open an app to limit it to org units;
+                        apps with no units selected are not scoped.
+                    </div>
                     <field name="org_app_scope_ids" context="{'default_user_id': id}">
-                        <list>
+                        <list create="0" delete="0">
                             <field name="app_icon" widget="image" options="{'size': [24, 24]}" nolabel="1"/>
                             <field name="menu_id"/>
                             <field name="division_ids" widget="many2many_tags"/>

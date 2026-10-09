@@ -29,6 +29,7 @@ Record scoping applies to models that inherit ``org.scope.mixin``.
         'views/res_users_views.xml',
         'views/menus.xml',
     ],
+    'post_init_hook': 'post_init_hook',
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

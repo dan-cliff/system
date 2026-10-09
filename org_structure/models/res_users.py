@@ -204,6 +204,7 @@ class ResUsers(models.Model):
             if flags and 'org_scope_level' not in vals:
                 vals['org_scope_level'] = self._org_scope_level_from_flags(False, flags)
         users = super().create(vals_list)
+        self.env['res.users.org.scope']._sync_app_lines(users)
         if any(field in vals for vals in vals_list for field in ORG_FIELDS):
             self.env.registry.clear_cache()
         return users
@@ -219,6 +220,9 @@ class ResUsers(models.Model):
                 res &= super(ResUsers, user).write(dict(vals, org_scope_level=level))
         else:
             res = super().write(vals)
+        if 'group_ids' in vals:
+            # Portal users turned internal now need their app list.
+            self.env['res.users.org.scope']._sync_app_lines(self)
         if any(field in vals for field in ORG_FIELDS):
             self.env.registry.clear_cache()
         return res
