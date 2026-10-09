@@ -7,10 +7,10 @@
             <list string="App Specific Scoping" create="0" delete="0">
                 <field name="app_icon" widget="image" options="{'size': [24, 24]}" nolabel="1"/>
                 <field name="menu_id"/>
-                <field name="division_ids" widget="many2many_tags"/>
-                <field name="business_unit_ids" widget="many2many_tags"/>
-                <field name="location_ids" widget="many2many_tags"/>
-                <field name="department_ids" widget="many2many_tags"/>
+                <field name="effective_division_ids" widget="many2many_tags"/>
+                <field name="effective_business_unit_ids" widget="many2many_tags"/>
+                <field name="effective_location_ids" widget="many2many_tags"/>
+                <field name="effective_department_ids" widget="many2many_tags"/>
             </list>
         </field>
     </record>
@@ -24,19 +24,30 @@
                     <group>
                         <field name="menu_id" readonly="1" options="{'no_open': True}"/>
                     </group>
-                    <div class="text-muted mb-3">
+                    <field name="scoped_all_apps" invisible="1"/>
+                    <div class="alert alert-info" role="status" invisible="not scoped_all_apps">
+                        This user is scoped to one org unit across all apps, so that rule
+                        applies here and the units below can't be changed. Untick
+                        "Scope all apps" on the user to use App Specific Scoping again.
+                    </div>
+                    <div class="text-muted mb-3" invisible="scoped_all_apps">
                         In this app, the user only sees records linked to the org units below.
                         Levels add up: records under any selected Division, Business Unit,
                         Location or Department are visible, even when those units don't sit
-                        under each other. Records with no Division stay visible. This replaces
-                        "scope all apps" for this app. Leave every level empty to leave the app
-                        unscoped.
+                        under each other. Records with no Division stay visible. Leave every
+                        level empty to leave the app unscoped.
                     </div>
-                    <group>
+                    <group invisible="scoped_all_apps">
                         <field name="division_ids" widget="many2many_tags" options="{'no_create': True}"/>
                         <field name="business_unit_ids" widget="many2many_tags" options="{'no_create': True}"/>
                         <field name="location_ids" widget="many2many_tags" options="{'no_create': True}"/>
                         <field name="department_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    </group>
+                    <group invisible="not scoped_all_apps">
+                        <field name="effective_division_ids" widget="many2many_tags"/>
+                        <field name="effective_business_unit_ids" widget="many2many_tags"/>
+                        <field name="effective_location_ids" widget="many2many_tags"/>
+                        <field name="effective_department_ids" widget="many2many_tags"/>
                     </group>
                 </sheet>
             </form>
@@ -53,49 +64,71 @@
                     <field name="org_scope_level" invisible="1"/>
                     <group string="Home Organisation">
                         <label for="home_division_id"/>
-                        <div class="o_row">
-                            <field name="home_division_id" options="{'no_create': True}"/>
-                            <field name="org_scope_division" nolabel="1" readonly="not home_division_id"/>
-                            <label for="org_scope_division" class="o_light_label"/>
+                        <div class="row g-0 align-items-center w-100">
+                            <div class="col-6 pe-3">
+                                <field name="home_division_id" options="{'no_create': True}"/>
+                            </div>
+                            <div class="col-6 d-flex align-items-center">
+                                <field name="org_scope_division" nolabel="1" readonly="not home_division_id"/>
+                                <label for="org_scope_division" class="o_light_label ms-1"/>
+                            </div>
                         </div>
                         <label for="home_business_unit_id"/>
-                        <div class="o_row">
-                            <field name="home_business_unit_id" options="{'no_create': True}"/>
-                            <field name="org_scope_business_unit" nolabel="1" readonly="not home_business_unit_id"/>
-                            <label for="org_scope_business_unit" class="o_light_label"/>
+                        <div class="row g-0 align-items-center w-100">
+                            <div class="col-6 pe-3">
+                                <field name="home_business_unit_id" options="{'no_create': True}"/>
+                            </div>
+                            <div class="col-6 d-flex align-items-center">
+                                <field name="org_scope_business_unit" nolabel="1" readonly="not home_business_unit_id"/>
+                                <label for="org_scope_business_unit" class="o_light_label ms-1"/>
+                            </div>
                         </div>
                         <label for="home_location_id"/>
-                        <div class="o_row">
-                            <field name="home_location_id" options="{'no_create': True}"/>
-                            <field name="org_scope_location" nolabel="1" readonly="not home_location_id"/>
-                            <label for="org_scope_location" class="o_light_label"/>
+                        <div class="row g-0 align-items-center w-100">
+                            <div class="col-6 pe-3">
+                                <field name="home_location_id" options="{'no_create': True}"/>
+                            </div>
+                            <div class="col-6 d-flex align-items-center">
+                                <field name="org_scope_location" nolabel="1" readonly="not home_location_id"/>
+                                <label for="org_scope_location" class="o_light_label ms-1"/>
+                            </div>
                         </div>
                         <label for="home_department_id"/>
-                        <div class="o_row">
-                            <field name="home_department_id" options="{'no_create': True}"/>
-                            <field name="org_scope_department" nolabel="1" readonly="not home_department_id"/>
-                            <label for="org_scope_department" class="o_light_label"/>
+                        <div class="row g-0 align-items-center w-100">
+                            <div class="col-6 pe-3">
+                                <field name="home_department_id" options="{'no_create': True}"/>
+                            </div>
+                            <div class="col-6 d-flex align-items-center">
+                                <field name="org_scope_department" nolabel="1" readonly="not home_department_id"/>
+                                <label for="org_scope_department" class="o_light_label ms-1"/>
+                            </div>
                         </div>
                     </group>
                     <div class="text-muted mb-4">
                         Only one level can be scoped to all apps: ticking a level unticks the
                         others. When scoped, the user only sees records linked to that home
-                        unit (or below it) in every app, unless the app has its own scoping
-                        below.
+                        unit (or below it) in every app, and App Specific Scoping below is
+                        locked to that rule.
                     </div>
                     <separator string="App Specific Scoping"/>
-                    <div class="text-muted mb-2">
+                    <div class="text-muted mb-2" invisible="org_scope_level">
                         Every installed app is listed. Open an app to limit it to org units;
                         apps with no units selected are not scoped.
                     </div>
-                    <field name="org_app_scope_ids" context="{'default_user_id': id}">
+                    <div class="alert alert-info" role="status" invisible="not org_scope_level">
+                        "Scope all apps" is ticked above, so its rule applies to every app
+                        and App Specific Scoping is read-only. Untick it to set scoping
+                        per app.
+                    </div>
+                    <field name="org_app_scope_ids" context="{'default_user_id': id}"
+                           readonly="org_scope_level">
                         <list create="0" delete="0">
                             <field name="app_icon" widget="image" options="{'size': [24, 24]}" nolabel="1"/>
                             <field name="menu_id"/>
-                            <field name="division_ids" widget="many2many_tags"/>
-                            <field name="business_unit_ids" widget="many2many_tags"/>
-                            <field name="location_ids" widget="many2many_tags"/>
-                            <field name="department_ids" widget="many2many_tags"/>
+                            <field name="effective_division_ids" widget="many2many_tags"/>
+                            <field name="effective_business_unit_ids" widget="many2many_tags"/>
+                            <field name="effective_location_ids" widget="many2many_tags"/>
+                            <field name="effective_department_ids" widget="many2many_tags"/>
                         </list>
                     </field>
                 </page>

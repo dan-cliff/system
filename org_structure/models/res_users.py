@@ -177,20 +177,21 @@ class ResUsers(models.Model):
     def _get_org_scope_domain(self, model_name):
         """Domain limiting ``model_name`` records for this user, or None.
 
-        App Specific Scoping for any app that opens the model takes
-        precedence (several matching apps add up); otherwise the
-        "scope all apps" level applies. Records with no Division stay
-        visible to everyone.
+        The "scope all apps" level, when ticked, applies to every model and
+        overrides App Specific Scoping. Otherwise App Specific Scoping for
+        any app that opens the model applies (several matching apps add up).
+        Records with no Division stay visible to everyone.
         """
         self.ensure_one()
         domains = []
-        for line in self.org_app_scope_ids:
-            line_domain = line._get_record_domain()
-            if line_domain is not None and model_name in line._get_app_models():
-                domains.append(line_domain)
-        if not domains and self.org_scope_level:
+        if self.org_scope_level:
             level = self.org_scope_level
             domains.append(Domain(f'org_{level}_id', '=', self[f'home_{level}_id'].id))
+        else:
+            for line in self.org_app_scope_ids:
+                line_domain = line._get_record_domain()
+                if line_domain is not None and model_name in line._get_app_models():
+                    domains.append(line_domain)
         if not domains:
             return None
         return Domain.OR(domains) | Domain('org_division_id', '=', False)
@@ -198,6 +199,9 @@ class ResUsers(models.Model):
     # Record rules are cached per user: drop the cache when scoping changes.
     @api.model_create_multi
     def create(self, vals_list):
+        org_changed = any(
+            field in vals for vals in vals_list
+            for field in ORG_FIELDS + tuple(f'org_scope_{level}' for level in ORG_LEVELS))
         vals_list = [dict(vals) for vals in vals_list]
         for vals in vals_list:
             flags = self._pop_org_scope_flags(vals)
@@ -205,12 +209,14 @@ class ResUsers(models.Model):
                 vals['org_scope_level'] = self._org_scope_level_from_flags(False, flags)
         users = super().create(vals_list)
         self.env['res.users.org.scope']._sync_app_lines(users)
-        if any(field in vals for vals in vals_list for field in ORG_FIELDS):
+        if org_changed:
             self.env.registry.clear_cache()
         return users
 
     def write(self, vals):
         # The checkboxes only drive org_scope_level, which is what gets stored.
+        org_changed = any(field in vals for field in ORG_FIELDS) or any(
+            f'org_scope_{level}' in vals for level in ORG_LEVELS)
         vals = dict(vals)
         flags = self._pop_org_scope_flags(vals)
         if flags and 'org_scope_level' not in vals:
@@ -223,6 +229,6 @@ class ResUsers(models.Model):
         if 'group_ids' in vals:
             # Portal users turned internal now need their app list.
             self.env['res.users.org.scope']._sync_app_lines(self)
-        if any(field in vals for field in ORG_FIELDS):
+        if org_changed:
             self.env.registry.clear_cache()
         return res
