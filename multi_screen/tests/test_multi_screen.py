@@ -66,3 +66,10 @@ class TestMultiScreen(TransactionCase):
         self.assertNotIn(mine.id, [
             l['id'] for l in self.env['multi.screen.layout'].with_user(someone).get_workspaces()['layouts']
         ])
+
+    def test_workspace_triggers(self):
+        layout = self._layout('Partners', trigger_model_ids=[(6, 0, self.env.ref('base.model_res_partner').ids)],
+                              trigger_view_type_ids=[(6, 0, self.env.ref('multi_screen.view_type_list').ids)])
+        data = next(l for l in self.Layout.get_workspaces()['layouts'] if l['id'] == layout.id)
+        self.assertEqual(data['trigger_models'], ['res.partner'])
+        self.assertEqual(data['trigger_view_types'], ['list'])

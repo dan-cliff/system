@@ -29,6 +29,10 @@
                     <i t-attf-class="fa fa-fw me-1 {{ state.sendRecords ? 'fa-check-square-o' : 'fa-square-o' }}"/>
                     Open list records on the other screen
                 </DropdownItem>
+                <DropdownItem onSelected.bind="toggleAutoOpen" closingMode="'none'">
+                    <i t-attf-class="fa fa-fw me-1 {{ state.autoOpen ? 'fa-check-square-o' : 'fa-square-o' }}"/>
+                    Open workspaces automatically on this device
+                </DropdownItem>
                 <DropdownItem t-if="state.current" onSelected="() => this.multiScreen.closeOthers()">
                     <i class="fa fa-fw fa-window-close-o me-1"/>Close the other windows
                 </DropdownItem>

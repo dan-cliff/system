@@ -14,7 +14,7 @@
     <!-- While the home screen is showing: hide the waffle button, the current
          app's name/breadcrumb sections, and all systray icons except a small
          allow-list (global search, help, switch user, chat, activities,
-         company, user). Every other page keeps the navbar exactly as it normally
+         company, user) and icons registered with showOnHomeScreen: true. Every other page keeps the navbar exactly as it normally
          renders. -->
     <t t-name="web_home_menu.NavBar" t-inherit="web.NavBar" t-inherit-mode="extension">
         <xpath expr="//t[@t-call='web.NavBar.AppsMenu']" position="attributes">
@@ -27,7 +27,7 @@
             <attribute name="t-if">currentAppSections.length and !state.isHomeScreenActive</attribute>
         </xpath>
         <xpath expr="//t[@t-foreach='systrayItems']" position="attributes">
-            <attribute name="t-if">!state.isHomeScreenActive or isSystrayAllowedOnHome(item.key)</attribute>
+            <attribute name="t-if">!state.isHomeScreenActive or isSystrayAllowedOnHome(item)</attribute>
         </xpath>
     </t>
 

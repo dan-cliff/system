@@ -32,6 +32,10 @@ export class MultiScreenMenu extends Component {
         this.multiScreen.openWorkspace(layout.id);
     }
 
+    toggleAutoOpen() {
+        this.multiScreen.setAutoOpen(!this.state.autoOpen);
+    }
+
     toggleSendRecords() {
         this.multiScreen.setSendRecords(!this.state.sendRecords);
     }
@@ -42,4 +46,9 @@ export class MultiScreenMenu extends Component {
 }
 
 // Systray items with a higher sequence sit further left: just left of Help (50).
-registry.category("systray").add("multi_screen.menu", { Component: MultiScreenMenu }, { sequence: 51 });
+// showOnHomeScreen keeps it on the /odoo home screen too (see web_home_menu).
+registry.category("systray").add(
+    "multi_screen.menu",
+    { Component: MultiScreenMenu, showOnHomeScreen: true },
+    { sequence: 51 }
+);

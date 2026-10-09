@@ -11,6 +11,7 @@
                 <field name="user_id" placeholder="Shared" optional="show"/>
                 <field name="window_count"/>
                 <field name="screen_count" optional="show"/>
+                <field name="trigger_model_ids" widget="many2many_tags" optional="show"/>
                 <field name="launch_on_start" widget="boolean_toggle"/>
                 <button name="action_open" type="object" string="Open" icon="fa-desktop"/>
             </list>
@@ -45,6 +46,13 @@
                             <field name="sequence"/>
                             <field name="active" invisible="1"/>
                         </group>
+                    </group>
+                    <group string="Open automatically" name="triggers">
+                        <field name="trigger_model_ids" widget="many2many_tags"
+                               options="{'no_create': True}" placeholder="e.g. Sales Order"/>
+                        <field name="trigger_view_type_ids" widget="many2many_tags"
+                               options="{'no_create': True}" placeholder="Any view"
+                               invisible="not trigger_model_ids"/>
                     </group>
                     <notebook>
                         <page string="Windows" name="windows">
