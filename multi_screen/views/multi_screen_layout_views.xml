@@ -5,6 +5,7 @@
         <field name="model">multi.screen.layout</field>
         <field name="arch" type="xml">
             <list string="Workspaces">
+                <field name="id" string="ID"/>
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="user_id" placeholder="Shared" optional="show"/>
@@ -49,8 +50,8 @@
                         <page string="Windows" name="windows">
                             <field name="window_ids">
                                 <list editable="bottom">
+                                    <field name="id" string="ID"/>
                                     <field name="sequence" widget="handle"/>
-                                    <field name="id" column_invisible="1"/>
                                     <field name="layout_id" column_invisible="1"/>
                                     <field name="name"/>
                                     <field name="screen_number"/>

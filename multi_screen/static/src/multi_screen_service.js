@@ -85,7 +85,6 @@ export const multiScreenService = {
             current: parseWindowName(window.name), // {layoutId, windowId} in a workspace window
             sendRecords: sessionFlag(SEND_RECORDS_KEY),
             access: "unsupported",
-            supported: Boolean(channel),
         });
         screenAccess().then((access) => (state.access = access));
 

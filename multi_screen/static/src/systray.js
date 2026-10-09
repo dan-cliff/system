@@ -41,4 +41,5 @@ export class MultiScreenMenu extends Component {
     }
 }
 
-registry.category("systray").add("multi_screen.menu", { Component: MultiScreenMenu }, { sequence: 30 });
+// Systray items with a higher sequence sit further left: just left of Help (50).
+registry.category("systray").add("multi_screen.menu", { Component: MultiScreenMenu }, { sequence: 51 });

@@ -1,6 +1,6 @@
 {
     'name': 'Multi-Screen Workspaces',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Productivity',
     'summary': 'Open Odoo across several screens at once, and save the window '
                'layouts you use most as one-click workspaces',
@@ -22,8 +22,10 @@ Makes Odoo work across two (or more) screens.
   the record you click in another window (set per window in the
   workspace, or switched on from the top bar), so the list stays put on one
   screen and the record opens on the other.
-* Menu: Workspaces app > My Workspaces, and Configuration > Placements
-  (Full screen, Left half, ...) for administrators.
+* A service app: nothing on the home menu. Everyone works from the screen
+  icon in the top bar (next to Help), including "Manage workspaces";
+  administrators also get Settings > Multi-Screen Workspaces > Workspaces
+  and Placements (Full screen, Left half, ...).
 
 Placing windows on a particular screen uses the browser's Window Management
 API (Chrome and Edge, including apps installed from them). Other browsers
