@@ -19,6 +19,14 @@ for every module we create or edit.
   `%Y-%m-%d` or `%m/%d/%Y`.
 - Store dates as Odoo `Date` / `Datetime` fields, never as text.
 
+## Toolbar (systray) icons
+
+- Every icon a module adds to the top toolbar must also show on the `/odoo`
+  home screen, not only inside apps. `web_home_menu` hides toolbar icons on
+  the home screen unless they opt in, so register them with
+  `showOnHomeScreen: true`:
+  `registry.category("systray").add(key, { Component, showOnHomeScreen: true }, { sequence })`.
+
 ## Choice fields
 
 - Don't use `fields.Selection` for a list of choices. Use a `Many2one` (single
