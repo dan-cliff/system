@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_org_structure_root"
+              name="Organisation"
+              web_icon="org_structure,static/description/icon.png"
+              groups="group_org_admin"
+              sequence="90"/>
+
+    <menuitem id="menu_org_structure"
+              name="Structure"
+              parent="menu_org_structure_root"
+              sequence="10"/>
+
+    <menuitem id="menu_org_division"
+              name="Divisions"
+              parent="menu_org_structure"
+              action="action_org_division"
+              sequence="10"/>
+
+    <menuitem id="menu_org_business_unit"
+              name="Business Units"
+              parent="menu_org_structure"
+              action="action_org_business_unit"
+              sequence="20"/>
+
+    <menuitem id="menu_org_location"
+              name="Locations"
+              parent="menu_org_structure"
+              action="action_org_location"
+              sequence="30"/>
+
+    <menuitem id="menu_org_department"
+              name="Departments"
+              parent="menu_org_structure"
+              action="action_org_department"
+              sequence="40"/>
+</odoo>

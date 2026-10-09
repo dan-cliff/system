@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_users_org_scope_view_list" model="ir.ui.view">
+        <field name="name">res.users.org.scope.list</field>
+        <field name="model">res.users.org.scope</field>
+        <field name="arch" type="xml">
+            <list string="App Specific Scoping">
+                <field name="app_icon" widget="image" options="{'size': [24, 24]}" nolabel="1"/>
+                <field name="menu_id"/>
+                <field name="division_ids" widget="many2many_tags"/>
+                <field name="business_unit_ids" widget="many2many_tags"/>
+                <field name="location_ids" widget="many2many_tags"/>
+                <field name="department_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="res_users_org_scope_view_form" model="ir.ui.view">
+        <field name="name">res.users.org.scope.form</field>
+        <field name="model">res.users.org.scope</field>
+        <field name="arch" type="xml">
+            <form string="App Specific Scoping">
+                <sheet>
+                    <group>
+                        <field name="menu_id" options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <div class="text-muted mb-3">
+                        In this app, the user only sees records linked to the org units below.
+                        Levels add up: records under any selected Division, Business Unit,
+                        Location or Department are visible, even when those units don't sit
+                        under each other. Records with no Division stay visible. This replaces
+                        "scope all apps" for this app. Leave every level empty to remove the
+                        scoping.
+                    </div>
+                    <group>
+                        <field name="division_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="business_unit_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="location_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="department_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_users_form_org_structure" model="ir.ui.view">
+        <field name="name">res.users.form.org.structure</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='access_rights']" position="after">
+                <page name="org_structure" string="Organisation" groups="base.group_erp_manager,org_structure.group_org_admin">
+                    <field name="org_scope_level" invisible="1"/>
+                    <group string="Home Organisation">
+                        <label for="home_division_id"/>
+                        <div class="o_row">
+                            <field name="home_division_id" options="{'no_create': True}"/>
+                            <field name="org_scope_division" nolabel="1" readonly="not home_division_id"/>
+                            <label for="org_scope_division" class="o_light_label"/>
+                        </div>
+                        <label for="home_business_unit_id"/>
+                        <div class="o_row">
+                            <field name="home_business_unit_id" options="{'no_create': True}"/>
+                            <field name="org_scope_business_unit" nolabel="1" readonly="not home_business_unit_id"/>
+                            <label for="org_scope_business_unit" class="o_light_label"/>
+                        </div>
+                        <label for="home_location_id"/>
+                        <div class="o_row">
+                            <field name="home_location_id" options="{'no_create': True}"/>
+                            <field name="org_scope_location" nolabel="1" readonly="not home_location_id"/>
+                            <label for="org_scope_location" class="o_light_label"/>
+                        </div>
+                        <label for="home_department_id"/>
+                        <div class="o_row">
+                            <field name="home_department_id" options="{'no_create': True}"/>
+                            <field name="org_scope_department" nolabel="1" readonly="not home_department_id"/>
+                            <label for="org_scope_department" class="o_light_label"/>
+                        </div>
+                    </group>
+                    <div class="text-muted mb-4">
+                        Only one level can be scoped to all apps: ticking a level unticks the
+                        others. When scoped, the user only sees records linked to that home
+                        unit (or below it) in every app, unless the app has its own scoping
+                        below.
+                    </div>
+                    <separator string="App Specific Scoping"/>
+                    <field name="org_app_scope_ids" context="{'default_user_id': id}">
+                        <list>
+                            <field name="app_icon" widget="image" options="{'size': [24, 24]}" nolabel="1"/>
+                            <field name="menu_id"/>
+                            <field name="division_ids" widget="many2many_tags"/>
+                            <field name="business_unit_ids" widget="many2many_tags"/>
+                            <field name="location_ids" widget="many2many_tags"/>
+                            <field name="department_ids" widget="many2many_tags"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
