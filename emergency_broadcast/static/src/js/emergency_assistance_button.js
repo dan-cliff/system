@@ -61,7 +61,9 @@ class EmergencyAssistanceButton extends Component {
 
 // Register in the systray with a low sequence number to appear
 // near the right side of the bar (next to the Help/? button).
+// showOnHomeScreen keeps it on the /odoo home screen too (see web_home_menu).
 registry.category("systray").add("emergency_broadcast.AssistanceButton", {
     Component: EmergencyAssistanceButton,
     sequence: 5,
+    showOnHomeScreen: true,
 });

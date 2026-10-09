@@ -21,5 +21,8 @@ export class OfflineIndicator extends Component {
 }
 
 if (session.offline_access?.enabled) {
-    registry.category("systray").add("offline_access.indicator", { Component: OfflineIndicator }, { sequence: 1 });
+    // showOnHomeScreen keeps it on the /odoo home screen too (see web_home_menu).
+    registry
+        .category("systray")
+        .add("offline_access.indicator", { Component: OfflineIndicator, showOnHomeScreen: true }, { sequence: 1 });
 }
