@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- A service app: no tile on the home menu. Everyone uses it from the
+         screen icon in the top bar; administrators manage it under Settings. -->
     <menuitem id="menu_multi_screen_root"
-              name="Workspaces"
-              web_icon="multi_screen,static/description/icon.png"
-              sequence="200"/>
+              name="Multi-Screen Workspaces"
+              parent="base.menu_administration"
+              groups="group_multi_screen_manager"
+              sequence="95"/>
 
     <menuitem id="menu_multi_screen_layout"
               name="Workspaces"
@@ -11,15 +14,9 @@
               action="action_multi_screen_layout"
               sequence="10"/>
 
-    <menuitem id="menu_multi_screen_config"
-              name="Configuration"
-              parent="menu_multi_screen_root"
-              groups="group_multi_screen_manager"
-              sequence="90"/>
-
     <menuitem id="menu_multi_screen_placement"
               name="Placements"
-              parent="menu_multi_screen_config"
+              parent="menu_multi_screen_root"
               action="action_multi_screen_placement"
-              sequence="10"/>
+              sequence="20"/>
 </odoo>

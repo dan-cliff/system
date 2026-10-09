@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="multi_screen.MultiScreenMenu">
-        <Dropdown t-if="state.supported" position="'bottom-end'" beforeOpen.bind="onBeforeOpen"
+        <Dropdown position="'bottom-end'" beforeOpen.bind="onBeforeOpen"
                   menuClass="'o_multi_screen_menu'">
             <button type="button" class="o_multi_screen_toggle" title="Screens and workspaces">
                 <i class="fa fa-lg fa-desktop" role="img" aria-label="Screens and workspaces"/>
