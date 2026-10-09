@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_offline_access_model_list" model="ir.ui.view">
+        <field name="name">offline.access.model.list</field>
+        <field name="model">offline.access.model</field>
+        <field name="arch" type="xml">
+            <list string="Offline Models">
+                <header>
+                    <button name="action_add_suggested" type="object" string="Add Suggested Models"
+                            display="always"/>
+                </header>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="model_name"/>
+                <field name="domain" optional="show"/>
+                <field name="record_limit"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_offline_access_model_form" model="ir.ui.view">
+        <field name="name">offline.access.model.form</field>
+        <field name="model">offline.access.model</field>
+        <field name="arch" type="xml">
+            <form string="Offline Model">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Risk Assessments"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="model_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="model_name" invisible="1"/>
+                            <field name="record_limit"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="domain" widget="domain" options="{'model': 'model_name'}"
+                                   invisible="not model_id"/>
+                        </group>
+                    </group>
+                    <p class="text-muted" invisible="not model_id">
+                        Offline, these records open in the normal list, kanban and form screens of the menus
+                        that show them, read-only. Each user only gets the records and fields they can see.
+                    </p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_offline_access_model_search" model="ir.ui.view">
+        <field name="name">offline.access.model.search</field>
+        <field name="model">offline.access.model</field>
+        <field name="arch" type="xml">
+            <search string="Offline Models">
+                <field name="name"/>
+                <field name="model_name"/>
+                <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_offline_access_model" model="ir.actions.act_window">
+        <field name="name">Offline Models</field>
+        <field name="res_model">offline.access.model</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Choose what is available offline</p>
+            <p>Records of these models are saved on each device while it's online, so their normal screens
+                still open, read-only, without a connection. Use "Add Suggested Models" to start with the Risk, Incident, Asset and
+                Zoo records.</p>
+        </field>
+    </record>
+</odoo>

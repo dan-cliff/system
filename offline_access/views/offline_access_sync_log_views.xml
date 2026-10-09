@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_offline_access_sync_log_list" model="ir.ui.view">
+        <field name="name">offline.access.sync.log.list</field>
+        <field name="model">offline.access.sync.log</field>
+        <field name="arch" type="xml">
+            <list string="Sync Log" create="0" edit="0" decoration-danger="state == 'error'">
+                <field name="date" options="{'numeric': True}"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="device_id"/>
+                <field name="model_count" optional="hide"/>
+                <field name="records_sent"/>
+                <field name="records_kept"/>
+                <field name="duration" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'success'" decoration-danger="state == 'error'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_offline_access_sync_log_form" model="ir.ui.view">
+        <field name="name">offline.access.sync.log.form</field>
+        <field name="model">offline.access.sync.log</field>
+        <field name="arch" type="xml">
+            <form string="Sync" create="0" edit="0">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="device_id"/>
+                        </group>
+                        <group>
+                            <field name="model_count"/>
+                            <field name="records_sent"/>
+                            <field name="records_kept"/>
+                            <field name="duration"/>
+                        </group>
+                    </group>
+                    <group string="Error" invisible="state != 'error'">
+                        <field name="error" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_offline_access_sync_log_search" model="ir.ui.view">
+        <field name="name">offline.access.sync.log.search</field>
+        <field name="model">offline.access.sync.log</field>
+        <field name="arch" type="xml">
+            <search string="Sync Log">
+                <field name="user_id"/>
+                <field name="device_id"/>
+                <filter name="filter_error" string="Errors" domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter name="filter_date" string="Date" date="date"/>
+                <group>
+                    <filter name="group_user" string="User" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_device" string="Device" context="{'group_by': 'device_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_offline_access_sync_log" model="ir.actions.act_window">
+        <field name="name">Sync Log</field>
+        <field name="res_model">offline.access.sync.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No syncs yet</p>
+            <p>Each time a device saves records for offline use, it is logged here.</p>
+        </field>
+    </record>
+</odoo>

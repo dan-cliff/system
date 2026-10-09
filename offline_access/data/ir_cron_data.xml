@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_offline_access_mark_stale" model="ir.cron">
+        <field name="name">Offline Access: Mark Stale Devices</field>
+        <field name="model_id" ref="model_offline_access_device"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_mark_stale()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+
+    <record id="ir_cron_offline_access_purge_sync_log" model="ir.cron">
+        <field name="name">Offline Access: Clear Old Sync Log</field>
+        <field name="model_id" ref="model_offline_access_sync_log"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_purge()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

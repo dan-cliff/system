@@ -6,8 +6,11 @@
  * via an ir.ui.view inheriting a core backend page template - the internal structure
  * of that template (whether/where it has an addressable <head> node) isn't a stable,
  * documented extension point and differs across Odoo versions, so a JS-side injection
- * is the more robust place to add a <link rel="manifest"> and register the service
- * worker.
+ * is the more robust place to add a <link rel="manifest">.
+ *
+ * No service worker of its own: a browser keeps only one for the /odoo scope, and the
+ * web client already registers Odoo's (/web/service-worker.js), which the Offline
+ * Access module extends. A second one here would keep replacing it.
  */
 
 function injectManifestLink() {
@@ -26,11 +29,4 @@ function injectManifestLink() {
     document.head.appendChild(meta);
 }
 
-function registerServiceWorker() {
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/scanner_app/service-worker.js", { scope: "/odoo" });
-    }
-}
-
 injectManifestLink();
-registerServiceWorker();

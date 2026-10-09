@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Takes over Odoo's own "Progressive Web App" block (debug mode only) so
+         the app name sits with the rest of the app's settings. -->
+    <record id="res_config_settings_view_form_offline_access" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.offline.access</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='pwa_settings']" position="replace">
+                <block title="Offline Access" id="offline_access_settings" groups="base.group_system">
+                    <setting id="offline_access_enabled_setting"
+                             help="Let internal users install Odoo as an app and open it without a connection. Every browser or app using Odoo reports in, so you can see and revoke devices.">
+                        <field name="offline_access_enabled"/>
+                        <div class="content-group" invisible="not offline_access_enabled">
+                            <div class="row mt8">
+                                <label for="offline_access_device_count" string="Devices in use" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_device_count" class="col-lg-2"/>
+                            </div>
+                            <button name="action_open_offline_access_devices" type="object"
+                                    string="Devices" icon="oi-arrow-right" class="btn-link"/>
+                            <button name="action_open_offline_access_sync_log" type="object"
+                                    string="Sync Log" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="offline_access_records_setting" string="Offline Records"
+                             invisible="not offline_access_enabled"
+                             help="Records saved on each device while it's online, so people can look them up without a connection. Each user only gets what they can see.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="offline_access_model_count" string="Models offline" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_model_count" class="col-lg-2"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="offline_access_max_offline_days" string="Remove if not synced for" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_max_offline_days" class="col-lg-2"/>
+                                <span class="col-lg-2">days</span>
+                            </div>
+                            <button name="action_open_offline_access_models" type="object"
+                                    string="Offline Models" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="offline_access_app_setting" string="App"
+                             help="Name, colour and icon of the app people install from their browser.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="web_app_name" string="Name" class="col-lg-4 o_light_label"/>
+                                <field name="web_app_name" placeholder="Odoo" class="col-lg-6"/>
+                            </div>
+                            <div class="row mt8" invisible="not offline_access_enabled">
+                                <label for="offline_access_theme_color" string="Colour" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_theme_color" widget="color" class="col-lg-2 p-0"/>
+                            </div>
+                            <div class="row mt8" invisible="not offline_access_enabled">
+                                <label for="offline_access_icon" string="Icon" class="col-lg-4 o_light_label"/>
+                                <div class="col-lg-6">
+                                    <field name="offline_access_icon" widget="image" options="{'size': [64, 64]}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="offline_access_monitoring_setting" string="Device Monitoring"
+                             invisible="not offline_access_enabled"
+                             help="How often devices report in while in use, and how long before a device that hasn't reported in is marked Stale.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="offline_access_heartbeat_minutes" string="Report in every" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_heartbeat_minutes" class="col-lg-2"/>
+                                <span class="col-lg-2">minutes</span>
+                            </div>
+                            <div class="row mt8">
+                                <label for="offline_access_stale_days" string="Stale after" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_stale_days" class="col-lg-2"/>
+                                <span class="col-lg-2">days</span>
+                            </div>
+                            <div class="row mt8">
+                                <label for="offline_access_log_days" string="Keep sync log" class="col-lg-4 o_light_label"/>
+                                <field name="offline_access_log_days" class="col-lg-2"/>
+                                <span class="col-lg-2">days</span>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
