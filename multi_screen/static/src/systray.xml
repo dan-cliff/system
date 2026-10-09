@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="multi_screen.MultiScreenMenu">
+        <Dropdown t-if="state.supported" position="'bottom-end'" beforeOpen.bind="onBeforeOpen"
+                  menuClass="'o_multi_screen_menu'">
+            <button type="button" class="o_multi_screen_toggle" title="Screens and workspaces">
+                <i class="fa fa-lg fa-desktop" role="img" aria-label="Screens and workspaces"/>
+            </button>
+            <t t-set-slot="content">
+                <div class="dropdown-header">Workspaces</div>
+                <DropdownItem t-foreach="layouts" t-as="layout" t-key="layout.id"
+                              onSelected="() => this.openWorkspace(layout)">
+                    <i t-attf-class="fa fa-fw me-1 {{ layout.id === launchLayoutId ? 'fa-star text-warning' : 'fa-clone' }}"
+                       t-att-title="layout.id === launchLayoutId ? 'Opens on launch' : ''"/>
+                    <t t-esc="layout.name"/>
+                    <span t-if="layout.shared" class="text-muted small ms-1">(shared)</span>
+                </DropdownItem>
+                <div t-if="!layouts.length" class="dropdown-item-text text-muted small">
+                    No workspaces yet.
+                </div>
+                <div role="separator" class="dropdown-divider"/>
+                <DropdownItem onSelected="() => this.multiScreen.saveWindows()">
+                    <i class="fa fa-fw fa-floppy-o me-1"/>Save these windows as a workspace
+                </DropdownItem>
+                <DropdownItem onSelected="() => this.multiScreen.sendPage()">
+                    <i class="fa fa-fw fa-share-square-o me-1"/>Show this page on the other screen
+                </DropdownItem>
+                <DropdownItem onSelected.bind="toggleSendRecords" closingMode="'none'">
+                    <i t-attf-class="fa fa-fw me-1 {{ state.sendRecords ? 'fa-check-square-o' : 'fa-square-o' }}"/>
+                    Open list records on the other screen
+                </DropdownItem>
+                <DropdownItem t-if="state.current" onSelected="() => this.multiScreen.closeOthers()">
+                    <i class="fa fa-fw fa-window-close-o me-1"/>Close the other windows
+                </DropdownItem>
+                <div role="separator" class="dropdown-divider"/>
+                <DropdownItem t-if="state.access === 'prompt' or state.access === 'denied'"
+                              onSelected="() => this.multiScreen.setUpScreens()">
+                    <i class="fa fa-fw fa-television me-1"/>Allow placing windows on my screens
+                </DropdownItem>
+                <div t-if="state.access === 'unsupported'" class="dropdown-item-text text-muted small">
+                    This browser can't choose screens: use Chrome or Edge.
+                </div>
+                <DropdownItem onSelected.bind="manage">
+                    <i class="fa fa-fw fa-cog me-1"/>Manage workspaces
+                </DropdownItem>
+            </t>
+        </Dropdown>
+    </t>
+</templates>

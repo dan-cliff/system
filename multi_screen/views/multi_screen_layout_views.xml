@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_multi_screen_layout_list" model="ir.ui.view">
+        <field name="name">multi.screen.layout.list</field>
+        <field name="model">multi.screen.layout</field>
+        <field name="arch" type="xml">
+            <list string="Workspaces">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="user_id" placeholder="Shared" optional="show"/>
+                <field name="window_count"/>
+                <field name="screen_count" optional="show"/>
+                <field name="launch_on_start" widget="boolean_toggle"/>
+                <button name="action_open" type="object" string="Open" icon="fa-desktop"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_multi_screen_layout_form" model="ir.ui.view">
+        <field name="name">multi.screen.layout.form</field>
+        <field name="model">multi.screen.layout</field>
+        <field name="arch" type="xml">
+            <form string="Workspace">
+                <header>
+                    <button name="action_open" type="object" string="Open now" class="btn-primary"
+                            icon="fa-desktop" invisible="not id"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Orders and invoices"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="launch_on_start"/>
+                            <field name="screen_count"/>
+                        </group>
+                        <group>
+                            <field name="user_id" placeholder="Shared with everyone"
+                                   groups="multi_screen.group_multi_screen_manager"/>
+                            <field name="user_id" placeholder="Shared with everyone" readonly="1"
+                                   groups="!multi_screen.group_multi_screen_manager"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Windows" name="windows">
+                            <field name="window_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" column_invisible="1"/>
+                                    <field name="layout_id" column_invisible="1"/>
+                                    <field name="name"/>
+                                    <field name="screen_number"/>
+                                    <field name="placement_id" placeholder="Exact position"/>
+                                    <field name="left_pct" optional="hide" readonly="placement_id"/>
+                                    <field name="top_pct" optional="hide" readonly="placement_id"/>
+                                    <field name="width_pct" optional="hide" readonly="placement_id"/>
+                                    <field name="height_pct" optional="hide" readonly="placement_id"/>
+                                    <field name="action_id"/>
+                                    <field name="url" placeholder="/odoo" invisible="action_id"/>
+                                    <field name="open_records_on_id"/>
+                                </list>
+                            </field>
+                            <div class="text-muted small">
+                                The first window is the one the workspace is opened from (the
+                                installed app's own window); the others are opened for it.
+                                Screen 1 is the left-most screen. Saved windows can only open
+                                records on another window once the workspace has been saved.
+                            </div>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="What this workspace is for..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_multi_screen_layout_search" model="ir.ui.view">
+        <field name="name">multi.screen.layout.search</field>
+        <field name="model">multi.screen.layout</field>
+        <field name="arch" type="xml">
+            <search string="Workspaces">
+                <field name="name"/>
+                <field name="user_id"/>
+                <filter name="mine" string="Mine" domain="[('user_id', '=', uid)]"/>
+                <filter name="shared" string="Shared" domain="[('user_id', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_multi_screen_layout" model="ir.actions.act_window">
+        <field name="name">Workspaces</field>
+        <field name="res_model">multi.screen.layout</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Save the windows you use together as a workspace</p>
+            <p>
+                Arrange Odoo windows on your screens, then choose
+                <i class="fa fa-desktop"/> &gt; <b>Save these windows as a workspace</b>
+                in the top bar. Or create one here and add its windows by hand.
+            </p>
+        </field>
+    </record>
+</odoo>

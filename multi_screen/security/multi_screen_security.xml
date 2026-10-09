@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_multi_screen" model="ir.module.category">
+        <field name="name">Multi-Screen Workspaces</field>
+        <field name="sequence">90</field>
+    </record>
+
+    <record id="res_groups_privilege_multi_screen" model="res.groups.privilege">
+        <field name="name">Multi-Screen Workspaces</field>
+        <field name="category_id" ref="module_category_multi_screen"/>
+    </record>
+
+    <!-- Every internal user can keep their own workspaces. Administrators also
+         share workspaces with everyone and manage the placements. -->
+    <record id="group_multi_screen_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_multi_screen"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <data noupdate="1">
+        <!-- Users: read their own and shared workspaces, change only their own. -->
+        <record id="rule_layout_user_read" model="ir.rule">
+            <field name="name">Workspaces: read own and shared</field>
+            <field name="model_id" ref="model_multi_screen_layout"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('user_id', '=', False)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        <record id="rule_layout_user_write" model="ir.rule">
+            <field name="name">Workspaces: manage own</field>
+            <field name="model_id" ref="model_multi_screen_layout"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+        <record id="rule_layout_manager" model="ir.rule">
+            <field name="name">Workspaces: administrators manage all</field>
+            <field name="model_id" ref="model_multi_screen_layout"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_multi_screen_manager'))]"/>
+        </record>
+
+        <!-- Windows follow their workspace. -->
+        <record id="rule_window_user_read" model="ir.rule">
+            <field name="name">Workspace windows: read own and shared</field>
+            <field name="model_id" ref="model_multi_screen_window"/>
+            <field name="domain_force">['|', ('layout_id.user_id', '=', user.id), ('layout_id.user_id', '=', False)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        <record id="rule_window_user_write" model="ir.rule">
+            <field name="name">Workspace windows: manage own</field>
+            <field name="model_id" ref="model_multi_screen_window"/>
+            <field name="domain_force">[('layout_id.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+        <record id="rule_window_manager" model="ir.rule">
+            <field name="name">Workspace windows: administrators manage all</field>
+            <field name="model_id" ref="model_multi_screen_window"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_multi_screen_manager'))]"/>
+        </record>
+    </data>
+</odoo>
