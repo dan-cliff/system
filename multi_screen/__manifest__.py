@@ -1,6 +1,6 @@
 {
     'name': 'Multi-Screen Workspaces',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Productivity',
     'summary': 'Open Odoo across several screens at once, and save the window '
                'layouts you use most as one-click workspaces',
@@ -15,6 +15,10 @@ Makes Odoo work across two (or more) screens.
 * Open on launch: mark one workspace "Open on launch" and opening the
   installed Odoo app (PWA) places its window and opens the others on their
   screens automatically.
+* Open automatically: a workspace can open by itself when a model is
+  opened (e.g. Sales Order), optionally only in some views (e.g. List).
+  The window stays on what was opened; the workspace's other windows open
+  on their screens. Can be switched off per device from the top bar.
 * Save these windows: arrange Odoo windows by hand, then save them as a
   workspace from the top bar - each window's screen, position and page are
   recorded.
@@ -24,8 +28,8 @@ Makes Odoo work across two (or more) screens.
   screen and the record opens on the other.
 * A service app: nothing on the home menu. Everyone works from the screen
   icon in the top bar (next to Help), including "Manage workspaces";
-  administrators also get Settings > Multi-Screen Workspaces > Workspaces
-  and Placements (Full screen, Left half, ...).
+  administrators also get Settings > Multi-Screen Workspaces > Workspaces,
+  Placements (Full screen, Left half, ...) and View Types.
 
 Placing windows on a particular screen uses the browser's Window Management
 API (Chrome and Edge, including apps installed from them). Other browsers
@@ -51,7 +55,9 @@ Setting up on a Mac (once)
         'security/ir.model.access.csv',
         'data/res_lang_data.xml',
         'data/multi_screen_placement_data.xml',
+        'data/multi_screen_view_type_data.xml',
         'views/multi_screen_placement_views.xml',
+        'views/multi_screen_view_type_views.xml',
         'views/multi_screen_layout_views.xml',
         'views/multi_screen_menus.xml',
     ],

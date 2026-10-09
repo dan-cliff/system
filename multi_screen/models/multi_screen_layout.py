@@ -23,6 +23,19 @@ class MultiScreenLayout(models.Model):
              'used when you have none of your own.',
     )
     note = fields.Text()
+    trigger_model_ids = fields.Many2many(
+        'ir.model', 'multi_screen_layout_trigger_model_rel', 'layout_id', 'model_id',
+        string='Open when opening',
+        domain=[('transient', '=', False)],
+        help='Open this workspace automatically when one of these is opened '
+             '(e.g. Sales Order). The window it is opened from stays on what was '
+             'opened; the workspace\'s other windows open on their screens.',
+    )
+    trigger_view_type_ids = fields.Many2many(
+        'multi.screen.view.type', 'multi_screen_layout_trigger_view_type_rel', 'layout_id', 'view_type_id',
+        string='In these views',
+        help='Only when opened in these views (e.g. List). Leave empty for any view.',
+    )
     window_ids = fields.One2many('multi.screen.window', 'layout_id', string='Windows', copy=True)
     window_count = fields.Integer(string='Windows', compute='_compute_window_count')
     screen_count = fields.Integer(
@@ -91,6 +104,8 @@ class MultiScreenLayout(models.Model):
             'name': self.name,
             'shared': not self.user_id,
             'screen_count': self.screen_count,
+            'trigger_models': self.trigger_model_ids.mapped('model'),
+            'trigger_view_types': self.trigger_view_type_ids.mapped('code'),
             'windows': [window._window_data() for window in self.window_ids],
         }
 

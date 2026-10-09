@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_multi_screen_view_type_list" model="ir.ui.view">
+        <field name="name">multi.screen.view.type.list</field>
+        <field name="model">multi.screen.view.type</field>
+        <field name="arch" type="xml">
+            <list string="View Types" editable="bottom">
+                <field name="id" string="ID"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_multi_screen_view_type_form" model="ir.ui.view">
+        <field name="name">multi.screen.view.type.form</field>
+        <field name="model">multi.screen.view.type</field>
+        <field name="arch" type="xml">
+            <form string="View Type">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_multi_screen_view_type" model="ir.actions.act_window">
+        <field name="name">View Types</field>
+        <field name="res_model">multi.screen.view.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

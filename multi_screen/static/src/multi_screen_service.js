@@ -11,9 +11,14 @@ const CHANNEL = "multi_screen";
 // and "open records on the other screen" is switched on.
 const LAUNCHED_KEY = "multi_screen.launched";
 const SEND_RECORDS_KEY = "multi_screen.send_records";
+// Per device (localStorage): "1" or "0", workspaces open by themselves when
+// what they are set to open on is opened (on unless switched off).
+const AUTO_OPEN_KEY = "multi_screen.auto_open";
 // How long to wait for the other windows to answer, in ms.
 const REPLY_WAIT = 400;
 const LAUNCH_DELAY = 800;
+// How long the workspaces read from the server are used before reading again.
+const WORKSPACES_MAX_AGE = 30000;
 
 /** Workspace windows are named after their workspace and window: msw_<layout>_<window>. */
 function windowName(layoutId, windowId) {
@@ -62,12 +67,24 @@ function sessionFlag(key, value) {
     return Boolean(value);
 }
 
+function deviceAutoOpen(value) {
+    try {
+        if (value === undefined) {
+            return browser.localStorage.getItem(AUTO_OPEN_KEY) !== "0";
+        }
+        browser.localStorage.setItem(AUTO_OPEN_KEY, value ? "1" : "0");
+    } catch {
+        // Storage blocked: the setting only lasts until the page reloads.
+    }
+    return Boolean(value);
+}
+
 /**
  * Multi-screen workspaces in the web client:
  *
  * - opens a workspace: places this window and opens the others on their
  *   screens (automatically when the installed app starts, if one is marked
- *   "Open on launch");
+ *   "Open on launch", or when a model it is set to open on is opened);
  * - saves the Odoo windows open now as a workspace;
  * - sends records clicked in a list or kanban, or the whole page, to another
  *   window, which opens it while this one keeps its place.
@@ -84,6 +101,7 @@ export const multiScreenService = {
             workspaces: null, // {launch_layout_id, layouts: [...]} once loaded
             current: parseWindowName(window.name), // {layoutId, windowId} in a workspace window
             sendRecords: sessionFlag(SEND_RECORDS_KEY),
+            autoOpen: deviceAutoOpen(),
             access: "unsupported",
         });
         screenAccess().then((access) => (state.access = access));
@@ -141,7 +159,8 @@ export const multiScreenService = {
                     waiting.get(message.replyTo)?.(message);
                     break;
                 case "who":
-                    if (isForMe("*")) {
+                    // With a workspace given, only that workspace's windows answer.
+                    if (message.layoutId ? state.current?.layoutId === message.layoutId : isForMe("*")) {
                         reply(message, { title: document.title, url: currentUrl(), rect: currentRect() });
                     }
                     break;
@@ -175,24 +194,40 @@ export const multiScreenService = {
         // Workspaces
         // ------------------------------------------------------------------
 
+        let loadedAt = 0;
+        let opening = false;
+
         async function loadWorkspaces(force = false) {
-            if (force || !state.workspaces) {
+            if (force || !state.workspaces || Date.now() - loadedAt > WORKSPACES_MAX_AGE) {
                 state.workspaces = await orm.call("multi.screen.layout", "get_workspaces", []);
+                loadedAt = Date.now();
             }
             return state.workspaces;
         }
 
         /**
-         * Open a workspace: the others windows on their screens, then this one
+         * Open a workspace: the other windows on their screens, then this one
          * placed and showing the first window's page.
          *
          * @param {number} layoutId
          * @param {Object} [options]
-         * @param {boolean} [options.auto] opened on launch, without a click:
-         *      don't ask for permissions, and skip it when fewer screens are
-         *      connected than it needs (e.g. a laptop away from its desk).
+         * @param {boolean} [options.auto] opened without a click (on launch, or
+         *      when a model was opened): don't ask for permissions, and skip it
+         *      when fewer screens are connected than it needs (e.g. a laptop
+         *      away from its desk).
+         * @param {boolean} [options.stay] leave this window on what it shows
+         *      instead of the first window's page.
          */
-        async function openWorkspace(layoutId, { auto = false } = {}) {
+        async function openWorkspace(layoutId, { auto = false, stay = false } = {}) {
+            opening = true;
+            try {
+                await doOpenWorkspace(layoutId, { auto, stay });
+            } finally {
+                opening = false;
+            }
+        }
+
+        async function doOpenWorkspace(layoutId, { auto, stay }) {
             const { layouts } = await loadWorkspaces(true);
             const layout = layouts.find((l) => l.id === layoutId);
             if (!layout?.windows.length) {
@@ -242,7 +277,7 @@ export const multiScreenService = {
                                 primary: true,
                                 onClick: () => {
                                     close();
-                                    openWorkspace(layout.id);
+                                    openWorkspace(layout.id, { stay });
                                 },
                             },
                         ],
@@ -250,6 +285,9 @@ export const multiScreenService = {
                 );
             }
 
+            if (stay) {
+                return;
+            }
             if (own.action_id) {
                 await action.doAction(own.action_id, { clearBreadcrumbs: true });
             } else if (own.url !== currentUrl()) {
@@ -257,19 +295,10 @@ export const multiScreenService = {
             }
         }
 
-        /** On the installed app's first page load, open the "Open on launch" workspace. */
-        async function openOnLaunch() {
-            if (!isInstalledApp() || window.opener || state.current || sessionFlag(LAUNCHED_KEY)) {
-                return;
-            }
-            sessionFlag(LAUNCHED_KEY, true);
-            const { launch_layout_id: layoutId, layouts } = await loadWorkspaces();
-            if (!layoutId) {
-                return;
-            }
+        /** Open a workspace without a click, or offer a button when a click is needed. */
+        async function openAutomatically(layout, { stay = false } = {}) {
             if ((await screenAccess()) === "prompt") {
                 // Asking which screens there are needs a click.
-                const layout = layouts.find((l) => l.id === layoutId);
                 const close = notification.add(
                     _t("Allow Odoo to place windows on your screens to open “%s”.", layout.name),
                     {
@@ -280,7 +309,7 @@ export const multiScreenService = {
                                 primary: true,
                                 onClick: () => {
                                     close();
-                                    openWorkspace(layoutId);
+                                    openWorkspace(layout.id, { stay });
                                 },
                             },
                         ],
@@ -288,7 +317,62 @@ export const multiScreenService = {
                 );
                 return;
             }
-            await openWorkspace(layoutId, { auto: true });
+            await openWorkspace(layout.id, { auto: true, stay });
+        }
+
+        /** On the installed app's first page load, open the "Open on launch" workspace. */
+        async function openOnLaunch() {
+            if (!isInstalledApp() || window.opener || state.current || sessionFlag(LAUNCHED_KEY)) {
+                return;
+            }
+            sessionFlag(LAUNCHED_KEY, true);
+            const { launch_layout_id: layoutId, layouts } = await loadWorkspaces();
+            const layout = layouts.find((l) => l.id === layoutId);
+            if (layout) {
+                await openAutomatically(layout);
+            }
+        }
+
+        /** The workspace to open when ``resModel`` is opened in a ``viewType`` view, if any. */
+        function workspaceFor(layouts, resModel, viewType) {
+            const matches = layouts.filter(
+                (layout) =>
+                    layout.trigger_models.includes(resModel) &&
+                    (!layout.trigger_view_types.length || layout.trigger_view_types.includes(viewType))
+            );
+            // The user's own workspaces win over shared ones.
+            return matches.find((layout) => !layout.shared) || matches[0];
+        }
+
+        /**
+         * After the web client shows a view: open the workspace set to open on
+         * it, leaving this window on that view. Not in dialogs, not in windows a
+         * workspace opened (they only show what they are sent), and not when the
+         * workspace's other windows are open already.
+         */
+        async function onViewShown(mode) {
+            if (mode === "new" || opening || !state.autoOpen || (state.current && window.opener)) {
+                return;
+            }
+            const controller = action.currentController;
+            const resModel = controller?.action?.res_model || controller?.props?.resModel;
+            const viewType = controller?.view?.type || controller?.props?.type;
+            if (!resModel) {
+                return;
+            }
+            const { layouts } = await loadWorkspaces();
+            const layout = workspaceFor(layouts, resModel, viewType);
+            if (!layout || opening) {
+                return;
+            }
+            if (state.current?.layoutId === layout.id && (await ask({ type: "who", layoutId: layout.id })).length) {
+                return;
+            }
+            await openAutomatically(layout, { stay: true });
+        }
+
+        function setAutoOpen(value) {
+            state.autoOpen = deviceAutoOpen(value);
         }
 
         /** Save the Odoo windows open now (this one first) as a new workspace. */
@@ -379,6 +463,9 @@ export const multiScreenService = {
             loadWorkspaces().catch(() => {});
         }
         browser.setTimeout(() => openOnLaunch().catch(() => {}), LAUNCH_DELAY);
+        env.bus.addEventListener("ACTION_MANAGER:UI-UPDATED", ({ detail: mode }) => {
+            onViewShown(mode).catch(() => {});
+        });
 
         return {
             state,
@@ -388,6 +475,7 @@ export const multiScreenService = {
             saveWindows,
             sendPage,
             sendRecord,
+            setAutoOpen,
             setSendRecords,
             setUpScreens,
         };

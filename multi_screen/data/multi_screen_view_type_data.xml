@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The views a workspace can be opened from; administrators can rename,
+         archive or add more under Settings > Multi-Screen Workspaces > View Types. -->
+    <data noupdate="1">
+        <record id="view_type_list" model="multi.screen.view.type">
+            <field name="name">List</field>
+            <field name="code">list</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="view_type_kanban" model="multi.screen.view.type">
+            <field name="name">Kanban</field>
+            <field name="code">kanban</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="view_type_form" model="multi.screen.view.type">
+            <field name="name">Form</field>
+            <field name="code">form</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="view_type_calendar" model="multi.screen.view.type">
+            <field name="name">Calendar</field>
+            <field name="code">calendar</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="view_type_pivot" model="multi.screen.view.type">
+            <field name="name">Pivot</field>
+            <field name="code">pivot</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="view_type_graph" model="multi.screen.view.type">
+            <field name="name">Graph</field>
+            <field name="code">graph</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="view_type_activity" model="multi.screen.view.type">
+            <field name="name">Activity</field>
+            <field name="code">activity</field>
+            <field name="sequence">70</field>
+        </record>
+    </data>
+</odoo>

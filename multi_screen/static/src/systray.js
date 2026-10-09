@@ -32,6 +32,10 @@ export class MultiScreenMenu extends Component {
         this.multiScreen.openWorkspace(layout.id);
     }
 
+    toggleAutoOpen() {
+        this.multiScreen.setAutoOpen(!this.state.autoOpen);
+    }
+
     toggleSendRecords() {
         this.multiScreen.setSendRecords(!this.state.sendRecords);
     }
