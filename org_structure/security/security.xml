@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="module_category_org_structure" model="ir.module.category">
+            <field name="name">Organisation</field>
+            <field name="description">Divisions, Business Units, Locations and Departments.</field>
+            <field name="sequence">25</field>
+        </record>
+
+        <record id="privilege_org_structure" model="res.groups.privilege">
+            <field name="name">Organisation</field>
+            <field name="category_id" ref="module_category_org_structure"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="group_org_admin" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="privilege_id" ref="privilege_org_structure"/>
+            <field name="sequence">10</field>
+            <field name="comment">Manage Divisions, Business Units, Locations and Departments, and users' organisation scoping.</field>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- Multi-company: only show org units of the allowed companies. -->
+        <record id="rule_org_division_company" model="ir.rule">
+            <field name="name">Division: multi-company</field>
+            <field name="model_id" ref="model_org_division"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_org_business_unit_company" model="ir.rule">
+            <field name="name">Business Unit: multi-company</field>
+            <field name="model_id" ref="model_org_business_unit"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_org_location_company" model="ir.rule">
+            <field name="name">Location: multi-company</field>
+            <field name="model_id" ref="model_org_location"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_org_department_company" model="ir.rule">
+            <field name="name">Department: multi-company</field>
+            <field name="model_id" ref="model_org_department"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+    </data>
+</odoo>

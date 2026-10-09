@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="org_department_view_list" model="ir.ui.view">
+        <field name="name">org.department.list</field>
+        <field name="model">org.department</field>
+        <field name="arch" type="xml">
+            <list string="Departments">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="location_id"/>
+                <field name="business_unit_id"/>
+                <field name="division_id"/>
+                <field name="manager_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="org_department_view_form" model="ir.ui.view">
+        <field name="name">org.department.form</field>
+        <field name="model">org.department</field>
+        <field name="arch" type="xml">
+            <form string="Department">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Operations"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="location_id" options="{'no_create': True}"/>
+                            <field name="business_unit_id"/>
+                            <field name="division_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="code"/>
+                            <field name="manager_id" options="{'no_create': True}"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="notes" string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="org_department_view_search" model="ir.ui.view">
+        <field name="name">org.department.search</field>
+        <field name="model">org.department</field>
+        <field name="arch" type="xml">
+            <search string="Departments">
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="location_id"/>
+                <field name="business_unit_id"/>
+                <field name="division_id"/>
+                <field name="manager_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="groupby_division_id" string="Division" context="{'group_by': 'division_id'}"/>
+                    <filter name="groupby_business_unit_id" string="Business Unit" context="{'group_by': 'business_unit_id'}"/>
+                    <filter name="groupby_location_id" string="Location" context="{'group_by': 'location_id'}"/>
+                    <filter name="groupby_company_id" string="Company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

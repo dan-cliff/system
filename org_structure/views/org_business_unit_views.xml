@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="org_business_unit_view_list" model="ir.ui.view">
+        <field name="name">org.business.unit.list</field>
+        <field name="model">org.business.unit</field>
+        <field name="arch" type="xml">
+            <list string="Business Units">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="division_id"/>
+                <field name="manager_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="org_business_unit_view_form" model="ir.ui.view">
+        <field name="name">org.business.unit.form</field>
+        <field name="model">org.business.unit</field>
+        <field name="arch" type="xml">
+            <form string="Business Unit">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_org_location)d" type="action" class="oe_stat_button" icon="fa-sitemap"
+                                context="{'search_default_business_unit_id': id, 'default_business_unit_id': id}">
+                            <field name="location_count" widget="statinfo" string="Locations"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. North"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="division_id" options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="code"/>
+                            <field name="manager_id" options="{'no_create': True}"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="location_ids" string="Locations">
+                            <field name="location_ids" context="{'default_business_unit_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="code"/>
+                                    <field name="manager_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="notes" string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="org_business_unit_view_search" model="ir.ui.view">
+        <field name="name">org.business.unit.search</field>
+        <field name="model">org.business.unit</field>
+        <field name="arch" type="xml">
+            <search string="Business Units">
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="division_id"/>
+                <field name="manager_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="groupby_division_id" string="Division" context="{'group_by': 'division_id'}"/>
+                    <filter name="groupby_company_id" string="Company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
