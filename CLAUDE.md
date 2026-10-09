@@ -66,6 +66,11 @@ models are not primary). This applies to core Odoo apps and our own modules.
   on each; the automatic section is then skipped.
 - Picking a lower level fills in the levels above it; changing a higher
   level clears lower levels that don't belong to it.
+- New records default to the logged-in user's Home Division / Business
+  Unit / Location / Department, unless they come from a parent (below) or
+  are given their own values. When only some levels are given, the missing
+  higher levels come from the lowest given unit and lower ones stay empty
+  (never a mix with the user's home units).
 - Child records inherit from their parent: a record created with a parent
   (e.g. a Feed for an Enclosure, a Task for a Project) copies the parent's
   four values unless given its own. The parent is the first required
