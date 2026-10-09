@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_permission_profile_form_dashboards" model="ir.ui.view">
+        <field name="name">permission.profile.form.dashboards</field>
+        <field name="model">permission.profile</field>
+        <field name="inherit_id" ref="permission_management.view_permission_profile_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='roles']" position="after">
+                <page string="Dashboards" name="dashboards">
+                    <field name="dashboard_ids" options="{'no_create': True}">
+                        <list>
+                            <field name="id" string="ID"/>
+                            <field name="name"/>
+                            <field name="description"/>
+                            <field name="widget_count"/>
+                        </list>
+                    </field>
+                    <div class="text-muted small">
+                        Users on this profile can open these dashboards and get Dashboards "User" access
+                        automatically.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_custom_dashboard_form_profiles" model="ir.ui.view">
+        <field name="name">custom.dashboard.form.profiles</field>
+        <field name="model">custom.dashboard</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_form"/>
+        <field name="arch" type="xml">
+            <field name="group_ids" position="after">
+                <field name="permission_profile_ids" widget="many2many_tags" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_custom_dashboard_list_profiles" model="ir.ui.view">
+        <field name="name">custom.dashboard.list.profiles</field>
+        <field name="model">custom.dashboard</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_list"/>
+        <field name="arch" type="xml">
+            <field name="group_ids" position="after">
+                <field name="permission_profile_ids" widget="many2many_tags" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>
