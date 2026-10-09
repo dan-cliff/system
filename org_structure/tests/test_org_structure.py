@@ -78,13 +78,14 @@ class TestOrgStructure(TransactionCase):
             Domain('org_division_id', '=', self.div_a.id) | Domain('org_division_id', '=', False),
         )
 
-    def test_app_scope_cumulative_and_overrides_global(self):
-        self.user.write({'home_division_id': self.div_a.id, 'org_scope_division': True})
+    def test_app_scope_cumulative(self):
         line = self.user.org_app_scope_ids.filtered(lambda l: l.menu_id == self.app)
         line.write({
             'division_ids': [(6, 0, self.div_a.ids)],
             'location_ids': [(6, 0, self.loc_b.ids)],
         })
+        self.assertEqual(line.effective_division_ids, self.div_a)
+        self.assertEqual(line.effective_location_ids, self.loc_b)
         app_models = line._get_app_models()
         if not app_models:
             return
@@ -95,12 +96,46 @@ class TestOrgStructure(TransactionCase):
             | Domain('org_location_id', 'in', self.loc_b.ids)
             | Domain('org_division_id', '=', False),
         )
-        # An app scope line with no units falls back to the global scope.
+        # An app with no units selected is unscoped.
         line.write({'division_ids': [(5,)], 'location_ids': [(5,)]})
-        self.assertEqual(
-            self.user._get_org_scope_domain(model),
-            Domain('org_division_id', '=', self.div_a.id) | Domain('org_division_id', '=', False),
-        )
+        self.assertIsNone(self.user._get_org_scope_domain(model))
+
+    def test_scope_all_apps_overrides_app_scope(self):
+        line = self.user.org_app_scope_ids.filtered(lambda l: l.menu_id == self.app)
+        line.write({'division_ids': [(6, 0, self.div_b.ids)], 'location_ids': [(6, 0, self.loc_b.ids)]})
+        self.user.write({'home_department_id': self.dept_a.id, 'home_location_id': self.loc_a.id,
+                         'home_business_unit_id': self.bu_a.id, 'home_division_id': self.div_a.id,
+                         'org_scope_location': True})
+        # Every app shows the all-apps rule instead of its own units...
+        self.assertTrue(line.scoped_all_apps)
+        self.assertEqual(line.effective_location_ids, self.loc_a)
+        self.assertFalse(line.effective_division_ids)
+        self.assertFalse(line.effective_business_unit_ids)
+        self.assertFalse(line.effective_department_ids)
+        # ...and that rule is what gets enforced, for every model.
+        expected = Domain('org_location_id', '=', self.loc_a.id) | Domain('org_division_id', '=', False)
+        for model in line._get_app_models() | {'res.partner'}:
+            self.assertEqual(self.user._get_org_scope_domain(model), expected)
+        # The app's own units are kept and come back once unticked.
+        self.user.org_scope_location = False
+        self.assertFalse(line.scoped_all_apps)
+        self.assertEqual(line.effective_division_ids, self.div_b)
+        self.assertEqual(line.effective_location_ids, self.loc_b)
+
+    def test_ticking_scope_shows_rule_on_apps_in_form(self):
+        self.user.write({'home_division_id': self.div_a.id})
+        admin = self.env.ref('base.user_admin')
+        with Form(self.user.with_user(admin), view='base.view_users_form') as form:
+            form.org_scope_division = True
+            for row in form.org_app_scope_ids._records:
+                self.assertEqual(row['effective_division_ids'], self.div_a.ids)
+
+    def test_app_list_alphabetical(self):
+        self.env['ir.ui.menu'].create({'name': 'AAA App', 'web_icon': 'org_structure,static/description/icon.png'})
+        self.env.invalidate_all()
+        names = self.user.org_app_scope_ids.mapped('app_name')
+        self.assertEqual(names[0], 'AAA App')
+        self.assertEqual(names, sorted(names))
 
     def test_app_list_prefilled_with_all_apps(self):
         apps = self.env['ir.ui.menu'].search([('parent_id', '=', False), ('web_icon', '!=', False)])

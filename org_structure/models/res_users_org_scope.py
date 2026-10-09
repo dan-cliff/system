@@ -14,7 +14,7 @@ class ResUsersOrgScope(models.Model):
     """
     _name = 'res.users.org.scope'
     _description = 'User App Specific Organisation Scoping'
-    _order = 'user_id, menu_sequence, menu_id'
+    _order = 'user_id, app_name, id'
 
     user_id = fields.Many2one(
         comodel_name='res.users',
@@ -30,7 +30,7 @@ class ResUsersOrgScope(models.Model):
         ondelete='cascade',
         domain=APP_MENU_DOMAIN,
     )
-    menu_sequence = fields.Integer(related='menu_id.sequence', store=True)
+    app_name = fields.Char(related='menu_id.name', string='App Name', store=True)
     app_icon = fields.Binary(related='menu_id.web_icon_data', string='Icon')
     division_ids = fields.Many2many(
         comodel_name='org.division',
@@ -60,18 +60,36 @@ class ResUsersOrgScope(models.Model):
         column2='department_id',
         string='Departments',
     )
-    unit_count = fields.Integer(string='Org Units', compute='_compute_unit_count')
+    # What is actually enforced for this app: the user's "scope all apps"
+    # unit when one is ticked (it overrides this line), else this line's units.
+    scoped_all_apps = fields.Boolean(compute='_compute_effective_units')
+    effective_division_ids = fields.Many2many(
+        comodel_name='org.division', string='Divisions', compute='_compute_effective_units')
+    effective_business_unit_ids = fields.Many2many(
+        comodel_name='org.business.unit', string='Business Units', compute='_compute_effective_units')
+    effective_location_ids = fields.Many2many(
+        comodel_name='org.location', string='Locations', compute='_compute_effective_units')
+    effective_department_ids = fields.Many2many(
+        comodel_name='org.department', string='Departments', compute='_compute_effective_units')
 
     _user_menu_uniq = models.Constraint(
         'unique(user_id, menu_id)',
         'This app already has scoping for this user.',
     )
 
-    @api.depends('division_ids', 'business_unit_ids', 'location_ids', 'department_ids')
-    def _compute_unit_count(self):
+    @api.depends('division_ids', 'business_unit_ids', 'location_ids', 'department_ids',
+                 'user_id.org_scope_level', 'user_id.home_division_id', 'user_id.home_business_unit_id',
+                 'user_id.home_location_id', 'user_id.home_department_id')
+    def _compute_effective_units(self):
         for rec in self:
-            rec.unit_count = (len(rec.division_ids) + len(rec.business_unit_ids)
-                              + len(rec.location_ids) + len(rec.department_ids))
+            level = rec.user_id.org_scope_level
+            rec.scoped_all_apps = bool(level)
+            for name in ('division', 'business_unit', 'location', 'department'):
+                if level:
+                    units = rec.user_id[f'home_{name}_id'] if name == level else rec[f'{name}_ids'].browse()
+                else:
+                    units = rec[f'{name}_ids']
+                rec[f'effective_{name}_ids'] = units
 
     @api.model
     def _sync_app_lines(self, users=None):
