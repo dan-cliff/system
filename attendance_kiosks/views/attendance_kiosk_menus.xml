@@ -18,6 +18,24 @@
               action="action_attendance_kiosk_response"
               sequence="20"/>
 
+    <menuitem id="menu_attendance_alerts_root"
+              name="Alerts"
+              parent="hr_attendance.menu_hr_attendance_root"
+              sequence="9"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+
+    <menuitem id="menu_attendance_alert"
+              name="Sign In / Out Alerts"
+              parent="menu_attendance_alerts_root"
+              action="action_attendance_alert"
+              sequence="10"/>
+
+    <menuitem id="menu_attendance_alert_log"
+              name="Alert History"
+              parent="menu_attendance_alerts_root"
+              action="action_attendance_alert_log"
+              sequence="20"/>
+
     <menuitem id="menu_attendance_kiosk_questionnaire"
               name="Kiosk Questionnaires"
               parent="hr_attendance.menu_hr_attendance_configuration"

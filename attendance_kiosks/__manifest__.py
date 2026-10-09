@@ -1,6 +1,6 @@
 {
     'name': 'Attendance Kiosks',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Human Resources/Attendances',
     'summary': 'Multiple sign in kiosks with their own URL, sign in rules, '
                'Learning capability checks, auto sign out, questionnaires and offline PWA support',
@@ -24,6 +24,13 @@ Attendance Kiosks
   of the day, on the first sign in of the day at the location, or on the
   first ever sign in at the location. Answers can refuse the sign in and
   are kept against the attendance.
+* Sign in / out alerts: ask for a Discuss message when particular
+  employees (or everyone) sign in or out - first sign in today, first
+  ever or first today at a site, every sign in, first sign out today,
+  first sign out from a site today or every sign out - optionally limited
+  to sites, dates, days and times. Alerts run once and archive themselves,
+  or keep running, and can also post arrivals and departures to Discuss
+  channels.
 * Offline mode: the kiosk keeps a copy of who may sign in and records
   sign ins, sign outs and questionnaire answers locally, then syncs them
   when the connection returns.
@@ -40,6 +47,7 @@ Attendance Kiosks
         'views/attendance_kiosk_response_views.xml',
         'views/attendance_kiosk_views.xml',
         'views/hr_attendance_views.xml',
+        'views/attendance_alert_views.xml',
         'views/attendance_kiosk_menus.xml',
         'views/attendance_kiosk_templates.xml',
     ],
