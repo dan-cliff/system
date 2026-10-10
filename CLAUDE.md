@@ -118,6 +118,9 @@ gets all of the following:
   `esm.<code>.inspection` → `esm.<code>.inspection.line` (copied from the
   template's questions). The question type stays the shared
   `QUESTION_TYPES` selection.
+- Company: the inspection has a required `company_id` (default the
+  current company, tracked) on its form, as a list column and as a
+  search field and Group By; the PDF logo and the asset filter use it.
 - Chatter: the inspection model inherits `mail.thread` and
   `mail.activity.mixin`, tracks its main fields (`tracking=True`) and its
   form ends with `<chatter/>`. Templates, questions and button values have

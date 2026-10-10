@@ -10,6 +10,7 @@
                 <field name="inspection_date" options="{'numeric': True}"/>
                 <field name="template_id"/>
                 <field name="inspector_id" widget="many2one_avatar_user"/>
+                <field name="company_id" optional="show"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
             </list>
@@ -43,6 +44,8 @@
                             <field name="inspection_date" options="{'numeric': True}"
                                    readonly="state == 'done'"/>
                             <field name="inspector_id" widget="many2one_avatar_user"
+                                   readonly="state == 'done'"/>
+                            <field name="company_id" options="{'no_create': True}"
                                    readonly="state == 'done'"/>
                         </group>
                     </group>
@@ -93,6 +96,7 @@
                 <field name="name"/>
                 <field name="template_id"/>
                 <field name="inspector_id"/>
+                <field name="company_id"/>
                 <filter name="my_inspections" string="My Inspections" domain="[('inspector_id', '=', uid)]"/>
                 <separator/>
                 <filter name="draft" string="In Progress" domain="[('state', '=', 'draft')]"/>
@@ -102,6 +106,7 @@
                 <group>
                     <filter name="group_template" string="Template" context="{'group_by': 'template_id'}"/>
                     <filter name="group_inspector" string="Inspector" context="{'group_by': 'inspector_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                 </group>
             </search>

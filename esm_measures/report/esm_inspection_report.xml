@@ -4,6 +4,8 @@
     <!-- One PDF layout for every inspection type: details, then each check's
          question, description and answer, then the notes. -->
     <template id="report_inspection_document">
+        <!-- external_layout shows this company's header and logo. -->
+        <t t-set="company" t-value="doc.company_id.sudo()"/>
         <t t-call="web.external_layout">
             <div class="page">
                 <h2>
@@ -26,6 +28,10 @@
                     <tr>
                         <th>Inspector</th>
                         <td><span t-field="doc.inspector_id"/></td>
+                    </tr>
+                    <tr>
+                        <th>Company</th>
+                        <td><span t-field="doc.company_id"/></td>
                     </tr>
                     <tr>
                         <th>Status</th>

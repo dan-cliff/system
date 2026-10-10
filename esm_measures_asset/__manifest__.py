@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'ESM Measures - Assets',
-    'version': '19.0.1.0.2',
+    'version': '19.0.1.1.0',
     'category': 'Human Resources/Health & Safety',
     'summary': 'Pick the asset being inspected in ESM Measures from Asset Management',
     'description': """

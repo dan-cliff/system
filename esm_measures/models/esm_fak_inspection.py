@@ -25,6 +25,10 @@ class EsmFakInspection(models.Model):
         'res.users', string='Inspector', required=True, tracking=True,
         default=lambda self: self.env.user,
     )
+    company_id = fields.Many2one(
+        'res.company', string='Company', required=True, tracking=True, index=True,
+        default=lambda self: self.env.company,
+    )
     # Technical workflow state, so a fixed selection.
     state = fields.Selection(
         [('draft', 'In Progress'), ('done', 'Completed')],
