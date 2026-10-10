@@ -118,6 +118,10 @@ gets all of the following:
   `esm.<code>.inspection` → `esm.<code>.inspection.line` (copied from the
   template's questions). The question type stays the shared
   `QUESTION_TYPES` selection.
+- Chatter: the inspection model inherits `mail.thread` and
+  `mail.activity.mixin`, tracks its main fields (`tracking=True`) and its
+  form ends with `<chatter/>`. Templates, questions and button values have
+  no chatter.
 - Menus: the inspection under the app root, its template under
   Configuration; a Default Template setting in its own block on the
   ESM Measures settings page; an `ir.sequence` (`<CODE>/00001`); access
