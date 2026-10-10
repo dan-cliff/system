@@ -75,6 +75,7 @@ class EsmEedInspection(models.Model):
 
 class EsmEedInspectionLine(models.Model):
     _name = 'esm.eed.inspection.line'
+    _inherit = ['esm.inspection.line.mixin']
     _description = 'Emergency Egress Door Inspection Check'
     _order = 'inspection_id, sequence, id'
 

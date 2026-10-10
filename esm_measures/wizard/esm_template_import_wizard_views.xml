@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="esm_template_import_wizard_view_form" model="ir.ui.view">
+        <field name="name">esm.template.import.wizard.form</field>
+        <field name="model">esm.template.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Templates">
+                <p>Choose a template file exported (Export JSON) from ESM Measures on this or another database.
+                   Its templates are added as new templates.</p>
+                <group>
+                    <field name="template_model" invisible="1"/>
+                    <field name="file" filename="filename"/>
+                    <field name="filename" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_esm_template_import_wizard" model="ir.actions.act_window">
+        <field name="name">Import Templates</field>
+        <field name="res_model">esm.template.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

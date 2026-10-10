@@ -6,6 +6,7 @@ from .esm_fak_template import QUESTION_TYPES
 
 class EsmSmaTemplate(models.Model):
     _name = 'esm.sma.template'
+    _inherit = ['esm.template.mixin']
     _description = 'Smoke Alarm Inspection Template'
     _order = 'sequence, name'
 

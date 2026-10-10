@@ -6,6 +6,7 @@ from .esm_fak_template import QUESTION_TYPES
 
 class EsmEedTemplate(models.Model):
     _name = 'esm.eed.template'
+    _inherit = ['esm.template.mixin']
     _description = 'Emergency Egress Door Inspection Template'
     _order = 'sequence, name'
 

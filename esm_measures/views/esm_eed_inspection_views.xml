@@ -26,6 +26,8 @@
                             class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_reset_draft" type="object" string="Reset to In Progress"
                             invisible="state != 'done'"/>
+                    <button name="%(esm_measures.action_report_esm_eed_inspection)d" type="action"
+                            string="Print PDF" icon="fa-print"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

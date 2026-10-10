@@ -16,6 +16,7 @@ QUESTION_TYPES = [
 
 class EsmFakTemplate(models.Model):
     _name = 'esm.fak.template'
+    _inherit = ['esm.template.mixin']
     _description = 'First Aid Kit Inspection Template'
     _order = 'sequence, name'
 

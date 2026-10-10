@@ -105,3 +105,37 @@ models are not primary). This applies to core Odoo apps and our own modules.
 - Never scoped: other technical and identity models (`ir.*`, `res.*` such
   as `res.users`/`res.company`, `mail.*`, `bus.*`, `org.*`),
   transient/abstract models and SQL views.
+
+## ESM Measures inspections
+
+Every inspection type in `esm_measures` (First Aid Kit `fak`, Emergency
+Egress Door `eed`, Smoke Alarm `sma`, Evacuation Plan `evp`, …) is built
+the same way. A new one copies an existing type's files with its own code
+(`esm_<code>_template.py`, `esm_<code>_inspection.py` and their views) and
+gets all of the following:
+
+- Models: `esm.<code>.template` → questions → button values (with `color`),
+  `esm.<code>.inspection` → `esm.<code>.inspection.line` (copied from the
+  template's questions). The question type stays the shared
+  `QUESTION_TYPES` selection.
+- Menus: the inspection under the app root, its template under
+  Configuration; a Default Template setting in its own block on the
+  ESM Measures settings page; an `ir.sequence` (`<CODE>/00001`); access
+  rights in `security/ir.model.access.csv`.
+- Checks on the form: the `line_ids` field uses
+  `widget="esm_inspection_checks"` with `class="o_field_highlight"` and the
+  `<kanban>` sub-view of the existing types (Buttons answers use
+  `widget="esm_colour_badge"`).
+- Template JSON export/import: the template model inherits
+  `esm.template.mixin`; its form has the `action_export_json` header button,
+  its list has the "Import JSON" header button (opening
+  `action_esm_template_import_wizard` with `default_template_model`), and
+  `data/esm_template_actions.xml` has its "Export JSON" server action.
+- PDF: the line model inherits `esm.inspection.line.mixin`;
+  `report/esm_inspection_report.xml` has its thin `report_esm_<code>_inspection`
+  template (calling the shared `report_inspection`) and its
+  `ir.actions.report` (report names must be unique per model); the form has
+  the "Print PDF" header button.
+- With Asset Management (`esm_measures_asset`): Visible Asset Types /
+  Subtypes settings in its block (fields on `res.company`) and a filtered
+  `asset_id` on the inspection, with `_org_parent_field = 'asset_id'`.

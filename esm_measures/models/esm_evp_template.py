@@ -6,6 +6,7 @@ from .esm_fak_template import QUESTION_TYPES
 
 class EsmEvpTemplate(models.Model):
     _name = 'esm.evp.template'
+    _inherit = ['esm.template.mixin']
     _description = 'Evacuation Plan Inspection Template'
     _order = 'sequence, name'
 

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- One PDF layout for every inspection type: details, then each check's
+         question, description and answer, then the notes. -->
+    <template id="report_inspection_document">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <h2>
+                    <span t-esc="doc._description"/>
+                    <span t-field="doc.name"/>
+                </h2>
+                <table class="table table-sm table-borderless mb-4">
+                    <tr t-if="'asset_id' in doc._fields and doc.asset_id">
+                        <th class="w-25" t-esc="doc._fields['asset_id'].string"/>
+                        <td t-esc="doc.asset_id.display_name"/>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Template</th>
+                        <td><span t-field="doc.template_id"/></td>
+                    </tr>
+                    <tr>
+                        <th>Inspection Date</th>
+                        <td><span t-field="doc.inspection_date" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/></td>
+                    </tr>
+                    <tr>
+                        <th>Inspector</th>
+                        <td><span t-field="doc.inspector_id"/></td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td><span t-field="doc.state"/></td>
+                    </tr>
+                </table>
+
+                <h4>Checks</h4>
+                <div t-foreach="doc.line_ids" t-as="line" class="border-bottom py-2" style="page-break-inside: avoid;">
+                    <div><strong t-esc="line.name"/></div>
+                    <div t-if="line.description" class="text-muted" style="white-space: pre-line;" t-esc="line.description"/>
+                    <t t-set="answer" t-value="line._answer_display()"/>
+                    <t t-set="badge_style" t-value="line._answer_badge_style()"/>
+                    <div class="mt-1">
+                        <span t-if="answer and badge_style" class="badge rounded-pill" t-att-style="badge_style" t-esc="answer"/>
+                        <span t-elif="answer" style="white-space: pre-line;" t-esc="answer"/>
+                        <em t-else="" class="text-muted">Not answered</em>
+                    </div>
+                </div>
+
+                <t t-if="doc.notes">
+                    <h4 class="mt-4">Notes</h4>
+                    <div t-field="doc.notes"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_inspection">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="esm_measures.report_inspection_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Odoo finds a report's model from its report_name, so each inspection
+         type needs its own (thin) template. -->
+
+    <template id="report_esm_fak_inspection">
+        <t t-call="esm_measures.report_inspection"/>
+    </template>
+
+    <record id="action_report_esm_fak_inspection" model="ir.actions.report">
+        <field name="name">First Aid Kit Inspection</field>
+        <field name="model">esm.fak.inspection</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">esm_measures.report_esm_fak_inspection</field>
+        <field name="report_file">esm_measures.report_esm_fak_inspection</field>
+        <field name="print_report_name">'First Aid Kit Inspection - %s' % object.name.replace('/', '-')</field>
+        <field name="binding_model_id" ref="model_esm_fak_inspection"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_esm_eed_inspection">
+        <t t-call="esm_measures.report_inspection"/>
+    </template>
+
+    <record id="action_report_esm_eed_inspection" model="ir.actions.report">
+        <field name="name">Emergency Egress Door Inspection</field>
+        <field name="model">esm.eed.inspection</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">esm_measures.report_esm_eed_inspection</field>
+        <field name="report_file">esm_measures.report_esm_eed_inspection</field>
+        <field name="print_report_name">'Emergency Egress Door Inspection - %s' % object.name.replace('/', '-')</field>
+        <field name="binding_model_id" ref="model_esm_eed_inspection"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_esm_sma_inspection">
+        <t t-call="esm_measures.report_inspection"/>
+    </template>
+
+    <record id="action_report_esm_sma_inspection" model="ir.actions.report">
+        <field name="name">Smoke Alarm Inspection</field>
+        <field name="model">esm.sma.inspection</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">esm_measures.report_esm_sma_inspection</field>
+        <field name="report_file">esm_measures.report_esm_sma_inspection</field>
+        <field name="print_report_name">'Smoke Alarm Inspection - %s' % object.name.replace('/', '-')</field>
+        <field name="binding_model_id" ref="model_esm_sma_inspection"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_esm_evp_inspection">
+        <t t-call="esm_measures.report_inspection"/>
+    </template>
+
+    <record id="action_report_esm_evp_inspection" model="ir.actions.report">
+        <field name="name">Evacuation Plan Inspection</field>
+        <field name="model">esm.evp.inspection</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">esm_measures.report_esm_evp_inspection</field>
+        <field name="report_file">esm_measures.report_esm_evp_inspection</field>
+        <field name="print_report_name">'Evacuation Plan Inspection - %s' % object.name.replace('/', '-')</field>
+        <field name="binding_model_id" ref="model_esm_evp_inspection"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

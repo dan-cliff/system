@@ -75,6 +75,7 @@ class EsmFakInspection(models.Model):
 
 class EsmFakInspectionLine(models.Model):
     _name = 'esm.fak.inspection.line'
+    _inherit = ['esm.inspection.line.mixin']
     _description = 'First Aid Kit Inspection Check'
     _order = 'inspection_id, sequence, id'
 
