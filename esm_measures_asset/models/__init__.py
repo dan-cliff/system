@@ -2,3 +2,4 @@
 from . import res_company
 from . import res_config_settings
 from . import esm_fak_inspection
+from . import esm_eed_inspection

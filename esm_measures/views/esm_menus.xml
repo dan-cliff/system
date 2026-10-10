@@ -13,6 +13,12 @@
               action="action_esm_fak_inspection"
               sequence="10"/>
 
+    <menuitem id="menu_esm_eed_inspection"
+              name="Emergency Egress Door Inspections"
+              parent="menu_esm_root"
+              action="action_esm_eed_inspection"
+              sequence="20"/>
+
     <menuitem id="menu_esm_config"
               name="Configuration"
               parent="menu_esm_root"
@@ -31,5 +37,11 @@
               parent="menu_esm_config"
               action="action_esm_fak_template"
               sequence="10"/>
+
+    <menuitem id="menu_esm_eed_template"
+              name="Emergency Egress Door Templates"
+              parent="menu_esm_config"
+              action="action_esm_eed_template"
+              sequence="20"/>
 
 </odoo>

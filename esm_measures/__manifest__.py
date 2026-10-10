@@ -3,11 +3,11 @@
     'name': 'ESM Measures',
     'version': '19.0.1.0.0',
     'category': 'Human Resources/Health & Safety',
-    'summary': 'Scheduled safety measure inspections, starting with First Aid Kit Inspections',
+    'summary': 'Scheduled safety measure inspections: First Aid Kits and Emergency Egress Doors',
     'description': """
         ESM Measures
 
-        First Aid Kit Inspections:
+        First Aid Kit and Emergency Egress Door Inspections:
         - Inspection templates with configurable questions
         - Question types: Text, Text Area, Number, Integer, Date, Datetime and Buttons
           (with your own button values)
@@ -15,7 +15,7 @@
           questions they were answered against
 
         With Asset Management installed, the ESM Measures - Assets bridge adds the
-        First Aid Kit being inspected (see esm_measures_asset).
+        First Aid Kit or Emergency Egress Door being inspected (see esm_measures_asset).
     """,
     'author': 'Custom',
     'depends': ['base', 'base_setup', 'mail'],
@@ -26,6 +26,8 @@
         'data/esm_sequence_data.xml',
         'views/esm_fak_template_views.xml',
         'views/esm_fak_inspection_views.xml',
+        'views/esm_eed_template_views.xml',
+        'views/esm_eed_inspection_views.xml',
         'views/res_config_settings_views.xml',
         'views/esm_menus.xml',
     ],

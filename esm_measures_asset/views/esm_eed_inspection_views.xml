@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="esm_eed_inspection_view_form" model="ir.ui.view">
+        <field name="name">esm.eed.inspection.form.inherit.asset</field>
+        <field name="model">esm.eed.inspection</field>
+        <field name="inherit_id" ref="esm_measures.esm_eed_inspection_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='inspection']/field[@name='template_id']" position="before">
+                <field name="esm_eed_asset_type_ids" invisible="1"/>
+                <field name="esm_eed_asset_subtype_ids" invisible="1"/>
+                <field name="asset_id" readonly="state == 'done'" options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="esm_eed_inspection_view_list" model="ir.ui.view">
+        <field name="name">esm.eed.inspection.list.inherit.asset</field>
+        <field name="model">esm.eed.inspection</field>
+        <field name="inherit_id" ref="esm_measures.esm_eed_inspection_view_list"/>
+        <field name="arch" type="xml">
+            <field name="inspection_date" position="after">
+                <field name="asset_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="esm_eed_inspection_view_search" model="ir.ui.view">
+        <field name="name">esm.eed.inspection.search.inherit.asset</field>
+        <field name="model">esm.eed.inspection</field>
+        <field name="inherit_id" ref="esm_measures.esm_eed_inspection_view_search"/>
+        <field name="arch" type="xml">
+            <field name="template_id" position="before">
+                <field name="asset_id"/>
+            </field>
+            <filter name="group_template" position="before">
+                <filter name="group_asset" string="Emergency Egress Door" context="{'group_by': 'asset_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+</odoo>
