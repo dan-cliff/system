@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'ESM Measures',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Human Resources/Health & Safety',
     'summary': 'Scheduled safety measure inspections: First Aid Kits, Emergency Egress Doors, Smoke Alarms and Evacuation Plans',
     'description': """
