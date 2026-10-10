@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Question ─────────────────────────────────────────────────── -->
+    <record id="checklist_question_view_form" model="ir.ui.view">
+        <field name="name">checklist.question.form</field>
+        <field name="model">checklist.question</field>
+        <field name="arch" type="xml">
+            <form string="Question">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="question_type"/>
+                        </group>
+                        <group>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Describe what should be checked..."/>
+                    <separator string="Button Values" invisible="question_type != 'buttons'"/>
+                    <field name="option_ids" invisible="question_type != 'buttons'">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="color" widget="color"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Template ─────────────────────────────────────────────────── -->
+    <record id="checklist_template_view_list" model="ir.ui.view">
+        <field name="name">checklist.template.list</field>
+        <field name="model">checklist.template</field>
+        <field name="arch" type="xml">
+            <list string="Checklist Templates">
+                <header>
+                    <button name="%(checklists.action_checklist_template_import_wizard)d" type="action"
+                            string="Import JSON" display="always"/>
+                    <!-- Shown once templates are selected: one downloads as .json, several as a .zip. -->
+                    <button name="action_export_json" type="object" string="Export JSON"/>
+                </header>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="group_ids" widget="many2many_tags"/>
+                <field name="question_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="checklist_template_view_form" model="ir.ui.view">
+        <field name="name">checklist.template.form</field>
+        <field name="model">checklist.template</field>
+        <field name="arch" type="xml">
+            <form string="Checklist Template">
+                <header>
+                    <button name="action_export_json" type="object" string="Export JSON"/>
+                    <button name="action_import_json" type="object" string="Import JSON"
+                            help="Update this template's questions from a JSON file (matched by their hidden GUIDs)."/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Daily Vehicle Pre-Start Check"/></h1>
+                    </div>
+                    <field name="active" invisible="1"/>
+                    <group>
+                        <field name="group_ids" widget="many2many_tags"/>
+                    </group>
+                    <field name="description" placeholder="What this template is used for..."/>
+                    <notebook>
+                        <page string="Questions" name="questions">
+                            <field name="question_ids" context="{'default_template_id': id}">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="description"/>
+                                    <field name="question_type"/>
+                                    <field name="option_ids" widget="many2many_tags"
+                                           invisible="question_type != 'buttons'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="checklist_template_view_search" model="ir.ui.view">
+        <field name="name">checklist.template.search</field>
+        <field name="model">checklist.template</field>
+        <field name="arch" type="xml">
+            <search string="Checklist Templates">
+                <field name="name"/>
+                <field name="group_ids"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <!-- Pick a Checklist Group to list its templates (values and
+                     counters come from checklist.template.search_panel_select_range). -->
+                <searchpanel>
+                    <field name="group_ids" string="Checklist Group" enable_counters="1" expand="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_checklist_template" model="ir.actions.act_window">
+        <field name="name">Checklist Templates</field>
+        <field name="res_model">checklist.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="checklist_template_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a Checklist Template</p>
+            <p>Add the questions people answer when filling in the checklist.</p>
+        </field>
+    </record>
+
+</odoo>

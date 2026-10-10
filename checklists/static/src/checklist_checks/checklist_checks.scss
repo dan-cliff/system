@@ -1,0 +1,40 @@
+.o_field_checklist_checks {
+    width: 100%;
+}
+
+.o_checklist_checks {
+    width: 100%;
+
+    .o_checklist_check {
+        padding: map-get($spacers, 3) 0;
+        border-bottom: $border-width solid $border-color;
+
+        &:first-child {
+            padding-top: 0;
+        }
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    .o_checklist_check_description {
+        white-space: pre-line;
+    }
+
+    .o_checklist_check_answer {
+        margin-top: map-get($spacers, 2);
+        max-width: 40rem;
+
+        .o_field_widget {
+            width: 100%;
+        }
+
+        // Buttons sit in the same place as the other answer types.
+        .o_selection_badge {
+            margin-bottom: 0 !important;
+        }
+        .o_field_many2one > .d-flex {
+            margin-bottom: 0 !important;
+        }
+    }
+}

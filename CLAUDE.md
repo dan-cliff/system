@@ -41,6 +41,17 @@ for every module we create or edit.
 - Exceptions: technical states that code depends on (e.g. a record's workflow
   `state`), or when a request explicitly asks for a fixed selection.
 
+## Company
+
+- Always show a Company field when multi-company is enabled. Every primary
+  model (see Organisation structure below) has a `company_id`
+  (`res.company`, defaulting to `self.env.company`) shown on its form and
+  in its list (`optional="show"`), each with
+  `groups="base.group_multi_company"` so it only appears when multi-company
+  is on, plus a "Company" group-by in its search view (same `groups`).
+- Give a model with `company_id` a multi-company `ir.rule`:
+  `[('company_id', 'in', company_ids)]`.
+
 ## Organisation structure (Division / Business Unit / Location / Department)
 
 Every **primary model** carries the four Organisation fields and follows the

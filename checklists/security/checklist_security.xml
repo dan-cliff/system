@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ── Module Category ───────────────────────────────────────────── -->
+        <record id="module_category_checklists" model="ir.module.category">
+            <field name="name">Checklists</field>
+            <field name="description">Fill in checklists built from templates.</field>
+            <field name="sequence">57</field>
+        </record>
+
+        <!-- ── Privilege ────────────────────────────────────────────────── -->
+        <record id="privilege_checklists" model="res.groups.privilege">
+            <field name="name">Checklists</field>
+            <field name="category_id" ref="module_category_checklists"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <!-- ── Security Groups ───────────────────────────────────────────── -->
+        <record id="group_checklist_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="privilege_id" ref="privilege_checklists"/>
+            <field name="sequence">10</field>
+            <field name="comment">Can fill in and edit checklists.</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="group_checklist_admin" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="privilege_id" ref="privilege_checklists"/>
+            <field name="sequence">20</field>
+            <field name="comment">Full access, including deleting checklists and managing templates, questions and Checklist Groups.</field>
+            <field name="implied_ids" eval="[(4, ref('group_checklist_user'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- ── Multi-company ────────────────────────────────────────────── -->
+        <record id="checklist_company_rule" model="ir.rule">
+            <field name="name">Checklists: multi-company</field>
+            <field name="model_id" ref="model_checklist_checklist"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+    </data>
+</odoo>

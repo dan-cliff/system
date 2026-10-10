@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="checklists.ColourBadgeField">
+        <div class="o_checklist_colour_badges d-flex flex-wrap gap-1">
+            <t t-if="props.readonly">
+                <span t-if="value" class="o_checklist_colour_badge badge rounded-pill"
+                      t-att-class="{ 'text-bg-secondary': !selectedColour }"
+                      t-att-style="badgeStyle(selectedColour, true)" t-esc="string"/>
+            </t>
+            <t t-else="">
+                <t t-foreach="options" t-as="option" t-key="option[0]">
+                    <span class="o_selection_badge btn btn-secondary"
+                          t-att-class="{ 'active': value === option[0], 'btn-sm': props.size === 'sm', 'btn-lg': props.size === 'lg' }"
+                          t-att-style="badgeStyle(option[2], value === option[0])"
+                          t-att-value="stringify(option[0])"
+                          t-esc="option[1]"
+                          t-on-click="() => this.onChange(option[0])"/>
+                </t>
+            </t>
+        </div>
+    </t>
+</templates>

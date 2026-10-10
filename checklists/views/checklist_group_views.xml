@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="checklist_group_view_list" model="ir.ui.view">
+        <field name="name">checklist.group.list</field>
+        <field name="model">checklist.group</field>
+        <field name="arch" type="xml">
+            <list string="Checklist Groups">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="template_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="checklist_group_view_form" model="ir.ui.view">
+        <field name="name">checklist.group.form</field>
+        <field name="model">checklist.group</field>
+        <field name="arch" type="xml">
+            <form string="Checklist Group">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Vehicle Checks"/></h1>
+                    </div>
+                    <field name="active" invisible="1"/>
+                    <field name="description" placeholder="What the templates in this group are for..."/>
+                    <notebook>
+                        <page string="Templates" name="templates">
+                            <field name="template_ids" options="{'no_create': True}">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="question_count"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="checklist_group_view_search" model="ir.ui.view">
+        <field name="name">checklist.group.search</field>
+        <field name="model">checklist.group</field>
+        <field name="arch" type="xml">
+            <search string="Checklist Groups">
+                <field name="name"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_checklist_group" model="ir.actions.act_window">
+        <field name="name">Checklist Groups</field>
+        <field name="res_model">checklist.group</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a Checklist Group</p>
+            <p>Groups sort checklist templates into logical sets, e.g. Vehicle Checks or Site Opening.</p>
+        </field>
+    </record>
+
+</odoo>

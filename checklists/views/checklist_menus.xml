@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_checklist_root"
+              name="Checklists"
+              sequence="84"
+              web_icon="checklists,static/description/icon.png"
+              groups="checklists.group_checklist_user"/>
+
+    <menuitem id="menu_checklist"
+              name="Checklists"
+              parent="menu_checklist_root"
+              action="action_checklist"
+              sequence="10"/>
+
+    <menuitem id="menu_checklist_config"
+              name="Configuration"
+              parent="menu_checklist_root"
+              sequence="100"
+              groups="checklists.group_checklist_admin"/>
+
+    <menuitem id="menu_checklist_settings"
+              name="Settings"
+              parent="menu_checklist_config"
+              action="checklists_config_settings_action"
+              sequence="0"
+              groups="base.group_system"/>
+
+    <menuitem id="menu_checklist_template"
+              name="Checklist Templates"
+              parent="menu_checklist_config"
+              action="action_checklist_template"
+              sequence="10"/>
+
+    <menuitem id="menu_checklist_group"
+              name="Checklist Groups"
+              parent="menu_checklist_config"
+              action="action_checklist_group"
+              sequence="20"/>
+
+</odoo>
