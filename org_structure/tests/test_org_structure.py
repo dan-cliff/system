@@ -2,6 +2,10 @@ from odoo.exceptions import ValidationError
 from odoo.fields import Domain
 from odoo.tests import Form, TransactionCase, tagged
 
+UNASSIGNED = Domain.AND(
+    Domain(f'org_{level}_id', '=', False)
+    for level in ('division', 'business_unit', 'location', 'department'))
+
 
 @tagged('post_install', '-at_install')
 class TestOrgStructure(TransactionCase):
@@ -75,7 +79,7 @@ class TestOrgStructure(TransactionCase):
         self.user.write({'home_division_id': self.div_a.id, 'org_scope_division': True})
         self.assertEqual(
             self.user._get_org_scope_domain('res.partner'),
-            Domain('org_division_id', '=', self.div_a.id) | Domain('org_division_id', '=', False),
+            Domain('org_division_id', '=', self.div_a.id) | UNASSIGNED,
         )
 
     def test_app_scope_cumulative(self):
@@ -94,7 +98,7 @@ class TestOrgStructure(TransactionCase):
             self.user._get_org_scope_domain(model),
             Domain('org_division_id', 'in', self.div_a.ids)
             | Domain('org_location_id', 'in', self.loc_b.ids)
-            | Domain('org_division_id', '=', False),
+            | UNASSIGNED,
         )
         # An app with no units selected is unscoped.
         line.write({'division_ids': [(5,)], 'location_ids': [(5,)]})
@@ -113,7 +117,7 @@ class TestOrgStructure(TransactionCase):
         self.assertFalse(line.effective_business_unit_ids)
         self.assertFalse(line.effective_department_ids)
         # ...and that rule is what gets enforced, for every model.
-        expected = Domain('org_location_id', '=', self.loc_a.id) | Domain('org_division_id', '=', False)
+        expected = Domain('org_location_id', '=', self.loc_a.id) | UNASSIGNED
         for model in line._get_app_models() | {'res.partner'}:
             self.assertEqual(self.user._get_org_scope_domain(model), expected)
         # The app's own units are kept and come back once unticked.
@@ -169,7 +173,10 @@ class TestOrgStructure(TransactionCase):
         Model._org_add_form_section(with_notebook)
         section = with_notebook.xpath('//group[@name="org_structure"]')[0]
         self.assertEqual(section.getnext().tag, 'notebook')
-        self.assertEqual(section.get('invisible'), 'not org_show_division')
+        self.assertEqual(
+            section.get('invisible'),
+            'not org_show_division and not org_show_business_unit'
+            ' and not org_show_location and not org_show_department')
         self.assertEqual(
             [f.get('name') for f in section if f.get('invisible') != '1'],
             ['org_division_id', 'org_business_unit_id', 'org_location_id', 'org_department_id'])

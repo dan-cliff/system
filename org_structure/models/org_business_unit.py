@@ -1,11 +1,13 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class OrgBusinessUnit(models.Model):
     _name = 'org.business.unit'
     _description = 'Business Unit'
+    _inherit = ['org.unit.mixin']
     _order = 'company_id, division_id, sequence, name'
     _check_company_auto = True
+    _org_level = 'business_unit'
 
     name = fields.Char(required=True, translate=True)
     code = fields.Char()
@@ -14,15 +16,18 @@ class OrgBusinessUnit(models.Model):
     division_id = fields.Many2one(
         comodel_name='org.division',
         string='Division',
-        required=True,
         index=True,
         ondelete='restrict',
     )
-    # Inherited from the direct parent.
+    # Inherited from the parent unit; set directly when there is none.
     company_id = fields.Many2one(
-        related='division_id.company_id',
-        store=True,
+        comodel_name='res.company',
+        string='Company',
+        required=True,
         index=True,
+        compute='_compute_company_id',
+        store=True,
+        readonly=False,
         precompute=True,
     )
     manager_id = fields.Many2one(comodel_name='res.users', string='Manager')
@@ -38,6 +43,11 @@ class OrgBusinessUnit(models.Model):
         'unique(name, division_id)',
         'A business unit with this name already exists in this division.',
     )
+
+    @api.depends('division_id.company_id')
+    def _compute_company_id(self):
+        for rec in self:
+            rec.company_id = rec._org_company_from_links() or rec.company_id or self.env.company
 
     def _compute_location_count(self):
         for rec in self:

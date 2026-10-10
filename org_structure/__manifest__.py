@@ -1,6 +1,6 @@
 {
     'name': 'Organisation Structure',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'category': 'Administration',
     'summary': 'Divisions, Business Units, Locations and Departments with per-user record scoping',
     'description': """
@@ -18,9 +18,12 @@ outside Configuration / Settings) automatically gets Division, Business
 Unit, Location and Department fields, an Organisation section on its form,
 and record scoping. Records created from a parent record copy the parent's
 Organisation. Other models can inherit ``org.scope.mixin``.
+
+Settings > Organisational Management enables/disables levels, relabels
+them everywhere and sets which level each one sits under.
 """,
     'author': "Cliff's Country Crafts",
-    'depends': ['base'],
+    'depends': ['base', 'base_setup'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
@@ -31,7 +34,8 @@ Organisation. Other models can inherit ``org.scope.mixin``.
         'views/org_location_views.xml',
         'views/org_department_views.xml',
         'views/res_users_views.xml',
-        'views/menus.xml',
+        'views/res_config_settings_views.xml',
+        'data/org_config_data.xml',
     ],
     'post_init_hook': 'post_init_hook',
     'installable': True,

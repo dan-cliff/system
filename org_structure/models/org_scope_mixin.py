@@ -44,7 +44,8 @@ def org_scope_fields():
             string='Location',
             index=True,
             ondelete='restrict',
-            domain="[('business_unit_id', '=?', org_business_unit_id)]",
+            domain="[('division_id', '=?', org_division_id),"
+                   " '|', ('business_unit_id', '=', False), ('business_unit_id', '=?', org_business_unit_id)]",
             compute='_compute_org_location_id',
             store=True,
             readonly=False,
@@ -55,7 +56,9 @@ def org_scope_fields():
             string='Department',
             index=True,
             ondelete='restrict',
-            domain="[('location_id', '=?', org_location_id)]",
+            domain="[('division_id', '=?', org_division_id),"
+                   " '|', ('business_unit_id', '=', False), ('business_unit_id', '=?', org_business_unit_id),"
+                   " '|', ('location_id', '=', False), ('location_id', '=?', org_location_id)]",
         ),
         # Whether each level has any units at all, so forms only show the
         # Organisation fields once the structure has been set up.
@@ -76,7 +79,7 @@ class OrgScopeMixin(models.AbstractModel):
     (see ``ir_model_fields.py``); inherit this mixin to add them explicitly.
     Setting a lower level fills in every level above it; changing a higher
     level clears the levels below that no longer belong to it. Records with
-    no Division are not restricted by scoping.
+    no Organisation units at all are not restricted by scoping.
 
     A record created from a parent record (e.g. a Feed for an Animal) copies
     the parent's Organisation values; set ``_org_parent_field`` to name the
@@ -99,6 +102,8 @@ class OrgScopeMixin(models.AbstractModel):
     org_show_location = _FIELDS['org_show_location']
     org_show_department = _FIELDS['org_show_department']
 
+    # Each level comes from the lowest unit set below it (units store all
+    # their ancestors); with no unit below, it keeps its own value.
     @api.depends('org_department_id.location_id')
     def _compute_org_location_id(self):
         for rec in self:
@@ -107,48 +112,60 @@ class OrgScopeMixin(models.AbstractModel):
             else:
                 rec.org_location_id = rec.org_location_id
 
-    @api.depends('org_location_id.business_unit_id')
+    @api.depends('org_location_id.business_unit_id', 'org_department_id.business_unit_id')
     def _compute_org_business_unit_id(self):
         for rec in self:
             if rec.org_location_id:
                 rec.org_business_unit_id = rec.org_location_id.business_unit_id
+            elif rec.org_department_id:
+                rec.org_business_unit_id = rec.org_department_id.business_unit_id
             else:
                 rec.org_business_unit_id = rec.org_business_unit_id
 
-    @api.depends('org_business_unit_id.division_id')
+    @api.depends('org_business_unit_id.division_id', 'org_location_id.division_id',
+                 'org_department_id.division_id')
     def _compute_org_division_id(self):
         for rec in self:
-            if rec.org_business_unit_id:
-                rec.org_division_id = rec.org_business_unit_id.division_id
+            lower = rec.org_business_unit_id or rec.org_location_id or rec.org_department_id
+            if lower:
+                rec.org_division_id = lower.division_id
             else:
                 rec.org_division_id = rec.org_division_id
 
     def _compute_org_show(self):
+        config = self.env['org.config']
         shown = {
-            level: bool(self.env[model].search_count([], limit=1))
+            level: config._is_enabled(level) and bool(self.env[model].search_count([], limit=1))
             for level, model in ORG_LEVEL_MODELS.items()
         }
         for rec in self:
             for level in ORG_LEVELS:
                 rec[f'org_show_{level}'] = shown[level]
 
+    def _org_clear_lower_levels(self, level):
+        """After ``level`` changed, drop lower units that sit under another
+        unit at that level (or under any, when it was cleared)."""
+        value = self[f'org_{level}_id']
+        for lower in ORG_LEVELS[ORG_LEVELS.index(level) + 1:]:
+            unit = self[f'org_{lower}_id']
+            ancestor = unit[f'{level}_id'] if unit else False
+            if ancestor and ancestor != value:
+                self[f'org_{lower}_id'] = False
+
     @api.onchange('org_division_id')
     def _onchange_org_division_id(self):
         for rec in self:
-            if rec.org_business_unit_id.division_id != rec.org_division_id:
-                rec.org_business_unit_id = False
+            rec._org_clear_lower_levels('division')
 
     @api.onchange('org_business_unit_id')
     def _onchange_org_business_unit_id(self):
         for rec in self:
-            if rec.org_location_id.business_unit_id != rec.org_business_unit_id:
-                rec.org_location_id = False
+            rec._org_clear_lower_levels('business_unit')
 
     @api.onchange('org_location_id')
     def _onchange_org_location_id(self):
         for rec in self:
-            if rec.org_department_id.location_id != rec.org_location_id:
-                rec.org_department_id = False
+            rec._org_clear_lower_levels('location')
 
 
 # Methods copied onto models that get the fields injected automatically.
@@ -160,4 +177,5 @@ ORG_SCOPE_METHODS = (
     '_onchange_org_division_id',
     '_onchange_org_business_unit_id',
     '_onchange_org_location_id',
+    '_org_clear_lower_levels',
 )
