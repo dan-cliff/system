@@ -76,3 +76,7 @@ class EsmFakQuestionOption(models.Model):
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
     name = fields.Char(string='Value', required=True, translate=True)
+    color = fields.Char(
+        string='Colour',
+        help='Colour of this button on inspections. Leave empty for a plain button.',
+    )
