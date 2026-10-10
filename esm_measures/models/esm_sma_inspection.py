@@ -18,8 +18,8 @@ class EsmSmaInspection(models.Model):
         'esm.sma.template', string='Template', required=True, tracking=True,
         ondelete='restrict', default=lambda self: self._default_template(),
     )
-    inspection_date = fields.Datetime(
-        string='Inspection Date', required=True, default=fields.Datetime.now, tracking=True,
+    inspection_date = fields.Date(
+        string='Inspection Date', required=True, default=fields.Date.context_today, tracking=True,
     )
     inspector_id = fields.Many2one(
         'res.users', string='Inspector', required=True, tracking=True,
