@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ── Module Category ───────────────────────────────────────────── -->
+        <record id="module_category_esm_measures" model="ir.module.category">
+            <field name="name">ESM Measures</field>
+            <field name="description">Inspect safety measures such as first aid kits.</field>
+            <field name="sequence">56</field>
+        </record>
+
+        <!-- ── Privilege ────────────────────────────────────────────────── -->
+        <record id="privilege_esm_measures" model="res.groups.privilege">
+            <field name="name">ESM Measures</field>
+            <field name="category_id" ref="module_category_esm_measures"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <!-- ── Security Groups ───────────────────────────────────────────── -->
+        <record id="group_esm_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="privilege_id" ref="privilege_esm_measures"/>
+            <field name="sequence">10</field>
+            <field name="comment">Can carry out and edit inspections.</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="group_esm_admin" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="privilege_id" ref="privilege_esm_measures"/>
+            <field name="sequence">20</field>
+            <field name="comment">Full access, including deleting inspections and managing templates and questions.</field>
+            <field name="implied_ids" eval="[(4, ref('group_esm_user'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+    </data>
+</odoo>
