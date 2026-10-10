@@ -75,6 +75,7 @@ class EsmEvpInspection(models.Model):
 
 class EsmEvpInspectionLine(models.Model):
     _name = 'esm.evp.inspection.line'
+    _inherit = ['esm.inspection.line.mixin']
     _description = 'Evacuation Plan Inspection Check'
     _order = 'inspection_id, sequence, id'
 

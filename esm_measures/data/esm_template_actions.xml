@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- "Export JSON" in the template lists' Actions menu (several at once). -->
+
+    <record id="action_server_esm_fak_template_export" model="ir.actions.server">
+        <field name="name">Export JSON</field>
+        <field name="model_id" ref="model_esm_fak_template"/>
+        <field name="binding_model_id" ref="model_esm_fak_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_json()</field>
+    </record>
+
+    <record id="action_server_esm_eed_template_export" model="ir.actions.server">
+        <field name="name">Export JSON</field>
+        <field name="model_id" ref="model_esm_eed_template"/>
+        <field name="binding_model_id" ref="model_esm_eed_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_json()</field>
+    </record>
+
+    <record id="action_server_esm_sma_template_export" model="ir.actions.server">
+        <field name="name">Export JSON</field>
+        <field name="model_id" ref="model_esm_sma_template"/>
+        <field name="binding_model_id" ref="model_esm_sma_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_json()</field>
+    </record>
+
+    <record id="action_server_esm_evp_template_export" model="ir.actions.server">
+        <field name="name">Export JSON</field>
+        <field name="model_id" ref="model_esm_evp_template"/>
+        <field name="binding_model_id" ref="model_esm_evp_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_json()</field>
+    </record>
+</odoo>

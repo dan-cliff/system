@@ -23,6 +23,7 @@
                         <list editable="bottom">
                             <field name="sequence" widget="handle"/>
                             <field name="name"/>
+                            <field name="color" widget="color"/>
                         </list>
                     </field>
                 </sheet>
@@ -36,6 +37,11 @@
         <field name="model">esm.evp.template</field>
         <field name="arch" type="xml">
             <list string="Inspection Templates">
+                <header>
+                    <button name="%(esm_measures.action_esm_template_import_wizard)d" type="action"
+                            string="Import JSON" display="always"
+                            context="{'default_template_model': 'esm.evp.template'}"/>
+                </header>
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="question_count"/>
@@ -48,6 +54,9 @@
         <field name="model">esm.evp.template</field>
         <field name="arch" type="xml">
             <form string="Inspection Template">
+                <header>
+                    <button name="action_export_json" type="object" string="Export JSON"/>
+                </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <div class="oe_title">

@@ -75,6 +75,7 @@ class EsmSmaInspection(models.Model):
 
 class EsmSmaInspectionLine(models.Model):
     _name = 'esm.sma.inspection.line'
+    _inherit = ['esm.inspection.line.mixin']
     _description = 'Smoke Alarm Inspection Check'
     _order = 'inspection_id, sequence, id'
 

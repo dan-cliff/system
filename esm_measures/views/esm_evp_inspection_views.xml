@@ -26,6 +26,8 @@
                             class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_reset_draft" type="object" string="Reset to In Progress"
                             invisible="state != 'done'"/>
+                    <button name="%(esm_measures.action_report_esm_evp_inspection)d" type="action"
+                            string="Print PDF" icon="fa-print"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -62,7 +64,7 @@
                                     <field name="value_integer"/>
                                     <field name="value_date" options="{'numeric': True}"/>
                                     <field name="value_datetime" options="{'numeric': True}"/>
-                                    <field name="value_option_id" widget="selection_badge"
+                                    <field name="value_option_id" widget="esm_colour_badge"
                                            domain="[('question_id', '=', question_id)]"
                                            options="{'no_create': True, 'no_open': True}"/>
                                     <templates>

@@ -6,6 +6,7 @@ from .esm_fak_template import QUESTION_TYPES
 
 class EsmEedTemplate(models.Model):
     _name = 'esm.eed.template'
+    _inherit = ['esm.template.mixin']
     _description = 'Emergency Egress Door Inspection Template'
     _order = 'sequence, name'
 
@@ -66,3 +67,7 @@ class EsmEedQuestionOption(models.Model):
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
     name = fields.Char(string='Value', required=True, translate=True)
+    color = fields.Char(
+        string='Colour',
+        help='Colour of this button on inspections. Leave empty for a plain button.',
+    )
