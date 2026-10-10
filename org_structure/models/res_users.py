@@ -19,6 +19,10 @@ ORG_FIELDS = (
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
+    # Users inherit their contact's Organisation fields; the user form has
+    # its own Organisation tab (home units), so no automatic section.
+    _org_form_section = False
+
     home_division_id = fields.Many2one(
         comodel_name='org.division',
         string='Home Division',
@@ -196,6 +200,16 @@ class ResUsers(models.Model):
             return None
         return Domain.OR(domains) | Domain('org_division_id', '=', False)
 
+    def _org_sync_partner(self):
+        """A user's contact sits in the user's home units (rather than those
+        of whoever created the user)."""
+        if 'org_division_id' not in self.env['res.partner']._fields:
+            return
+        for user in self:
+            user.partner_id.sudo().write({
+                f'org_{level}_id': user[f'home_{level}_id'].id for level in ORG_LEVELS
+            })
+
     # Record rules are cached per user: drop the cache when scoping changes.
     @api.model_create_multi
     def create(self, vals_list):
@@ -209,6 +223,7 @@ class ResUsers(models.Model):
                 vals['org_scope_level'] = self._org_scope_level_from_flags(False, flags)
         users = super().create(vals_list)
         self.env['res.users.org.scope']._sync_app_lines(users)
+        users._org_sync_partner()
         if org_changed:
             self.env.registry.clear_cache()
         return users
@@ -229,6 +244,8 @@ class ResUsers(models.Model):
         if 'group_ids' in vals:
             # Portal users turned internal now need their app list.
             self.env['res.users.org.scope']._sync_app_lines(self)
+        if any(f'home_{level}_id' in vals for level in ORG_LEVELS):
+            self._org_sync_partner()
         if org_changed:
             self.env.registry.clear_cache()
         return res

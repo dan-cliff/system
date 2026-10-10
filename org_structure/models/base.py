@@ -111,6 +111,7 @@ class Base(models.AbstractModel):
     def _get_view(self, view_id=None, view_type='form', **options):
         arch, view = super()._get_view(view_id, view_type, **options)
         if (view_type == 'form' and 'org_show_division' in self._fields
+                and getattr(type(self), '_org_form_section', True)
                 and not arch.xpath("//field[@name='org_division_id']")):
             self._org_add_form_section(arch)
         return arch, view

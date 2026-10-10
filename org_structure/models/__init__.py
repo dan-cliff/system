@@ -7,5 +7,6 @@ from . import base
 from . import ir_model_fields
 from . import res_users_org_scope
 from . import res_users
+from . import res_partner
 from . import ir_rule
 from . import ir_ui_menu
