@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'ESM Measures',
-    'version': '19.0.1.0.2',
+    'version': '19.0.1.1.0',
     'category': 'Human Resources/Health & Safety',
     'summary': 'Scheduled safety measure inspections: First Aid Kits, Emergency Egress Doors, Smoke Alarms and Evacuation Plans',
     'description': """
         ESM Measures
 
-        First Aid Kit, Emergency Egress Door, Smoke Alarm and Evacuation Plan
-        Inspections:
+        First Aid Kit, Emergency Egress Door, Smoke Alarm and Evacuation Plan Inspections:
+
         - Inspection templates with configurable questions
-        - Question types: Text, Text Area, Number, Integer, Date, Datetime and Buttons
-          (with your own button values)
-        - Inspections copy the template's questions so past inspections keep the
-          questions they were answered against
+        - Question types: Text, Text Area, Number, Integer, Date, Datetime and Buttons (with your own button values)
+        - Inspections copy the template's questions so past inspections keep the questions they were answered against
 
         With Asset Management installed, the ESM Measures - Assets bridge adds the
         asset being inspected (see esm_measures_asset).
@@ -36,6 +34,11 @@
         'views/res_config_settings_views.xml',
         'views/esm_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'esm_measures/static/src/inspection_checks/*',
+        ],
+    },
     'application': True,
     'installable': True,
     'license': 'LGPL-3',

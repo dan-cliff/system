@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="esm_measures.InspectionChecks">
+        <div class="o_esm_checks">
+            <div t-if="!lines.length" class="text-muted fst-italic">Pick a template to load its checks.</div>
+            <div t-foreach="lines" t-as="line" t-key="line.id" class="o_esm_check">
+                <div class="o_esm_check_question fw-bold" t-esc="line.data.name"/>
+                <div t-if="line.data.description" class="o_esm_check_description text-muted" t-esc="line.data.description"/>
+                <t t-set="answerInfo" t-value="answerFieldInfo(line)"/>
+                <div t-if="answerInfo" class="o_esm_check_answer">
+                    <Field name="answerInfo.name" record="line" fieldInfo="answerInfo" class="'o_field_highlight'"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

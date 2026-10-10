@@ -46,29 +46,31 @@
                     </group>
                     <notebook>
                         <page string="Checks" name="checks">
-                            <field name="line_ids" readonly="state == 'done'">
-                                <list editable="bottom" create="0" delete="0">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="state" column_invisible="True"/>
-                                    <field name="question_id" column_invisible="True"/>
-                                    <field name="question_type" column_invisible="True"/>
-                                    <field name="name" readonly="1"/>
-                                    <field name="description" readonly="1" optional="show"/>
-                                    <field name="value_text" string="Answer"
-                                           invisible="question_type != 'text'"/>
-                                    <field name="value_text_area" string="Answer" widget="text"
-                                           invisible="question_type != 'text_area'"/>
-                                    <field name="value_number" string="Answer"
-                                           invisible="question_type != 'number'"/>
-                                    <field name="value_integer" string="Answer"
-                                           invisible="question_type != 'integer'"/>
-                                    <field name="value_date" string="Answer" options="{'numeric': True}"
-                                           invisible="question_type != 'date'"/>
-                                    <field name="value_datetime" string="Answer" options="{'numeric': True}"
-                                           invisible="question_type != 'datetime'"/>
-                                    <field name="value_option_id" string="Answer" widget="selection_badge"
-                                           invisible="question_type != 'buttons'"/>
-                                </list>
+                            <field name="line_ids" widget="esm_inspection_checks" class="o_field_highlight"
+                                   readonly="state == 'done'">
+                                <!-- Rendered by the widget: question, description, then the answer
+                                     (o_field_highlight here and on each answer keeps the answer lines visible). -->
+                                <kanban limit="1000">
+                                    <field name="sequence"/>
+                                    <field name="question_id"/>
+                                    <field name="question_type"/>
+                                    <field name="name"/>
+                                    <field name="description"/>
+                                    <field name="value_text"/>
+                                    <field name="value_text_area"/>
+                                    <field name="value_number"/>
+                                    <field name="value_integer"/>
+                                    <field name="value_date" options="{'numeric': True}"/>
+                                    <field name="value_datetime" options="{'numeric': True}"/>
+                                    <field name="value_option_id" widget="selection_badge"
+                                           domain="[('question_id', '=', question_id)]"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <templates>
+                                        <t t-name="card">
+                                            <field name="name"/>
+                                        </t>
+                                    </templates>
+                                </kanban>
                             </field>
                         </page>
                         <page string="Notes" name="notes">
