@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.checklists</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="92"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Checklists" id="checklists" string="Checklists" name="checklists"
+                     groups="checklists.group_checklist_admin">
+                    <block title="Checklists" id="checklists_block">
+                        <setting id="checklist_default_template" string="Default Template"
+                                 help="New Checklists start from this template.">
+                            <field name="checklist_default_template_id" options="{'no_create': True}"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="checklists_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'checklists', 'bin_size': False}</field>
+    </record>
+</odoo>

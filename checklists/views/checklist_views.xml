@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="checklist_view_list" model="ir.ui.view">
+        <field name="name">checklist.checklist.list</field>
+        <field name="model">checklist.checklist</field>
+        <field name="arch" type="xml">
+            <list string="Checklists" decoration-danger="is_overdue">
+                <field name="is_overdue" column_invisible="1"/>
+                <field name="name"/>
+                <field name="checklist_date" options="{'numeric': True}"/>
+                <field name="date_due" options="{'numeric': True}"/>
+                <field name="template_id"/>
+                <field name="group_ids" widget="many2many_tags" optional="hide"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="checklist_view_form" model="ir.ui.view">
+        <field name="name">checklist.checklist.form</field>
+        <field name="model">checklist.checklist</field>
+        <field name="arch" type="xml">
+            <form string="Checklist">
+                <header>
+                    <button name="action_complete" type="object" string="Mark Completed"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_reset_draft" type="object" string="Reset to In Progress"
+                            invisible="state != 'done'"/>
+                    <button name="%(checklists.action_report_checklist)d" type="action"
+                            string="Print PDF" icon="fa-print"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group name="checklist">
+                            <field name="template_id" readonly="state == 'done'"
+                                   options="{'no_create': True}"/>
+                            <field name="group_ids" widget="many2many_tags" invisible="not group_ids"/>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   readonly="state == 'done'" options="{'no_create': True}"/>
+                        </group>
+                        <group name="checklist_details">
+                            <field name="checklist_date" options="{'numeric': True}"
+                                   readonly="state == 'done'"/>
+                            <field name="is_overdue" invisible="1"/>
+                            <field name="date_due" options="{'numeric': True}"
+                                   readonly="state == 'done'"
+                                   decoration-danger="is_overdue"/>
+                            <field name="user_id" widget="many2one_avatar_user"
+                                   readonly="state == 'done'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Checks" name="checks">
+                            <field name="line_ids" widget="checklist_checks" class="o_field_highlight"
+                                   readonly="state == 'done'">
+                                <!-- Rendered by the widget: question, description, then the answer
+                                     (o_field_highlight here and on each answer keeps the answer lines visible). -->
+                                <kanban limit="1000">
+                                    <field name="sequence"/>
+                                    <field name="question_id"/>
+                                    <field name="question_type"/>
+                                    <field name="name"/>
+                                    <field name="description"/>
+                                    <field name="value_text"/>
+                                    <field name="value_text_area"/>
+                                    <field name="value_number"/>
+                                    <field name="value_integer"/>
+                                    <field name="value_date" options="{'numeric': True}"/>
+                                    <field name="value_datetime" options="{'numeric': True}"/>
+                                    <field name="value_option_id" widget="checklist_colour_badge"
+                                           domain="[('question_id', '=', question_id)]"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <templates>
+                                        <t t-name="card">
+                                            <field name="name"/>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Anything else found while filling in the checklist..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="checklist_view_search" model="ir.ui.view">
+        <field name="name">checklist.checklist.search</field>
+        <field name="model">checklist.checklist</field>
+        <field name="arch" type="xml">
+            <search string="Checklists">
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="group_ids"/>
+                <field name="user_id"/>
+                <filter name="my_checklists" string="My Checklists" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="draft" string="In Progress" domain="[('state', '=', 'draft')]"/>
+                <filter name="done" string="Completed" domain="[('state', '=', 'done')]"/>
+                <filter name="overdue" string="Overdue" domain="[('is_overdue', '=', True)]"/>
+                <separator/>
+                <filter name="checklist_date" string="Date" date="checklist_date"/>
+                <filter name="date_due" string="Due Date" date="date_due"/>
+                <group>
+                    <filter name="group_template" string="Template" context="{'group_by': 'template_id'}"/>
+                    <filter name="group_user" string="Completed By" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_checklist" model="ir.actions.act_window">
+        <field name="name">Checklists</field>
+        <field name="res_model">checklist.checklist</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Start a Checklist</p>
+            <p>Pick a template and work through its checks.</p>
+        </field>
+    </record>
+
+</odoo>

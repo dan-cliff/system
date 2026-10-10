@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="checklist_template_import_wizard_view_form" model="ir.ui.view">
+        <field name="name">checklist.template.import.wizard.form</field>
+        <field name="model">checklist.template.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Templates">
+                <div invisible="template_id">
+                    <p>Choose a template file exported (Export JSON) from Checklists on this or another
+                       database: a .json file, or a .zip of them.</p>
+                    <p class="text-muted">A template already in this database (same hidden GUID) is updated
+                       from the file, as are its questions and button values; anything else is added.</p>
+                </div>
+                <div invisible="not template_id">
+                    <p>Choose a .json file holding one template. Its questions are imported into this template:
+                       a question already on it (same hidden GUID) is updated from the file, any other is added.
+                       Questions that aren't in the file are left as they are.</p>
+                </div>
+                <group>
+                    <field name="template_id" invisible="not template_id"/>
+                    <field name="file" filename="filename"/>
+                    <field name="filename" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_checklist_template_import_wizard" model="ir.actions.act_window">
+        <field name="name">Import Templates</field>
+        <field name="res_model">checklist.template.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- "Export JSON" in the templates list's Actions menu: one template
+         downloads as .json, several as a .zip of them. -->
+    <record id="action_server_checklist_template_export" model="ir.actions.server">
+        <field name="name">Export JSON</field>
+        <field name="model_id" ref="model_checklist_template"/>
+        <field name="binding_model_id" ref="model_checklist_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_json()</field>
+    </record>
+</odoo>
