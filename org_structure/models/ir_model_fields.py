@@ -17,10 +17,16 @@ _logger = logging.getLogger(__name__)
 # Menus whose models are option lists / setup, not primary records.
 CONFIG_MENU_NAMES = {'configuration', 'settings'}
 
-# Technical and identity models are never scoped. res.partner in particular:
-# res.users inherits it, so scoping partners could hide users from
-# themselves and lock people out.
+# Technical and identity models are never scoped.
 EXCLUDED_PREFIXES = ('ir.', 'res.', 'mail.', 'bus.', 'base.', 'base_', 'web.', 'web_', 'org.')
+
+# Scoped whatever their menus say. Contacts: users' own contacts, users'
+# contacts in general and company contacts stay visible (see ir_rule.py),
+# because res.users inherits res.partner and hiding them would hide users.
+ALWAYS_SCOPED = ('res.partner',)
+
+REQUIRED_TABLES = ('ir_ui_menu', 'ir_act_window', 'ir_act_server', 'org_division',
+                   'org_business_unit', 'org_location', 'org_department')
 
 
 def _primary_models(env):
@@ -31,37 +37,42 @@ def _primary_models(env):
     if cached and cached[0] == key:
         return cached[1]
     cr = env.cr
+    # Nothing to do until org_structure's own tables exist (i.e. mid-install);
+    # don't cache that, the tables appear later in the same setup.
+    cr.execute(
+        "SELECT count(*) FROM information_schema.tables"
+        " WHERE table_schema = current_schema AND table_name = ANY(%s)",
+        [list(REQUIRED_TABLES)],
+    )
+    if cr.fetchone()[0] < len(REQUIRED_TABLES):
+        return None
     primary = set()
-    # Nothing to do until org_structure's own tables exist (i.e. mid-install).
-    tables = ('ir_ui_menu', 'ir_act_window', 'org_division', 'org_business_unit',
-              'org_location', 'org_department')
-    if all(sql.table_exists(cr, table) for table in tables):
-        cr.execute("SELECT id, parent_id, name->>'en_US' FROM ir_ui_menu WHERE active")
-        menus = {mid: (parent_id, (name or '').strip().lower()) for mid, parent_id, name in cr.fetchall()}
-        # Models behind window actions, and behind server actions (some apps,
-        # e.g. Inventory's Receipts, open their lists through one).
-        cr.execute("""
-            SELECT m.id, a.res_model
-              FROM ir_ui_menu m
-              JOIN ir_act_window a ON m.action = 'ir.actions.act_window,' || a.id
-             WHERE m.active AND a.res_model IS NOT NULL
-             UNION
-            SELECT m.id, im.model
-              FROM ir_ui_menu m
-              JOIN ir_act_server s ON m.action = 'ir.actions.server,' || s.id
-              JOIN ir_model im ON im.id = s.model_id
-             WHERE m.active
-        """)
-        for menu_id, res_model in cr.fetchall():
-            node, under_config = menu_id, False
-            while node:
-                parent_id, name = menus.get(node, (None, ''))
-                if name in CONFIG_MENU_NAMES:
-                    under_config = True
-                    break
-                node = parent_id
-            if not under_config:
-                primary.add(res_model)
+    cr.execute("SELECT id, parent_id, name->>'en_US' FROM ir_ui_menu WHERE active")
+    menus = {mid: (parent_id, (name or '').strip().lower()) for mid, parent_id, name in cr.fetchall()}
+    # Models behind window actions, and behind server actions (some apps,
+    # e.g. Inventory's Receipts, open their lists through one).
+    cr.execute("""
+        SELECT m.id, a.res_model
+          FROM ir_ui_menu m
+          JOIN ir_act_window a ON m.action = 'ir.actions.act_window,' || a.id
+         WHERE m.active AND a.res_model IS NOT NULL
+         UNION
+        SELECT m.id, im.model
+          FROM ir_ui_menu m
+          JOIN ir_act_server s ON m.action = 'ir.actions.server,' || s.id
+          JOIN ir_model im ON im.id = s.model_id
+         WHERE m.active
+    """)
+    for menu_id, res_model in cr.fetchall():
+        node, under_config = menu_id, False
+        while node:
+            parent_id, name = menus.get(node, (None, ''))
+            if name in CONFIG_MENU_NAMES:
+                under_config = True
+                break
+            node = parent_id
+        if not under_config:
+            primary.add(res_model)
     registry._org_primary_models = (key, primary)
     registry._org_parent_fields = None  # parents depend on which models are scoped
     return primary
@@ -99,14 +110,17 @@ def _inject_org_fields(env, model_cls):
         del model_cls._org_dynamic
         del model_cls._org_scoped
 
-    if not _is_candidate(model_cls) or any(name in model_cls._fields for name in ORG_FIELD_NAMES):
+    if any(name in model_cls._fields for name in ORG_FIELD_NAMES):
         return
     primary = _primary_models(env)
-    if model_cls._name not in primary:
+    if primary is None:
         return
-    # A model that _inherits a primary model gets the fields from it.
-    if any(parent in primary for parent in model_cls._inherits):
-        return
+    if model_cls._name not in ALWAYS_SCOPED:
+        if not _is_candidate(model_cls) or model_cls._name not in primary:
+            return
+        # A model that _inherits a primary model gets the fields from it.
+        if any(parent in primary or parent in ALWAYS_SCOPED for parent in model_cls._inherits):
+            return
 
     new_fields = org_scope_fields()
     for name, field in new_fields.items():

@@ -79,6 +79,11 @@ models are not primary). This applies to core Odoo apps and our own modules.
   `_org_parent_field = '<field>'` on the model (or `False` to turn it off).
 - Record scoping (users' "Scope all apps" and App Specific Scoping) applies
   to these models automatically; records with no Division stay visible.
-- Never scoped: technical and identity models (`ir.*`, `res.*` including
-  `res.partner`/`res.users`, `mail.*`, `bus.*`, `org.*`), transient/abstract
-  models and SQL views.
+- Contacts (`res.partner`) are scoped too, whatever the menus. A contact
+  under a company inherits the company's units (`parent_id`). Always
+  visible to everyone: the user's own contact, every user's contact (users
+  are built on contacts, so hiding one hides the user) and company
+  contacts. A user's contact follows that user's home units.
+- Never scoped: other technical and identity models (`ir.*`, `res.*` such
+  as `res.users`/`res.company`, `mail.*`, `bus.*`, `org.*`),
+  transient/abstract models and SQL views.
