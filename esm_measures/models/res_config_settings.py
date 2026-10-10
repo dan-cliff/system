@@ -15,3 +15,13 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='esm_measures.eed_default_template_id',
         help='Template new Emergency Egress Door Inspections start from.',
     )
+    esm_sma_default_template_id = fields.Many2one(
+        'esm.sma.template', string='Default Smoke Alarm Template',
+        config_parameter='esm_measures.sma_default_template_id',
+        help='Template new Smoke Alarm Inspections start from.',
+    )
+    esm_evp_default_template_id = fields.Many2one(
+        'esm.evp.template', string='Default Evacuation Plan Template',
+        config_parameter='esm_measures.evp_default_template_id',
+        help='Template new Evacuation Plan Inspections start from.',
+    )

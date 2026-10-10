@@ -21,6 +21,18 @@
                             <field name="esm_eed_default_template_id" options="{'no_create': True}"/>
                         </setting>
                     </block>
+                    <block title="Smoke Alarm Inspections" id="esm_sma_inspections">
+                        <setting id="esm_sma_default_template" string="Default Template"
+                                 help="New Smoke Alarm Inspections start from this template.">
+                            <field name="esm_sma_default_template_id" options="{'no_create': True}"/>
+                        </setting>
+                    </block>
+                    <block title="Evacuation Plan Inspections" id="esm_evp_inspections">
+                        <setting id="esm_evp_default_template" string="Default Template"
+                                 help="New Evacuation Plan Inspections start from this template.">
+                            <field name="esm_evp_default_template_id" options="{'no_create': True}"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
