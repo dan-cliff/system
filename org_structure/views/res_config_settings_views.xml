@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_org_structure" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.org.structure</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='companies_setting_container']" position="after">
+                <block title="Organisational Management" name="org_structure_settings">
+                    <setting id="org_level_division" string="Divisions"
+                             help="The top level, within a company.">
+                        <field name="org_division_enabled"/>
+                        <div class="content-group mt-2" invisible="not org_division_enabled">
+                            <div class="row">
+                                <label for="org_division_label" string="Label" class="col-lg-4 o_light_label"/>
+                                <field name="org_division_label" placeholder="Division"/>
+                            </div>
+                            <div class="row">
+                                <label for="org_division_plural" string="Plural label" class="col-lg-4 o_light_label"/>
+                                <field name="org_division_plural" placeholder="Divisions"/>
+                            </div>
+                            <button name="%(org_structure.action_org_division)d" type="action"
+                                    string="Divisions" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="org_level_business_unit" string="Business Units"
+                             help="Sit under a Division.">
+                        <field name="org_business_unit_enabled"/>
+                        <div class="content-group mt-2" invisible="not org_business_unit_enabled">
+                            <div class="row">
+                                <label for="org_business_unit_label" string="Label" class="col-lg-4 o_light_label"/>
+                                <field name="org_business_unit_label" placeholder="Business Unit"/>
+                            </div>
+                            <div class="row">
+                                <label for="org_business_unit_plural" string="Plural label" class="col-lg-4 o_light_label"/>
+                                <field name="org_business_unit_plural" placeholder="Business Units"/>
+                            </div>
+                            <div class="row">
+                                <label for="org_business_unit_parent" string="Sits under" class="col-lg-4 o_light_label"/>
+                                <field name="org_business_unit_parent" required="org_business_unit_enabled"/>
+                            </div>
+                            <button name="%(org_structure.action_org_business_unit)d" type="action"
+                                    string="Business Units" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="org_level_location" string="Locations"
+                             help="Sit under a Business Unit or straight under a Division.">
+                        <field name="org_location_enabled"/>
+                        <div class="content-group mt-2" invisible="not org_location_enabled">
+                            <div class="row">
+                                <label for="org_location_label" string="Label" class="col-lg-4 o_light_label"/>
+                                <field name="org_location_label" placeholder="Location"/>
+                            </div>
+                            <div class="row">
+                                <label for="org_location_plural" string="Plural label" class="col-lg-4 o_light_label"/>
+                                <field name="org_location_plural" placeholder="Locations"/>
+                            </div>
+                            <div class="row">
+                                <label for="org_location_parent" string="Sits under" class="col-lg-4 o_light_label"/>
+                                <field name="org_location_parent" required="org_location_enabled"/>
+                            </div>
+                            <button name="%(org_structure.action_org_location)d" type="action"
+                                    string="Locations" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="org_level_department" string="Departments"
+                             help="Sit under a Location, a Business Unit or a Division.">
+                        <field name="org_department_enabled"/>
+                        <div class="content-group mt-2" invisible="not org_department_enabled">
+                            <div class="row">
+                                <label for="org_department_label" string="Label" class="col-lg-4 o_light_label"/>
+                                <field name="org_department_label" placeholder="Department"/>
+                            </div>
+                            <div class="row">
+                                <label for="org_department_plural" string="Plural label" class="col-lg-4 o_light_label"/>
+                                <field name="org_department_plural" placeholder="Departments"/>
+                            </div>
+                            <div class="row">
+                                <label for="org_department_parent" string="Sits under" class="col-lg-4 o_light_label"/>
+                                <field name="org_department_parent" required="org_department_enabled"/>
+                            </div>
+                            <button name="%(org_structure.action_org_department)d" type="action"
+                                    string="Departments" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="org_levels_note">
+                        <div class="text-muted">
+                            A disabled level is hidden everywhere, and the levels below it sit
+                            under the next enabled level up. Labels change what everyone sees on
+                            forms, lists and filters; the underlying fields keep their names.
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -34,7 +34,7 @@
                         In this app, the user only sees records linked to the org units below.
                         Levels add up: records under any selected Division, Business Unit,
                         Location or Department are visible, even when those units don't sit
-                        under each other. Records with no Division stay visible. Leave every
+                        under each other. Records with no organisation units stay visible. Leave every
                         level empty to leave the app unscoped.
                     </div>
                     <group invisible="scoped_all_apps">
@@ -64,7 +64,7 @@
                     <field name="org_scope_level" invisible="1"/>
                     <group string="Home Organisation">
                         <label for="home_division_id"/>
-                        <div class="row g-0 align-items-center w-100">
+                        <div class="row g-0 align-items-center w-100 o_org_level_division">
                             <div class="col-6 pe-3">
                                 <field name="home_division_id" options="{'no_create': True}"/>
                             </div>
@@ -74,7 +74,7 @@
                             </div>
                         </div>
                         <label for="home_business_unit_id"/>
-                        <div class="row g-0 align-items-center w-100">
+                        <div class="row g-0 align-items-center w-100 o_org_level_business_unit">
                             <div class="col-6 pe-3">
                                 <field name="home_business_unit_id" options="{'no_create': True}"/>
                             </div>
@@ -84,7 +84,7 @@
                             </div>
                         </div>
                         <label for="home_location_id"/>
-                        <div class="row g-0 align-items-center w-100">
+                        <div class="row g-0 align-items-center w-100 o_org_level_location">
                             <div class="col-6 pe-3">
                                 <field name="home_location_id" options="{'no_create': True}"/>
                             </div>
@@ -94,7 +94,7 @@
                             </div>
                         </div>
                         <label for="home_department_id"/>
-                        <div class="row g-0 align-items-center w-100">
+                        <div class="row g-0 align-items-center w-100 o_org_level_department">
                             <div class="col-6 pe-3">
                                 <field name="home_department_id" options="{'no_create': True}"/>
                             </div>

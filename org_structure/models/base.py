@@ -4,6 +4,26 @@ from odoo import api, models
 
 from .org_scope_mixin import ORG_FIELD_NAMES, ORG_LEVEL_MODELS, ORG_LEVELS
 
+ORG_UNIT_MODELS = set(ORG_LEVEL_MODELS.values())
+# Models whose views and fields are all about the organisation structure.
+ORG_VIEW_MODELS = ORG_UNIT_MODELS | {'res.users.org.scope'}
+# Fields of res.users / res.config.settings named after the levels.
+ORG_FIELD_PREFIXES = ('org_', 'home_')
+
+
+def _org_node_level(node):
+    """The level a view node is about, from its field name, its label's
+    target, its name or an ``o_org_level_<level>`` class; else None."""
+    name = node.get('name') or node.get('for') or ''
+    for level in ORG_LEVELS:
+        if name in (f'org_{level}_id', f'home_{level}_id', f'org_scope_{level}',
+                    f'effective_{level}_ids', f'{level}_ids', f'{level}_id',
+                    f'{level}_count'):
+            return level
+        if f'o_org_level_{level}' in (node.get('class') or '').split():
+            return level
+    return None
+
 
 class Base(models.AbstractModel):
     _inherit = 'base'
@@ -57,7 +77,7 @@ class Base(models.AbstractModel):
         """The logged-in user's Home Division / Business Unit / Location /
         Department, or nothing when no home is set."""
         user = self.env.user
-        if not user.home_division_id:
+        if not any(user[f'home_{level}_id'] for level in ORG_LEVELS):
             return {}
         return {f'org_{level}_id': user[f'home_{level}_id'].id for level in ORG_LEVELS}
 
@@ -106,22 +126,86 @@ class Base(models.AbstractModel):
                 vals[name] = unit[f'{level}_id'].id if level in above else False
 
     # Forms of Organisation-aware models get an Organisation section, shown
-    # only for the levels that have units.
+    # only for the levels that have units. Every view then follows Settings ›
+    # Organisational Management: disabled levels are hidden and the levels'
+    # labels replace the default names.
     @api.model
     def _get_view(self, view_id=None, view_type='form', **options):
         arch, view = super()._get_view(view_id, view_type, **options)
-        if (view_type == 'form' and 'org_show_division' in self._fields
+        if (view_type == 'form' and 'org_division_id' in self._fields
+                and 'org_show_division' in self._fields
                 and getattr(type(self), '_org_form_section', True)
                 and not arch.xpath("//field[@name='org_division_id']")):
             self._org_add_form_section(arch)
+        self._org_adapt_arch(arch)
         return arch, view
+
+    @api.model
+    def _org_adapt_arch(self, arch):
+        config = self.env['org.config']
+        disabled = {level for level in ORG_LEVELS if not config._is_enabled(level)}
+        # Anywhere: the Organisation fields of disabled levels.
+        for level in disabled:
+            for node in arch.xpath(f"//field[@name='org_{level}_id']"):
+                self._org_hide_node(node)
+        # Organisation-specific parts: hide every disabled-level node, relabel.
+        if self._name in ORG_VIEW_MODELS:
+            parts = [arch]
+        else:
+            parts = arch.xpath(
+                "//group[@name='org_structure'] | //page[@name='org_structure']"
+                " | //block[@name='org_structure_settings']")
+        for part in parts:
+            hide = part.tag != 'block'  # the Settings block shows every level
+            for node in part.iter(etree.Element):
+                if hide and _org_node_level(node) in disabled:
+                    self._org_hide_node(node)
+                for attr in ('string', 'help', 'placeholder', 'title', 'confirm'):
+                    if node.get(attr):
+                        node.set(attr, config._relabel(node.get(attr)))
+                if node.text:
+                    node.text = config._relabel(node.text)
+                if node.tail:
+                    node.tail = config._relabel(node.tail)
+
+    @api.model
+    def _org_hide_node(self, node):
+        parent = node.getparent()
+        if node.tag == 'field' and parent is not None and parent.tag == 'list':
+            node.set('column_invisible', '1')
+        elif parent is not None and parent.tag == 'button':
+            parent.set('invisible', '1')
+        else:
+            node.set('invisible', '1')
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        res = super().fields_get(allfields, attributes)
+        config = self.env['org.config']
+        if not config._relabel_rules():
+            return res
+        whole_model = self._name in ORG_VIEW_MODELS
+        prefixed = self._name in ('res.users', 'res.config.settings')
+        for name, description in res.items():
+            if not (whole_model or name in ORG_FIELD_NAMES
+                    or (prefixed and name.startswith(ORG_FIELD_PREFIXES))
+                    or description.get('relation') in ORG_UNIT_MODELS):
+                continue
+            for key in ('string', 'help'):
+                if description.get(key):
+                    description[key] = config._relabel(description[key])
+            if description.get('selection') and isinstance(description['selection'], list):
+                description['selection'] = [
+                    (value, config._relabel(label)) for value, label in description['selection']
+                ]
+        return res
 
     @api.model
     def _org_add_form_section(self, arch):
         group = etree.Element('group', {
             'name': 'org_structure',
             'string': self.env._('Organisation'),
-            'invisible': 'not org_show_division',
+            'invisible': ' and '.join(f'not org_show_{level}' for level in ORG_LEVELS),
         })
         for level in ORG_LEVELS:
             etree.SubElement(group, 'field', {'name': f'org_show_{level}', 'invisible': '1'})

@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 from odoo.fields import Domain
 
+from .org_scope_mixin import OrgScopeMixin
+
 # Top-level menus shown as apps on the home screen.
 APP_MENU_DOMAIN = [('parent_id', '=', False), ('web_icon', '!=', False)]
 
@@ -60,6 +62,12 @@ class ResUsersOrgScope(models.Model):
         column2='department_id',
         string='Departments',
     )
+    org_show_division = fields.Boolean(compute='_compute_org_show')
+    org_show_business_unit = fields.Boolean(compute='_compute_org_show')
+    org_show_location = fields.Boolean(compute='_compute_org_show')
+    org_show_department = fields.Boolean(compute='_compute_org_show')
+    _compute_org_show = OrgScopeMixin._compute_org_show
+
     # What is actually enforced for this app: the user's "scope all apps"
     # unit when one is ticked (it overrides this line), else this line's units.
     scoped_all_apps = fields.Boolean(compute='_compute_effective_units')

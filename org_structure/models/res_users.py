@@ -2,7 +2,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.fields import Domain
 
-from .org_scope_mixin import ORG_LEVELS
+from .org_scope_mixin import ORG_LEVELS, OrgScopeMixin
 
 LEVEL_LABELS = {
     'division': 'Division',
@@ -22,6 +22,13 @@ class ResUsers(models.Model):
     # Users inherit their contact's Organisation fields; the user form has
     # its own Organisation tab (home units), so no automatic section.
     _org_form_section = False
+
+    # Which levels the Organisation tab shows (enabled levels with units).
+    org_show_division = fields.Boolean(compute='_compute_org_show')
+    org_show_business_unit = fields.Boolean(compute='_compute_org_show')
+    org_show_location = fields.Boolean(compute='_compute_org_show')
+    org_show_department = fields.Boolean(compute='_compute_org_show')
+    _compute_org_show = OrgScopeMixin._compute_org_show
 
     home_division_id = fields.Many2one(
         comodel_name='org.division',
@@ -116,40 +123,37 @@ class ResUsers(models.Model):
     # changing a higher level clears the levels below that don't belong.
     # ------------------------------------------------------------------
 
+    def _org_home_changed(self, level):
+        """``level``'s home unit changed: fill the levels above it from the
+        unit's own links and clear lower home units that don't fit."""
+        for user in self:
+            unit = user[f'home_{level}_id']
+            index = ORG_LEVELS.index(level)
+            if unit:
+                for higher in ORG_LEVELS[:index]:
+                    user[f'home_{higher}_id'] = unit[f'{higher}_id']
+            for lower in ORG_LEVELS[index + 1:]:
+                lower_unit = user[f'home_{lower}_id']
+                ancestor = lower_unit[f'{level}_id'] if lower_unit else False
+                if ancestor and ancestor != unit:
+                    user[f'home_{lower}_id'] = False
+            user._clear_unset_org_scope_level()
+
     @api.onchange('home_division_id')
     def _onchange_home_division_id(self):
-        for user in self:
-            if user.home_business_unit_id.division_id != user.home_division_id:
-                user.home_business_unit_id = False
-            user._clear_unset_org_scope_level()
+        self._org_home_changed('division')
 
     @api.onchange('home_business_unit_id')
     def _onchange_home_business_unit_id(self):
-        for user in self:
-            if user.home_business_unit_id:
-                user.home_division_id = user.home_business_unit_id.division_id
-            if user.home_location_id.business_unit_id != user.home_business_unit_id:
-                user.home_location_id = False
-            user._clear_unset_org_scope_level()
+        self._org_home_changed('business_unit')
 
     @api.onchange('home_location_id')
     def _onchange_home_location_id(self):
-        for user in self:
-            if user.home_location_id:
-                user.home_business_unit_id = user.home_location_id.business_unit_id
-                user.home_division_id = user.home_location_id.division_id
-            if user.home_department_id.location_id != user.home_location_id:
-                user.home_department_id = False
-            user._clear_unset_org_scope_level()
+        self._org_home_changed('location')
 
     @api.onchange('home_department_id')
     def _onchange_home_department_id(self):
-        for user in self:
-            if user.home_department_id:
-                user.home_location_id = user.home_department_id.location_id
-                user.home_business_unit_id = user.home_department_id.business_unit_id
-                user.home_division_id = user.home_department_id.division_id
-            user._clear_unset_org_scope_level()
+        self._org_home_changed('department')
 
     def _clear_unset_org_scope_level(self):
         """Untick 'scope all apps' when the home unit for that level is empty."""
@@ -160,19 +164,24 @@ class ResUsers(models.Model):
     @api.constrains('home_division_id', 'home_business_unit_id',
                     'home_location_id', 'home_department_id', 'org_scope_level')
     def _check_home_org_units(self):
+        config = self.env['org.config']
         for user in self:
-            bu, loc, dept = user.home_business_unit_id, user.home_location_id, user.home_department_id
-            if (bu and bu.division_id != user.home_division_id
-                    or loc and loc.business_unit_id != bu
-                    or dept and dept.location_id != loc):
-                raise ValidationError(_(
-                    "%(user)s: the Home Department, Location, Business Unit and Division "
-                    "must sit under each other.", user=user.display_name))
+            for index, level in enumerate(ORG_LEVELS):
+                unit = user[f'home_{level}_id']
+                if not unit:
+                    continue
+                for higher in ORG_LEVELS[:index]:
+                    ancestor = unit[f'{higher}_id']
+                    if ancestor and user[f'home_{higher}_id'] and ancestor != user[f'home_{higher}_id']:
+                        raise ValidationError(_(
+                            "%(user)s: the Home %(lower)s doesn't sit under the Home %(higher)s.",
+                            user=user.display_name, lower=config._label(level),
+                            higher=config._label(higher)))
             if user.org_scope_level and not user[f'home_{user.org_scope_level}_id']:
                 raise ValidationError(_(
                     "%(user)s: set the Home %(level)s before scoping all apps to it.",
                     user=user.display_name,
-                    level=LEVEL_LABELS[user.org_scope_level]))
+                    level=config._label(user.org_scope_level)))
 
     # ------------------------------------------------------------------
     # Record scoping
@@ -184,7 +193,7 @@ class ResUsers(models.Model):
         The "scope all apps" level, when ticked, applies to every model and
         overrides App Specific Scoping. Otherwise App Specific Scoping for
         any app that opens the model applies (several matching apps add up).
-        Records with no Division stay visible to everyone.
+        Records with no Organisation units at all stay visible to everyone.
         """
         self.ensure_one()
         domains = []
@@ -198,7 +207,8 @@ class ResUsers(models.Model):
                     domains.append(line_domain)
         if not domains:
             return None
-        return Domain.OR(domains) | Domain('org_division_id', '=', False)
+        unassigned = Domain.AND(Domain(f'org_{level}_id', '=', False) for level in ORG_LEVELS)
+        return Domain.OR(domains) | unassigned
 
     def _org_sync_partner(self):
         """A user's contact sits in the user's home units (rather than those

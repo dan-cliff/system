@@ -58,14 +58,31 @@ models are not primary). This applies to core Odoo apps and our own modules.
   app's Configuration menu (see Choice fields) so they are left alone.
 - A model that isn't opened from a menu but should still carry the fields:
   depend on `org_structure` and inherit `org.scope.mixin`.
+- Settings › **Organisational Management** (`org.config`, stored as
+  system parameters) can disable levels, relabel them (singular and plural)
+  and choose which higher level each level sits under. Never hard-code a
+  level's name or assume all four levels or the default parents:
+  - read the configuration through `env['org.config']` (`_is_enabled`,
+    `_label`, `_parent_level`, `_relabel`);
+  - labels are applied on the fly to field strings (`fields_get`) and to
+    the Organisation parts of views, so use the default names
+    ("Division", "Business Units", …) in field strings and view text and
+    let the relabelling replace them; the field names never change;
+  - a disabled level's fields are hidden automatically; in your own views
+    tag any wrapper of a level's fields with class `o_org_level_<level>`
+    so it is hidden too.
 - Forms: an **Organisation** section with the four fields is added
   automatically (before the notebook, or at the end of the sheet). Each
-  field only shows when its level has units, and the section only shows
-  once Divisions exist. To place it yourself, add the four fields in a
-  `<group string="Organisation">` with `invisible="not org_show_<level>"`
-  on each; the automatic section is then skipped.
-- Picking a lower level fills in the levels above it; changing a higher
-  level clears lower levels that don't belong to it.
+  field only shows when its level is enabled and has units, and the
+  section only shows when at least one level does. To place it yourself,
+  add the four fields in a `<group string="Organisation">` with
+  `invisible="not org_show_<level>"` on each; the automatic section is
+  then skipped.
+- Org units store a link to every level above them; the configured parent
+  is the editable, required one and the levels above it are derived.
+  Picking a lower level on a record fills in the levels above it from the
+  unit's links; changing a higher level clears lower levels that don't
+  belong to it.
 - New records default to the logged-in user's Home Division / Business
   Unit / Location / Department, unless they come from a parent (below) or
   are given their own values. When only some levels are given, the missing
@@ -78,7 +95,8 @@ models are not primary). This applies to core Odoo apps and our own modules.
   the inverse of the parent's One2many. When that isn't the right field, set
   `_org_parent_field = '<field>'` on the model (or `False` to turn it off).
 - Record scoping (users' "Scope all apps" and App Specific Scoping) applies
-  to these models automatically; records with no Division stay visible.
+  to these models automatically; records with no Organisation units at all
+  stay visible.
 - Contacts (`res.partner`) are scoped too, whatever the menus. A contact
   under a company inherits the company's units (`parent_id`). Always
   visible to everyone: the user's own contact, every user's contact (users

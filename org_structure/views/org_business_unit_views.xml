@@ -34,8 +34,12 @@
                     </div>
                     <group>
                         <group>
-                            <field name="division_id" options="{'no_create': True}"/>
-                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="division_id" options="{'no_create': True}"
+                                   invisible="org_parent_level != 'division'"
+                                   required="org_parent_level == 'division'"
+                                   readonly="org_parent_level != 'division'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="org_parent_level"/>
+                            <field name="org_parent_level" invisible="1"/>
                         </group>
                         <group>
                             <field name="code"/>
