@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class EsmSmaInspection(models.Model):
@@ -21,8 +21,10 @@ class EsmSmaInspection(models.Model):
         'asset.subtype', compute='_compute_esm_sma_asset_filter',
     )
 
+    @api.depends('company_id')
     def _compute_esm_sma_asset_filter(self):
-        company = self.env.company
+        # The inspection's company decides which asset types are listed.
         for inspection in self:
+            company = inspection.company_id or self.env.company
             inspection.esm_sma_asset_type_ids = company.esm_sma_asset_type_ids
             inspection.esm_sma_asset_subtype_ids = company.esm_sma_asset_subtype_ids
