@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_esm_root"
+              name="ESM Measures"
+              sequence="83"
+              web_icon="esm_measures,static/description/icon.png"
+              groups="esm_measures.group_esm_user"/>
+
+    <menuitem id="menu_esm_fak_inspection"
+              name="First Aid Kit Inspections"
+              parent="menu_esm_root"
+              action="action_esm_fak_inspection"
+              sequence="10"/>
+
+    <menuitem id="menu_esm_eed_inspection"
+              name="Emergency Egress Door Inspections"
+              parent="menu_esm_root"
+              action="action_esm_eed_inspection"
+              sequence="20"/>
+
+    <menuitem id="menu_esm_sma_inspection"
+              name="Smoke Alarm Inspections"
+              parent="menu_esm_root"
+              action="action_esm_sma_inspection"
+              sequence="30"/>
+
+    <menuitem id="menu_esm_evp_inspection"
+              name="Evacuation Plan Inspections"
+              parent="menu_esm_root"
+              action="action_esm_evp_inspection"
+              sequence="40"/>
+
+    <menuitem id="menu_esm_config"
+              name="Configuration"
+              parent="menu_esm_root"
+              sequence="100"
+              groups="esm_measures.group_esm_admin"/>
+
+    <menuitem id="menu_esm_settings"
+              name="Settings"
+              parent="menu_esm_config"
+              action="esm_measures_config_settings_action"
+              sequence="0"
+              groups="base.group_system"/>
+
+    <menuitem id="menu_esm_fak_template"
+              name="First Aid Kit Templates"
+              parent="menu_esm_config"
+              action="action_esm_fak_template"
+              sequence="10"/>
+
+    <menuitem id="menu_esm_eed_template"
+              name="Emergency Egress Door Templates"
+              parent="menu_esm_config"
+              action="action_esm_eed_template"
+              sequence="20"/>
+
+    <menuitem id="menu_esm_sma_template"
+              name="Smoke Alarm Templates"
+              parent="menu_esm_config"
+              action="action_esm_sma_template"
+              sequence="30"/>
+
+    <menuitem id="menu_esm_evp_template"
+              name="Evacuation Plan Templates"
+              parent="menu_esm_config"
+              action="action_esm_evp_template"
+              sequence="40"/>
+
+</odoo>

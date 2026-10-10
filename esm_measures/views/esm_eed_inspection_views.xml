@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="esm_eed_inspection_view_list" model="ir.ui.view">
+        <field name="name">esm.eed.inspection.list</field>
+        <field name="model">esm.eed.inspection</field>
+        <field name="arch" type="xml">
+            <list string="Emergency Egress Door Inspections">
+                <field name="name"/>
+                <field name="inspection_date" options="{'numeric': True}"/>
+                <field name="template_id"/>
+                <field name="inspector_id" widget="many2one_avatar_user"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="esm_eed_inspection_view_form" model="ir.ui.view">
+        <field name="name">esm.eed.inspection.form</field>
+        <field name="model">esm.eed.inspection</field>
+        <field name="arch" type="xml">
+            <form string="Emergency Egress Door Inspection">
+                <header>
+                    <button name="action_complete" type="object" string="Mark Completed"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_reset_draft" type="object" string="Reset to In Progress"
+                            invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group name="inspection">
+                            <field name="template_id" readonly="state == 'done'"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group name="inspection_details">
+                            <field name="inspection_date" options="{'numeric': True}"
+                                   readonly="state == 'done'"/>
+                            <field name="inspector_id" widget="many2one_avatar_user"
+                                   readonly="state == 'done'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Checks" name="checks">
+                            <field name="line_ids" readonly="state == 'done'">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="state" column_invisible="True"/>
+                                    <field name="question_id" column_invisible="True"/>
+                                    <field name="question_type" column_invisible="True"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="description" readonly="1" optional="show"/>
+                                    <field name="value_text" string="Answer"
+                                           invisible="question_type != 'text'"/>
+                                    <field name="value_text_area" string="Answer" widget="text"
+                                           invisible="question_type != 'text_area'"/>
+                                    <field name="value_number" string="Answer"
+                                           invisible="question_type != 'number'"/>
+                                    <field name="value_integer" string="Answer"
+                                           invisible="question_type != 'integer'"/>
+                                    <field name="value_date" string="Answer" options="{'numeric': True}"
+                                           invisible="question_type != 'date'"/>
+                                    <field name="value_datetime" string="Answer" options="{'numeric': True}"
+                                           invisible="question_type != 'datetime'"/>
+                                    <field name="value_option_id" string="Answer" widget="selection_badge"
+                                           invisible="question_type != 'buttons'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Anything else found during the inspection..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="esm_eed_inspection_view_search" model="ir.ui.view">
+        <field name="name">esm.eed.inspection.search</field>
+        <field name="model">esm.eed.inspection</field>
+        <field name="arch" type="xml">
+            <search string="Emergency Egress Door Inspections">
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="inspector_id"/>
+                <filter name="my_inspections" string="My Inspections" domain="[('inspector_id', '=', uid)]"/>
+                <separator/>
+                <filter name="draft" string="In Progress" domain="[('state', '=', 'draft')]"/>
+                <filter name="done" string="Completed" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="inspection_date" string="Inspection Date" date="inspection_date"/>
+                <group>
+                    <filter name="group_template" string="Template" context="{'group_by': 'template_id'}"/>
+                    <filter name="group_inspector" string="Inspector" context="{'group_by': 'inspector_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_esm_eed_inspection" model="ir.actions.act_window">
+        <field name="name">Emergency Egress Door Inspections</field>
+        <field name="res_model">esm.eed.inspection</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Record a Emergency Egress Door Inspection</p>
+            <p>Pick a template and work through its checks.</p>
+        </field>
+    </record>
+
+</odoo>
