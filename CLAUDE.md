@@ -89,6 +89,10 @@ models are not primary). This applies to core Odoo apps and our own modules.
   add the four fields in a `<group string="Organisation">` with
   `invisible="not org_show_<level>"` on each; the automatic section is
   then skipped.
+- To put a model's Company field at the top of the automatic Organisation
+  section, set `_org_form_company = True` on the model: its `company_id`
+  field is moved there (for multi-company users the section then always
+  shows).
 - Org units store a link to every level above them; the configured parent
   is the editable, required one and the levels above it are derived.
   Picking a lower level on a record fills in the levels above it from the

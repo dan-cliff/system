@@ -60,6 +60,7 @@
                     </group>
                     <notebook>
                         <page string="Checks" name="checks">
+                            <field name="column_count" invisible="1"/>
                             <field name="line_ids" widget="checklist_checks" class="o_field_highlight"
                                    readonly="state == 'done'">
                                 <!-- Rendered by the widget: question, description, then the answer
@@ -68,6 +69,7 @@
                                     <field name="sequence"/>
                                     <field name="question_id"/>
                                     <field name="question_type"/>
+                                    <field name="column"/>
                                     <field name="name"/>
                                     <field name="description"/>
                                     <field name="value_text"/>
@@ -95,16 +97,36 @@
                                     <field name="value_boolean" widget="boolean_toggle"/>
                                     <field name="value_latitude" widget="checklist_geolocation"/>
                                     <field name="value_longitude"/>
+                                    <field name="value_address"/>
+                                    <field name="geo_show_coordinates"/>
+                                    <field name="geo_show_map"/>
+                                    <field name="geo_show_address"/>
                                     <field name="value_image" widget="image" options="{'size': [0, 180]}"/>
                                     <field name="value_file" widget="binary" filename="value_file_name"/>
                                     <field name="value_file_name"/>
-                                    <field name="value_phone" widget="phone"/>
-                                    <field name="value_email" widget="email"/>
-                                    <field name="value_url" widget="url"/>
+                                    <field name="value_phone" widget="checklist_phone"/>
+                                    <field name="phone_show_call"/>
+                                    <field name="phone_show_sms"/>
+                                    <field name="value_email" widget="checklist_email"/>
+                                    <field name="email_show_button"/>
+                                    <field name="value_url" widget="checklist_url"/>
+                                    <field name="url_show_button"/>
                                     <field name="relation_model_id"/>
                                     <field name="relation_domain"/>
                                     <field name="value_reference" widget="checklist_many2one_reference"/>
                                     <field name="value_reference_ids" widget="checklist_many2many_reference"/>
+                                    <field name="layout_text_color"/>
+                                    <field name="layout_bg_color"/>
+                                    <field name="layout_border_color"/>
+                                    <field name="layout_line_color"/>
+                                    <field name="layout_title_position"/>
+                                    <field name="instructions"/>
+                                    <field name="conditional"/>
+                                    <field name="condition_logic"/>
+                                    <field name="condition_rules"/>
+                                    <field name="condition_user_domain"/>
+                                    <field name="condition_record_domain"/>
+                                    <field name="condition_context"/>
                                     <templates>
                                         <t t-name="card">
                                             <field name="name"/>

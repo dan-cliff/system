@@ -38,19 +38,37 @@
                 </table>
 
                 <h4>Checks</h4>
-                <div t-foreach="doc.line_ids" t-as="line" class="border-bottom py-2" style="page-break-inside: avoid;">
-                    <div><strong t-esc="line.name"/></div>
-                    <div t-if="line.description" class="text-muted" style="white-space: pre-line;" t-esc="line.description"/>
-                    <t t-set="answer" t-value="line._answer_display()"/>
-                    <t t-set="badge_style" t-value="line._answer_badge_style()"/>
-                    <div class="mt-1">
-                        <img t-if="line.question_type == 'image' and line.value_image"
-                             t-att-src="image_data_uri(line.value_image)" style="max-height: 200px; max-width: 100%;"/>
-                        <span t-elif="answer and badge_style" class="badge rounded-pill" t-att-style="badge_style" t-esc="answer"/>
-                        <span t-elif="answer" style="white-space: pre-line;" t-esc="answer"/>
-                        <em t-else="" class="text-muted">Not answered</em>
-                    </div>
-                </div>
+                <t t-foreach="doc.line_ids" t-as="line">
+                    <t t-if="line._is_visible()">
+                        <!-- Section Title / Section Break / Instructions, as on the form. -->
+                        <div t-if="line.question_type == 'section_title'" class="my-3 p-3 rounded"
+                             t-attf-style="border: 2px solid {{ line.layout_border_color or '#9aa5b1' }}; background-color: {{ line.layout_bg_color or '#eef2f7' }}; color: {{ line.layout_text_color or '#1f2937' }}; page-break-inside: avoid;">
+                            <div style="font-size: 1.25rem; font-weight: bold;" t-esc="line.name"/>
+                            <div t-if="line.description" style="white-space: pre-line;" t-esc="line.description"/>
+                        </div>
+                        <div t-elif="line.question_type == 'section_break'" class="my-3" style="page-break-inside: avoid;">
+                            <div t-if="line.layout_title_position == 'above'" style="font-weight: bold;" t-esc="line.name"/>
+                            <div t-attf-style="border-top: 2px solid {{ line.layout_line_color or '#9aa5b1' }}; margin: 6px 0;"/>
+                            <div t-if="line.layout_title_position == 'below'" style="font-weight: bold;" t-esc="line.name"/>
+                        </div>
+                        <div t-elif="line.question_type == 'instructions'" class="border-bottom py-2">
+                            <div t-field="line.instructions"/>
+                        </div>
+                        <div t-else="" class="border-bottom py-2" style="page-break-inside: avoid;">
+                            <div><strong t-esc="line.name"/></div>
+                            <div t-if="line.description" class="text-muted" style="white-space: pre-line;" t-esc="line.description"/>
+                            <t t-set="answer" t-value="line._answer_display()"/>
+                            <t t-set="badge_style" t-value="line._answer_badge_style()"/>
+                            <div class="mt-1">
+                                <img t-if="line.question_type == 'image' and line.value_image"
+                                     t-att-src="image_data_uri(line.value_image)" style="max-height: 200px; max-width: 100%;"/>
+                                <span t-elif="answer and badge_style" class="badge rounded-pill" t-att-style="badge_style" t-esc="answer"/>
+                                <span t-elif="answer" style="white-space: pre-line;" t-esc="answer"/>
+                                <em t-else="" class="text-muted">Not answered</em>
+                            </div>
+                        </div>
+                    </t>
+                </t>
 
                 <t t-if="doc.notes">
                     <h4 class="mt-4">Notes</h4>

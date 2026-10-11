@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="checklists.UrlField">
+        <div class="o_checklist_url d-flex flex-wrap align-items-center gap-2">
+            <div class="flex-grow-1">
+                <t t-call="web.CharField"/>
+            </div>
+            <a t-if="showButton" t-att-href="link" target="_blank" rel="noopener noreferrer"
+               class="btn btn-sm btn-secondary">
+                <i class="fa fa-external-link me-1"/>Open Link
+            </a>
+        </div>
+    </t>
+</templates>

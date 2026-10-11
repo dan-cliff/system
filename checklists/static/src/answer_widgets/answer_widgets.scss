@@ -1,5 +1,5 @@
 .o_checklist_slider {
-    max-width: 40rem;
+    width: 100%;
 
     .o_checklist_slider_unset::-webkit-slider-thumb {
         opacity: 0.35;
@@ -14,9 +14,18 @@
 }
 
 .o_checklist_geolocation_input {
-    width: 9rem;
+    flex: 1 1 8rem;
+    min-width: 6rem;
 }
 
 .o_checklist_many2many_reference_input {
     min-width: 12rem;
+}
+
+.o_checklist_geolocation_map iframe {
+    display: block;
+    width: 100%;
+    height: 240px;
+    border: $border-width solid $border-color;
+    border-radius: $border-radius;
 }

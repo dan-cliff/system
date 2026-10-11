@@ -3,6 +3,7 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { Field } from "@web/views/fields/field";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
+import { visibleLineIds } from "./conditions";
 
 // Answer field (and widget) shown for each question type, all rendered in the
 // same place. A field used by several types is declared once per widget in
@@ -24,9 +25,9 @@ const ANSWER_FIELDS = {
     geolocation: ["value_latitude"],
     image: ["value_image"],
     file: ["value_file"],
-    phone: ["value_phone"],
-    email: ["value_email"],
-    website: ["value_url"],
+    phone: ["value_phone", "checklist_phone"],
+    email: ["value_email", "checklist_email"],
+    website: ["value_url", "checklist_url"],
     many2one: ["value_reference"],
     many2many: ["value_reference_ids"],
 };
@@ -58,6 +59,62 @@ export class ChecklistChecks extends Component {
 
     get lines() {
         return this.props.record.data[this.props.name].records;
+    }
+
+    /** The lines to show: conditional ones only when their conditions hold. */
+    get shownLines() {
+        const visible = visibleLineIds(this.lines);
+        return this.lines.filter((line) => visible.has(line.id));
+    }
+
+    get columnCount() {
+        return parseInt(this.props.record.data.column_count || "1", 10) || 1;
+    }
+
+    /**
+     * The shown lines in bands: Section Titles and Section Breaks span the
+     * form; the lines between them are split into the template's columns.
+     */
+    get bands() {
+        const count = this.columnCount;
+        const bands = [];
+        let current = null;
+        for (const line of this.shownLines) {
+            if (["section_title", "section_break"].includes(line.data.question_type)) {
+                bands.push({ key: `full_${line.id}`, line });
+                current = null;
+                continue;
+            }
+            if (!current) {
+                current = {
+                    key: `cols_${line.id}`,
+                    columns: Array.from({ length: count }, (_, i) => ({ key: i, lines: [] })),
+                };
+                bands.push(current);
+            }
+            const column = Math.min(Math.max(parseInt(line.data.column || "1", 10) || 1, 1), count);
+            current.columns[column - 1].lines.push(line);
+        }
+        return bands;
+    }
+
+    isLayout(line) {
+        return ["section_title", "section_break", "instructions"].includes(line.data.question_type);
+    }
+
+    sectionTitleStyle(line) {
+        const { layout_text_color, layout_bg_color, layout_border_color } = line.data;
+        return [
+            layout_text_color && `color: ${layout_text_color}`,
+            layout_bg_color && `background-color: ${layout_bg_color}`,
+            layout_border_color && `border-color: ${layout_border_color}`,
+        ]
+            .filter(Boolean)
+            .join("; ");
+    }
+
+    sectionBreakStyle(line) {
+        return line.data.layout_line_color ? `border-top-color: ${line.data.layout_line_color}` : "";
     }
 
     get isEditable() {

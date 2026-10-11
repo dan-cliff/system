@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="checklists.EmailField">
+        <div class="o_checklist_email d-flex flex-wrap align-items-center gap-2">
+            <div class="flex-grow-1">
+                <t t-call="web.CharField"/>
+            </div>
+            <a t-if="showButton" t-attf-href="mailto:{{ address }}" class="btn btn-sm btn-secondary">
+                <i class="fa fa-envelope me-1"/>Email
+            </a>
+        </div>
+    </t>
+</templates>

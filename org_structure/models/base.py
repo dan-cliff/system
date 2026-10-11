@@ -215,6 +215,17 @@ class Base(models.AbstractModel):
                 'invisible': f'not org_show_{level}',
                 'options': "{'no_create': True}",
             })
+        # Models with _org_form_company = True show their Company field at the
+        # top of the section (multi-company users then always see the section).
+        if getattr(type(self), '_org_form_company', False):
+            company = next(iter(arch.xpath(
+                "//field[@name='company_id'][not(ancestor::field)][not(ancestor::list)]")), None)
+            if company is not None:
+                company.getparent().remove(company)
+                company.tail = None
+                group.insert(0, company)
+                if self.env.user.has_group('base.group_multi_company'):
+                    del group.attrib['invisible']
         container = next(iter(arch.xpath('./sheet')), arch)
         notebook = next(iter(container.xpath('./notebook')), None)
         if notebook is not None:

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="checklists.PhoneField">
+        <div class="o_checklist_phone d-flex flex-wrap align-items-center gap-2">
+            <div class="flex-grow-1">
+                <t t-call="web.CharField"/>
+            </div>
+            <t t-if="dialNumber">
+                <a t-if="showCall" t-attf-href="tel:{{ dialNumber }}" class="btn btn-sm btn-secondary">
+                    <i class="fa fa-phone me-1"/>Call
+                </a>
+                <a t-if="showSms" t-attf-href="sms:{{ dialNumber }}" class="btn btn-sm btn-secondary">
+                    <i class="fa fa-comment me-1"/>SMS
+                </a>
+            </t>
+        </div>
+    </t>
+</templates>
