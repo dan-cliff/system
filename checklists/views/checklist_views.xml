@@ -120,6 +120,11 @@
                     <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>
                 </group>
+                <!-- Pick a Checklist Group to list its checklists (values and
+                     counters come from checklist.checklist.search_panel_select_range). -->
+                <searchpanel>
+                    <field name="group_ids" string="Checklist Group" enable_counters="1" expand="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>
@@ -128,6 +133,7 @@
         <field name="name">Checklists</field>
         <field name="res_model">checklist.checklist</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="checklist_view_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Start a Checklist</p>
             <p>Pick a template and work through its checks.</p>

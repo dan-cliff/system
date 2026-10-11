@@ -27,6 +27,33 @@ TEMPLATE_JSON_VERSION = 1
 IMPORTABLE_JSON_FORMATS = (TEMPLATE_JSON_FORMAT, 'esm_measures.inspection_template')
 
 
+def group_panel_range(model, field_name, **kwargs):
+    """Side panel values for a Checklist Groups many2many (select="one").
+
+    Odoo only builds a single-choice side panel for many2one and selection
+    fields, so the values and counters are built here: a record counts
+    under each of its groups.
+    """
+    domain = Domain.AND([
+        Domain(kwargs.get('search_domain') or []),
+        Domain(kwargs.get('category_domain') or []),
+        Domain(kwargs.get('filter_domain') or []),
+    ])
+    counts = {group.id: count for group, count in model._read_group(domain, [field_name], ['__count']) if group}
+    groups = model.env['checklist.group'].search_read(
+        kwargs.get('comodel_domain') or [], ['display_name'], limit=kwargs.get('limit'),
+    )
+    values = []
+    for group in groups:
+        if not kwargs.get('expand') and not counts.get(group['id']):
+            continue
+        value = {'id': group['id'], 'display_name': group['display_name']}
+        if kwargs.get('enable_counters'):
+            value['__count'] = counts.get(group['id'], 0)
+        values.append(value)
+    return {'parent_field': False, 'values': values}
+
+
 def _new_uuid(_model=None):
     return str(uuid.uuid4())
 
@@ -62,29 +89,9 @@ class ChecklistTemplate(models.Model):
 
     @api.model
     def search_panel_select_range(self, field_name, **kwargs):
-        # Odoo only builds a single-choice side panel for many2one and
-        # selection fields; Checklist Groups is a many2many, so its values
-        # and counters are built here (a template counts under each group).
-        if field_name != 'group_ids':
-            return super().search_panel_select_range(field_name, **kwargs)
-        domain = Domain.AND([
-            Domain(kwargs.get('search_domain') or []),
-            Domain(kwargs.get('category_domain') or []),
-            Domain(kwargs.get('filter_domain') or []),
-        ])
-        counts = {group.id: count for group, count in self._read_group(domain, ['group_ids'], ['__count']) if group}
-        groups = self.env['checklist.group'].search_read(
-            kwargs.get('comodel_domain') or [], ['display_name'], limit=kwargs.get('limit'),
-        )
-        values = []
-        for group in groups:
-            if not kwargs.get('expand') and not counts.get(group['id']):
-                continue
-            value = {'id': group['id'], 'display_name': group['display_name']}
-            if kwargs.get('enable_counters'):
-                value['__count'] = counts.get(group['id'], 0)
-            values.append(value)
-        return {'parent_field': False, 'values': values}
+        if field_name == 'group_ids':
+            return group_panel_range(self, field_name, **kwargs)
+        return super().search_panel_select_range(field_name, **kwargs)
 
     # ── JSON export ──────────────────────────────────────────────────────
 

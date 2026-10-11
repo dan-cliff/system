@@ -2,7 +2,7 @@
 from odoo import Command, api, fields, models
 from odoo.exceptions import UserError
 
-from .checklist_template import QUESTION_TYPES
+from .checklist_template import QUESTION_TYPES, group_panel_range
 
 
 class Checklist(models.Model):
@@ -18,7 +18,12 @@ class Checklist(models.Model):
         'checklist.template', string='Template', required=True, tracking=True,
         ondelete='restrict', default=lambda self: self._default_template(),
     )
-    group_ids = fields.Many2many(related='template_id.group_ids', string='Checklist Groups')
+    # Stored so the side panel can count checklists per group; follows the
+    # template's groups.
+    group_ids = fields.Many2many(
+        related='template_id.group_ids', string='Checklist Groups', store=True,
+        relation='checklist_checklist_group_rel', column1='checklist_id', column2='group_id',
+    )
     company_id = fields.Many2one(
         'res.company', string='Company', required=True, tracking=True,
         default=lambda self: self.env.company,
@@ -61,6 +66,12 @@ class Checklist(models.Model):
             raise UserError(self.env._('Unsupported search on Overdue.'))
         domain = [('state', '=', 'draft'), ('date_due', '<', fields.Date.context_today(self))]
         return domain if (operator == '=') == value else ['!', '&'] + domain
+
+    @api.model
+    def search_panel_select_range(self, field_name, **kwargs):
+        if field_name == 'group_ids':
+            return group_panel_range(self, field_name, **kwargs)
+        return super().search_panel_select_range(field_name, **kwargs)
 
     @api.model_create_multi
     def create(self, vals_list):
