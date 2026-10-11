@@ -15,18 +15,29 @@ MARGIN = 20
 END_W = 170        # threat / consequence boxes
 BOX_W = 150        # barrier boxes
 ESC_W = 136        # escalation factor (and its barriers) boxes
-GAP = 24           # between barrier columns
+GAP = 36           # between barrier columns (and between the section panels)
 FAN = 70           # space where the rows converge on the top event
 ROW_GAP = 22
 RADIUS = 72        # top event circle
 HAZARD_W = 220
 LEGEND_H = 46
+HEAD_H = 44        # section headings above the diagram
+PANEL_PAD = 10     # space between a section's border and its boxes
 
 THREAT_FILL = '#1c64b4'
 CONSEQUENCE_FILL = '#c92a2a'
 TOP_EVENT_FILL = '#e8590c'
 ESCALATION_FILL = '#ffe066'
 NO_EFFECTIVENESS = '#adb5bd'
+
+# (heading, panel tint) for the five bordered sections, left to right.
+SECTIONS = {
+    'threats': ('Threats', '#eef4fc'),
+    'preventive': ('Preventative Barriers', '#f6f7f9'),
+    'top_event': ('Top Event', '#fff5eb'),
+    'mitigative': ('Mitigative Barriers', '#f6f7f9'),
+    'consequences': ('Consequences', '#fdf0f0'),
+}
 
 
 def _wrap(text, width_px, font_size, max_lines=6):
@@ -194,6 +205,16 @@ class _Row:
         return out
 
 
+def _section(key, x0, x1, y0, y1):
+    """A section's bordered panel with its heading at the top."""
+    heading, tint = SECTIONS[key]
+    out = '<rect x="%s" y="%s" width="%s" height="%s" rx="8" fill="%s" stroke="#adb5bd" stroke-width="1.2"/>' % (
+        x0, y0, x1 - x0, y1 - y0, tint)
+    out += _text(_wrap(heading, x1 - x0 - 12, 13, max_lines=2), (x0 + x1) / 2, y0 + 9, 13, '#212529', bold=True)
+    out += '<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#ced4da"/>' % (x0 + 8, y0 + HEAD_H - 8, x1 - 8, y0 + HEAD_H - 8)
+    return out
+
+
 def _stack_height(rows):
     return sum(row.height for row in rows) + ROW_GAP * max(0, len(rows) - 1)
 
@@ -242,8 +263,8 @@ def render_bowtie_svg(line):
         )
         for consequence in consequences
     ]
-    left_cols = max([len(row.barriers) for row in left_rows] or [0])
-    right_cols = max([len(row.barriers) for row in right_rows] or [0])
+    left_cols = max([len(row.barriers) for row in left_rows] + [1])
+    right_cols = max([len(row.barriers) for row in right_rows] + [1])
 
     left_w = END_W + left_cols * (BOX_W + GAP) + GAP
     right_w = END_W + right_cols * (BOX_W + GAP) + GAP
@@ -311,8 +332,23 @@ def render_bowtie_svg(line):
     body += _text(['TOP EVENT'], cx, cy - label_h / 2, 9.5, '#ffffff', bold=True)
     body += _text(top_lines, cx, cy - label_h / 2 + 14, 12, '#ffffff', bold=True, line_h=15)
 
-    legend, legend_h = _legend(content_h, width, effectiveness)
-    height = content_h + max(LEGEND_H, legend_h)
+    # Bordered, headed panel behind each section; the diagram sits below the headings.
+    y0, y1 = MARGIN / 2, HEAD_H + content_h - MARGIN / 2
+    left_bx = MARGIN + END_W + GAP
+    left_bx1 = left_bx + left_cols * (BOX_W + GAP) - GAP
+    right_bx = right_x0 + GAP
+    right_bx1 = right_bx + right_cols * (BOX_W + GAP) - GAP
+    panels = (
+        _section('threats', MARGIN - PANEL_PAD, MARGIN + END_W + PANEL_PAD, y0, y1)
+        + _section('preventive', left_bx - PANEL_PAD, left_bx1 + PANEL_PAD, y0, y1)
+        + _section('top_event', cx - center_w / 2, cx + center_w / 2, y0, y1)
+        + _section('mitigative', right_bx - PANEL_PAD, right_bx1 + PANEL_PAD, y0, y1)
+        + _section('consequences', end_x - PANEL_PAD, end_x + END_W + PANEL_PAD, y0, y1)
+    )
+    body = panels + '<g transform="translate(0,%s)">%s</g>' % (HEAD_H, body)
+
+    legend, legend_h = _legend(HEAD_H + content_h, width, effectiveness)
+    height = HEAD_H + content_h + max(LEGEND_H, legend_h)
     defs = (
         '<defs><pattern id="%s" patternUnits="userSpaceOnUse" width="14" height="14" '
         'patternTransform="rotate(45)"><rect width="7" height="14" fill="#fcc419"/>'
