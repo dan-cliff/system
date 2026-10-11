@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists',
-    'version': '19.0.1.6.0',
+    'version': '19.0.1.7.0',
     'category': 'Productivity',
     'summary': 'General-purpose checklists built from templates, grouped into Checklist Groups',
     'description': """
@@ -30,6 +30,7 @@
         'data/checklist_sequence_data.xml',
         'report/checklist_report.xml',
         'wizard/checklist_template_import_wizard_views.xml',
+        'wizard/checklist_ai_wizard_views.xml',
         'views/checklist_group_views.xml',
         'views/checklist_template_views.xml',
         'views/checklist_views.xml',
@@ -42,6 +43,7 @@
             'checklists/static/src/checklist_checks/*',
             'checklists/static/src/colour_badge/*',
             'checklists/static/src/answer_widgets/*',
+            'checklists/static/src/ai_generator/*',
         ],
     },
     'application': True,

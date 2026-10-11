@@ -318,6 +318,12 @@ class ChecklistTemplate(models.Model):
                 raise UserError(self.env._('%s is not a Checklists template export.', filename))
             raise UserError(self.env._('This file is not a Checklists template export.'))
         templates = data.get('templates') or []
+        self._validate_templates_data(templates)
+        return templates
+
+    @api.model
+    def _validate_templates_data(self, templates):
+        """Check template dicts (the JSON export layout) before importing them."""
         valid_types = dict(QUESTION_TYPES)
         for template in templates:
             if not template.get('name'):
@@ -340,7 +346,6 @@ class ChecklistTemplate(models.Model):
                     if not option.get('name'):
                         raise UserError(self.env._(
                             'Question "%s" has a button value with no name.', question['name']))
-        return templates
 
     @api.model
     def _import_file(self, content):
@@ -349,6 +354,12 @@ class ChecklistTemplate(models.Model):
         templates_data = self._read_import_file(content)
         if not templates_data:
             raise UserError(self.env._('This file holds no templates.'))
+        return self._import_templates_data(templates_data)
+
+    @api.model
+    def _import_templates_data(self, templates_data):
+        """Create or update templates from dicts in the JSON export layout
+        (also used by the AI Template Generator)."""
         Templates = self.with_context(active_test=False)
         templates = self.browse()
         for data in templates_data:
@@ -356,7 +367,10 @@ class ChecklistTemplate(models.Model):
                 'name': data['name'],
                 'description': data.get('description') or False,
                 'sequence': data.get('sequence', 10),
-                'group_ids': [fields.Command.set(self._import_group_ids(data.get('groups') or []))],
+                # Group ids (AI Template Generator) or names (JSON files).
+                'group_ids': [fields.Command.set(
+                    data['group_ids'] if 'group_ids' in data
+                    else self._import_group_ids(data.get('groups') or []))],
                 'column_count': data.get('columns') if data.get('columns') in dict(COLUMN_COUNTS) else '1',
                 **self._import_template_settings(data),
             }

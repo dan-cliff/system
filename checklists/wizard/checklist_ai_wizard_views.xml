@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="checklist_ai_wizard_view_form" model="ir.ui.view">
+        <field name="name">checklist.ai.wizard.form</field>
+        <field name="model">checklist.ai.wizard</field>
+        <field name="arch" type="xml">
+            <form string="AI Template Generator">
+                <div class="alert alert-warning" role="alert" invisible="provider">
+                    No AI is set up yet: add a Claude AI or Google Gemini API key in
+                    Settings › General Settings › Integrations.
+                </div>
+                <p class="text-muted" invisible="not provider">
+                    Describe the checklist and AI will write a template you can then review and edit.
+                    Uses <field name="provider" class="d-inline fw-bold" readonly="1"/>.
+                </p>
+                <field name="prompt" class="o_checklist_ai_prompt"
+                       placeholder="e.g. A daily pre-start check for our utes: tyres, lights, fluids, cabin, safety equipment and a photo of the odometer."/>
+                <group>
+                    <field name="group_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    <field name="asset_available" invisible="1"/>
+                    <field name="asset_enabled" widget="boolean_toggle" invisible="not asset_available"/>
+                </group>
+                <footer>
+                    <!-- Generates the template, showing the "Checklist Generating" animation meanwhile. -->
+                    <widget name="checklist_ai_generate"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_checklist_ai_wizard" model="ir.actions.act_window">
+        <field name="name">AI Template Generator</field>
+        <field name="res_model">checklist.ai.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
