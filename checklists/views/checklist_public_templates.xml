@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Public Link: a template's checklist, filled in without signing in
+         (controllers/main.py, models/checklist_public.py). -->
+    <template id="public_checklist_page" name="Checklist: Public Form">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_footer" t-value="True"/>
+            <div class="o_checklist_public container py-4">
+                <div class="o_checklist_public_card mx-auto">
+                    <h1 class="h2 mb-1" t-esc="template.name"/>
+                    <p t-if="template.description" class="text-muted" t-esc="template.description"/>
+                    <div t-if="error" class="alert alert-danger" role="alert" t-esc="error"/>
+                    <form method="post" enctype="multipart/form-data" class="o_checklist_public_form"
+                          t-att-data-checklist="json.dumps(script_data)">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="tz" class="o_checklist_public_tz"/>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="submitter_name" class="form-label fw-bold">Full Name</label>
+                                <input type="text" id="submitter_name" name="submitter_name" class="form-control"
+                                       required="required" autocomplete="name"
+                                       t-att-value="form.get('submitter_name')"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="submitter_email" class="form-label fw-bold">Email</label>
+                                <input type="email" id="submitter_email" name="submitter_email" class="form-control"
+                                       required="required" autocomplete="email"
+                                       t-att-value="form.get('submitter_email')"/>
+                            </div>
+                        </div>
+                        <div class="o_checklist_checks">
+                            <t t-foreach="bands" t-as="band">
+                                <t t-if="band.get('item')" t-call="checklists.public_checklist_question">
+                                    <t t-set="item" t-value="band['item']"/>
+                                </t>
+                                <!-- The questions between full-width sections, in the template's columns. -->
+                                <div t-else="" class="o_checklist_columns"
+                                     t-attf-style="--checklist-columns: #{columns};">
+                                    <div t-foreach="band['columns']" t-as="column" class="o_checklist_column">
+                                        <t t-foreach="column" t-as="item">
+                                            <t t-call="checklists.public_checklist_question"/>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="public_checklist_question" name="Checklist: Public Form Question">
+        <t t-set="question" t-value="item['question']"/>
+        <t t-set="kind" t-value="item['kind']"/>
+        <t t-set="key" t-value="item['key']"/>
+        <div class="o_checklist_public_item" t-att-data-question-id="question.id" t-att-data-kind="kind">
+            <!-- Section Title: a full-width box with the title and description. -->
+            <div t-if="kind == 'section_title'" class="o_checklist_section_title"
+                 t-attf-style="#{question.layout_text_color and 'color: %s;' % question.layout_text_color or ''}#{question.layout_bg_color and 'background-color: %s;' % question.layout_bg_color or ''}#{question.layout_border_color and 'border-color: %s;' % question.layout_border_color or ''}">
+                <div class="o_checklist_section_title_name" t-esc="question.name"/>
+                <div t-if="question.description" class="o_checklist_section_title_description"
+                     t-esc="question.description"/>
+            </div>
+            <!-- Section Break: a full-width line, the title above, below or not shown. -->
+            <div t-elif="kind == 'section_break'" class="o_checklist_section_break">
+                <div t-if="question.layout_title_position == 'above'" class="o_checklist_section_break_title"
+                     t-esc="question.name"/>
+                <hr class="o_checklist_section_break_line"
+                    t-att-style="question.layout_line_color and 'border-top-color: %s' % question.layout_line_color"/>
+                <div t-if="question.layout_title_position == 'below'" class="o_checklist_section_break_title"
+                     t-esc="question.name"/>
+            </div>
+            <!-- Instructions: the formatted text, as written on the template. -->
+            <div t-elif="kind == 'instructions'" class="o_checklist_instructions">
+                <t t-out="question.instructions"/>
+            </div>
+            <div t-else="" class="o_checklist_check">
+                <label class="o_checklist_check_question fw-bold d-block" t-att-for="key" t-esc="question.name"/>
+                <div t-if="question.description" class="o_checklist_check_description text-muted"
+                     t-esc="question.description"/>
+                <div class="o_checklist_check_answer mt-1">
+                    <input t-if="kind == 'text'" type="text" class="form-control" t-att-id="key" t-att-name="key"/>
+                    <textarea t-elif="kind == 'text_area'" class="form-control" rows="3"
+                              t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'number'" type="number" step="any" class="form-control"
+                           t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'integer'" type="number" step="1" class="form-control"
+                           t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'date'" type="text" class="form-control" placeholder="dd/mm/yyyy"
+                           pattern="\d{2}/\d{2}/\d{4}" title="dd/mm/yyyy" inputmode="numeric"
+                           t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'datetime'" type="text" class="form-control" placeholder="dd/mm/yyyy HH:MM"
+                           pattern="\d{2}/\d{2}/\d{4} \d{2}:\d{2}" title="dd/mm/yyyy HH:MM"
+                           t-att-id="key" t-att-name="key"/>
+                    <!-- Buttons: one button per option, in its colour. -->
+                    <div t-elif="kind == 'buttons'" class="d-flex flex-wrap gap-2">
+                        <t t-foreach="item['options']" t-as="option">
+                            <input type="radio" class="btn-check" autocomplete="off" t-att-name="key"
+                                   t-att-value="option.id" t-att-id="'%s_%s' % (key, option.id)"/>
+                            <label class="btn btn-outline-secondary o_checklist_public_button"
+                                   t-att-for="'%s_%s' % (key, option.id)"
+                                   t-att-style="option.color and '--checklist-button-color: %s' % option.color"
+                                   t-esc="option.name"/>
+                        </t>
+                    </div>
+                    <select t-elif="kind == 'select'" class="form-select" t-att-id="key" t-att-name="key">
+                        <option value=""/>
+                        <option t-foreach="item['options']" t-as="option" t-att-value="option.id" t-esc="option.name"/>
+                    </select>
+                    <div t-elif="kind == 'radio'">
+                        <div t-foreach="item['options']" t-as="option" class="form-check">
+                            <input type="radio" class="form-check-input" t-att-name="key" t-att-value="option.id"
+                                   t-att-id="'%s_%s' % (key, option.id)"/>
+                            <label class="form-check-label" t-att-for="'%s_%s' % (key, option.id)" t-esc="option.name"/>
+                        </div>
+                    </div>
+                    <!-- Slider: unanswered until moved. -->
+                    <div t-elif="kind == 'slider'" class="o_checklist_public_slider"
+                         t-att-data-options="json.dumps([[o.id, o.name] for o in item['options']])">
+                        <input type="hidden" t-att-name="key"/>
+                        <input type="range" class="form-range" min="0" step="1" t-att-id="key"
+                               t-att-max="max(len(item['options']) - 1, 0)" value="0"/>
+                        <div class="o_checklist_public_slider_value text-muted">Not answered</div>
+                    </div>
+                    <select t-elif="kind == 'multi_select'" class="form-select" multiple="multiple"
+                            t-att-id="key" t-att-name="key">
+                        <option t-foreach="item['options']" t-as="option" t-att-value="option.id" t-esc="option.name"/>
+                    </select>
+                    <div t-elif="kind == 'multi_checkbox'">
+                        <div t-foreach="item['options']" t-as="option" class="form-check">
+                            <input type="checkbox" class="form-check-input" t-att-name="key" t-att-value="option.id"
+                                   t-att-id="'%s_%s' % (key, option.id)"/>
+                            <label class="form-check-label" t-att-for="'%s_%s' % (key, option.id)" t-esc="option.name"/>
+                        </div>
+                    </div>
+                    <div t-elif="kind == 'boolean'" class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" role="switch" value="1"
+                               t-att-id="key" t-att-name="key"/>
+                    </div>
+                    <!-- GeoLocation: the device's location. -->
+                    <div t-elif="kind == 'geolocation'" class="o_checklist_public_geo">
+                        <button type="button" class="btn btn-secondary btn-sm o_checklist_public_geo_button">
+                            <i class="fa fa-map-marker me-1"/>Use my location
+                        </button>
+                        <div class="row g-2 mt-1">
+                            <div class="col">
+                                <input type="number" step="any" class="form-control o_checklist_public_lat"
+                                       placeholder="Latitude" t-att-name="key + '_lat'"/>
+                            </div>
+                            <div class="col">
+                                <input type="number" step="any" class="form-control o_checklist_public_lng"
+                                       placeholder="Longitude" t-att-name="key + '_lng'"/>
+                            </div>
+                        </div>
+                        <div class="o_checklist_public_geo_status small text-muted mt-1"/>
+                    </div>
+                    <input t-elif="kind == 'image'" type="file" accept="image/*" class="form-control"
+                           t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'file'" type="file" class="form-control" t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'phone'" type="tel" class="form-control" autocomplete="tel"
+                           t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'email'" type="email" class="form-control" t-att-id="key" t-att-name="key"/>
+                    <input t-elif="kind == 'website'" type="url" class="form-control" placeholder="https://"
+                           t-att-id="key" t-att-name="key"/>
+                    <select t-elif="kind == 'many2one'" class="form-select" t-att-id="key" t-att-name="key">
+                        <option value=""/>
+                        <option t-foreach="item['records']" t-as="record" t-att-value="record[0]" t-esc="record[1]"/>
+                    </select>
+                    <select t-elif="kind == 'many2many'" class="form-select" multiple="multiple"
+                            t-att-id="key" t-att-name="key">
+                        <option t-foreach="item['records']" t-as="record" t-att-value="record[0]" t-esc="record[1]"/>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="public_checklist_done" name="Checklist: Public Form Submitted">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_footer" t-value="True"/>
+            <div class="o_checklist_public container py-5">
+                <div class="o_checklist_public_card mx-auto text-center">
+                    <i class="fa fa-check-circle fa-4x text-success mb-3"/>
+                    <h1 class="h2">Thank you</h1>
+                    <p class="lead">Your <strong t-esc="template.name"/> checklist has been submitted
+                        (<span t-esc="checklist.name"/>).</p>
+                    <a class="btn btn-secondary" t-attf-href="/checklists/public/#{template.public_token}">
+                        Submit another
+                    </a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

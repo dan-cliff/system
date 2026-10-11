@@ -140,6 +140,8 @@
         <field name="arch" type="xml">
             <form string="Checklist Template">
                 <header>
+                    <button name="action_preview" type="object" string="Preview" icon="fa-eye" class="btn-primary"
+                            help="Try a checklist from this template in a new tab. Nothing is saved."/>
                     <button name="action_export_json" type="object" string="Export JSON"/>
                     <button name="action_import_json" type="object" string="Import JSON"
                             groups="checklists.group_checklist_admin"
@@ -157,6 +159,17 @@
                         <field name="column_count" widget="radio" options="{'horizontal': True}"/>
                     </group>
                     <field name="description" placeholder="What this template is used for..."/>
+                    <!-- Public Link: anyone with the link can submit a checklist without signing in. -->
+                    <group name="public_link" string="Public Link">
+                        <field name="public_enabled" widget="boolean_toggle"/>
+                        <label for="public_url" invisible="not public_url"/>
+                        <div class="d-flex align-items-center gap-2" invisible="not public_url">
+                            <field name="public_url" widget="CopyClipboardChar" class="flex-grow-1"/>
+                            <button name="action_new_public_link" type="object" string="New Link"
+                                    icon="fa-refresh" class="btn-link text-nowrap"
+                                    confirm="The current link will stop working. Make a new link?"/>
+                        </div>
+                    </group>
                     <notebook>
                         <page string="Questions" name="questions">
                             <field name="question_ids" context="{'default_template_id': id}">
