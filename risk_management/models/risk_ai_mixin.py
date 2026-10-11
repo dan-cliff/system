@@ -56,6 +56,67 @@ def ai_generate_control_description(api_key, control_name):
     return text.strip()
 
 
+def ai_request_text(api_key, prompt, max_tokens, timeout):
+    """Send one prompt to Claude and return the text of its answer, raising UserError on failure."""
+    try:
+        response = requests.post(
+            CLAUDE_API_URL,
+            headers={
+                'x-api-key': api_key,
+                'anthropic-version': CLAUDE_API_VERSION,
+                'content-type': 'application/json',
+            },
+            json={
+                'model': CLAUDE_MODEL,
+                'max_tokens': max_tokens,
+                'messages': [{'role': 'user', 'content': prompt}],
+            },
+            timeout=timeout,
+        )
+    except requests.RequestException as exc:
+        _logger.warning('Claude API call failed: %s', exc)
+        raise UserError('Could not reach the Claude API: %s' % exc) from exc
+    if response.status_code >= 400:
+        try:
+            error_detail = response.json().get('error', {}).get('message') or response.text
+        except ValueError:
+            error_detail = response.text
+        _logger.warning('Claude API returned %s: %s', response.status_code, error_detail)
+        raise UserError('Claude API error (%s): %s' % (response.status_code, error_detail))
+    payload = response.json()
+    return ''.join(
+        block.get('text', '') for block in payload.get('content', []) if block.get('type') == 'text'
+    )
+
+
+def ai_parse_json(text):
+    """Parse a JSON answer from Claude, tolerating code fences and stray text around it.
+
+    Returns the parsed value, or None if no JSON could be found.
+    """
+    text = (text or '').strip()
+    if text.startswith('```'):
+        text = text.strip('`')
+        if text.lower().startswith('json'):
+            text = text[4:]
+        text = text.strip()
+    try:
+        return json.loads(text)
+    except ValueError:
+        pass
+    # Fall back to the outermost [...] or {...} in case the model added stray text
+    # around the JSON despite being asked not to.
+    for open_char, close_char in ('[', ']'), ('{', '}'):
+        start = text.find(open_char)
+        end = text.rfind(close_char)
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(text[start:end + 1])
+            except ValueError:
+                continue
+    return None
+
+
 class RiskAiMixin(models.AbstractModel):
     _name = 'risk.ai.mixin'
     _description = 'Risk AI Generation Mixin'
@@ -108,35 +169,7 @@ class RiskAiMixin(models.AbstractModel):
         prompt = self._ai_build_prompt(
             existing_types, existing_subtypes, existing_controls, likelihoods, consequences,
         )
-        try:
-            response = requests.post(
-                CLAUDE_API_URL,
-                headers={
-                    'x-api-key': api_key,
-                    'anthropic-version': CLAUDE_API_VERSION,
-                    'content-type': 'application/json',
-                },
-                json={
-                    'model': CLAUDE_MODEL,
-                    'max_tokens': self._ai_max_tokens,
-                    'messages': [{'role': 'user', 'content': prompt}],
-                },
-                timeout=self._ai_timeout,
-            )
-        except requests.RequestException as exc:
-            _logger.warning('Claude API call failed: %s', exc)
-            raise UserError('Could not reach the Claude API: %s' % exc) from exc
-        if response.status_code >= 400:
-            try:
-                error_detail = response.json().get('error', {}).get('message') or response.text
-            except ValueError:
-                error_detail = response.text
-            _logger.warning('Claude API returned %s: %s', response.status_code, error_detail)
-            raise UserError('Claude API error (%s): %s' % (response.status_code, error_detail))
-        payload = response.json()
-        text = ''.join(
-            block.get('text', '') for block in payload.get('content', []) if block.get('type') == 'text'
-        )
+        text = ai_request_text(api_key, prompt, self._ai_max_tokens, self._ai_timeout)
         return self._ai_parse_response(text)
 
     def _ai_build_prompt(self, existing_types, existing_subtypes, existing_controls, likelihoods, consequences):
@@ -174,20 +207,14 @@ class RiskAiMixin(models.AbstractModel):
         )
 
     def _ai_parse_response(self, text):
-        text = (text or '').strip()
-        if text.startswith('```'):
-            text = text.strip('`')
-            if text.lower().startswith('json'):
-                text = text[4:]
-            text = text.strip()
-        data = self._ai_try_parse_json(text)
+        data = ai_parse_json(text)
         if data is None:
-            _logger.warning('Could not parse Claude response as JSON: %s', text[:2000])
+            _logger.warning('Could not parse Claude response as JSON: %s', (text or '')[:2000])
             raise UserError(
                 'The AI response could not be understood (it may have included extra text, or '
                 'been cut off if a lot of risks were generated at once). Please try again - if '
                 'it keeps happening, try a shorter Summary of Activity.\n\n'
-                'Start of the raw response:\n%s' % text[:500]
+                'Start of the raw response:\n%s' % (text or '')[:500]
             )
         if isinstance(data, dict):
             # Claude sometimes wraps the array, e.g. {"risks": [...]} - unwrap it.
@@ -197,23 +224,6 @@ class RiskAiMixin(models.AbstractModel):
         if not isinstance(data, list):
             raise UserError('The AI response was not in the expected format. Please try again.')
         return data
-
-    def _ai_try_parse_json(self, text):
-        try:
-            return json.loads(text)
-        except ValueError:
-            pass
-        # Fall back to the outermost [...] or {...} in case the model added stray text
-        # around the JSON despite being asked not to.
-        for open_char, close_char in ('[', ']'), ('{', '}'):
-            start = text.find(open_char)
-            end = text.rfind(close_char)
-            if start != -1 and end != -1 and end > start:
-                try:
-                    return json.loads(text[start:end + 1])
-                except ValueError:
-                    continue
-        return None
 
     def _ai_create_lines(self, risks_data):
         self.ensure_one()

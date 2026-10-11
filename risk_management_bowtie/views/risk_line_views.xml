@@ -1,25 +1,23 @@
 <odoo>
-    <!-- The Bowtie Analysis section on every Risk form, just above its Actions. -->
+    <!-- The Bowtie Analysis section on every Risk form, between its Description and Inherent Risk;
+         "Fill Empty Fields by AI" also fills in empty Threats and Consequences. -->
     <record id="view_risk_assessment_line_form_bowtie" model="ir.ui.view">
         <field name="name">risk.assessment.line.form.bowtie</field>
         <field name="model">risk.assessment.line</field>
         <field name="inherit_id" ref="risk_management.view_risk_assessment_line_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='todo_ids']/preceding-sibling::separator[1]" position="before">
+            <xpath expr="//field[@name='inherent_consequence_id']/preceding-sibling::separator[1]" position="before">
                 <separator string="Bowtie Analysis"/>
                 <p class="text-muted">
-                    The Unwanted Event above is the bowtie's Top Event: the moment control over the Hazard
-                    is lost. List the Threats that could cause it, with the Preventive Barriers that stop
-                    each one, and the Consequences that could follow, with the Recovery Barriers that limit
-                    them.
+                    On the bowtie diagram the Hazard above sits over the Risk, which is the Top Event: the
+                    moment control over the Hazard is lost. List the Threats that could cause it, with the
+                    Preventive Barriers that stop each one, and the Consequences that could follow, with the
+                    Recovery Barriers that limit them.
                 </p>
                 <div class="mb-2">
                     <button name="action_open_bowtie" type="object" string="Generate Bowtie Diagram"
                             icon="fa-sitemap" class="btn-secondary"/>
                 </div>
-                <group>
-                    <field name="bowtie_hazard"/>
-                </group>
                 <label for="bowtie_threat_ids" string="Threats"/>
                 <field name="bowtie_threat_ids" nolabel="1">
                     <list>
@@ -48,21 +46,18 @@
         <field name="model">risk.template.line</field>
         <field name="inherit_id" ref="risk_management.view_risk_template_line_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='standard_action_ids']/preceding-sibling::separator[1]" position="before">
+            <xpath expr="//field[@name='inherent_consequence_id']/preceding-sibling::separator[1]" position="before">
                 <separator string="Bowtie Analysis"/>
                 <p class="text-muted">
-                    The Unwanted Event above is the bowtie's Top Event: the moment control over the Hazard
-                    is lost. List the Threats that could cause it, with the Preventive Barriers that stop
-                    each one, and the Consequences that could follow, with the Recovery Barriers that limit
-                    them.
+                    On the bowtie diagram the Hazard above sits over the Risk, which is the Top Event: the
+                    moment control over the Hazard is lost. List the Threats that could cause it, with the
+                    Preventive Barriers that stop each one, and the Consequences that could follow, with the
+                    Recovery Barriers that limit them.
                 </p>
                 <div class="mb-2">
                     <button name="action_open_bowtie" type="object" string="Generate Bowtie Diagram"
                             icon="fa-sitemap" class="btn-secondary"/>
                 </div>
-                <group>
-                    <field name="bowtie_hazard"/>
-                </group>
                 <label for="bowtie_threat_ids" string="Threats"/>
                 <field name="bowtie_threat_ids" nolabel="1">
                     <list>
@@ -91,22 +86,19 @@
         <field name="model">risk.assessment</field>
         <field name="inherit_id" ref="risk_management.view_risk_assessment_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='line_ids']/form//field[@name='todo_ids']/preceding-sibling::separator[1]" position="before">
+            <xpath expr="//field[@name='line_ids']/form//field[@name='inherent_consequence_id']/preceding-sibling::separator[1]" position="before">
                 <separator string="Bowtie Analysis"/>
                 <p class="text-muted">
-                    The Unwanted Event above is the bowtie's Top Event: the moment control over the Hazard
-                    is lost. List the Threats that could cause it, with the Preventive Barriers that stop
-                    each one, and the Consequences that could follow, with the Recovery Barriers that limit
-                    them.
+                    On the bowtie diagram the Hazard above sits over the Risk, which is the Top Event: the
+                    moment control over the Hazard is lost. List the Threats that could cause it, with the
+                    Preventive Barriers that stop each one, and the Consequences that could follow, with the
+                    Recovery Barriers that limit them.
                 </p>
                 <div class="mb-2" invisible="not parent.id">
                     <button name="action_open_bowtie" type="object" string="Generate Bowtie Diagram"
                             icon="fa-sitemap" class="btn-secondary"/>
                 </div>
                 <p class="text-muted" invisible="parent.id">Save the Risk Assessment to view the bowtie diagram.</p>
-                <group>
-                    <field name="bowtie_hazard"/>
-                </group>
                 <label for="bowtie_threat_ids" string="Threats"/>
                 <field name="bowtie_threat_ids" nolabel="1">
                     <list>
@@ -135,22 +127,19 @@
         <field name="model">risk.template</field>
         <field name="inherit_id" ref="risk_management.view_risk_template_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='line_ids']/form//field[@name='standard_action_ids']/preceding-sibling::separator[1]" position="before">
+            <xpath expr="//field[@name='line_ids']/form//field[@name='inherent_consequence_id']/preceding-sibling::separator[1]" position="before">
                 <separator string="Bowtie Analysis"/>
                 <p class="text-muted">
-                    The Unwanted Event above is the bowtie's Top Event: the moment control over the Hazard
-                    is lost. List the Threats that could cause it, with the Preventive Barriers that stop
-                    each one, and the Consequences that could follow, with the Recovery Barriers that limit
-                    them.
+                    On the bowtie diagram the Hazard above sits over the Risk, which is the Top Event: the
+                    moment control over the Hazard is lost. List the Threats that could cause it, with the
+                    Preventive Barriers that stop each one, and the Consequences that could follow, with the
+                    Recovery Barriers that limit them.
                 </p>
                 <div class="mb-2" invisible="not parent.id">
                     <button name="action_open_bowtie" type="object" string="Generate Bowtie Diagram"
                             icon="fa-sitemap" class="btn-secondary"/>
                 </div>
                 <p class="text-muted" invisible="parent.id">Save the Risk Template to view the bowtie diagram.</p>
-                <group>
-                    <field name="bowtie_hazard"/>
-                </group>
                 <label for="bowtie_threat_ids" string="Threats"/>
                 <field name="bowtie_threat_ids" nolabel="1">
                     <list>

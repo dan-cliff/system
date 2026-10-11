@@ -5,6 +5,11 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <field name="ai_available" invisible="1"/>
+                    <div class="mb-2" invisible="not ai_available">
+                        <button name="action_generate_risk_ai" type="object" string="Fill Empty Fields by AI"
+                                icon="fa-magic" class="btn-secondary"/>
+                    </div>
                     <group>
                         <field name="name"/>
                         <field name="unwanted_event"/>

@@ -1,7 +1,11 @@
 <odoo>
-    <!-- Risk Assessment PDF: each risk with a bowtie notes its appendix in the Risks table,
+    <!-- Risk Assessment PDF: the Unwanted Event column is headed Hazard (as on the bowtie),
+         each risk with a bowtie notes its appendix in the Risks table,
          and every bowtie is added after the Actions table, one per page, titled with its risk. -->
     <template id="report_risk_assessment_document_bowtie" inherit_id="risk_management.report_risk_assessment_document">
+        <xpath expr="//th[text()='Unwanted Event']" position="replace">
+            <th>Hazard</th>
+        </xpath>
         <xpath expr="//h4[text()='Risks']/.." position="before">
             <t t-set="bowtie_lines" t-value="o.line_ids.filtered('has_bowtie')"/>
         </xpath>

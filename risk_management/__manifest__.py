@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management',
-    'version': '19.0.1.16.1',
+    'version': '19.0.1.17.0',
     'category': 'Operations/Risk Management',
     'summary': 'Risk assessment templates, risk assessments, a controls library and a risk matrix',
     'description': """
@@ -37,6 +37,12 @@ Risk Management
   approve or reject a submitted assessment.
 * Adds a Team Leader field to the Users form (under Related Partner),
   used to default a user's Risk Approver when they are the Risk Assessment Owner.
+* Each Risk's "Fill Empty Fields by AI" button asks Claude (using the API
+  key from the Claude AI settings) to fill in every empty field of the
+  risk - Unwanted Event, Description, Risk Type/Subtype, Inherent and
+  Residual Risk, Controls, Controls Summary and Actions - using its
+  filled-in fields and the Summary of Activity as context. Fields that
+  already have a value are left as they are.
 * Risk Template lines can list Standard Actions; when a Risk Assessment
   pulls a risk in from a template, those actions become Odoo To-Do tasks
   (project.task, visible in the To-Do app) on the risk, assigned to the

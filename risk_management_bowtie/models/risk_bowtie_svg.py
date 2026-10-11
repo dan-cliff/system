@@ -249,7 +249,7 @@ def render_bowtie_svg(line):
     right_w = END_W + right_cols * (BOX_W + GAP) + GAP
     center_w = max(2 * RADIUS, HAZARD_W) + 20
 
-    hazard_lines = _wrap(line.bowtie_hazard, HAZARD_W - 24, 12, max_lines=4)
+    hazard_lines = _wrap(line.unwanted_event, HAZARD_W - 24, 12, max_lines=4)
     hazard_h = (30 + len(hazard_lines) * 15 + 12) if hazard_lines else 0
     hazard_gap = 30 if hazard_lines else 0
     content_h = max(_stack_height(left_rows), _stack_height(right_rows), 2 * RADIUS) + 2 * MARGIN
@@ -304,7 +304,7 @@ def render_bowtie_svg(line):
         body += _text(['HAZARD'], cx, hy + 11, 10, '#212529', bold=True)
         body += _text(hazard_lines, cx, hy + 28, 12, '#212529', line_h=15)
 
-    top_lines = _wrap(line.unwanted_event or line.name, 2 * RADIUS - 24, 12, max_lines=5)
+    top_lines = _wrap(line.name, 2 * RADIUS - 24, 12, max_lines=5)
     body += '<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="#a61e4d" stroke-width="2"/>' % (
         cx, cy, RADIUS, TOP_EVENT_FILL)
     label_h = 14 + len(top_lines) * 15
