@@ -39,7 +39,8 @@
             <list string="Checklist Templates">
                 <header>
                     <button name="%(checklists.action_checklist_template_import_wizard)d" type="action"
-                            string="Import JSON" display="always"/>
+                            string="Import JSON" display="always"
+                            groups="checklists.group_checklist_admin"/>
                     <!-- Shown once templates are selected: one downloads as .json, several as a .zip. -->
                     <button name="action_export_json" type="object" string="Export JSON"/>
                 </header>
@@ -59,6 +60,7 @@
                 <header>
                     <button name="action_export_json" type="object" string="Export JSON"/>
                     <button name="action_import_json" type="object" string="Import JSON"
+                            groups="checklists.group_checklist_admin"
                             help="Update this template's questions from a JSON file (matched by their hidden GUIDs)."/>
                 </header>
                 <sheet>

@@ -41,6 +41,7 @@
                     <group>
                         <group name="checklist">
                             <field name="template_id" readonly="state == 'done'"
+                                   domain="[('can_create_checklist', '=', True)]"
                                    options="{'no_create': True}"/>
                             <field name="group_ids" widget="many2many_tags" invisible="not group_ids"/>
                             <field name="company_id" groups="base.group_multi_company"

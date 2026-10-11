@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'category': 'Productivity',
     'summary': 'General-purpose checklists built from templates, grouped into Checklist Groups',
     'description': """
@@ -25,6 +25,7 @@
     'data': [
         'security/checklist_security.xml',
         'security/ir.model.access.csv',
+        'security/checklist_rules.xml',
         'data/res_lang_data.xml',
         'data/checklist_sequence_data.xml',
         'report/checklist_report.xml',

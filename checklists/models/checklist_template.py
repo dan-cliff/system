@@ -9,6 +9,8 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 from odoo.fields import Domain
 
+from .checklist_group_access import CREATE_PERMISSIONS
+
 # The answer widget a checklist shows depends on the type, so this stays a
 # fixed technical selection rather than an editable option list.
 QUESTION_TYPES = [
@@ -78,7 +80,42 @@ class ChecklistTemplate(models.Model):
     )
     question_count = fields.Integer(compute='_compute_question_count', string='# Questions')
 
+    # Whether the current user may start checklists from this template.
+    can_create_checklist = fields.Boolean(
+        compute='_compute_can_create_checklist', search='_search_can_create_checklist',
+    )
+
     _uuid_uniq = models.Constraint('UNIQUE (uuid)', 'Another template already has this GUID.')
+
+    def _creatable_group_ids(self):
+        """Checklist Groups whose templates the current user may start checklists
+        from, or None for all (Administrators)."""
+        if self.env.user.has_group('checklists.group_checklist_admin'):
+            return None
+        return self.env['checklist.group.access']._user_group_ids(CREATE_PERMISSIONS)
+
+    @api.depends_context('uid')
+    def _compute_can_create_checklist(self):
+        group_ids = self._creatable_group_ids()
+        for template in self:
+            template.can_create_checklist = (
+                group_ids is None or not template.group_ids
+                or bool(set(template.group_ids.ids) & set(group_ids))
+            )
+
+    def _search_can_create_checklist(self, operator, value):
+        if operator in ('in', 'not in'):
+            positive = (True in value) == (operator == 'in')
+        elif operator in ('=', '!='):
+            positive = bool(value) == (operator == '=')
+        else:
+            return NotImplemented
+        group_ids = self._creatable_group_ids()
+        if group_ids is None:
+            domain = Domain.TRUE
+        else:
+            domain = Domain('group_ids', '=', False) | Domain('group_ids', 'in', group_ids)
+        return domain if positive else ~domain
 
     @api.depends('question_ids')
     def _compute_question_count(self):

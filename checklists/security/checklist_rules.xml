@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Templates in a Checklist Group are governed by that group's permissions
+         (checklist.group.access creates their security groups and rules).
+         Group rules are OR-ed, so the rules below set what Users can do without
+         them: everything with checklists from templates in no Checklist Group,
+         view (not change) every template, delete no checklists. -->
+
+    <record id="group_checklist_template_author" model="res.groups">
+        <field name="name">Checklists: Template Author</field>
+        <field name="comment">Technical: given by a Checklist Group's Template Authoring or Template Delete permission, to show the Checklist Templates menu.</field>
+        <field name="implied_ids" eval="[(4, ref('group_checklist_user'))]"/>
+    </record>
+
+    <!-- ── Checklists ───────────────────────────────────────────────── -->
+    <record id="rule_checklist_user_ungrouped" model="ir.rule">
+        <field name="name">Checklists: templates in no Checklist Group</field>
+        <field name="model_id" ref="model_checklist_checklist"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[('group_ids', '=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_checklist_user_no_delete" model="ir.rule">
+        <field name="name">Checklists: delete only with a Record Delete permission</field>
+        <field name="model_id" ref="model_checklist_checklist"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_checklist_admin" model="ir.rule">
+        <field name="name">Checklists: Administrator, all</field>
+        <field name="model_id" ref="model_checklist_checklist"/>
+        <field name="groups" eval="[(4, ref('group_checklist_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_checklist_line_user_ungrouped" model="ir.rule">
+        <field name="name">Checklist Checks: templates in no Checklist Group</field>
+        <field name="model_id" ref="model_checklist_line"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[('checklist_id.group_ids', '=', False)]</field>
+    </record>
+    <record id="rule_checklist_line_admin" model="ir.rule">
+        <field name="name">Checklist Checks: Administrator, all</field>
+        <field name="model_id" ref="model_checklist_line"/>
+        <field name="groups" eval="[(4, ref('group_checklist_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <!-- ── Templates, questions and button values ───────────────────── -->
+    <record id="rule_checklist_template_user_read" model="ir.rule">
+        <field name="name">Checklist Templates: view all</field>
+        <field name="model_id" ref="model_checklist_template"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_checklist_template_user_no_change" model="ir.rule">
+        <field name="name">Checklist Templates: change only with a Template permission</field>
+        <field name="model_id" ref="model_checklist_template"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+    </record>
+    <record id="rule_checklist_template_admin" model="ir.rule">
+        <field name="name">Checklist Templates: Administrator, all</field>
+        <field name="model_id" ref="model_checklist_template"/>
+        <field name="groups" eval="[(4, ref('group_checklist_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_checklist_question_user_read" model="ir.rule">
+        <field name="name">Checklist Questions: view all</field>
+        <field name="model_id" ref="model_checklist_question"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_checklist_question_user_no_change" model="ir.rule">
+        <field name="name">Checklist Questions: change only with Template Authoring</field>
+        <field name="model_id" ref="model_checklist_question"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+    </record>
+    <record id="rule_checklist_question_admin" model="ir.rule">
+        <field name="name">Checklist Questions: Administrator, all</field>
+        <field name="model_id" ref="model_checklist_question"/>
+        <field name="groups" eval="[(4, ref('group_checklist_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_checklist_question_option_user_read" model="ir.rule">
+        <field name="name">Checklist Button Values: view all</field>
+        <field name="model_id" ref="model_checklist_question_option"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_checklist_question_option_user_no_change" model="ir.rule">
+        <field name="name">Checklist Button Values: change only with Template Authoring</field>
+        <field name="model_id" ref="model_checklist_question_option"/>
+        <field name="groups" eval="[(4, ref('group_checklist_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+    </record>
+    <record id="rule_checklist_question_option_admin" model="ir.rule">
+        <field name="name">Checklist Button Values: Administrator, all</field>
+        <field name="model_id" ref="model_checklist_question_option"/>
+        <field name="groups" eval="[(4, ref('group_checklist_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <!-- Every Checklist Group gets its permissions (also run on each upgrade). -->
+    <function model="checklist.group.access" name="_sync_all"/>
+</odoo>
