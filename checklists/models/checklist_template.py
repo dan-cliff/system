@@ -2,6 +2,7 @@
 import io
 import json
 import re
+import secrets
 import uuid
 import zipfile
 
@@ -127,6 +128,15 @@ class ChecklistTemplate(models.Model):
              'Breaks span every column.',
     )
 
+    # Public Link: anyone with the link can submit a checklist, without signing in.
+    public_enabled = fields.Boolean(
+        string='Public Link',
+        help='Anyone with the link can fill in and submit a checklist from this template without '
+             'signing in. They give their Full Name and Email, which become the Completed By contact.',
+    )
+    public_token = fields.Char(string='Public Link Key', copy=False, readonly=True)
+    public_url = fields.Char(string='Link', compute='_compute_public_url')
+
     # Whether the current user may start checklists from this template.
     can_create_checklist = fields.Boolean(
         compute='_compute_can_create_checklist', search='_search_can_create_checklist',
@@ -169,8 +179,42 @@ class ChecklistTemplate(models.Model):
         for template in self:
             template.question_count = len(template.question_ids)
 
+    @api.depends('public_enabled', 'public_token')
+    def _compute_public_url(self):
+        base_url = self.get_base_url() if self else ''
+        for template in self:
+            template.public_url = (
+                '%s/checklists/public/%s' % (base_url, template.public_token)
+                if template.public_enabled and template.public_token else False
+            )
+
+    def _ensure_public_token(self):
+        for template in self.filtered(lambda t: t.public_enabled and not t.public_token):
+            template.public_token = secrets.token_urlsafe(24)
+
+    def action_new_public_link(self):
+        """Replace the Public Link: the old one stops working."""
+        for template in self:
+            template.public_token = secrets.token_urlsafe(24)
+
+    @api.model
+    def _public_template(self, token):
+        """The active template with Public Link on for this link key, or an empty recordset."""
+        if not token or not isinstance(token, str):
+            return self.browse()
+        return self.sudo().search(
+            [('public_enabled', '=', True), ('public_token', '=', token)], limit=1)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        templates = super().create(vals_list)
+        templates._ensure_public_token()
+        return templates
+
     def write(self, vals):
         result = super().write(vals)
+        if vals.get('public_enabled'):
+            self._ensure_public_token()
         if 'column_count' in vals:
             # Fewer columns: questions in a column that's gone move to the last one.
             for template in self:
@@ -197,6 +241,28 @@ class ChecklistTemplate(models.Model):
             'type': 'ir.actions.act_url',
             'url': f'/checklists/templates/export?ids={",".join(map(str, self.ids))}',
             'target': 'download',
+        }
+
+    def action_preview(self):
+        """Open a checklist from this template in a new tab, in Preview Mode
+        (filled in like a real one, never saved)."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/odoo/%s/action-checklists.action_server_checklist_preview' % self.id,
+            'target': 'new',
+        }
+
+    def _preview_action(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.env._('Preview: %s', self.name),
+            'res_model': 'checklist.checklist',
+            'view_mode': 'form',
+            'views': [(self.env.ref('checklists.checklist_view_form_preview').id, 'form')],
+            'target': 'current',
+            'context': {'default_template_id': self.id, 'checklist_preview': True},
         }
 
     def action_import_json(self):

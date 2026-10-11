@@ -45,10 +45,19 @@ class Checklist(models.Model):
         string='Date', required=True, default=fields.Date.context_today, tracking=True,
     )
     date_due = fields.Date(string='Due Date', tracking=True)
+    # Empty on checklists submitted through a template's Public Link: their
+    # Completed By is the contact (partner_id) of the Full Name and Email given.
     user_id = fields.Many2one(
-        'res.users', string='Completed By', required=True, tracking=True,
+        'res.users', string='Completed By', tracking=True,
         default=lambda self: self.env.user,
     )
+    partner_id = fields.Many2one(
+        'res.partner', string='Completed By Contact', compute='_compute_partner_id',
+        store=True, readonly=False, tracking=True, index=True,
+    )
+    public_submission = fields.Boolean(string='Public Submission', readonly=True, copy=False)
+    submitter_name = fields.Char(string='Full Name', readonly=True, copy=False)
+    submitter_email = fields.Char(string='Email', readonly=True, copy=False)
     # Technical workflow state, so a fixed selection.
     state = fields.Selection(
         [('draft', 'In Progress'), ('done', 'Completed')],
@@ -66,7 +75,16 @@ class Checklist(models.Model):
     def _default_template(self):
         template_id = self.env['ir.config_parameter'].sudo().get_param('checklists.default_template_id')
         template = self.env['checklist.template'].browse(int(template_id or 0)).exists()
+        # Opened from a Checklist Group on the side panel: only that group's templates.
+        group_id = self.env.context.get('checklist_group_id')
+        if group_id and group_id not in template.group_ids.ids:
+            return self.env['checklist.template']
         return template if template.active else self.env['checklist.template']
+
+    @api.depends('user_id')
+    def _compute_partner_id(self):
+        for checklist in self:
+            checklist.partner_id = checklist.user_id.partner_id or checklist.partner_id
 
     @api.depends('date_due', 'state')
     def _compute_is_overdue(self):
@@ -90,6 +108,9 @@ class Checklist(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if self.env.context.get('checklist_preview'):
+            # Preview Mode (a template's Preview button) never saves.
+            raise UserError(self.env._('This is a preview: checklists in Preview Mode are not saved.'))
         for vals in vals_list:
             if vals.get('name', 'New') == 'New':
                 vals['name'] = self.env['ir.sequence'].next_by_code('checklist.checklist') or 'New'

@@ -10,4 +10,13 @@
         <field name="state">code</field>
         <field name="code">action = records.action_export_json()</field>
     </record>
+
+    <!-- Preview Mode: opened in a new tab by a template's Preview button
+         (/odoo/<template id>/action-checklists.action_server_checklist_preview). -->
+    <record id="action_server_checklist_preview" model="ir.actions.server">
+        <field name="name">Checklist Preview</field>
+        <field name="model_id" ref="model_checklist_template"/>
+        <field name="state">code</field>
+        <field name="code">action = model.browse(env.context.get('active_id')).exists()._preview_action()</field>
+    </record>
 </odoo>
