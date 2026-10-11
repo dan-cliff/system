@@ -12,6 +12,7 @@
                         t-attf-class="o_risk_ai_progress_step o_risk_ai_progress_step_{{ stepStatus(step_index) }}">
                         <span class="o_risk_ai_progress_icon">
                             <i t-if="stepStatus(step_index) === 'done'" class="fa fa-check"/>
+                            <i t-elif="stepStatus(step_index) === 'failed'" class="fa fa-times"/>
                             <i t-elif="stepStatus(step_index) === 'active'" class="fa fa-circle-o-notch fa-spin"/>
                             <i t-else="" class="fa fa-circle-thin"/>
                         </span>

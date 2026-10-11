@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
-from .risk_ai_mixin import ai_parse_json, ai_request_text
+from .risk_ai_mixin import ai_api_key, ai_parse_json, ai_request_text
 
 
 class RiskLineMixin(models.AbstractModel):
@@ -81,11 +81,9 @@ class RiskLineMixin(models.AbstractModel):
             )
 
     def _compute_ai_available(self):
-        installed = bool(self.env['ir.module.module'].sudo().search_count([
-            ('name', '=', 'claude_ai_settings'), ('state', '=', 'installed'),
-        ]))
+        available = bool(ai_api_key(self.env))
         for line in self:
-            line.ai_available = installed
+            line.ai_available = available
 
     def action_generate_risk_ai(self):
         """Fill in every empty field of this risk by AI, leaving filled-in fields as they are."""
@@ -94,7 +92,7 @@ class RiskLineMixin(models.AbstractModel):
             raise UserError('Give the risk a name before filling it in by AI.')
         if not self._ai_risk_empty_fields():
             raise UserError('Every field of this risk is already filled in.')
-        api_key = self.env['ir.config_parameter'].sudo().get_param('claude_ai_settings.api_key')
+        api_key = ai_api_key(self.env)
         if not api_key:
             raise UserError('Set a Claude AI API Key first (Settings > General Settings > Claude AI).')
         text = ai_request_text(api_key, self._ai_risk_prompt(), self._ai_risk_max_tokens, self._ai_risk_timeout)

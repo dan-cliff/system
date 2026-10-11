@@ -68,6 +68,19 @@
     }
 }
 
+.o_risk_ai_progress_step_failed {
+    color: $body-color;
+
+    .o_risk_ai_progress_icon {
+        color: $danger;
+    }
+}
+
+.o_risk_ai_progress_steps {
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
 @keyframes o_risk_ai_progress_spin {
     to {
         transform: rotate(360deg);

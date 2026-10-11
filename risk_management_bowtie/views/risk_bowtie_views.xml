@@ -162,14 +162,14 @@
             <form>
                 <sheet>
                     <p class="text-muted">
-                        A Threat is a possible cause of the Top Event. Preventive Barriers stop
+                        A Threat is a possible cause of the Top Event. Preventative Barriers stop
                         the threat from leading to the Top Event.
                     </p>
                     <group>
                         <field name="name"/>
                         <field name="description"/>
                     </group>
-                    <separator string="Preventive Barriers"/>
+                    <separator string="Preventative Barriers"/>
                     <field name="barrier_ids">
                         <list>
                             <field name="id" readonly="1"/>
@@ -194,7 +194,7 @@
             <form>
                 <sheet>
                     <p class="text-muted">
-                        A Consequence is a possible outcome of the Top Event. Recovery Barriers
+                        A Consequence is a possible outcome of the Top Event. Mitigative Barriers
                         stop the Top Event from leading to the consequence, or reduce its impact.
                     </p>
                     <group>
@@ -202,7 +202,7 @@
                         <field name="consequence_id"/>
                         <field name="description"/>
                     </group>
-                    <separator string="Recovery Barriers"/>
+                    <separator string="Mitigative Barriers"/>
                     <field name="barrier_ids">
                         <list>
                             <field name="id" readonly="1"/>

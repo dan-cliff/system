@@ -56,6 +56,19 @@ def ai_generate_control_description(api_key, control_name):
     return text.strip()
 
 
+def ai_api_key(env):
+    """The Claude API key from General Settings > Claude AI, or '' when no AI is set up.
+
+    AI buttons are only shown, and AI work only runs, when this returns a key.
+    """
+    installed = env['ir.module.module'].sudo().search_count([
+        ('name', '=', 'claude_ai_settings'), ('state', '=', 'installed'),
+    ], limit=1)
+    if not installed:
+        return ''
+    return (env['ir.config_parameter'].sudo().get_param('claude_ai_settings.api_key') or '').strip()
+
+
 def ai_request_text(api_key, prompt, max_tokens, timeout):
     """Send one prompt to Claude and return the text of its answer, raising UserError on failure."""
     try:
@@ -137,11 +150,9 @@ class RiskAiMixin(models.AbstractModel):
     ai_available = fields.Boolean(compute='_compute_ai_available')
 
     def _compute_ai_available(self):
-        installed = bool(self.env['ir.module.module'].sudo().search_count([
-            ('name', '=', 'claude_ai_settings'), ('state', '=', 'installed'),
-        ]))
+        available = bool(ai_api_key(self.env))
         for record in self:
-            record.ai_available = installed
+            record.ai_available = available
 
     def get_ai_generate_description(self):
         """What "Generate Risks and Controls by AI" asks the AI for, for its progress overlay."""
@@ -153,11 +164,22 @@ class RiskAiMixin(models.AbstractModel):
         controls = self.line_ids.control_ids.filtered(lambda control: not control.description)
         return [[control.id, control.name] for control in controls]
 
+    def get_ai_risks_missing_info(self):
+        """[[line id, risk name, [labels of its empty fields]], ...] for the risks that
+        "Generate Missing Risk Information" will fill in, in form order."""
+        self.ensure_one()
+        result = []
+        for line in self.line_ids.filtered(lambda line: (line.name or '').strip()):
+            labels = line.get_ai_empty_field_labels()
+            if labels:
+                result.append([line.id, line.name, labels])
+        return result
+
     def action_generate_risks_ai(self):
         self.ensure_one()
         if not self.summary_of_activity:
             raise UserError('Add a Summary of Activity before generating risks and controls.')
-        api_key = self.env['ir.config_parameter'].sudo().get_param('claude_ai_settings.api_key')
+        api_key = ai_api_key(self.env)
         if not api_key:
             raise UserError(
                 'Set a Claude AI API Key first (Settings > Technical > Claude AI Settings).'

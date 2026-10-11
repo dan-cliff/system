@@ -15,14 +15,27 @@ export const aiProgress = reactive({
     title: "",
     steps: [],
     current: 0,
+    failed: [],
     startedAt: 0,
 
     start(title, steps) {
         this.title = title;
         this.steps = steps;
         this.current = 0;
+        this.failed = [];
         this.startedAt = Date.now();
         this.active = true;
+    },
+    /** Replace the step list once the job knows its full shape, keeping the current step. */
+    setSteps(steps) {
+        this.steps = steps;
+    },
+    /** Mark the current step as failed (the job carries on with the next one). */
+    fail(label) {
+        if (label) {
+            this.steps[this.current] = label;
+        }
+        this.failed.push(this.current);
     },
     /** Move on to the next step, optionally rewording it now that more is known. */
     next(label) {
@@ -53,6 +66,9 @@ class AiProgressOverlay extends Component {
     }
 
     stepStatus(index) {
+        if (this.state.failed.includes(index)) {
+            return "failed";
+        }
         if (index < this.state.current) {
             return "done";
         }
