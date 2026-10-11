@@ -117,6 +117,9 @@
         <field name="arch" type="xml">
             <list string="Checklist Templates">
                 <header>
+                    <button name="%(checklists.action_checklist_ai_wizard)d" type="action"
+                            string="AI Generator" icon="fa-magic" display="always" class="btn-primary"
+                            groups="checklists.group_checklist_admin,checklists.group_checklist_template_author"/>
                     <button name="%(checklists.action_checklist_template_import_wizard)d" type="action"
                             string="Import JSON" display="always"
                             groups="checklists.group_checklist_admin"/>
