@@ -147,6 +147,7 @@ class ChecklistTemplate(models.Model):
         # Archived questions and values go too, so an import can archive them.
         questions = self.with_context(active_test=False).question_ids
         return {
+            **self._export_template_settings(),
             'uuid': self.uuid,
             'name': self.name,
             'description': self.description or '',
@@ -168,6 +169,10 @@ class ChecklistTemplate(models.Model):
                 } for option in question.option_ids],
             } for question in questions],
         }
+
+    def _export_template_settings(self):
+        """Extra template settings for the JSON export (extended by add-ons)."""
+        return {}
 
     # ── JSON import ──────────────────────────────────────────────────────
 
@@ -231,6 +236,7 @@ class ChecklistTemplate(models.Model):
                 'description': data.get('description') or False,
                 'sequence': data.get('sequence', 10),
                 'group_ids': [fields.Command.set(self._import_group_ids(data.get('groups') or []))],
+                **self._import_template_settings(data),
             }
             template = data.get('uuid') and Templates.search([('uuid', '=', data['uuid'])], limit=1)
             if template:
@@ -242,6 +248,12 @@ class ChecklistTemplate(models.Model):
             template._import_questions(data.get('questions') or [])
             templates |= template
         return templates
+
+    @api.model
+    def _import_template_settings(self, data):
+        """Template values from the extra settings of a JSON export
+        (extended by add-ons, the counterpart of _export_template_settings)."""
+        return {}
 
     def _import_into(self, content):
         """Import a file's questions into this template (bulk update): a
