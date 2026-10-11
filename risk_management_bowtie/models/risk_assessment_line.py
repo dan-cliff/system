@@ -17,7 +17,7 @@ class RiskAssessmentLine(models.Model):
         TemplateLine = self.env['risk.template.line']
         for vals in vals_list:
             if vals.get('source_template_line_id') and not any(
-                key in vals for key in ('bowtie_hazard', 'bowtie_threat_ids', 'bowtie_consequence_ids')
+                key in vals for key in ('bowtie_threat_ids', 'bowtie_consequence_ids')
             ):
                 vals.update(TemplateLine.browse(vals['source_template_line_id'])._bowtie_copy_vals())
         return super().create(vals_list)

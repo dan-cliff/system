@@ -7,6 +7,8 @@ class RiskTemplateLine(models.Model):
     _description = 'Risk Template Line'
     _order = 'sequence, id'
     _form_view_xmlid = 'risk_management.view_risk_template_line_form'
+    _ai_parent_field = 'template_id'
+    _ai_actions_field = 'standard_action_ids'
 
     template_id = fields.Many2one('risk.template', required=True, ondelete='cascade', index=True)
     sequence = fields.Integer(default=10)
@@ -15,3 +17,13 @@ class RiskTemplateLine(models.Model):
         help='Actions that should always be turned into To-Dos when a Risk Assessment pulls '
              'this risk in from the template.',
     )
+
+    def _ai_risk_action_vals(self, actions):
+        return {'standard_action_ids': [
+            (0, 0, {
+                'sequence': (index + 1) * 10,
+                'name': action['name'].strip(),
+                'description': (action.get('description') or '').strip(),
+            })
+            for index, action in enumerate(actions)
+        ]}

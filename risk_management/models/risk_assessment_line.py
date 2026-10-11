@@ -7,6 +7,8 @@ class RiskAssessmentLine(models.Model):
     _description = 'Risk Assessment Line'
     _order = 'sequence, id'
     _form_view_xmlid = 'risk_management.view_risk_assessment_line_form'
+    _ai_parent_field = 'assessment_id'
+    _ai_actions_field = 'todo_ids'
 
     assessment_id = fields.Many2one('risk.assessment', required=True, ondelete='cascade', index=True)
     sequence = fields.Integer(default=10)
@@ -32,3 +34,13 @@ class RiskAssessmentLine(models.Model):
                     vals['user_ids'] = [(4, line.assessment_id.assessor_id.id)]
                 task = self.env['project.task'].create(vals)
                 line.todo_ids = [(4, task.id)]
+
+    def _ai_risk_action_vals(self, actions):
+        # Same as Standard Actions pulled in from a template: To-Dos for the Risk Assessment Owner.
+        tasks = self.env['project.task']
+        for action in actions:
+            vals = {'name': action['name'].strip(), 'description': (action.get('description') or '').strip()}
+            if self.assessment_id.assessor_id:
+                vals['user_ids'] = [(4, self.assessment_id.assessor_id.id)]
+            tasks |= tasks.create(vals)
+        return {'todo_ids': [(4, task.id) for task in tasks]}
