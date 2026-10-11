@@ -113,7 +113,10 @@
                     <field name="summary_of_activity" nolabel="1"
                            placeholder="Describe the activity so AI can suggest relevant risks and controls..."/>
                     <field name="ai_available" invisible="1"/>
-                    <widget name="risk_ai_generate_button"/>
+                    <div class="d-flex flex-wrap gap-2">
+                        <widget name="risk_ai_generate_button"/>
+                        <widget name="risk_ai_fill_all_button"/>
+                    </div>
                     <notebook>
                         <page string="Risks" name="risks">
                             <field name="line_ids" class="o_risk_assessment_lines_list">

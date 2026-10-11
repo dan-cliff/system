@@ -3,7 +3,7 @@ from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
-from .risk_ai_mixin import ai_generate_control_description
+from .risk_ai_mixin import ai_api_key, ai_generate_control_description
 
 
 class RiskControl(models.Model):
@@ -30,11 +30,9 @@ class RiskControl(models.Model):
     )
 
     def _compute_ai_available(self):
-        installed = bool(self.env['ir.module.module'].sudo().search_count([
-            ('name', '=', 'claude_ai_settings'), ('state', '=', 'installed'),
-        ]))
+        available = bool(ai_api_key(self.env))
         for control in self:
-            control.ai_available = installed
+            control.ai_available = available
 
     def action_ai_write_descriptions(self):
         """Write a description by AI for each of these controls that has none.
@@ -46,7 +44,7 @@ class RiskControl(models.Model):
         controls = self.filtered(lambda control: not control.description)
         if not controls:
             return []
-        api_key = self.env['ir.config_parameter'].sudo().get_param('claude_ai_settings.api_key')
+        api_key = ai_api_key(self.env)
         if not api_key:
             raise UserError('Set a Claude AI API Key first (Settings > General Settings > Claude AI).')
         controls.check_access('read')
@@ -63,7 +61,7 @@ class RiskControl(models.Model):
     def _cron_ai_write_missing_descriptions(self, limit=5):
         """Background job: describe controls added without a description (e.g. typed in by
         hand on a risk), a few at a time, so saving never waits on the AI."""
-        api_key = self.env['ir.config_parameter'].sudo().get_param('claude_ai_settings.api_key')
+        api_key = ai_api_key(self.env)
         if not api_key:
             return
         retry_before = fields.Datetime.now() - timedelta(days=1)

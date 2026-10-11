@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management',
-    'version': '19.0.1.18.0',
+    'version': '19.0.1.19.0',
     'category': 'Operations/Risk Management',
     'summary': 'Risk assessment templates, risk assessments, a controls library and a risk matrix',
     'description': """
@@ -43,6 +43,10 @@ Risk Management
   Residual Risk, Controls, Controls Summary and Actions - using its
   filled-in fields and the Summary of Activity as context. Fields that
   already have a value are left as they are.
+* A Risk Assessment's "Generate Missing Risk Information" button runs
+  "Fill Empty Fields by AI" on each of its risks that has empty fields,
+  one after another.
+* AI buttons only show once a Claude AI API key is set in General Settings.
 * While an AI action runs, a progress overlay lists its steps and shows
   which one is running (e.g. which empty fields Claude is filling in).
 * Controls without a description get one written by AI: by the AI risk
@@ -115,6 +119,8 @@ Risk Management
             'risk_management/static/src/widgets/risk_ai_fill_button/risk_ai_fill_button.xml',
             'risk_management/static/src/widgets/risk_control_ai_describe_button/risk_control_ai_describe_button.js',
             'risk_management/static/src/widgets/risk_control_ai_describe_button/risk_control_ai_describe_button.xml',
+            'risk_management/static/src/widgets/risk_ai_fill_all_button/risk_ai_fill_all_button.js',
+            'risk_management/static/src/widgets/risk_ai_fill_all_button/risk_ai_fill_all_button.xml',
             'risk_management/static/src/widgets/risk_ai_generate_button/risk_ai_generate_button.js',
             'risk_management/static/src/widgets/risk_ai_generate_button/risk_ai_generate_button.xml',
             'risk_management/static/src/widgets/risk_ai_generate_button/risk_ai_generate_button.scss',
