@@ -109,6 +109,11 @@ class RiskLineMixin(models.AbstractModel):
             self.write(vals)
         return True
 
+    def get_ai_empty_field_labels(self):
+        """Labels of the fields "Fill Empty Fields by AI" will fill in, for its progress overlay."""
+        self.ensure_one()
+        return [self._fields[name].string for name in self._ai_risk_empty_fields()]
+
     def _ai_risk_empty_fields(self):
         """Names of the fields "Fill Empty Fields by AI" would fill in on this risk."""
         self.ensure_one()

@@ -143,6 +143,10 @@ class RiskAiMixin(models.AbstractModel):
         for record in self:
             record.ai_available = installed
 
+    def get_ai_generate_description(self):
+        """What "Generate Risks and Controls by AI" asks the AI for, for its progress overlay."""
+        return "the activity's risks, with their controls and inherent risk"
+
     def action_generate_risks_ai(self):
         self.ensure_one()
         if not self.summary_of_activity:

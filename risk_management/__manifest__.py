@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management',
-    'version': '19.0.1.17.0',
+    'version': '19.0.1.18.0',
     'category': 'Operations/Risk Management',
     'summary': 'Risk assessment templates, risk assessments, a controls library and a risk matrix',
     'description': """
@@ -43,6 +43,8 @@ Risk Management
   Residual Risk, Controls, Controls Summary and Actions - using its
   filled-in fields and the Summary of Activity as context. Fields that
   already have a value are left as they are.
+* While an AI action runs, a progress overlay lists its steps and shows
+  which one is running (e.g. which empty fields Claude is filling in).
 * Risk Template lines can list Standard Actions; when a Risk Assessment
   pulls a risk in from a template, those actions become Odoo To-Do tasks
   (project.task, visible in the To-Do app) on the risk, assigned to the
@@ -100,6 +102,11 @@ Risk Management
             'risk_management/static/src/fields/risk_score_badge/risk_score_badge.js',
             'risk_management/static/src/fields/risk_score_badge/risk_score_badge.xml',
             'risk_management/static/src/fields/risk_score_badge/risk_score_badge.scss',
+            'risk_management/static/src/ai_progress/ai_progress.js',
+            'risk_management/static/src/ai_progress/ai_progress.xml',
+            'risk_management/static/src/ai_progress/ai_progress.scss',
+            'risk_management/static/src/widgets/risk_ai_fill_button/risk_ai_fill_button.js',
+            'risk_management/static/src/widgets/risk_ai_fill_button/risk_ai_fill_button.xml',
             'risk_management/static/src/widgets/risk_ai_generate_button/risk_ai_generate_button.js',
             'risk_management/static/src/widgets/risk_ai_generate_button/risk_ai_generate_button.xml',
             'risk_management/static/src/widgets/risk_ai_generate_button/risk_ai_generate_button.scss',

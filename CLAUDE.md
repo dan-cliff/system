@@ -27,6 +27,29 @@ for every module we create or edit.
   `showOnHomeScreen: true`:
   `registry.category("systray").add(key, { Component, showOnHomeScreen: true }, { sequence })`.
 
+## AI functions
+
+- Whenever anything we build calls an AI service (Claude, Gemini, ...), the user
+  must see an in-progress overlay while it runs that tells them what the AI is
+  doing - never just a button spinner or a screen that looks frozen.
+- Start AI work from a JS widget (or client action), not a plain
+  `type="object"` button: save the record first, show the overlay, call the
+  server method with `orm.call`, then reload the record, show a success or
+  error notification, and hide the overlay in a `finally`.
+- The overlay lists the job's steps (e.g. Saving -> Checking what is needed ->
+  Asking Claude to ... -> Updating the record), marks the one running, words
+  the AI step specifically (what is being generated - fetch the details from
+  the server first if needed, e.g. the names of the fields being filled in) and
+  shows the elapsed time with "This can take a few minutes - please keep this
+  page open".
+- Render it as a full-screen `main_components` overlay so it sits above
+  dialogs. Modules depending on `risk_management` reuse `aiProgress` from
+  `@risk_management/ai_progress/ai_progress`; others follow the same pattern
+  (the checklists AI generator overlay is another example).
+- This also covers AI calls made as a side effect (e.g. on save): move them to
+  an explicit action with the overlay, or run them in the background so they
+  never block the user without explanation.
+
 ## Choice fields
 
 - Don't use `fields.Selection` for a list of choices. Use a `Many2one` (single

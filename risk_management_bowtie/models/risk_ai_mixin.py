@@ -18,6 +18,9 @@ class RiskAiMixin(models.AbstractModel):
             barrier_types, effectiveness, consequences,
         )
 
+    def get_ai_generate_description(self):
+        return super().get_ai_generate_description() + ", and each risk's bowtie (threats and consequences)"
+
     def _ai_line_vals(self, risk, vals):
         vals = super()._ai_line_vals(risk, vals)
         vals.update(self.env['risk.line.mixin']._ai_bowtie_vals(risk.get('bowtie')))
