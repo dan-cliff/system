@@ -17,7 +17,22 @@
                             <field name="active" invisible="1"/>
                         </group>
                     </group>
-                    <field name="description" placeholder="Describe what should be checked..."/>
+                    <field name="description" placeholder="Describe what should be checked..."
+                           invisible="question_type in ('section_break', 'instructions')"/>
+                    <!-- Section Title: a full-width box with the title and description. -->
+                    <group string="Box" invisible="question_type != 'section_title'">
+                        <field name="layout_text_color" widget="color"/>
+                        <field name="layout_bg_color" widget="color"/>
+                        <field name="layout_border_color" widget="color"/>
+                    </group>
+                    <!-- Section Break: a full-width line, with the title above, below or not shown. -->
+                    <group string="Line" invisible="question_type != 'section_break'">
+                        <field name="layout_line_color" widget="color"/>
+                        <field name="layout_title_position" widget="radio"/>
+                    </group>
+                    <!-- Instructions: formatted text shown as is on the checklist. -->
+                    <field name="instructions" widget="html" invisible="question_type != 'instructions'"
+                           placeholder="Write the instructions..." class="o_checklist_instructions_editor"/>
                     <group invisible="question_type not in ('many2one', 'many2many')">
                         <field name="relation_model_id" options="{'no_create': True, 'no_open': True}"
                                required="question_type in ('many2one', 'many2many')"/>
@@ -33,6 +48,41 @@
                             <field name="color" widget="color"/>
                         </list>
                     </field>
+                    <separator string="Conditional Display"/>
+                    <group>
+                        <field name="conditional" widget="boolean_toggle"/>
+                        <field name="condition_logic" widget="radio" options="{'horizontal': True}"
+                               invisible="not conditional"/>
+                    </group>
+                    <div invisible="not conditional">
+                        <p class="text-muted mb-1">Shown when the answers, the current user and the checklist
+                            meet the conditions below (only the ones set count). Answer conditions can look at
+                            this template's other questions once they are saved.</p>
+                        <label for="condition_ids" class="fw-bold"/>
+                        <field name="condition_ids" context="{'default_question_id': id}">
+                            <list editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="source_question_id" options="{'no_create': True, 'no_open': True}"
+                                       domain="[('template_id', '=', parent.template_id), ('id', '!=', parent.id),
+                                                ('question_type', 'not in', ('section_title', 'section_break', 'instructions'))]"/>
+                                <field name="source_question_type" column_invisible="1"/>
+                                <field name="operator"/>
+                                <field name="value"
+                                       invisible="operator in ('set', 'not_set') or source_question_type in
+                                                  ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
+                                <field name="option_ids" widget="many2many_tags"
+                                       options="{'no_create': True}"
+                                       invisible="operator in ('set', 'not_set') or source_question_type not in
+                                                  ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
+                            </list>
+                        </field>
+                        <group>
+                            <field name="condition_user_domain" widget="domain"
+                                   options="{'model': 'res.users', 'in_dialog': True}"/>
+                            <field name="condition_record_domain" widget="domain"
+                                   options="{'model': 'checklist.checklist', 'in_dialog': True}"/>
+                        </group>
+                    </div>
                 </sheet>
             </form>
         </field>
@@ -91,6 +141,7 @@
                                     <field name="question_type"/>
                                     <field name="option_ids" widget="many2many_tags"
                                            invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
+                                    <field name="conditional" string="Conditional" widget="boolean" optional="show"/>
                                 </list>
                             </field>
                         </page>

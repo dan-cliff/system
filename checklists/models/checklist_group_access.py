@@ -24,7 +24,8 @@ PERMISSIONS = {
         'Create and edit the templates in this Checklist Group, with their questions and button values.',
         [('checklist.template', '', IN_GROUP, 'wc'),
          ('checklist.question', 'template_id.', IN_GROUP, 'wcu'),
-         ('checklist.question.option', 'question_id.template_id.', IN_GROUP, 'wcu')],
+         ('checklist.question.option', 'question_id.template_id.', IN_GROUP, 'wcu'),
+         ('checklist.question.condition', 'question_id.template_id.', IN_GROUP, 'wcu')],
     ),
     'template_delete': (
         'Template Delete',
@@ -127,17 +128,20 @@ class ChecklistGroupAccess(models.Model):
                         'name': 'Allowed', 'privilege_id': access.privilege_id.id,
                         'comment': description, 'implied_ids': [(4, implied.id)],
                     })
-                if not access.rule_ids:
-                    access.rule_ids = self.env['ir.rule'].sudo().create([{
+                # Rules are created per model, so a model added to a permission
+                # later gets its rule on the next upgrade.
+                ruled = set(access.rule_ids.mapped('model_id.model'))
+                new_rules = [r for r in rules if r[0] not in ruled]
+                if new_rules:
+                    access.rule_ids = [(4, rule.id) for rule in self.env['ir.rule'].sudo().create([{
                         'name': '%s (%s)' % (label, model),
                         'model_id': self.env['ir.model']._get_id(model),
                         'groups': [(4, access.res_group_id.id)],
                         'domain_force': _rule_domain(domain, path, checklist_group.id),
                         **{field: letter in perms for letter, field in PERM_FIELDS.items()},
-                    } for model, path, domain, perms in rules])
-                else:
-                    for rule in access.rule_ids:
-                        rule.name = '%s (%s)' % (label, rule.model_id.model)
+                    } for model, path, domain, perms in new_rules])]
+                for rule in access.rule_ids:
+                    rule.name = '%s (%s)' % (label, rule.model_id.model)
         return True
 
     def _remove(self):

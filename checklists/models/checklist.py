@@ -2,7 +2,10 @@
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
-from .checklist_template import QUESTION_TYPES, group_panel_range
+from .checklist_question_condition import (
+    MULTI_OPTION_TYPES, SINGLE_OPTION_TYPES, combine, eval_domain, evaluate_rule,
+)
+from .checklist_template import LAYOUT_TYPES, QUESTION_TYPES, TITLE_POSITIONS, group_panel_range
 
 
 class Checklist(models.Model):
@@ -151,6 +154,82 @@ class ChecklistLine(models.Model):
     # Many2Many answers: ids of relation_model_id records.
     value_reference_ids = fields.Json(string='Records')
 
+    # Section Title / Section Break / Instructions, copied from the question.
+    layout_text_color = fields.Char(string='Text Colour')
+    layout_bg_color = fields.Char(string='Background Colour')
+    layout_border_color = fields.Char(string='Border Colour')
+    layout_line_color = fields.Char(string='Line Colour')
+    layout_title_position = fields.Selection(TITLE_POSITIONS, string='Title')
+    instructions = fields.Html(string='Instructions', sanitize=True)
+
+    # Conditional display, copied from the question (see checklist_question_condition.py).
+    conditional = fields.Boolean(string='Conditional Display')
+    condition_logic = fields.Selection([('all', 'All'), ('any', 'Any')], default='all')
+    # [{question_id (template question), question_type, operator, value, option_ids}]
+    condition_rules = fields.Json(string='Answer Conditions')
+    condition_user_domain = fields.Char(default='[]')
+    condition_record_domain = fields.Char(default='[]')
+    # {'user': bool, 'record': bool} for the filters set (evaluated here, as
+    # the form can't); the answer rules are evaluated live on the form.
+    condition_context = fields.Json(compute='_compute_condition_context')
+
+    @api.depends('conditional', 'condition_user_domain', 'condition_record_domain',
+                 'checklist_id.company_id', 'checklist_id.template_id', 'checklist_id.user_id')
+    @api.depends_context('uid')
+    def _compute_condition_context(self):
+        for line in self:
+            result = {}
+            if line.conditional:
+                user_domain = eval_domain(self.env, line.condition_user_domain)
+                if user_domain:
+                    result['user'] = bool(self.env.user.sudo().filtered_domain(user_domain))
+                record_domain = eval_domain(self.env, line.condition_record_domain)
+                if record_domain:
+                    result['record'] = bool(line.checklist_id.sudo().filtered_domain(record_domain))
+            line.condition_context = result
+
+    def _condition_answer(self):
+        """The answer in the form the condition rules compare."""
+        self.ensure_one()
+        kind = self.question_type
+        if kind in SINGLE_OPTION_TYPES:
+            return self.value_option_id.id or False
+        if kind in MULTI_OPTION_TYPES:
+            return self.value_option_ids.ids
+        if kind == 'many2many':
+            return self.value_reference_ids or []
+        if kind == 'many2one':
+            return self.value_reference.id if self.value_reference else False
+        if kind == 'geolocation':
+            return bool(self.value_latitude or self.value_longitude)
+        return {
+            'text': self.value_text, 'text_area': self.value_text_area,
+            'number': self.value_number, 'integer': self.value_integer,
+            'date': self.value_date,
+            'datetime': self.value_datetime and fields.Datetime.context_timestamp(self, self.value_datetime).date(),
+            'boolean': self.value_boolean, 'image': bool(self.value_image), 'file': bool(self.value_file),
+            'phone': self.value_phone, 'email': self.value_email, 'website': self.value_url,
+        }.get(kind, False)
+
+    def _is_visible(self, _seen=None):
+        """Whether this line shows, given its conditions (used by the PDF)."""
+        self.ensure_one()
+        if not self.conditional:
+            return True
+        seen = (_seen or set()) | {self.id}
+        answers = {line.question_id.id: line for line in self.checklist_id.line_ids if line.question_id}
+        results = []
+        for rule in self.condition_rules or []:
+            source = answers.get(rule.get('question_id'))
+            # A condition on a question that is itself hidden is not met.
+            results.append(
+                bool(source) and source.id not in seen and source._is_visible(seen)
+                and evaluate_rule(rule, source._condition_answer())
+            )
+        context = self.condition_context or {}
+        results += [context.get('user'), context.get('record')]
+        return combine(self.condition_logic, results)
+
     @api.model
     def _selection_reference_models(self):
         return [(model.model, model.name) for model in self.env['ir.model'].sudo().search(
@@ -168,6 +247,8 @@ class ChecklistLine(models.Model):
         """The answer as text, for reports (dates as dd/mm/yyyy)."""
         self.ensure_one()
         kind = self.question_type
+        if kind in LAYOUT_TYPES:
+            return ''
         if kind == 'text':
             return self.value_text or ''
         if kind == 'text_area':

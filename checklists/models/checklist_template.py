@@ -5,11 +5,12 @@ import re
 import uuid
 import zipfile
 
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
 
 from .checklist_group_access import CREATE_PERMISSIONS
+from .checklist_question_condition import OPERATORS
 
 # The answer widget a checklist shows depends on the type, so this stays a
 # fixed technical selection rather than an editable option list.
@@ -35,7 +36,17 @@ QUESTION_TYPES = [
     ('website', 'Website'),
     ('many2one', 'Many2one'),
     ('many2many', 'Many2Many'),
+    ('section_title', 'Section Title'),
+    ('section_break', 'Section Break'),
+    ('instructions', 'Instructions'),
 ]
+# Types that lay out the form rather than ask for an answer.
+LAYOUT_TYPES = ('section_title', 'section_break', 'instructions')
+# Technical: the form and PDF draw the Section Break's title from this.
+TITLE_POSITIONS = [('above', 'Above the line'), ('below', 'Below the line'), ('none', 'Not shown')]
+# Layout settings copied from the question onto checklist lines.
+LAYOUT_FIELDS = ('layout_text_color', 'layout_bg_color', 'layout_border_color',
+                 'layout_line_color', 'layout_title_position', 'instructions')
 # Types answered by picking the question's options (Button Values).
 OPTION_TYPES = ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')
 # Types answered by picking records of another model.
@@ -217,6 +228,19 @@ class ChecklistTemplate(models.Model):
                 'active': question.active,
                 'relation_model': question.relation_model or '',
                 'relation_domain': question.relation_domain or '[]',
+                'layout': {name: question[name] or '' for name in LAYOUT_FIELDS},
+                'conditions': {
+                    'enabled': question.conditional,
+                    'logic': question.condition_logic,
+                    'user_filter': question.condition_user_domain or '[]',
+                    'checklist_filter': question.condition_record_domain or '[]',
+                    'rules': [{
+                        'question_uuid': condition.source_question_id.uuid,
+                        'operator': condition.operator,
+                        'value': condition.value or '',
+                        'option_uuids': condition.option_ids.mapped('uuid'),
+                    } for condition in question.condition_ids],
+                },
                 'options': [{
                     'uuid': option.uuid,
                     'name': option.name,
@@ -343,6 +367,8 @@ class ChecklistTemplate(models.Model):
     def _import_questions(self, questions_data):
         self.ensure_one()
         Questions = self.env['checklist.question'].with_context(active_test=False)
+        # File GUID -> record, for the conditions (which name other questions).
+        question_map, option_map, imported = {}, {}, []
         for data in questions_data:
             vals = {
                 'name': data['name'],
@@ -353,7 +379,16 @@ class ChecklistTemplate(models.Model):
                 'relation_model_id': self.env['ir.model']._get_id(data['relation_model'])
                 if data.get('relation_model') in self.env else False,
                 'relation_domain': data.get('relation_domain') or '[]',
+                **{name: (data.get('layout') or {}).get(name) or False
+                   for name in LAYOUT_FIELDS if (data.get('layout') or {}).get(name)},
             }
+            conditions = data.get('conditions') or {}
+            vals.update({
+                'conditional': bool(conditions.get('enabled')),
+                'condition_logic': conditions.get('logic') if conditions.get('logic') in ('all', 'any') else 'all',
+                'condition_user_domain': conditions.get('user_filter') or '[]',
+                'condition_record_domain': conditions.get('checklist_filter') or '[]',
+            })
             question = data.get('uuid') and Questions.search([('uuid', '=', data['uuid'])], limit=1)
             if question and question.template_id == self:
                 question.write(vals)
@@ -363,7 +398,27 @@ class ChecklistTemplate(models.Model):
                 if data.get('uuid') and not question:
                     vals['uuid'] = data['uuid']
                 question = Questions.create(dict(vals, template_id=self.id))
-            question._import_options(data.get('options') or [])
+            option_map.update(question._import_options(data.get('options') or []))
+            if data.get('uuid'):
+                question_map[data['uuid']] = question
+            imported.append((question, data))
+        for question, data in imported:
+            if 'conditions' not in data:
+                continue
+            commands = [Command.clear()]
+            for rule in (data['conditions'] or {}).get('rules') or []:
+                source = question_map.get(rule.get('question_uuid')) or Questions.search(
+                    [('uuid', '=', rule.get('question_uuid')), ('template_id', '=', self.id)], limit=1)
+                if not source or rule.get('operator') not in dict(OPERATORS):
+                    continue
+                options = [option_map[u].id for u in rule.get('option_uuids') or [] if u in option_map]
+                commands.append(Command.create({
+                    'source_question_id': source.id,
+                    'operator': rule['operator'],
+                    'value': rule.get('value') or False,
+                    'option_ids': [Command.set(options)],
+                }))
+            question.condition_ids = commands
 
 
 class ChecklistQuestion(models.Model):
@@ -401,6 +456,39 @@ class ChecklistQuestion(models.Model):
         help='Only records matching this filter can be picked.',
     )
 
+    # Section Title / Section Break / Instructions
+    layout_text_color = fields.Char(string='Text Colour', default='#1f2937')
+    layout_bg_color = fields.Char(string='Background Colour', default='#eef2f7')
+    layout_border_color = fields.Char(string='Border Colour', default='#9aa5b1')
+    layout_line_color = fields.Char(string='Line Colour', default='#9aa5b1')
+    layout_title_position = fields.Selection(
+        TITLE_POSITIONS, string='Title', default='above',
+        help='Where the Section Break shows its title, if at all.',
+    )
+    instructions = fields.Html(string='Instructions', translate=True)
+
+    # Conditional display (see checklist_question_condition.py)
+    conditional = fields.Boolean(
+        string='Conditional Display',
+        help='Only show this question on checklists when its conditions are met.',
+    )
+    condition_logic = fields.Selection(
+        [('all', 'All conditions'), ('any', 'Any condition')], string='Show When',
+        default='all', required=True,
+    )
+    condition_ids = fields.One2many(
+        'checklist.question.condition', 'question_id', string='Answer Conditions', copy=False,
+    )
+    condition_user_domain = fields.Char(
+        string='Current User', default='[]',
+        help='Only shown to users matching this filter (e.g. their groups, job, department).',
+    )
+    condition_record_domain = fields.Char(
+        string='Checklist', default='[]',
+        help="Only shown on checklists matching this filter (e.g. the company, organisation "
+             "units or asset).",
+    )
+
     _uuid_uniq = models.Constraint('UNIQUE (uuid)', 'Another question already has this GUID.')
 
     @api.constrains('question_type', 'relation_model_id')
@@ -423,11 +511,18 @@ class ChecklistQuestion(models.Model):
             'question_type': self.question_type,
             'relation_model_id': self.relation_model_id.id,
             'relation_domain': self.relation_domain or '[]',
+            **{name: self[name] for name in LAYOUT_FIELDS},
+            'conditional': self.conditional,
+            'condition_logic': self.condition_logic,
+            'condition_rules': self.condition_ids._rule_vals() if self.conditional else [],
+            'condition_user_domain': self.condition_user_domain or '[]' if self.conditional else '[]',
+            'condition_record_domain': self.condition_record_domain or '[]' if self.conditional else '[]',
         }
 
     def _import_options(self, options_data):
         self.ensure_one()
         Options = self.env['checklist.question.option'].with_context(active_test=False)
+        mapping = {}
         for data in options_data:
             vals = {
                 'name': data['name'],
@@ -438,16 +533,21 @@ class ChecklistQuestion(models.Model):
             option = data.get('uuid') and Options.search([('uuid', '=', data['uuid'])], limit=1)
             if option and option.question_id == self:
                 option.write(vals)
-                continue
-            if not option:
-                # Files without GUIDs: reuse this question's value of the same name.
-                option = Options.search([('question_id', '=', self.id), ('name', '=', data['name'])], limit=1)
-                if option and not data.get('uuid'):
-                    option.write(vals)
-                    continue
-                if data.get('uuid'):
-                    vals['uuid'] = data['uuid']
-            Options.create(dict(vals, question_id=self.id))
+            else:
+                if not option:
+                    # Files without GUIDs: reuse this question's value of the same name.
+                    option = Options.search([('question_id', '=', self.id), ('name', '=', data['name'])], limit=1)
+                    if option and not data.get('uuid'):
+                        option.write(vals)
+                    else:
+                        if data.get('uuid'):
+                            vals['uuid'] = data['uuid']
+                        option = Options.create(dict(vals, question_id=self.id))
+                else:
+                    option = Options.create(dict(vals, question_id=self.id))
+            if data.get('uuid'):
+                mapping[data['uuid']] = option
+        return mapping
 
 
 class ChecklistQuestionOption(models.Model):

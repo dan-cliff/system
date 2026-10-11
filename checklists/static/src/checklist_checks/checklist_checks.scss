@@ -38,3 +38,59 @@
         }
     }
 }
+
+// ── Layout types: full width, between the checks ──────────────────────
+.o_checklist_checks {
+    .o_checklist_section_title {
+        width: 100%;
+        margin: map-get($spacers, 3) 0;
+        padding: map-get($spacers, 3) map-get($spacers, 3);
+        border: 2px solid $border-color;
+        border-radius: $border-radius-lg;
+
+        .o_checklist_section_title_name {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .o_checklist_section_title_description {
+            margin-top: map-get($spacers, 1);
+            white-space: pre-line;
+        }
+    }
+
+    .o_checklist_section_break {
+        width: 100%;
+        margin: map-get($spacers, 3) 0;
+
+        .o_checklist_section_break_title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .o_checklist_section_break_line {
+            margin: map-get($spacers, 2) 0;
+            border: 0;
+            border-top: 2px solid $border-color;
+            opacity: 1;
+        }
+    }
+
+    .o_checklist_instructions {
+        width: 100%;
+        padding: map-get($spacers, 2) 0;
+        border-bottom: $border-width solid $border-color;
+
+        img {
+            max-width: 100%;
+        }
+    }
+}
+
+// The Instructions editor on the question form: a visible writing area.
+.o_checklist_instructions_editor {
+    display: block;
+    width: 100%;
+    min-height: 10rem;
+    border: $border-width solid $border-color;
+    border-radius: $border-radius;
+    padding: map-get($spacers, 2);
+}

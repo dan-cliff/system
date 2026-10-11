@@ -3,6 +3,7 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { Field } from "@web/views/fields/field";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
+import { visibleLineIds } from "./conditions";
 
 // Answer field (and widget) shown for each question type, all rendered in the
 // same place. A field used by several types is declared once per widget in
@@ -58,6 +59,31 @@ export class ChecklistChecks extends Component {
 
     get lines() {
         return this.props.record.data[this.props.name].records;
+    }
+
+    /** The lines to show: conditional ones only when their conditions hold. */
+    get shownLines() {
+        const visible = visibleLineIds(this.lines);
+        return this.lines.filter((line) => visible.has(line.id));
+    }
+
+    isLayout(line) {
+        return ["section_title", "section_break", "instructions"].includes(line.data.question_type);
+    }
+
+    sectionTitleStyle(line) {
+        const { layout_text_color, layout_bg_color, layout_border_color } = line.data;
+        return [
+            layout_text_color && `color: ${layout_text_color}`,
+            layout_bg_color && `background-color: ${layout_bg_color}`,
+            layout_border_color && `border-color: ${layout_border_color}`,
+        ]
+            .filter(Boolean)
+            .join("; ");
+    }
+
+    sectionBreakStyle(line) {
+        return line.data.layout_line_color ? `border-top-color: ${line.data.layout_line_color}` : "";
     }
 
     get isEditable() {
