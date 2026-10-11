@@ -1,0 +1,221 @@
+<odoo>
+    <!-- Barrier Types (Configuration) -->
+    <record id="view_risk_bowtie_barrier_type_list" model="ir.ui.view">
+        <field name="name">risk.bowtie.barrier.type.list</field>
+        <field name="model">risk.bowtie.barrier.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" readonly="1"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_bowtie_barrier_type_form" model="ir.ui.view">
+        <field name="name">risk.bowtie.barrier.type.form</field>
+        <field name="model">risk.bowtie.barrier.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_risk_bowtie_barrier_type" model="ir.actions.act_window">
+        <field name="name">Barrier Types</field>
+        <field name="res_model">risk.bowtie.barrier.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">Create a barrier type</p>
+            <p>How a bowtie barrier works, e.g. Passive Hardware, Active Human, Behavioural.</p>
+        </field>
+    </record>
+
+    <!-- Barrier Effectiveness (Configuration) -->
+    <record id="view_risk_bowtie_barrier_effectiveness_list" model="ir.ui.view">
+        <field name="name">risk.bowtie.barrier.effectiveness.list</field>
+        <field name="model">risk.bowtie.barrier.effectiveness</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" readonly="1"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="color" widget="color"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_bowtie_barrier_effectiveness_form" model="ir.ui.view">
+        <field name="name">risk.bowtie.barrier.effectiveness.form</field>
+        <field name="model">risk.bowtie.barrier.effectiveness</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="color" widget="color"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_risk_bowtie_barrier_effectiveness" model="ir.actions.act_window">
+        <field name="name">Barrier Effectiveness</field>
+        <field name="res_model">risk.bowtie.barrier.effectiveness</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">Create a barrier effectiveness rating</p>
+            <p>How well a bowtie barrier works, e.g. Very Good to Very Poor. The colour marks
+               barriers with this rating on the bowtie diagram.</p>
+        </field>
+    </record>
+
+    <!-- Escalation Factor (opened from a barrier) -->
+    <record id="view_risk_bowtie_escalation_factor_form" model="ir.ui.view">
+        <field name="name">risk.bowtie.escalation.factor.form</field>
+        <field name="model">risk.bowtie.escalation.factor</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <p class="text-muted">
+                        An Escalation Factor is a condition that could make the barrier fail or
+                        less effective, e.g. "Leader is fatigued". Add the barriers that stop it.
+                    </p>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                    </group>
+                    <separator string="Escalation Factor Barriers"/>
+                    <field name="barrier_ids" context="{'bowtie_escalation_barrier': True}">
+                        <list>
+                            <field name="id" readonly="1"/>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="barrier_type_id"/>
+                            <field name="effectiveness_id"/>
+                            <field name="accountable"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Barrier (opened from a threat, a consequence or an escalation factor) -->
+    <record id="view_risk_bowtie_barrier_form" model="ir.ui.view">
+        <field name="name">risk.bowtie.barrier.form</field>
+        <field name="model">risk.bowtie.barrier</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="control_id"/>
+                            <field name="accountable"/>
+                        </group>
+                        <group>
+                            <field name="barrier_type_id"/>
+                            <field name="effectiveness_id"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="How this barrier works and what keeps it in place..."/>
+                    <div invisible="context.get('bowtie_escalation_barrier')">
+                        <separator string="Escalation Factors"/>
+                        <p class="text-muted">
+                            Conditions that could make this barrier fail or less effective, each
+                            with the barriers that stop it.
+                        </p>
+                        <field name="escalation_factor_ids">
+                            <list>
+                                <field name="id" readonly="1"/>
+                                <field name="sequence" widget="handle"/>
+                                <field name="name"/>
+                                <field name="barrier_ids" widget="many2many_tags" string="Escalation Factor Barriers"/>
+                            </list>
+                        </field>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Threat (opened from a risk) -->
+    <record id="view_risk_bowtie_threat_form" model="ir.ui.view">
+        <field name="name">risk.bowtie.threat.form</field>
+        <field name="model">risk.bowtie.threat</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <p class="text-muted">
+                        A Threat is a possible cause of the Top Event. Preventive Barriers stop
+                        the threat from leading to the Top Event.
+                    </p>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                    </group>
+                    <separator string="Preventive Barriers"/>
+                    <field name="barrier_ids">
+                        <list>
+                            <field name="id" readonly="1"/>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="barrier_type_id"/>
+                            <field name="effectiveness_id"/>
+                            <field name="accountable"/>
+                            <field name="escalation_factor_ids" widget="many2many_tags"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Consequence (opened from a risk) -->
+    <record id="view_risk_bowtie_consequence_form" model="ir.ui.view">
+        <field name="name">risk.bowtie.consequence.form</field>
+        <field name="model">risk.bowtie.consequence</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <p class="text-muted">
+                        A Consequence is a possible outcome of the Top Event. Recovery Barriers
+                        stop the Top Event from leading to the consequence, or reduce its impact.
+                    </p>
+                    <group>
+                        <field name="name"/>
+                        <field name="consequence_id"/>
+                        <field name="description"/>
+                    </group>
+                    <separator string="Recovery Barriers"/>
+                    <field name="barrier_ids">
+                        <list>
+                            <field name="id" readonly="1"/>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="barrier_type_id"/>
+                            <field name="effectiveness_id"/>
+                            <field name="accountable"/>
+                            <field name="escalation_factor_ids" widget="many2many_tags"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

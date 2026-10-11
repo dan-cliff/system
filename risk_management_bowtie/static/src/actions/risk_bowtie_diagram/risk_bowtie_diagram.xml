@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="risk_management_bowtie.RiskBowtieDiagram">
+        <div class="o_risk_bowtie_diagram p-3">
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" class="btn btn-sm btn-secondary" t-on-click="toggleZoom">
+                    <i t-attf-class="fa me-1 #{state.zoomed ? 'fa-compress' : 'fa-expand'}"/>
+                    <t t-if="state.zoomed">Fit to Window</t>
+                    <t t-else="">Actual Size</t>
+                </button>
+            </div>
+            <div t-attf-class="o_risk_bowtie_canvas #{state.zoomed ? 'o_risk_bowtie_zoomed' : ''}">
+                <t t-out="state.svg"/>
+            </div>
+        </div>
+    </t>
+
+</templates>

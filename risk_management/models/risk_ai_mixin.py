@@ -64,6 +64,9 @@ class RiskAiMixin(models.AbstractModel):
     # and the field on that model linking back to this record.
     _ai_line_model = None
     _ai_line_parent_field = None
+    # Claude request limits; extensions that ask for more per risk can raise them.
+    _ai_max_tokens = 8192
+    _ai_timeout = 120
 
     summary_of_activity = fields.Text(
         string='Summary of Activity',
@@ -115,10 +118,10 @@ class RiskAiMixin(models.AbstractModel):
                 },
                 json={
                     'model': CLAUDE_MODEL,
-                    'max_tokens': 8192,
+                    'max_tokens': self._ai_max_tokens,
                     'messages': [{'role': 'user', 'content': prompt}],
                 },
-                timeout=120,
+                timeout=self._ai_timeout,
             )
         except requests.RequestException as exc:
             _logger.warning('Claude API call failed: %s', exc)
@@ -257,7 +260,7 @@ class RiskAiMixin(models.AbstractModel):
                 consequence = Consequence.search([('name', '=ilike', consequence_name)], limit=1)
             # Residual likelihood/consequence are deliberately left empty here - they depend on
             # which controls actually get implemented, which is a human judgement call.
-            Line.create({
+            Line.create(self._ai_line_vals(risk, {
                 self._ai_line_parent_field: self.id,
                 'name': risk.get('name'),
                 'unwanted_event': risk.get('unwanted_event') or '',
@@ -268,4 +271,8 @@ class RiskAiMixin(models.AbstractModel):
                 'inherent_consequence_id': consequence.id if consequence else False,
                 'control_ids': [(6, 0, control_ids)],
                 'control_summary': ', '.join(control_names),
-            })
+            }))
+
+    def _ai_line_vals(self, risk, vals):
+        """Hook: adjust the values of the risk line created for one AI-generated risk."""
+        return vals

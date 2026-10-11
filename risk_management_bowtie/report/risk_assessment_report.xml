@@ -1,0 +1,27 @@
+<odoo>
+    <!-- Risk Assessment PDF: each risk with a bowtie notes its appendix in the Risks table,
+         and every bowtie is added after the Actions table, one per page, titled with its risk. -->
+    <template id="report_risk_assessment_document_bowtie" inherit_id="risk_management.report_risk_assessment_document">
+        <xpath expr="//h4[text()='Risks']/.." position="before">
+            <t t-set="bowtie_lines" t-value="o.line_ids.filtered('has_bowtie')"/>
+        </xpath>
+        <xpath expr="//td/span[@t-field='line.name']" position="after">
+            <div t-if="line in bowtie_lines" class="text-muted" style="font-size: 9pt;">
+                Bowtie: Appendix <t t-esc="bowtie_lines.ids.index(line.id) + 1"/>
+            </div>
+        </xpath>
+        <xpath expr="//h4[text()='Actions']/.." position="after">
+            <div t-foreach="bowtie_lines" t-as="line" style="page-break-before: always;">
+                <div class="text-muted" style="font-size: 10pt;">
+                    Appendix <t t-esc="line_index + 1"/> - Bowtie Diagram
+                </div>
+                <h4 class="mb-3" t-esc="line.name"/>
+                <t t-set="bowtie_image" t-value="line._bowtie_report_image()"/>
+                <div class="text-center">
+                    <img t-att-src="bowtie_image['src']" alt="Bowtie diagram"
+                         t-attf-style="width: #{bowtie_image['width']}%; height: auto;"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>
