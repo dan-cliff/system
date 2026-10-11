@@ -79,6 +79,32 @@
                                     <field name="value_option_id" widget="checklist_colour_badge"
                                            domain="[('question_id', '=', question_id)]"
                                            options="{'no_create': True, 'no_open': True}"/>
+                                    <!-- The same answer field with another widget per question type
+                                         (the checks widget picks the node by field and widget). -->
+                                    <field name="value_option_id" widget="selection"
+                                           domain="[('question_id', '=', question_id)]"/>
+                                    <field name="value_option_id" widget="radio"
+                                           domain="[('question_id', '=', question_id)]"/>
+                                    <field name="value_option_id" widget="checklist_slider"
+                                           domain="[('question_id', '=', question_id)]"/>
+                                    <field name="value_option_ids" widget="checklist_many2many_tags"
+                                           domain="[('question_id', '=', question_id)]"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="value_option_ids" widget="many2many_checkboxes"
+                                           domain="[('question_id', '=', question_id)]"/>
+                                    <field name="value_boolean" widget="boolean_toggle"/>
+                                    <field name="value_latitude" widget="checklist_geolocation"/>
+                                    <field name="value_longitude"/>
+                                    <field name="value_image" widget="image" options="{'size': [0, 180]}"/>
+                                    <field name="value_file" widget="binary" filename="value_file_name"/>
+                                    <field name="value_file_name"/>
+                                    <field name="value_phone" widget="phone"/>
+                                    <field name="value_email" widget="email"/>
+                                    <field name="value_url" widget="url"/>
+                                    <field name="relation_model_id"/>
+                                    <field name="relation_domain"/>
+                                    <field name="value_reference" widget="checklist_many2one_reference"/>
+                                    <field name="value_reference_ids" widget="checklist_many2many_reference"/>
                                     <templates>
                                         <t t-name="card">
                                             <field name="name"/>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="checklists.Many2oneReferenceField">
+        <div class="o_checklist_many2one_reference">
+            <t t-if="props.readonly">
+                <span t-esc="current ? current.displayName : ''"/>
+            </t>
+            <div t-elif="state.model" class="o_checklist_many2many_reference_input">
+                <Many2XAutocomplete resModel="state.model" getDomain.bind="getDomain" update.bind="select"
+                                    activeActions="{}" fieldString="''"
+                                    value="current ? current.displayName : ''"
+                                    placeholder="'Search...'"/>
+            </div>
+        </div>
+    </t>
+    <t t-name="checklists.Many2manyReferenceField">
+        <div class="o_checklist_many2many_reference d-flex flex-wrap align-items-center gap-1">
+            <span t-foreach="ids" t-as="id" t-key="id" class="badge rounded-pill text-bg-light border">
+                <t t-esc="state.names[id] or '…'"/>
+                <a t-if="!props.readonly" href="#" class="ms-1 text-muted" title="Remove"
+                   t-on-click.prevent="() => this.remove(id)"><i class="fa fa-times"/></a>
+            </span>
+            <div t-if="!props.readonly and state.model" class="o_checklist_many2many_reference_input flex-grow-1">
+                <Many2XAutocomplete resModel="state.model" getDomain.bind="getDomain" update.bind="add"
+                                    activeActions="{}" fieldString="''" isToMany="true"
+                                    placeholder="'Add...'"/>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists',
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.4.0',
     'category': 'Productivity',
     'summary': 'General-purpose checklists built from templates, grouped into Checklist Groups',
     'description': """
@@ -41,6 +41,7 @@
         'web.assets_backend': [
             'checklists/static/src/checklist_checks/*',
             'checklists/static/src/colour_badge/*',
+            'checklists/static/src/answer_widgets/*',
         ],
     },
     'application': True,

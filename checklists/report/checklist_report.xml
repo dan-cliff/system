@@ -44,7 +44,9 @@
                     <t t-set="answer" t-value="line._answer_display()"/>
                     <t t-set="badge_style" t-value="line._answer_badge_style()"/>
                     <div class="mt-1">
-                        <span t-if="answer and badge_style" class="badge rounded-pill" t-att-style="badge_style" t-esc="answer"/>
+                        <img t-if="line.question_type == 'image' and line.value_image"
+                             t-att-src="image_data_uri(line.value_image)" style="max-height: 200px; max-width: 100%;"/>
+                        <span t-elif="answer and badge_style" class="badge rounded-pill" t-att-style="badge_style" t-esc="answer"/>
                         <span t-elif="answer" style="white-space: pre-line;" t-esc="answer"/>
                         <em t-else="" class="text-muted">Not answered</em>
                     </div>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="checklists.GeolocationField">
+        <div class="o_checklist_geolocation">
+            <t t-if="props.readonly">
+                <a t-if="isSet" t-att-href="mapUrl" target="_blank" rel="noopener">
+                    <i class="fa fa-map-marker me-1"/><t t-esc="display"/>
+                </a>
+            </t>
+            <t t-else="">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button type="button" class="btn btn-secondary btn-sm" t-on-click="locate"
+                            t-att-disabled="state.locating">
+                        <i t-attf-class="fa {{ state.locating ? 'fa-spinner fa-spin' : 'fa-crosshairs' }} me-1"/>
+                        Use my location
+                    </button>
+                    <input type="number" step="any" class="o_input o_checklist_geolocation_input"
+                           placeholder="Latitude" t-att-value="isSet ? latitude : ''"
+                           t-on-change="(ev) => this.onInput(ev, 'latitude')"/>
+                    <input type="number" step="any" class="o_input o_checklist_geolocation_input"
+                           placeholder="Longitude" t-att-value="isSet ? longitude : ''"
+                           t-on-change="(ev) => this.onInput(ev, 'longitude')"/>
+                    <a t-if="isSet" t-att-href="mapUrl" target="_blank" rel="noopener" title="Open map">
+                        <i class="fa fa-map-marker"/>
+                    </a>
+                    <button t-if="isSet" type="button" class="btn btn-link btn-sm text-muted" t-on-click="clear"
+                            title="Clear">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

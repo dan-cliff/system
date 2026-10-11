@@ -18,8 +18,15 @@
                         </group>
                     </group>
                     <field name="description" placeholder="Describe what should be checked..."/>
-                    <separator string="Button Values" invisible="question_type != 'buttons'"/>
-                    <field name="option_ids" invisible="question_type != 'buttons'">
+                    <group invisible="question_type not in ('many2one', 'many2many')">
+                        <field name="relation_model_id" options="{'no_create': True, 'no_open': True}"
+                               required="question_type in ('many2one', 'many2many')"/>
+                        <field name="relation_model" invisible="1"/>
+                        <field name="relation_domain" widget="domain" invisible="not relation_model_id"
+                               options="{'model': 'relation_model', 'in_dialog': True}"/>
+                    </group>
+                    <separator string="Options" invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
+                    <field name="option_ids" invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')">
                         <list editable="bottom">
                             <field name="sequence" widget="handle"/>
                             <field name="name"/>
@@ -83,7 +90,7 @@
                                     <field name="description"/>
                                     <field name="question_type"/>
                                     <field name="option_ids" widget="many2many_tags"
-                                           invisible="question_type != 'buttons'"/>
+                                           invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
                                 </list>
                             </field>
                         </page>

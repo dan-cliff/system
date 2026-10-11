@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import Command, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 from .checklist_template import QUESTION_TYPES, group_panel_range
 
@@ -131,6 +131,38 @@ class ChecklistLine(models.Model):
         'checklist.question.option', string='Answer', ondelete='restrict',
         domain="[('question_id', '=', question_id)]",
     )
+    value_option_ids = fields.Many2many(
+        'checklist.question.option', 'checklist_line_option_rel', 'line_id', 'option_id',
+        string='Answers', domain="[('question_id', '=', question_id)]",
+    )
+    value_boolean = fields.Boolean(string='Yes / No')
+    value_latitude = fields.Float(string='Latitude', digits=(10, 7))
+    value_longitude = fields.Float(string='Longitude', digits=(10, 7))
+    value_image = fields.Image(string='Image', max_width=1920, max_height=1920)
+    value_file = fields.Binary(string='File', attachment=True)
+    value_file_name = fields.Char(string='File Name')
+    value_phone = fields.Char(string='Phone')
+    value_email = fields.Char(string='Email')
+    value_url = fields.Char(string='Website')
+    # Many2one / Many2Many: copied from the question, like its title.
+    relation_model_id = fields.Many2one('ir.model', string='Model', ondelete='set null')
+    relation_domain = fields.Char(string='Filter', default='[]')
+    value_reference = fields.Reference(selection='_selection_reference_models', string='Record')
+    # Many2Many answers: ids of relation_model_id records.
+    value_reference_ids = fields.Json(string='Records')
+
+    @api.model
+    def _selection_reference_models(self):
+        return [(model.model, model.name) for model in self.env['ir.model'].sudo().search(
+            [('transient', '=', False), ('abstract', '=', False)])]
+
+    def _reference_records(self):
+        """The records a Many2Many answer picked (that still exist)."""
+        self.ensure_one()
+        model = self.relation_model_id.model
+        if not model or model not in self.env or not self.value_reference_ids:
+            return None
+        return self.env[model].browse([i for i in self.value_reference_ids if isinstance(i, int)]).exists()
 
     def _answer_display(self):
         """The answer as text, for reports (dates as dd/mm/yyyy)."""
@@ -150,14 +182,38 @@ class ChecklistLine(models.Model):
             if not self.value_datetime:
                 return ''
             return fields.Datetime.context_timestamp(self, self.value_datetime).strftime('%d/%m/%Y %H:%M')
-        if kind == 'buttons':
+        if kind in ('buttons', 'select', 'radio', 'slider'):
             return self.value_option_id.name or ''
+        if kind in ('multi_select', 'multi_checkbox'):
+            return ', '.join(self.value_option_ids.mapped('name'))
+        if kind == 'boolean':
+            return self.env._('Yes') if self.value_boolean else self.env._('No')
+        if kind == 'geolocation':
+            if not (self.value_latitude or self.value_longitude):
+                return ''
+            return '%.6f, %.6f' % (self.value_latitude, self.value_longitude)
+        if kind == 'file':
+            return self.value_file_name or (self.env._('File attached') if self.value_file else '')
+        if kind == 'phone':
+            return self.value_phone or ''
+        if kind == 'email':
+            return self.value_email or ''
+        if kind == 'website':
+            return self.value_url or ''
+        try:
+            if kind == 'many2one':
+                return self.value_reference.display_name if self.value_reference else ''
+            if kind == 'many2many':
+                records = self._reference_records()
+                return ', '.join(records.mapped('display_name')) if records else ''
+        except AccessError:
+            return self.env._('(no access)')
         return ''
 
     def _answer_badge_style(self):
         """Inline style colouring a Buttons answer like its button, or ''."""
         self.ensure_one()
-        colour = self.question_type == 'buttons' and self.value_option_id.color
+        colour = self.question_type in ('buttons', 'select', 'radio', 'slider') and self.value_option_id.color
         if not colour:
             return ''
         hex_colour = colour.lstrip('#')
