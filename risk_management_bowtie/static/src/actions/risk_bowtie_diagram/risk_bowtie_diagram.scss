@@ -1,0 +1,19 @@
+.o_risk_bowtie_diagram {
+    .o_risk_bowtie_canvas {
+        overflow: auto;
+        max-height: 70vh;
+        border: 1px solid $border-color;
+        background-color: #ffffff;
+
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        &.o_risk_bowtie_zoomed svg {
+            width: auto;
+            max-width: none;
+        }
+    }
+}

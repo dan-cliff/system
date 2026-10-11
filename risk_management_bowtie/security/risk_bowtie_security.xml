@@ -1,0 +1,102 @@
+<odoo>
+    <!-- Bowtie records (threats, consequences, barriers, escalation factors) follow the
+         Risk they belong to: Risk Template bowties are visible to everyone with access,
+         Risk Assessment bowties follow Risk Management's Risk Assessment Lines rules. Changing a
+         bowtie also needs edit access to its Risk (checked in risk.bowtie.mixin). -->
+    <record id="rule_risk_bowtie_threat_company" model="ir.rule">
+        <field name="name">Bowtie Threats: allowed companies</field>
+        <field name="model_id" ref="model_risk_bowtie_threat"/>
+        <field name="domain_force">['|', ('assessment_line_id', '=', False), ('assessment_line_id.assessment_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_risk_bowtie_threat_own" model="ir.rule">
+        <field name="name">Bowtie Threats: own, owned, approving or collaborating</field>
+        <field name="model_id" ref="model_risk_bowtie_threat"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            '|', ('assessment_line_id', '=', False),
+            '|', '|', '|',
+            ('assessment_line_id.assessment_id.create_uid', '=', user.id),
+            ('assessment_line_id.assessment_id.assessor_id', '=', user.id),
+            ('assessment_line_id.assessment_id.approver_id', '=', user.id),
+            ('assessment_line_id.assessment_id.collaborator_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_risk_bowtie_threat_any" model="ir.rule">
+        <field name="name">Bowtie Threats: any record (Risk Assessments Update or Delete)</field>
+        <field name="model_id" ref="model_risk_bowtie_threat"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_update')), (4, ref('risk_management.group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_risk_bowtie_consequence_company" model="ir.rule">
+        <field name="name">Bowtie Consequences: allowed companies</field>
+        <field name="model_id" ref="model_risk_bowtie_consequence"/>
+        <field name="domain_force">['|', ('assessment_line_id', '=', False), ('assessment_line_id.assessment_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_risk_bowtie_consequence_own" model="ir.rule">
+        <field name="name">Bowtie Consequences: own, owned, approving or collaborating</field>
+        <field name="model_id" ref="model_risk_bowtie_consequence"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            '|', ('assessment_line_id', '=', False),
+            '|', '|', '|',
+            ('assessment_line_id.assessment_id.create_uid', '=', user.id),
+            ('assessment_line_id.assessment_id.assessor_id', '=', user.id),
+            ('assessment_line_id.assessment_id.approver_id', '=', user.id),
+            ('assessment_line_id.assessment_id.collaborator_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_risk_bowtie_consequence_any" model="ir.rule">
+        <field name="name">Bowtie Consequences: any record (Risk Assessments Update or Delete)</field>
+        <field name="model_id" ref="model_risk_bowtie_consequence"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_update')), (4, ref('risk_management.group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_risk_bowtie_barrier_company" model="ir.rule">
+        <field name="name">Bowtie Barriers: allowed companies</field>
+        <field name="model_id" ref="model_risk_bowtie_barrier"/>
+        <field name="domain_force">['|', ('assessment_line_id', '=', False), ('assessment_line_id.assessment_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_risk_bowtie_barrier_own" model="ir.rule">
+        <field name="name">Bowtie Barriers: own, owned, approving or collaborating</field>
+        <field name="model_id" ref="model_risk_bowtie_barrier"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            '|', ('assessment_line_id', '=', False),
+            '|', '|', '|',
+            ('assessment_line_id.assessment_id.create_uid', '=', user.id),
+            ('assessment_line_id.assessment_id.assessor_id', '=', user.id),
+            ('assessment_line_id.assessment_id.approver_id', '=', user.id),
+            ('assessment_line_id.assessment_id.collaborator_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_risk_bowtie_barrier_any" model="ir.rule">
+        <field name="name">Bowtie Barriers: any record (Risk Assessments Update or Delete)</field>
+        <field name="model_id" ref="model_risk_bowtie_barrier"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_update')), (4, ref('risk_management.group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_risk_bowtie_escalation_factor_company" model="ir.rule">
+        <field name="name">Bowtie Escalation Factors: allowed companies</field>
+        <field name="model_id" ref="model_risk_bowtie_escalation_factor"/>
+        <field name="domain_force">['|', ('assessment_line_id', '=', False), ('assessment_line_id.assessment_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_risk_bowtie_escalation_factor_own" model="ir.rule">
+        <field name="name">Bowtie Escalation Factors: own, owned, approving or collaborating</field>
+        <field name="model_id" ref="model_risk_bowtie_escalation_factor"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            '|', ('assessment_line_id', '=', False),
+            '|', '|', '|',
+            ('assessment_line_id.assessment_id.create_uid', '=', user.id),
+            ('assessment_line_id.assessment_id.assessor_id', '=', user.id),
+            ('assessment_line_id.assessment_id.approver_id', '=', user.id),
+            ('assessment_line_id.assessment_id.collaborator_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_risk_bowtie_escalation_factor_any" model="ir.rule">
+        <field name="name">Bowtie Escalation Factors: any record (Risk Assessments Update or Delete)</field>
+        <field name="model_id" ref="model_risk_bowtie_escalation_factor"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_update')), (4, ref('risk_management.group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>

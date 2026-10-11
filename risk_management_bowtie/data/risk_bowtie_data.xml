@@ -1,0 +1,55 @@
+<odoo noupdate="1">
+    <!-- Starting bowtie barrier types (BowTieXP style). Freely editable afterwards. -->
+    <record id="risk_bowtie_barrier_type_passive_hardware" model="risk.bowtie.barrier.type">
+        <field name="name">Passive Hardware</field>
+        <field name="sequence">10</field>
+        <field name="description">Works by being there, with no action needed, e.g. a fence, handrail or helmet.</field>
+    </record>
+    <record id="risk_bowtie_barrier_type_active_hardware" model="risk.bowtie.barrier.type">
+        <field name="name">Active Hardware</field>
+        <field name="sequence">20</field>
+        <field name="description">Equipment that detects and responds by itself, e.g. a smoke alarm or automatic cut-off.</field>
+    </record>
+    <record id="risk_bowtie_barrier_type_active_hardware_human" model="risk.bowtie.barrier.type">
+        <field name="name">Active Hardware + Human</field>
+        <field name="sequence">30</field>
+        <field name="description">Equipment that alerts and a person who responds, e.g. a weather alert acted on by the leader.</field>
+    </record>
+    <record id="risk_bowtie_barrier_type_active_human" model="risk.bowtie.barrier.type">
+        <field name="name">Active Human</field>
+        <field name="sequence">40</field>
+        <field name="description">A person who detects and responds, e.g. a lookout or a head count.</field>
+    </record>
+    <record id="risk_bowtie_barrier_type_continuous_hardware" model="risk.bowtie.barrier.type">
+        <field name="name">Continuous Hardware</field>
+        <field name="sequence">50</field>
+        <field name="description">Equipment that must keep working, e.g. lighting or ventilation.</field>
+    </record>
+    <record id="risk_bowtie_barrier_type_behavioural" model="risk.bowtie.barrier.type">
+        <field name="name">Behavioural</field>
+        <field name="sequence">60</field>
+        <field name="description">Relies on people following a rule or procedure, e.g. staying in buddy pairs.</field>
+    </record>
+
+    <!-- Starting effectiveness ratings, best to worst. -->
+    <record id="risk_bowtie_effectiveness_very_good" model="risk.bowtie.barrier.effectiveness">
+        <field name="name">Very Good</field>
+        <field name="sequence">10</field>
+        <field name="color">#2b8a3e</field>
+    </record>
+    <record id="risk_bowtie_effectiveness_good" model="risk.bowtie.barrier.effectiveness">
+        <field name="name">Good</field>
+        <field name="sequence">20</field>
+        <field name="color">#8ce99a</field>
+    </record>
+    <record id="risk_bowtie_effectiveness_poor" model="risk.bowtie.barrier.effectiveness">
+        <field name="name">Poor</field>
+        <field name="sequence">30</field>
+        <field name="color">#ffa94d</field>
+    </record>
+    <record id="risk_bowtie_effectiveness_very_poor" model="risk.bowtie.barrier.effectiveness">
+        <field name="name">Very Poor</field>
+        <field name="sequence">40</field>
+        <field name="color">#e03131</field>
+    </record>
+</odoo>

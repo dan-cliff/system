@@ -1,0 +1,12 @@
+<odoo>
+    <menuitem id="menu_risk_bowtie_config" name="Bowtie" parent="risk_management.menu_risk_configuration"
+              sequence="39" groups="risk_management.group_risk_control_create,risk_management.group_risk_control_update,risk_management.group_risk_control_delete"/>
+
+    <menuitem id="menu_risk_bowtie_barrier_type" name="Barrier Types" parent="menu_risk_bowtie_config"
+              action="action_risk_bowtie_barrier_type" sequence="10"
+              groups="risk_management.group_risk_control_create,risk_management.group_risk_control_update,risk_management.group_risk_control_delete"/>
+
+    <menuitem id="menu_risk_bowtie_barrier_effectiveness" name="Barrier Effectiveness" parent="menu_risk_bowtie_config"
+              action="action_risk_bowtie_barrier_effectiveness" sequence="20"
+              groups="risk_management.group_risk_control_create,risk_management.group_risk_control_update,risk_management.group_risk_control_delete"/>
+</odoo>
