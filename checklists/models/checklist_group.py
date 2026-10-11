@@ -16,6 +16,8 @@ class ChecklistGroup(models.Model):
         string='Templates',
     )
     template_count = fields.Integer(compute='_compute_template_count', string='# Templates')
+    # The group's permissions (see checklist_group_access.py).
+    access_ids = fields.One2many('checklist.group.access', 'checklist_group_id', string='Permissions')
 
     _name_uniq = models.Constraint('UNIQUE (name)', 'A Checklist Group with this name already exists.')
 
@@ -23,3 +25,19 @@ class ChecklistGroup(models.Model):
     def _compute_template_count(self):
         for group in self:
             group.template_count = len(group.template_ids)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        groups = super().create(vals_list)
+        self.env['checklist.group.access']._sync_for_groups(groups)
+        return groups
+
+    def write(self, vals):
+        result = super().write(vals)
+        if 'name' in vals:
+            self.env['checklist.group.access']._sync_for_groups(self)
+        return result
+
+    def unlink(self):
+        self.sudo().access_ids._remove()
+        return super().unlink()

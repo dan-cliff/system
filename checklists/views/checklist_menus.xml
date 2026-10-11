@@ -17,7 +17,7 @@
               name="Configuration"
               parent="menu_checklist_root"
               sequence="100"
-              groups="checklists.group_checklist_admin"/>
+              groups="checklists.group_checklist_admin,checklists.group_checklist_template_author"/>
 
     <menuitem id="menu_checklist_settings"
               name="Settings"
@@ -30,12 +30,14 @@
               name="Checklist Templates"
               parent="menu_checklist_config"
               action="action_checklist_template"
-              sequence="10"/>
+              sequence="10"
+              groups="checklists.group_checklist_admin,checklists.group_checklist_template_author"/>
 
     <menuitem id="menu_checklist_group"
               name="Checklist Groups"
               parent="menu_checklist_config"
               action="action_checklist_group"
-              sequence="20"/>
+              sequence="20"
+              groups="checklists.group_checklist_admin"/>
 
 </odoo>

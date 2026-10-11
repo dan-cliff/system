@@ -18,8 +18,15 @@
                         </group>
                     </group>
                     <field name="description" placeholder="Describe what should be checked..."/>
-                    <separator string="Button Values" invisible="question_type != 'buttons'"/>
-                    <field name="option_ids" invisible="question_type != 'buttons'">
+                    <group invisible="question_type not in ('many2one', 'many2many')">
+                        <field name="relation_model_id" options="{'no_create': True, 'no_open': True}"
+                               required="question_type in ('many2one', 'many2many')"/>
+                        <field name="relation_model" invisible="1"/>
+                        <field name="relation_domain" widget="domain" invisible="not relation_model_id"
+                               options="{'model': 'relation_model', 'in_dialog': True}"/>
+                    </group>
+                    <separator string="Options" invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
+                    <field name="option_ids" invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')">
                         <list editable="bottom">
                             <field name="sequence" widget="handle"/>
                             <field name="name"/>
@@ -39,7 +46,8 @@
             <list string="Checklist Templates">
                 <header>
                     <button name="%(checklists.action_checklist_template_import_wizard)d" type="action"
-                            string="Import JSON" display="always"/>
+                            string="Import JSON" display="always"
+                            groups="checklists.group_checklist_admin"/>
                     <!-- Shown once templates are selected: one downloads as .json, several as a .zip. -->
                     <button name="action_export_json" type="object" string="Export JSON"/>
                 </header>
@@ -59,6 +67,7 @@
                 <header>
                     <button name="action_export_json" type="object" string="Export JSON"/>
                     <button name="action_import_json" type="object" string="Import JSON"
+                            groups="checklists.group_checklist_admin"
                             help="Update this template's questions from a JSON file (matched by their hidden GUIDs)."/>
                 </header>
                 <sheet>
@@ -81,7 +90,7 @@
                                     <field name="description"/>
                                     <field name="question_type"/>
                                     <field name="option_ids" widget="many2many_tags"
-                                           invisible="question_type != 'buttons'"/>
+                                           invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
                                 </list>
                             </field>
                         </page>

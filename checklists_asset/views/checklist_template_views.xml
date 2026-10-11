@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="checklist_template_view_form" model="ir.ui.view">
+        <field name="name">checklist.template.form.inherit.asset</field>
+        <field name="model">checklist.template</field>
+        <field name="inherit_id" ref="checklists.checklist_template_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Features" name="features">
+                    <group string="Asset" name="feature_asset">
+                        <field name="asset_enabled" widget="boolean_toggle"/>
+                        <field name="asset_label" invisible="not asset_enabled" placeholder="Asset"/>
+                        <field name="asset_required" invisible="not asset_enabled"/>
+                        <field name="asset_domain" invisible="not asset_enabled" widget="domain"
+                               options="{'model': 'asset.asset', 'in_dialog': True}"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

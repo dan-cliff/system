@@ -37,6 +37,17 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Permissions" name="permissions">
+                            <p class="text-muted">Each permission is a security group (and a Role, with Permission
+                                Management) created with this Checklist Group, renamed with it and removed with it.</p>
+                            <field name="access_ids" readonly="1">
+                                <list>
+                                    <field name="code"/>
+                                    <field name="privilege_id"/>
+                                    <field name="res_group_id"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>

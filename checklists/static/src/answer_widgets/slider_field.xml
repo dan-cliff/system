@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="checklists.SliderField">
+        <div class="o_checklist_slider">
+            <t t-if="props.readonly">
+                <span t-if="value" class="o_checklist_colour_badge badge rounded-pill"
+                      t-att-class="{ 'text-bg-secondary': !selectedColour }"
+                      t-att-style="badgeStyle(selectedColour, true)" t-esc="string"/>
+            </t>
+            <t t-elif="options.length">
+                <input type="range" class="form-range" min="0" step="1"
+                       t-att-max="options.length - 1"
+                       t-att-value="selectedIndex >= 0 ? selectedIndex : 0"
+                       t-att-class="{ 'o_checklist_slider_unset': selectedIndex &lt; 0 }"
+                       t-on-input="onSlide" t-on-click="onSlide"/>
+                <div class="o_checklist_slider_labels d-flex justify-content-between">
+                    <span t-foreach="options" t-as="option" t-key="option[0]"
+                          class="o_checklist_slider_label" t-att-class="{ 'fw-bold': value === option[0] }"
+                          t-att-style="value === option[0] and option[2] ? 'color: ' + option[2] : ''"
+                          t-esc="option[1]" t-on-click="() => this.onChange(option[0])"/>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

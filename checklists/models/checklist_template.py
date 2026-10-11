@@ -6,8 +6,10 @@ import uuid
 import zipfile
 
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
+
+from .checklist_group_access import CREATE_PERMISSIONS
 
 # The answer widget a checklist shows depends on the type, so this stays a
 # fixed technical selection rather than an editable option list.
@@ -19,12 +21,57 @@ QUESTION_TYPES = [
     ('date', 'Date'),
     ('datetime', 'Datetime'),
     ('buttons', 'Buttons'),
+    ('select', 'Single Select Dropdown'),
+    ('radio', 'Radio Button'),
+    ('multi_select', 'Multi Select Dropdown'),
+    ('multi_checkbox', 'Multi Select Checkbox'),
+    ('slider', 'Slider Select'),
+    ('boolean', 'Boolean Toggle'),
+    ('geolocation', 'GeoLocation'),
+    ('image', 'Image Upload'),
+    ('file', 'File Upload'),
+    ('phone', 'Phone Number'),
+    ('email', 'Email'),
+    ('website', 'Website'),
+    ('many2one', 'Many2one'),
+    ('many2many', 'Many2Many'),
 ]
+# Types answered by picking the question's options (Button Values).
+OPTION_TYPES = ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')
+# Types answered by picking records of another model.
+RELATION_TYPES = ('many2one', 'many2many')
 
 TEMPLATE_JSON_FORMAT = 'checklists.template'
 TEMPLATE_JSON_VERSION = 1
 # ESM Measures template exports have the same layout (without GUIDs).
 IMPORTABLE_JSON_FORMATS = (TEMPLATE_JSON_FORMAT, 'esm_measures.inspection_template')
+
+
+def group_panel_range(model, field_name, **kwargs):
+    """Side panel values for a Checklist Groups many2many (select="one").
+
+    Odoo only builds a single-choice side panel for many2one and selection
+    fields, so the values and counters are built here: a record counts
+    under each of its groups.
+    """
+    domain = Domain.AND([
+        Domain(kwargs.get('search_domain') or []),
+        Domain(kwargs.get('category_domain') or []),
+        Domain(kwargs.get('filter_domain') or []),
+    ])
+    counts = {group.id: count for group, count in model._read_group(domain, [field_name], ['__count']) if group}
+    groups = model.env['checklist.group'].search_read(
+        kwargs.get('comodel_domain') or [], ['display_name'], limit=kwargs.get('limit'),
+    )
+    values = []
+    for group in groups:
+        if not kwargs.get('expand') and not counts.get(group['id']):
+            continue
+        value = {'id': group['id'], 'display_name': group['display_name']}
+        if kwargs.get('enable_counters'):
+            value['__count'] = counts.get(group['id'], 0)
+        values.append(value)
+    return {'parent_field': False, 'values': values}
 
 
 def _new_uuid(_model=None):
@@ -51,7 +98,42 @@ class ChecklistTemplate(models.Model):
     )
     question_count = fields.Integer(compute='_compute_question_count', string='# Questions')
 
+    # Whether the current user may start checklists from this template.
+    can_create_checklist = fields.Boolean(
+        compute='_compute_can_create_checklist', search='_search_can_create_checklist',
+    )
+
     _uuid_uniq = models.Constraint('UNIQUE (uuid)', 'Another template already has this GUID.')
+
+    def _creatable_group_ids(self):
+        """Checklist Groups whose templates the current user may start checklists
+        from, or None for all (Administrators)."""
+        if self.env.user.has_group('checklists.group_checklist_admin'):
+            return None
+        return self.env['checklist.group.access']._user_group_ids(CREATE_PERMISSIONS)
+
+    @api.depends_context('uid')
+    def _compute_can_create_checklist(self):
+        group_ids = self._creatable_group_ids()
+        for template in self:
+            template.can_create_checklist = (
+                group_ids is None or not template.group_ids
+                or bool(set(template.group_ids.ids) & set(group_ids))
+            )
+
+    def _search_can_create_checklist(self, operator, value):
+        if operator in ('in', 'not in'):
+            positive = (True in value) == (operator == 'in')
+        elif operator in ('=', '!='):
+            positive = bool(value) == (operator == '=')
+        else:
+            return NotImplemented
+        group_ids = self._creatable_group_ids()
+        if group_ids is None:
+            domain = Domain.TRUE
+        else:
+            domain = Domain('group_ids', '=', False) | Domain('group_ids', 'in', group_ids)
+        return domain if positive else ~domain
 
     @api.depends('question_ids')
     def _compute_question_count(self):
@@ -62,29 +144,9 @@ class ChecklistTemplate(models.Model):
 
     @api.model
     def search_panel_select_range(self, field_name, **kwargs):
-        # Odoo only builds a single-choice side panel for many2one and
-        # selection fields; Checklist Groups is a many2many, so its values
-        # and counters are built here (a template counts under each group).
-        if field_name != 'group_ids':
-            return super().search_panel_select_range(field_name, **kwargs)
-        domain = Domain.AND([
-            Domain(kwargs.get('search_domain') or []),
-            Domain(kwargs.get('category_domain') or []),
-            Domain(kwargs.get('filter_domain') or []),
-        ])
-        counts = {group.id: count for group, count in self._read_group(domain, ['group_ids'], ['__count']) if group}
-        groups = self.env['checklist.group'].search_read(
-            kwargs.get('comodel_domain') or [], ['display_name'], limit=kwargs.get('limit'),
-        )
-        values = []
-        for group in groups:
-            if not kwargs.get('expand') and not counts.get(group['id']):
-                continue
-            value = {'id': group['id'], 'display_name': group['display_name']}
-            if kwargs.get('enable_counters'):
-                value['__count'] = counts.get(group['id'], 0)
-            values.append(value)
-        return {'parent_field': False, 'values': values}
+        if field_name == 'group_ids':
+            return group_panel_range(self, field_name, **kwargs)
+        return super().search_panel_select_range(field_name, **kwargs)
 
     # ── JSON export ──────────────────────────────────────────────────────
 
@@ -140,6 +202,7 @@ class ChecklistTemplate(models.Model):
         # Archived questions and values go too, so an import can archive them.
         questions = self.with_context(active_test=False).question_ids
         return {
+            **self._export_template_settings(),
             'uuid': self.uuid,
             'name': self.name,
             'description': self.description or '',
@@ -152,6 +215,8 @@ class ChecklistTemplate(models.Model):
                 'question_type': question.question_type,
                 'sequence': question.sequence,
                 'active': question.active,
+                'relation_model': question.relation_model or '',
+                'relation_domain': question.relation_domain or '[]',
                 'options': [{
                     'uuid': option.uuid,
                     'name': option.name,
@@ -161,6 +226,10 @@ class ChecklistTemplate(models.Model):
                 } for option in question.option_ids],
             } for question in questions],
         }
+
+    def _export_template_settings(self):
+        """Extra template settings for the JSON export (extended by add-ons)."""
+        return {}
 
     # ── JSON import ──────────────────────────────────────────────────────
 
@@ -203,6 +272,12 @@ class ChecklistTemplate(models.Model):
                         'Question "%(question)s" has an unknown type: %(type)s',
                         question=question.get('name'), type=question.get('question_type'),
                     ))
+                if question['question_type'] in RELATION_TYPES and \
+                        question.get('relation_model') not in self.env:
+                    raise UserError(self.env._(
+                        'Question "%(question)s" picks from a model that is not installed here: %(model)s',
+                        question=question['name'], model=question.get('relation_model'),
+                    ))
                 for option in question.get('options') or []:
                     if not option.get('name'):
                         raise UserError(self.env._(
@@ -224,6 +299,7 @@ class ChecklistTemplate(models.Model):
                 'description': data.get('description') or False,
                 'sequence': data.get('sequence', 10),
                 'group_ids': [fields.Command.set(self._import_group_ids(data.get('groups') or []))],
+                **self._import_template_settings(data),
             }
             template = data.get('uuid') and Templates.search([('uuid', '=', data['uuid'])], limit=1)
             if template:
@@ -235,6 +311,12 @@ class ChecklistTemplate(models.Model):
             template._import_questions(data.get('questions') or [])
             templates |= template
         return templates
+
+    @api.model
+    def _import_template_settings(self, data):
+        """Template values from the extra settings of a JSON export
+        (extended by add-ons, the counterpart of _export_template_settings)."""
+        return {}
 
     def _import_into(self, content):
         """Import a file's questions into this template (bulk update): a
@@ -268,6 +350,9 @@ class ChecklistTemplate(models.Model):
                 'question_type': data['question_type'],
                 'sequence': data.get('sequence', 10),
                 'active': data.get('active', True),
+                'relation_model_id': self.env['ir.model']._get_id(data['relation_model'])
+                if data.get('relation_model') in self.env else False,
+                'relation_domain': data.get('relation_domain') or '[]',
             }
             question = data.get('uuid') and Questions.search([('uuid', '=', data['uuid'])], limit=1)
             if question and question.template_id == self:
@@ -300,11 +385,33 @@ class ChecklistQuestion(models.Model):
         QUESTION_TYPES, string='Type', required=True, default='buttons',
     )
     option_ids = fields.One2many(
-        'checklist.question.option', 'question_id', string='Button Values', copy=True,
-        help='The buttons the person filling in the checklist chooses from when the type is Buttons.',
+        'checklist.question.option', 'question_id', string='Options', copy=True,
+        help='The values the person filling in the checklist chooses from (Buttons, dropdowns, '
+             'radio buttons, checkboxes and the slider, in this order).',
+    )
+    # Many2one / Many2Many: the model whose records are picked, and a filter on them.
+    relation_model_id = fields.Many2one(
+        'ir.model', string='Model', ondelete='cascade',
+        domain="[('transient', '=', False), ('abstract', '=', False)]",
+        help='The records the person filling in the checklist picks from, e.g. Contact or Employee.',
+    )
+    relation_model = fields.Char(related='relation_model_id.model', string='Model Name')
+    relation_domain = fields.Char(
+        string='Filter', default='[]',
+        help='Only records matching this filter can be picked.',
     )
 
     _uuid_uniq = models.Constraint('UNIQUE (uuid)', 'Another question already has this GUID.')
+
+    @api.constrains('question_type', 'relation_model_id')
+    def _check_relation_model(self):
+        for question in self:
+            if question.question_type in RELATION_TYPES and not question.relation_model_id:
+                raise ValidationError(self.env._('Question "%s" needs a Model to pick records from.', question.name))
+
+    @api.onchange('relation_model_id')
+    def _onchange_relation_model_id(self):
+        self.relation_domain = '[]'
 
     def _checklist_line_vals(self):
         self.ensure_one()
@@ -314,6 +421,8 @@ class ChecklistQuestion(models.Model):
             'name': self.name,
             'description': self.description,
             'question_type': self.question_type,
+            'relation_model_id': self.relation_model_id.id,
+            'relation_domain': self.relation_domain or '[]',
         }
 
     def _import_options(self, options_data):

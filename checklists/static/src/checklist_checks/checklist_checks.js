@@ -4,15 +4,31 @@ import { registry } from "@web/core/registry";
 import { Field } from "@web/views/fields/field";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
-// Answer field shown for each question type, all rendered in the same place.
+// Answer field (and widget) shown for each question type, all rendered in the
+// same place. A field used by several types is declared once per widget in
+// the sub-view, so the node is found by field and widget.
 const ANSWER_FIELDS = {
-    text: "value_text",
-    text_area: "value_text_area",
-    number: "value_number",
-    integer: "value_integer",
-    date: "value_date",
-    datetime: "value_datetime",
-    buttons: "value_option_id",
+    text: ["value_text"],
+    text_area: ["value_text_area"],
+    number: ["value_number"],
+    integer: ["value_integer"],
+    date: ["value_date"],
+    datetime: ["value_datetime"],
+    buttons: ["value_option_id", "checklist_colour_badge"],
+    select: ["value_option_id", "selection"],
+    radio: ["value_option_id", "radio"],
+    slider: ["value_option_id", "checklist_slider"],
+    multi_select: ["value_option_ids", "checklist_many2many_tags"],
+    multi_checkbox: ["value_option_ids", "many2many_checkboxes"],
+    boolean: ["value_boolean"],
+    geolocation: ["value_latitude"],
+    image: ["value_image"],
+    file: ["value_file"],
+    phone: ["value_phone"],
+    email: ["value_email"],
+    website: ["value_url"],
+    many2one: ["value_reference"],
+    many2many: ["value_reference_ids"],
 };
 
 /**
@@ -50,8 +66,10 @@ export class ChecklistChecks extends Component {
 
     /** The answer field of a line, as declared in the field's sub-view. */
     answerFieldInfo(line) {
-        const name = ANSWER_FIELDS[line.data.question_type];
-        return Object.values(this.props.fieldNodes).find((node) => node.name === name);
+        const [name, widget] = ANSWER_FIELDS[line.data.question_type] || [];
+        return Object.values(this.props.fieldNodes).find(
+            (node) => node.name === name && (!widget || node.widget === widget)
+        );
     }
 }
 
