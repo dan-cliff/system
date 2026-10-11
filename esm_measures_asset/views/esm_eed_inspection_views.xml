@@ -9,7 +9,16 @@
             <xpath expr="//group[@name='inspection']/field[@name='template_id']" position="before">
                 <field name="esm_eed_asset_type_ids" invisible="1"/>
                 <field name="esm_eed_asset_subtype_ids" invisible="1"/>
-                <field name="asset_id" readonly="state == 'done'" options="{'no_create': True}"/>
+                <field name="esm_asset_enabled" invisible="1"/>
+                <field name="esm_asset_required" invisible="1"/>
+                <field name="esm_asset_domain" invisible="1"/>
+                <!-- The asset field's label is set on the template. -->
+                <div class="o_td_label" invisible="not esm_asset_enabled">
+                    <field name="esm_asset_label" nolabel="1" class="o_form_label"/>
+                </div>
+                <field name="asset_id" nolabel="1" invisible="not esm_asset_enabled"
+                       required="esm_asset_enabled and esm_asset_required"
+                       readonly="state == 'done'" options="{'no_create': True}"/>
             </xpath>
         </field>
     </record>

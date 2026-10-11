@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Asset options on each inspection type's template. -->
+    <record id="esm_fak_template_view_form" model="ir.ui.view">
+        <field name="name">esm.fak.template.form.inherit.asset</field>
+        <field name="model">esm.fak.template</field>
+        <field name="inherit_id" ref="esm_measures.esm_fak_template_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Asset" name="asset">
+                    <group>
+                        <group>
+                            <field name="esm_asset_enabled"/>
+                            <field name="esm_asset_required" invisible="not esm_asset_enabled"/>
+                            <field name="esm_asset_label" invisible="not esm_asset_enabled"
+                                   placeholder="First Aid Kit"/>
+                        </group>
+                    </group>
+                    <group invisible="not esm_asset_enabled">
+                        <field name="esm_asset_domain" widget="domain"
+                               options="{'model': 'asset.asset', 'in_dialog': True}"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="esm_eed_template_view_form" model="ir.ui.view">
+        <field name="name">esm.eed.template.form.inherit.asset</field>
+        <field name="model">esm.eed.template</field>
+        <field name="inherit_id" ref="esm_measures.esm_eed_template_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Asset" name="asset">
+                    <group>
+                        <group>
+                            <field name="esm_asset_enabled"/>
+                            <field name="esm_asset_required" invisible="not esm_asset_enabled"/>
+                            <field name="esm_asset_label" invisible="not esm_asset_enabled"
+                                   placeholder="Emergency Egress Door"/>
+                        </group>
+                    </group>
+                    <group invisible="not esm_asset_enabled">
+                        <field name="esm_asset_domain" widget="domain"
+                               options="{'model': 'asset.asset', 'in_dialog': True}"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="esm_sma_template_view_form" model="ir.ui.view">
+        <field name="name">esm.sma.template.form.inherit.asset</field>
+        <field name="model">esm.sma.template</field>
+        <field name="inherit_id" ref="esm_measures.esm_sma_template_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Asset" name="asset">
+                    <group>
+                        <group>
+                            <field name="esm_asset_enabled"/>
+                            <field name="esm_asset_required" invisible="not esm_asset_enabled"/>
+                            <field name="esm_asset_label" invisible="not esm_asset_enabled"
+                                   placeholder="Smoke Alarm"/>
+                        </group>
+                    </group>
+                    <group invisible="not esm_asset_enabled">
+                        <field name="esm_asset_domain" widget="domain"
+                               options="{'model': 'asset.asset', 'in_dialog': True}"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="esm_evp_template_view_form" model="ir.ui.view">
+        <field name="name">esm.evp.template.form.inherit.asset</field>
+        <field name="model">esm.evp.template</field>
+        <field name="inherit_id" ref="esm_measures.esm_evp_template_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Asset" name="asset">
+                    <group>
+                        <group>
+                            <field name="esm_asset_enabled"/>
+                            <field name="esm_asset_required" invisible="not esm_asset_enabled"/>
+                            <field name="esm_asset_label" invisible="not esm_asset_enabled"
+                                   placeholder="Evacuation Plan"/>
+                        </group>
+                    </group>
+                    <group invisible="not esm_asset_enabled">
+                        <field name="esm_asset_domain" widget="domain"
+                               options="{'model': 'asset.asset', 'in_dialog': True}"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
