@@ -9,6 +9,7 @@ then imported like a template file.
 import json
 import logging
 import re
+import time
 
 import requests
 
@@ -19,7 +20,12 @@ from ..models.checklist_template import LAYOUT_TYPES, OPTION_TYPES
 
 _logger = logging.getLogger(__name__)
 
+CLAUDE_URL = 'https://api.anthropic.com/v1/messages'
+CLAUDE_API_VERSION = '2023-06-01'
 CLAUDE_MODEL = 'claude-opus-5-5'
+# Retried once: rate limits, overload and server errors.
+CLAUDE_ATTEMPTS = 2
+RETRY_STATUSES = (429, 500, 502, 503, 504, 529)
 GEMINI_MODEL = 'gemini-2.5-flash'
 GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent'
 
@@ -166,43 +172,77 @@ class ChecklistAiWizard(models.TransientModel):
 
     @api.model
     def _generate_claude(self, api_key, system, user_prompt):
-        try:
-            import anthropic
-        except ImportError as error:
-            raise UserError(self.env._(
-                'The anthropic Python package is not installed on the server.')) from error
-        client = anthropic.Anthropic(api_key=api_key, timeout=600.0, max_retries=2)
-        try:
-            # Streamed: a long template can take a while to write. The server-side
-            # fallback re-runs the request on another model if this one declines.
-            with client.beta.messages.stream(
-                model=CLAUDE_MODEL,
-                max_tokens=32000,
-                betas=['server-side-fallback-2026-07-01'],
-                fallbacks='default',
-                output_config={
-                    'effort': 'medium',
-                    'format': {'type': 'json_schema', 'schema': TEMPLATE_SCHEMA},
-                },
-                system=system,
-                messages=[{'role': 'user', 'content': user_prompt}],
-            ) as stream:
-                message = stream.get_final_message()
-        except anthropic.AuthenticationError as error:
-            raise UserError(self.env._('Claude rejected the API key.')) from error
-        except anthropic.RateLimitError as error:
-            raise UserError(self.env._('Claude is rate limited; try again shortly.')) from error
-        except anthropic.APIStatusError as error:
-            raise UserError(self.env._('Claude returned an error (%(status)s): %(message)s',
-                                       status=error.status_code, message=error.message)) from error
-        except anthropic.APIConnectionError as error:
-            raise UserError(self.env._('Could not reach Claude: %s', error)) from error
-        if message.stop_reason == 'refusal':
+        """Claude over its HTTP API (no SDK on the server), streamed: a long
+        template can take a while to write. The server-side fallback re-runs
+        the request on another model if this one declines."""
+        body = {
+            'model': CLAUDE_MODEL,
+            'max_tokens': 32000,
+            'stream': True,
+            'fallbacks': 'default',
+            'output_config': {
+                'effort': 'medium',
+                'format': {'type': 'json_schema', 'schema': TEMPLATE_SCHEMA},
+            },
+            'system': system,
+            'messages': [{'role': 'user', 'content': user_prompt}],
+        }
+        headers = {
+            'x-api-key': api_key,
+            'anthropic-version': CLAUDE_API_VERSION,
+            'anthropic-beta': 'server-side-fallback-2026-07-01',
+            'content-type': 'application/json',
+        }
+        for attempt in range(CLAUDE_ATTEMPTS):
+            try:
+                with requests.post(CLAUDE_URL, headers=headers, json=body, stream=True,
+                                   timeout=(15, 600)) as response:
+                    if response.status_code in RETRY_STATUSES and attempt + 1 < CLAUDE_ATTEMPTS:
+                        time.sleep(2 * (attempt + 1))
+                        continue
+                    if response.status_code >= 400:
+                        raise UserError(self._claude_error(response))
+                    text, stop_reason = self._read_claude_stream(response)
+                break
+            except requests.RequestException as error:
+                if attempt + 1 < CLAUDE_ATTEMPTS:
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                raise UserError(self.env._('Could not reach Claude: %s', error)) from error
+        if stop_reason == 'refusal':
             raise UserError(self.env._('Claude declined to write this checklist.'))
-        if message.stop_reason == 'max_tokens':
+        if stop_reason == 'max_tokens':
             raise UserError(self.env._('The checklist was too long to finish; try a narrower request.'))
-        text = next((block.text for block in message.content if block.type == 'text'), '')
         return json.loads(text)
+
+    @api.model
+    def _read_claude_stream(self, response):
+        """The text and stop reason of a streamed (server-sent events) reply."""
+        text, stop_reason = [], None
+        for line in response.iter_lines(decode_unicode=True):
+            if not line or not line.startswith('data:'):
+                continue
+            event = json.loads(line[5:].strip())
+            kind = event.get('type')
+            if kind == 'content_block_delta' and event['delta'].get('type') == 'text_delta':
+                text.append(event['delta']['text'])
+            elif kind == 'message_delta':
+                stop_reason = event['delta'].get('stop_reason') or stop_reason
+            elif kind == 'error':
+                raise UserError(self.env._('Claude returned an error: %s',
+                                           event.get('error', {}).get('message') or event))
+        return ''.join(text), stop_reason
+
+    @api.model
+    def _claude_error(self, response):
+        if response.status_code == 401:
+            return self.env._('Claude rejected the API key.')
+        try:
+            message = response.json().get('error', {}).get('message') or response.text
+        except ValueError:
+            message = response.text
+        return self.env._('Claude returned an error (%(status)s): %(message)s',
+                          status=response.status_code, message=message[:500])
 
     @api.model
     def _generate_gemini(self, api_key, system, user_prompt):
