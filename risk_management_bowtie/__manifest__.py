@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management - Bowtie Analysis',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'category': 'Operations/Risk Management',
     'summary': 'Bowtie risk assessment on every risk, with a bowtie diagram and PDF appendices',
     'description': """
@@ -10,8 +10,9 @@ Adds a bowtie risk assessment to the Risks on Risk Templates and Risk
 Assessments:
 
 * The risk's Unwanted Event, relabelled Hazard, with the Risk itself as
-  the Top Event; Threats with their Preventive Barriers, Consequences (with a severity) with their Recovery
-  Barriers, and Escalation Factors on any barrier with their own
+  the Top Event; Threats with their Preventative Barriers, Consequences
+  (with a severity) with their Mitigative Barriers, and Escalation Factors
+  on any barrier with their own
   Escalation Factor Barriers.
 * Each barrier records its Barrier Type, Effectiveness, who is
   Accountable and, optionally, the library Control it represents. Barrier

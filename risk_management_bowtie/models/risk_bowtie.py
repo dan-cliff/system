@@ -92,7 +92,7 @@ class RiskBowtieThreat(models.Model):
     assessment_line_id = fields.Many2one('risk.assessment.line', ondelete='cascade', index=True)
     template_line_id = fields.Many2one('risk.template.line', ondelete='cascade', index=True)
     barrier_ids = fields.One2many(
-        'risk.bowtie.barrier', 'threat_id', string='Preventive Barriers', copy=True,
+        'risk.bowtie.barrier', 'threat_id', string='Preventative Barriers', copy=True,
     )
 
     def _bowtie_copy_vals(self):
@@ -121,7 +121,7 @@ class RiskBowtieConsequence(models.Model):
     assessment_line_id = fields.Many2one('risk.assessment.line', ondelete='cascade', index=True)
     template_line_id = fields.Many2one('risk.template.line', ondelete='cascade', index=True)
     barrier_ids = fields.One2many(
-        'risk.bowtie.barrier', 'consequence_id', string='Recovery Barriers', copy=True,
+        'risk.bowtie.barrier', 'consequence_id', string='Mitigative Barriers', copy=True,
     )
 
     def _bowtie_copy_vals(self):
@@ -164,7 +164,7 @@ class RiskBowtieBarrier(models.Model):
         'risk.bowtie.escalation.factor', ondelete='cascade', index=True,
     )
     barrier_side = fields.Selection(
-        [('preventive', 'Preventive'), ('recovery', 'Recovery'), ('escalation', 'Escalation Factor')],
+        [('preventive', 'Preventative'), ('recovery', 'Mitigative'), ('escalation', 'Escalation Factor')],
         compute='_compute_root', store=True,
     )
     escalation_factor_ids = fields.One2many(
