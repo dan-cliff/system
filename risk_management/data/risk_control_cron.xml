@@ -1,0 +1,13 @@
+<odoo noupdate="1">
+    <!-- Controls added without a description (e.g. typed in by hand on a risk) get one
+         written by AI in the background, a few at a time, instead of while saving. -->
+    <record id="ir_cron_risk_control_ai_descriptions" model="ir.cron">
+        <field name="name">Risk Management: write missing Control descriptions by AI</field>
+        <field name="model_id" ref="model_risk_control"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_ai_write_missing_descriptions()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

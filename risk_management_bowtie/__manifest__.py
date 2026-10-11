@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management - Bowtie Analysis',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Operations/Risk Management',
     'summary': 'Bowtie risk assessment on every risk, with a bowtie diagram and PDF appendices',
     'description': """
