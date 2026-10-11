@@ -114,6 +114,10 @@ class RiskLineMixin(models.AbstractModel):
         self.ensure_one()
         return [self._fields[name].string for name in self._ai_risk_empty_fields()]
 
+    def get_ai_controls_missing_description(self):
+        """[id, name] of this risk's controls without a description, for the AI overlay."""
+        return [[control.id, control.name] for control in self.control_ids if not control.description]
+
     def _ai_risk_empty_fields(self):
         """Names of the fields "Fill Empty Fields by AI" would fill in on this risk."""
         self.ensure_one()
@@ -275,15 +279,3 @@ class RiskLineMixin(models.AbstractModel):
             if view:
                 return view.id
         return super().get_formview_id(access_uid=access_uid)
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        lines = super().create(vals_list)
-        lines.control_ids._ai_fill_missing_descriptions()
-        return lines
-
-    def write(self, vals):
-        result = super().write(vals)
-        if 'control_ids' in vals:
-            self.control_ids._ai_fill_missing_descriptions()
-        return result

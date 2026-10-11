@@ -63,3 +63,21 @@ class AiProgressOverlay extends Component {
 registry.category("main_components").add("risk_management.AiProgressOverlay", {
     Component: AiProgressOverlay,
 });
+
+/**
+ * The "describe controls" step of the AI risk actions: has the AI write a
+ * description for each of the risks' controls that has none (usually the new
+ * controls the action just added).
+ *
+ * @param {Object} orm the orm service
+ * @param {Array} controls [[id, name], ...] from get_ai_controls_missing_description
+ */
+export async function describeNewControls(orm, controls) {
+    if (!controls.length) {
+        aiProgress.next("Every control already has a description");
+        return [];
+    }
+    const names = controls.map((control) => control[1]);
+    aiProgress.next(`Asking Claude to write control descriptions: ${names.join(", ")}`);
+    return orm.call("risk.control", "action_ai_write_descriptions", [controls.map((control) => control[0])]);
+}

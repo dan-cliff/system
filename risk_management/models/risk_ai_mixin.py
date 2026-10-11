@@ -147,6 +147,12 @@ class RiskAiMixin(models.AbstractModel):
         """What "Generate Risks and Controls by AI" asks the AI for, for its progress overlay."""
         return "the activity's risks, with their controls and inherent risk"
 
+    def get_ai_controls_missing_description(self):
+        """[id, name] of the controls on this record's risks without a description."""
+        self.ensure_one()
+        controls = self.line_ids.control_ids.filtered(lambda control: not control.description)
+        return [[control.id, control.name] for control in controls]
+
     def action_generate_risks_ai(self):
         self.ensure_one()
         if not self.summary_of_activity:

@@ -4,12 +4,13 @@ import { Component } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardWidgetProps } from "@web/views/widgets/standard_widget_props";
-import { aiProgress } from "@risk_management/ai_progress/ai_progress";
+import { aiProgress, describeNewControls } from "@risk_management/ai_progress/ai_progress";
 
 /**
  * A Risk's "Fill Empty Fields by AI" button: saves the risk, asks the server which
- * fields are empty, has the AI fill them in (action_generate_risk_ai) with the
- * progress overlay naming each step, then reloads the risk.
+ * fields are empty, has the AI fill them in (action_generate_risk_ai), has it
+ * describe any new controls, with the progress overlay naming each step, then
+ * reloads the risk.
  */
 export class RiskAiFillButton extends Component {
     static template = "risk_management.RiskAiFillButton";
@@ -29,7 +30,8 @@ export class RiskAiFillButton extends Component {
             "Saving the risk",
             "Checking which fields are empty",
             "Asking Claude to suggest the empty fields",
-            "Filling in the risk",
+            "Writing descriptions for controls without one",
+            "Updating the risk",
         ]);
         try {
             if (!(await record.save())) {
@@ -43,6 +45,8 @@ export class RiskAiFillButton extends Component {
             }
             aiProgress.next(`Asking Claude to suggest: ${labels.join(", ")}`);
             await this.orm.call(record.resModel, "action_generate_risk_ai", [[record.resId]]);
+            const controls = await this.orm.call(record.resModel, "get_ai_controls_missing_description", [[record.resId]]);
+            await describeNewControls(this.orm, controls);
             aiProgress.next();
             await record.load();
             this.notification.add(`Filled in by AI: ${labels.join(", ")}.`, { type: "success" });
