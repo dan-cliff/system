@@ -3,36 +3,50 @@
     <t t-name="checklists.ChecklistChecks">
         <div class="o_checklist_checks">
             <div t-if="!lines.length" class="text-muted fst-italic">Pick a template to load its checks.</div>
-            <t t-foreach="shownLines" t-as="line" t-key="line.id">
-                <t t-set="kind" t-value="line.data.question_type"/>
-                <!-- Section Title: a full-width box with the title and description. -->
-                <div t-if="kind === 'section_title'" class="o_checklist_section_title"
-                     t-att-style="sectionTitleStyle(line)">
-                    <div class="o_checklist_section_title_name" t-esc="line.data.name"/>
-                    <div t-if="line.data.description" class="o_checklist_section_title_description"
-                         t-esc="line.data.description"/>
-                </div>
-                <!-- Section Break: a full-width line, the title above, below or not shown. -->
-                <div t-elif="kind === 'section_break'" class="o_checklist_section_break">
-                    <div t-if="line.data.layout_title_position === 'above'" class="o_checklist_section_break_title"
-                         t-esc="line.data.name"/>
-                    <hr class="o_checklist_section_break_line" t-att-style="sectionBreakStyle(line)"/>
-                    <div t-if="line.data.layout_title_position === 'below'" class="o_checklist_section_break_title"
-                         t-esc="line.data.name"/>
-                </div>
-                <!-- Instructions: the formatted text, as written on the template. -->
-                <div t-elif="kind === 'instructions'" class="o_checklist_instructions o_readonly">
-                    <t t-out="line.data.instructions"/>
-                </div>
-                <div t-else="" class="o_checklist_check">
-                    <div class="o_checklist_check_question fw-bold" t-esc="line.data.name"/>
-                    <div t-if="line.data.description" class="o_checklist_check_description text-muted" t-esc="line.data.description"/>
-                    <t t-set="answerInfo" t-value="answerFieldInfo(line)"/>
-                    <div t-if="answerInfo" class="o_checklist_check_answer">
-                        <Field name="answerInfo.name" record="line" fieldInfo="answerInfo" class="'o_field_highlight'"/>
+            <t t-foreach="bands" t-as="band" t-key="band.key">
+                <t t-if="band.line" t-call="checklists.ChecklistChecks.Line">
+                    <t t-set="line" t-value="band.line"/>
+                </t>
+                <!-- The lines between full-width sections, in the template's columns. -->
+                <div t-else="" class="o_checklist_columns" t-attf-style="--checklist-columns: {{ columnCount }};">
+                    <div t-foreach="band.columns" t-as="column" t-key="column.key" class="o_checklist_column">
+                        <t t-foreach="column.lines" t-as="line" t-key="line.id">
+                            <t t-call="checklists.ChecklistChecks.Line"/>
+                        </t>
                     </div>
                 </div>
             </t>
+        </div>
+    </t>
+
+    <t t-name="checklists.ChecklistChecks.Line">
+        <t t-set="kind" t-value="line.data.question_type"/>
+        <!-- Section Title: a full-width box with the title and description. -->
+        <div t-if="kind === 'section_title'" class="o_checklist_section_title"
+             t-att-style="sectionTitleStyle(line)">
+            <div class="o_checklist_section_title_name" t-esc="line.data.name"/>
+            <div t-if="line.data.description" class="o_checklist_section_title_description"
+                 t-esc="line.data.description"/>
+        </div>
+        <!-- Section Break: a full-width line, the title above, below or not shown. -->
+        <div t-elif="kind === 'section_break'" class="o_checklist_section_break">
+            <div t-if="line.data.layout_title_position === 'above'" class="o_checklist_section_break_title"
+                 t-esc="line.data.name"/>
+            <hr class="o_checklist_section_break_line" t-att-style="sectionBreakStyle(line)"/>
+            <div t-if="line.data.layout_title_position === 'below'" class="o_checklist_section_break_title"
+                 t-esc="line.data.name"/>
+        </div>
+        <!-- Instructions: the formatted text, as written on the template. -->
+        <div t-elif="kind === 'instructions'" class="o_checklist_instructions o_readonly">
+            <t t-out="line.data.instructions"/>
+        </div>
+        <div t-else="" class="o_checklist_check">
+            <div class="o_checklist_check_question fw-bold" t-esc="line.data.name"/>
+            <div t-if="line.data.description" class="o_checklist_check_description text-muted" t-esc="line.data.description"/>
+            <t t-set="answerInfo" t-value="answerFieldInfo(line)"/>
+            <div t-if="answerInfo" class="o_checklist_check_answer">
+                <Field name="answerInfo.name" record="line" fieldInfo="answerInfo" class="'o_field_highlight'"/>
+            </div>
         </div>
     </t>
 </templates>

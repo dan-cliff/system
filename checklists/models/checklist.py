@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
+import logging
+
+import requests
+
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 from .checklist_question_condition import (
     MULTI_OPTION_TYPES, SINGLE_OPTION_TYPES, combine, eval_domain, evaluate_rule,
 )
-from .checklist_template import LAYOUT_TYPES, QUESTION_TYPES, TITLE_POSITIONS, group_panel_range
+from .checklist_template import (
+    COLUMN_COUNTS, COLUMNS, LAYOUT_TYPES, QUESTION_TYPES, TITLE_POSITIONS, group_panel_range,
+)
+
+_logger = logging.getLogger(__name__)
 
 
 class Checklist(models.Model):
@@ -13,6 +21,8 @@ class Checklist(models.Model):
     _description = 'Checklist'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'checklist_date desc, id desc'
+    # With org_structure: the Company field heads the Organisation section.
+    _org_form_company = True
 
     name = fields.Char(
         string='Reference', required=True, copy=False, readonly=True, default='New',
@@ -49,6 +59,8 @@ class Checklist(models.Model):
         'checklist.line', 'checklist_id', string='Checks', copy=True,
     )
     notes = fields.Html(string='Notes')
+    # Copied from the template, so past checklists keep their layout.
+    column_count = fields.Selection(COLUMN_COUNTS, string='Layout', default='1')
 
     @api.model
     def _default_template(self):
@@ -81,9 +93,11 @@ class Checklist(models.Model):
         for vals in vals_list:
             if vals.get('name', 'New') == 'New':
                 vals['name'] = self.env['ir.sequence'].next_by_code('checklist.checklist') or 'New'
-            if vals.get('template_id') and not vals.get('line_ids'):
+            if vals.get('template_id'):
                 template = self.env['checklist.template'].browse(vals['template_id'])
-                vals['line_ids'] = self._template_line_commands(template)
+                vals.setdefault('column_count', template.column_count)
+                if not vals.get('line_ids'):
+                    vals['line_ids'] = self._template_line_commands(template)
         return super().create(vals_list)
 
     @api.model
@@ -93,6 +107,7 @@ class Checklist(models.Model):
     @api.onchange('template_id')
     def _onchange_template_id(self):
         if self.state == 'draft':
+            self.column_count = self.template_id.column_count or '1'
             self.line_ids = [Command.clear()] + self._template_line_commands(self.template_id)
 
     def action_complete(self):
@@ -123,6 +138,7 @@ class ChecklistLine(models.Model):
     name = fields.Char(string='Question', required=True)
     description = fields.Text(string='Description')
     question_type = fields.Selection(QUESTION_TYPES, string='Type', required=True, default='text')
+    column = fields.Selection(COLUMNS, string='Column', default='1')
 
     value_text = fields.Char(string='Text')
     value_text_area = fields.Text(string='Text Area')
@@ -141,10 +157,22 @@ class ChecklistLine(models.Model):
     value_boolean = fields.Boolean(string='Yes / No')
     value_latitude = fields.Float(string='Latitude', digits=(10, 7))
     value_longitude = fields.Float(string='Longitude', digits=(10, 7))
+    value_address = fields.Char(string='Street Address')
+    # GeoLocation display options, copied from the question.
+    geo_show_coordinates = fields.Boolean(string='Show Latitude / Longitude', default=True)
+    geo_show_map = fields.Boolean(string='Show Map')
+    geo_show_address = fields.Boolean(string='Show Street Address')
     value_image = fields.Image(string='Image', max_width=1920, max_height=1920)
     value_file = fields.Binary(string='File', attachment=True)
     value_file_name = fields.Char(string='File Name')
     value_phone = fields.Char(string='Phone')
+    # Phone Number buttons, copied from the question.
+    phone_show_call = fields.Boolean(string='Show Call Button', default=True)
+    phone_show_sms = fields.Boolean(string='Show SMS Button')
+    # Email button, copied from the question.
+    email_show_button = fields.Boolean(string='Show Email Button', default=True)
+    # Website button, copied from the question.
+    url_show_button = fields.Boolean(string='Show Open Link Button', default=True)
     value_email = fields.Char(string='Email')
     value_url = fields.Char(string='Website')
     # Many2one / Many2Many: copied from the question, like its title.
@@ -272,7 +300,11 @@ class ChecklistLine(models.Model):
         if kind == 'geolocation':
             if not (self.value_latitude or self.value_longitude):
                 return ''
-            return '%.6f, %.6f' % (self.value_latitude, self.value_longitude)
+            coordinates = '%.6f, %.6f' % (self.value_latitude, self.value_longitude)
+            address = self.geo_show_address and self.value_address
+            if address and not self.geo_show_coordinates:
+                return address
+            return '%s\n%s' % (address, coordinates) if address else coordinates
         if kind == 'file':
             return self.value_file_name or (self.env._('File attached') if self.value_file else '')
         if kind == 'phone':
@@ -290,6 +322,34 @@ class ChecklistLine(models.Model):
         except AccessError:
             return self.env._('(no access)')
         return ''
+
+    @api.onchange('value_phone')
+    def _onchange_value_phone(self):
+        # Odoo's phone formatting (phone_validation), for the user's country.
+        if self.value_phone and self.question_type == 'phone':
+            country = (self.env.user.country_id or self.checklist_id.company_id.country_id
+                       or self.env.company.country_id)
+            formatted = self._phone_format_number(self.value_phone, country, force_format='INTERNATIONAL')
+            if formatted:
+                self.value_phone = formatted
+
+    @api.model
+    def checklist_reverse_geocode(self, latitude, longitude):
+        """The closest street address to a location (OpenStreetMap Nominatim),
+        or False when it can't be found."""
+        try:
+            response = requests.get(
+                'https://nominatim.openstreetmap.org/reverse',
+                params={'format': 'jsonv2', 'lat': float(latitude), 'lon': float(longitude),
+                        'accept-language': self.env.lang or 'en'},
+                headers={'User-Agent': 'Odoo Checklists (%s)' % self.env.company.name},
+                timeout=10,
+            )
+            response.raise_for_status()
+            return response.json().get('display_name') or False
+        except (requests.RequestException, ValueError, TypeError) as error:
+            _logger.info('Street address lookup failed: %s', error)
+            return False
 
     def _answer_badge_style(self):
         """Inline style colouring a Buttons answer like its button, or ''."""

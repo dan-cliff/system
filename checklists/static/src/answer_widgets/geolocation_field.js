@@ -6,7 +6,10 @@ import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
 /**
  * GeoLocation answer: a latitude field (this widget) and its longitude
- * field, filled from the device's location or typed in, with a map link.
+ * field, filled from the device's location or typed in. The question's
+ * options (on the line) choose what shows: the coordinates, a map and/or
+ * the closest street address (looked up on the server, kept in
+ * value_address).
  */
 export class ChecklistGeolocationField extends Component {
     static template = "checklists.GeolocationField";
@@ -14,16 +17,26 @@ export class ChecklistGeolocationField extends Component {
     static defaultProps = { longitudeField: "value_longitude" };
 
     setup() {
+        this.orm = useService("orm");
         this.notification = useService("notification");
-        this.state = useState({ locating: false });
+        this.state = useState({ locating: false, lookingUp: false });
+    }
+
+    get data() {
+        return this.props.record.data;
+    }
+
+    get showCoordinates() {
+        // Nothing chosen: the coordinates, so the answer is visible somehow.
+        return this.data.geo_show_coordinates || !(this.data.geo_show_map || this.data.geo_show_address);
     }
 
     get latitude() {
-        return this.props.record.data[this.props.name] || 0;
+        return this.data[this.props.name] || 0;
     }
 
     get longitude() {
-        return this.props.record.data[this.props.longitudeField] || 0;
+        return this.data[this.props.longitudeField] || 0;
     }
 
     get isSet() {
@@ -38,11 +51,38 @@ export class ChecklistGeolocationField extends Component {
         return `https://www.openstreetmap.org/?mlat=${this.latitude}&mlon=${this.longitude}#map=17/${this.latitude}/${this.longitude}`;
     }
 
-    update(latitude, longitude) {
-        this.props.record.update({
-            [this.props.name]: latitude,
-            [this.props.longitudeField]: longitude,
-        });
+    get mapEmbedUrl() {
+        const d = 0.004;
+        const bbox = [this.longitude - d, this.latitude - d, this.longitude + d, this.latitude + d].join(",");
+        return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${this.latitude},${this.longitude}`;
+    }
+
+    async update(latitude, longitude) {
+        const values = { [this.props.name]: latitude, [this.props.longitudeField]: longitude };
+        if (this.data.geo_show_address) {
+            values.value_address = false;
+        }
+        await this.props.record.update(values);
+        if (this.data.geo_show_address && (latitude || longitude)) {
+            this.state.lookingUp = true;
+            try {
+                const address = await this.orm.call("checklist.line", "checklist_reverse_geocode", [
+                    latitude,
+                    longitude,
+                ]);
+                // Only if the location hasn't moved on meanwhile.
+                if (this.latitude === latitude && this.longitude === longitude) {
+                    await this.props.record.update({ value_address: address || false });
+                    if (!address) {
+                        this.notification.add(_t("No street address was found for this location."), {
+                            type: "warning",
+                        });
+                    }
+                }
+            } finally {
+                this.state.lookingUp = false;
+            }
+        }
     }
 
     onInput(ev, which) {

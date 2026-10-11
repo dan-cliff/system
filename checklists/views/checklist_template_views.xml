@@ -15,6 +15,9 @@
                         </group>
                         <group>
                             <field name="active" invisible="1"/>
+                            <field name="template_column_count" invisible="1"/>
+                            <field name="column" widget="radio" options="{'horizontal': True}"
+                                   invisible="template_column_count == '1' or question_type in ('section_title', 'section_break')"/>
                         </group>
                     </group>
                     <field name="description" placeholder="Describe what should be checked..."
@@ -33,6 +36,25 @@
                     <!-- Instructions: formatted text shown as is on the checklist. -->
                     <field name="instructions" widget="html" invisible="question_type != 'instructions'"
                            placeholder="Write the instructions..." class="o_checklist_instructions_editor"/>
+                    <!-- Phone Number: the buttons next to the number. -->
+                    <group string="Buttons" invisible="question_type != 'phone'">
+                        <field name="phone_show_call"/>
+                        <field name="phone_show_sms"/>
+                    </group>
+                    <!-- Email: the button next to the address. -->
+                    <group string="Buttons" invisible="question_type != 'email'">
+                        <field name="email_show_button"/>
+                    </group>
+                    <!-- Website: the button next to the link. -->
+                    <group string="Buttons" invisible="question_type != 'website'">
+                        <field name="url_show_button"/>
+                    </group>
+                    <!-- GeoLocation: what the answer shows. -->
+                    <group string="Show" invisible="question_type != 'geolocation'">
+                        <field name="geo_show_coordinates"/>
+                        <field name="geo_show_map"/>
+                        <field name="geo_show_address"/>
+                    </group>
                     <group invisible="question_type not in ('many2one', 'many2many')">
                         <field name="relation_model_id" options="{'no_create': True, 'no_open': True}"
                                required="question_type in ('many2one', 'many2many')"/>
@@ -129,16 +151,20 @@
                     <field name="active" invisible="1"/>
                     <group>
                         <field name="group_ids" widget="many2many_tags"/>
+                        <field name="column_count" widget="radio" options="{'horizontal': True}"/>
                     </group>
                     <field name="description" placeholder="What this template is used for..."/>
                     <notebook>
                         <page string="Questions" name="questions">
                             <field name="question_ids" context="{'default_template_id': id}">
                                 <list>
+                                    <field name="template_column_count" column_invisible="1"/>
                                     <field name="sequence" widget="handle"/>
                                     <field name="name"/>
                                     <field name="description"/>
                                     <field name="question_type"/>
+                                    <field name="column" column_invisible="parent.column_count == '1'"
+                                           invisible="question_type in ('section_title', 'section_break')"/>
                                     <field name="option_ids" widget="many2many_tags"
                                            invisible="question_type not in ('buttons', 'select', 'radio', 'slider', 'multi_select', 'multi_checkbox')"/>
                                     <field name="conditional" string="Conditional" widget="boolean" optional="show"/>

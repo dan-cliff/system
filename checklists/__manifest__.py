@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists',
-    'version': '19.0.1.5.0',
+    'version': '19.0.1.6.0',
     'category': 'Productivity',
     'summary': 'General-purpose checklists built from templates, grouped into Checklist Groups',
     'description': """
@@ -21,7 +21,7 @@
         Location / Department fields automatically (see org_structure).
     """,
     'author': 'Custom',
-    'depends': ['base', 'base_setup', 'mail'],
+    'depends': ['base', 'base_setup', 'mail', 'phone_validation'],
     'data': [
         'security/checklist_security.xml',
         'security/ir.model.access.csv',

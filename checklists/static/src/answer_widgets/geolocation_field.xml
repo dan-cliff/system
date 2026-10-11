@@ -2,33 +2,40 @@
 <templates xml:space="preserve">
     <t t-name="checklists.GeolocationField">
         <div class="o_checklist_geolocation">
-            <t t-if="props.readonly">
-                <a t-if="isSet" t-att-href="mapUrl" target="_blank" rel="noopener">
-                    <i class="fa fa-map-marker me-1"/><t t-esc="display"/>
-                </a>
-            </t>
-            <t t-else="">
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <button type="button" class="btn btn-secondary btn-sm" t-on-click="locate"
-                            t-att-disabled="state.locating">
-                        <i t-attf-class="fa {{ state.locating ? 'fa-spinner fa-spin' : 'fa-crosshairs' }} me-1"/>
-                        Use my location
-                    </button>
+            <div t-if="!props.readonly" class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <button type="button" class="btn btn-secondary btn-sm" t-on-click="locate"
+                        t-att-disabled="state.locating">
+                    <i t-attf-class="fa {{ state.locating ? 'fa-spinner fa-spin' : 'fa-crosshairs' }} me-1"/>
+                    Use my location
+                </button>
+                <t t-if="showCoordinates">
                     <input type="number" step="any" class="o_input o_checklist_geolocation_input"
                            placeholder="Latitude" t-att-value="isSet ? latitude : ''"
                            t-on-change="(ev) => this.onInput(ev, 'latitude')"/>
                     <input type="number" step="any" class="o_input o_checklist_geolocation_input"
                            placeholder="Longitude" t-att-value="isSet ? longitude : ''"
                            t-on-change="(ev) => this.onInput(ev, 'longitude')"/>
-                    <a t-if="isSet" t-att-href="mapUrl" target="_blank" rel="noopener" title="Open map">
-                        <i class="fa fa-map-marker"/>
-                    </a>
-                    <button t-if="isSet" type="button" class="btn btn-link btn-sm text-muted" t-on-click="clear"
-                            title="Clear">
-                        <i class="fa fa-times"/>
-                    </button>
-                </div>
-            </t>
+                </t>
+                <span t-elif="isSet" class="text-success"><i class="fa fa-check me-1"/>Location set</span>
+                <button t-if="isSet" type="button" class="btn btn-link btn-sm text-muted p-0" t-on-click="clear"
+                        title="Clear">
+                    <i class="fa fa-times"/>
+                </button>
+            </div>
+            <a t-if="props.readonly and isSet and showCoordinates" t-att-href="mapUrl" target="_blank" rel="noopener"
+               class="d-block">
+                <i class="fa fa-map-marker me-1"/><t t-esc="display"/>
+            </a>
+            <div t-if="data.geo_show_address and (isSet or state.lookingUp)" class="o_checklist_geolocation_address">
+                <i class="fa fa-home me-1 text-muted"/>
+                <t t-if="state.lookingUp"><i class="fa fa-spinner fa-spin me-1"/>Looking up the address…</t>
+                <t t-elif="data.value_address" t-esc="data.value_address"/>
+                <span t-else="" class="text-muted fst-italic">No street address found</span>
+            </div>
+            <div t-if="data.geo_show_map and isSet" class="o_checklist_geolocation_map mt-2">
+                <iframe t-att-src="mapEmbedUrl" title="Map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"/>
+                <a t-att-href="mapUrl" target="_blank" rel="noopener" class="small">Open the full map</a>
+            </div>
         </div>
     </t>
 </templates>
