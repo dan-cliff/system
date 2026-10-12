@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Creates the folders queued by "Create Automatically" (triggered as
+         soon as they are queued) and retries the ones that failed. -->
+    <record id="ir_cron_nextcloud_folders" model="ir.cron">
+        <field name="name">Nextcloud Folders: create queued folders</field>
+        <field name="model_id" ref="model_nextcloud_folder"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_create_folders()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

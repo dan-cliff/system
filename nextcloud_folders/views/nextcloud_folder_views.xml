@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="nextcloud_folder_view_list" model="ir.ui.view">
+        <field name="name">nextcloud.folder.list</field>
+        <field name="model">nextcloud.folder</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-danger="state == 'error'" decoration-muted="state == 'pending'">
+                <field name="rule_id"/>
+                <field name="res_name"/>
+                <field name="path"/>
+                <field name="url" widget="url" optional="show"/>
+                <field name="public_url" widget="url" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
+                <field name="create_date" string="Created On" options="{'numeric': True}" optional="show"/>
+                <field name="error" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="nextcloud_folder_view_form" model="ir.ui.view">
+        <field name="name">nextcloud.folder.form</field>
+        <field name="model">nextcloud.folder</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_open_folder" type="object" string="Open Folder"
+                            class="btn-primary" icon="fa-folder-open" invisible="not url"/>
+                    <button name="action_retry" type="object" string="Retry"
+                            invisible="state == 'done'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_record" type="object" class="oe_stat_button"
+                                icon="fa-external-link" string="Record"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="rule_id"/>
+                            <field name="res_model"/>
+                            <field name="res_name"/>
+                            <field name="create_date" string="Created On" options="{'numeric': True}"/>
+                        </group>
+                        <group>
+                            <field name="path"/>
+                            <field name="url" widget="url"/>
+                            <field name="public_url" widget="url" invisible="not public_url"/>
+                            <field name="file_id"/>
+                            <field name="attempt_count"/>
+                        </group>
+                    </group>
+                    <field name="error" invisible="not error" class="text-danger"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="nextcloud_folder_view_search" model="ir.ui.view">
+        <field name="name">nextcloud.folder.search</field>
+        <field name="model">nextcloud.folder</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="path"/>
+                <field name="rule_id"/>
+                <field name="res_model"/>
+                <filter name="pending" string="Queued" domain="[('state', '=', 'pending')]"/>
+                <filter name="failed" string="Failed" domain="[('state', '=', 'error')]"/>
+                <filter name="done" string="Created" domain="[('state', '=', 'done')]"/>
+                <group>
+                    <filter name="group_rule" string="Folder Rule" context="{'group_by': 'rule_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="nextcloud_folder_action" model="ir.actions.act_window">
+        <field name="name">Folders</field>
+        <field name="res_model">nextcloud.folder</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No Nextcloud folders yet</p>
+            <p>Folders appear here when a record's folder is created, from its Folder button
+               or automatically by its Folder Rule.</p>
+        </field>
+    </record>
+</odoo>
