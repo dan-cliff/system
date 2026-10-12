@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_social_publish" model="ir.cron">
+        <field name="name">Social Manager: publish scheduled posts</field>
+        <field name="model_id" ref="model_social_post"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_publish_scheduled()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+    </record>
+    <record id="ir_cron_social_sync" model="ir.cron">
+        <field name="name">Social Manager: synchronise likes, reactions, comments and income</field>
+        <field name="model_id" ref="model_social_channel"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+    </record>
+    <!-- Only active while Settings > Social Manager > AI Analysis is on. -->
+    <record id="ir_cron_social_ai_analyse" model="ir.cron">
+        <field name="name">Social Manager: AI analysis of new comments</field>
+        <field name="model_id" ref="model_social_comment"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_ai_analyse()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="False"/>
+    </record>
+    <!-- Weekly AI post proposals. Only active while AI Recommendations is on; set its day and
+         time with Next Execution Date. -->
+    <record id="ir_cron_social_ai_recommendations" model="ir.cron">
+        <field name="name">Social Manager: weekly AI post recommendations</field>
+        <field name="model_id" ref="model_social_post"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_ai_recommendations()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(weekday=0, hour=22, minute=0, second=0, days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="active" eval="False"/>
+    </record>
+    <!-- Monthly: invoice the previous month's monetised income. Only active while Integrate to
+         Accounts is on. -->
+    <record id="ir_cron_social_invoices" model="ir.cron">
+        <field name="name">Social Manager: invoice last month's monetised content</field>
+        <field name="model_id" ref="model_social_invoice"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_create_invoices()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">months</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(day=1, months=1, hour=1, minute=0, second=0)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

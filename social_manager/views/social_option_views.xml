@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sentiments -->
+    <record id="view_social_sentiment_list" model="ir.ui.view">
+        <field name="name">social.sentiment.list</field>
+        <field name="model">social.sentiment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="color" widget="color_picker"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_social_sentiment_form" model="ir.ui.view">
+        <field name="name">social.sentiment.form</field>
+        <field name="model">social.sentiment</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="sequence"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_social_sentiment_search" model="ir.ui.view">
+        <field name="name">social.sentiment.search</field>
+        <field name="model">social.sentiment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_social_sentiment" model="ir.actions.act_window">
+        <field name="name">Sentiments</field>
+        <field name="res_model">social.sentiment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Income Types -->
+    <record id="view_social_income_type_list" model="ir.ui.view">
+        <field name="name">social.income.type.list</field>
+        <field name="model">social.income.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_social_income_type_form" model="ir.ui.view">
+        <field name="name">social.income.type.form</field>
+        <field name="model">social.income.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_social_income_type_search" model="ir.ui.view">
+        <field name="name">social.income.type.search</field>
+        <field name="model">social.income.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_social_income_type" model="ir.actions.act_window">
+        <field name="name">Income Types</field>
+        <field name="res_model">social.income.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Special Event Types -->
+    <record id="view_social_event_type_list" model="ir.ui.view">
+        <field name="name">social.event.type.list</field>
+        <field name="model">social.event.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_social_event_type_form" model="ir.ui.view">
+        <field name="name">social.event.type.form</field>
+        <field name="model">social.event.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_social_event_type_search" model="ir.ui.view">
+        <field name="name">social.event.type.search</field>
+        <field name="model">social.event.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_social_event_type" model="ir.actions.act_window">
+        <field name="name">Special Event Types</field>
+        <field name="res_model">social.event.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

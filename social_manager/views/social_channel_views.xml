@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_channel_list" model="ir.ui.view">
+        <field name="name">social.channel.list</field>
+        <field name="model">social.channel</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="platform_id"/>
+                <field name="external_username" optional="show"/>
+                <field name="follower_count"/>
+                <field name="connection_state" widget="badge"
+                       decoration-success="connection_state == 'connected'"
+                       decoration-warning="connection_state == 'expired'"
+                       decoration-danger="connection_state == 'error'"/>
+                <field name="last_sync" options="{'numeric': True}" optional="show"/>
+                <field name="is_monetised"/>
+                <field name="income_total" sum="Total" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_channel_kanban" model="ir.ui.view">
+        <field name="name">social.channel.kanban</field>
+        <field name="model">social.channel</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="color"/>
+                <field name="image_url"/>
+                <field name="connection_state"/>
+                <templates>
+                    <t t-name="card" t-attf-class="#{kanban_color(record.color.raw_value)}">
+                        <div class="d-flex align-items-center gap-2">
+                            <img t-if="record.image_url.raw_value" t-att-src="record.image_url.raw_value"
+                                 class="rounded-circle" style="width: 40px; height: 40px;" alt="Page / Channel picture"/>
+                            <div>
+                                <field name="name" class="fw-bold"/>
+                                <div class="text-muted"><field name="platform_id"/></div>
+                            </div>
+                        </div>
+                        <div class="mt-2 d-flex gap-3">
+                            <span><i class="fa fa-users" title="Followers"/> <field name="follower_count"/></span>
+                            <span invisible="not flagged_comment_count" class="text-danger">
+                                <i class="fa fa-flag" title="Flagged comments"/> <field name="flagged_comment_count"/>
+                            </span>
+                            <span invisible="not is_monetised">
+                                <i class="fa fa-money" title="Income"/> <field name="income_total" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                            </span>
+                        </div>
+                        <div t-if="record.connection_state.raw_value !== 'connected'" class="text-danger">
+                            <i class="fa fa-exclamation-triangle" title="Connection problem"/> <field name="connection_state"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_social_channel_form" model="ir.ui.view">
+        <field name="name">social.channel.form</field>
+        <field name="model">social.channel</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_sync" type="object" string="Synchronise" class="btn-primary"
+                            icon="fa-refresh"/>
+                    <button name="action_fetch_income" type="object" string="Fetch Income"
+                            invisible="not is_monetised" groups="social_manager.group_social_manager"/>
+                    <field name="connection_state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_posts" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                            <field name="post_count" widget="statinfo" string="Posts"/>
+                        </button>
+                        <button name="action_view_comments" type="object" class="oe_stat_button" icon="fa-comments">
+                            <field name="comment_count" widget="statinfo" string="Comments"/>
+                        </button>
+                        <button name="action_view_income" type="object" class="oe_stat_button" icon="fa-money"
+                                invisible="not is_monetised">
+                            <field name="income_total" widget="statinfo" string="Income"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="platform_id"/>
+                            <field name="account_id"/>
+                            <field name="external_id"/>
+                            <field name="external_username"/>
+                            <field name="external_url" widget="url"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="follower_count"/>
+                            <field name="last_sync" options="{'numeric': True}"/>
+                            <field name="is_monetised"/>
+                            <field name="income_total" invisible="not is_monetised"/>
+                            <field name="income_uninvoiced" invisible="not is_monetised"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-danger" role="alert" invisible="not last_error">
+                        <field name="last_error"/>
+                    </div>
+                    <notebook>
+                        <page string="Published Posts" name="publications">
+                            <field name="publication_ids" readonly="1">
+                                <list>
+                                    <field name="post_id"/>
+                                    <field name="published_date" options="{'numeric': True}"/>
+                                    <field name="likes_count"/>
+                                    <field name="reactions_count"/>
+                                    <field name="comments_count"/>
+                                    <field name="shares_count"/>
+                                    <field name="views_count"/>
+                                    <field name="engagement_score"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Permissions" name="permissions" groups="social_manager.group_social_manager">
+                            <p class="text-muted">
+                                These permissions are created automatically for this Page / Channel. The same
+                                levels on its Platform cover it too.
+                            </p>
+                            <group>
+                                <field name="group_draft_id"/>
+                                <field name="group_publish_id"/>
+                                <field name="group_approve_id"/>
+                                <field name="group_moderate_id"/>
+                                <field name="group_delete_id"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_channel_search" model="ir.ui.view">
+        <field name="name">social.channel.search</field>
+        <field name="model">social.channel</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="platform_id"/>
+                <filter name="monetised" string="Monetised" domain="[('is_monetised', '=', True)]"/>
+                <filter name="needs_attention" string="Needs Attention" domain="[('connection_state', '!=', 'connected')]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_platform" string="Platform" context="{'group_by': 'platform_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_social_channel" model="ir.actions.act_window">
+        <field name="name">Pages / Channels</field>
+        <field name="res_model">social.channel</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="path">social-channels</field>
+        <field name="context">{'search_default_group_platform': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Pages / Channels yet</p>
+            <p>Connect an account from Platforms - every Page / Channel it manages is imported.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.social_manager</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="92"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Social Manager" id="social_manager" string="Social Manager" name="social_manager"
+                     groups="social_manager.group_social_manager">
+                    <block title="Integrations" id="social_manager_integrations">
+                        <setting id="social_integrate_accounts" string="Integrate to Accounts"
+                                 help="Should Social Manager automatically create invoices for monetised content?">
+                            <field name="social_integrate_accounts"/>
+                            <div class="content-group mt-2" invisible="not social_integrate_accounts">
+                                <div class="text-muted">
+                                    On the 1st of each month last month's monetised income is invoiced:
+                                    one invoice per Platform (to its Paying Partner), a line per
+                                    Page / Channel showing the platform, Page / Channel and date range.
+                                </div>
+                                <div class="row mt-2">
+                                    <label for="social_invoice_product_id" class="col-lg-4 o_light_label"/>
+                                    <field name="social_invoice_product_id" class="col-lg-8"/>
+                                </div>
+                                <button name="action_social_create_invoices" type="object"
+                                        string="Create Invoices for a Date Range" class="btn-link"
+                                        icon="fa-arrow-right"/>
+                            </div>
+                        </setting>
+                        <setting id="social_ai_analysis" string="AI Analysis"
+                                 help="Should content be shared with the AI agent to monitor sentiment, potential moderation alerts and recommend actions?">
+                            <field name="social_ai_analysis"/>
+                            <div class="content-group mt-2" invisible="not social_ai_analysis">
+                                <div class="text-muted">
+                                    New comments are analysed every hour; Analyse by AI and
+                                    Rank Performance by AI run it on demand.
+                                </div>
+                            </div>
+                        </setting>
+                        <setting id="social_ai_recommendations" string="AI Recommendations"
+                                 help="Should the AI recommend post content for special events and upcoming company releases?">
+                            <field name="social_ai_recommendations"/>
+                            <div class="content-group mt-2" invisible="not social_ai_recommendations">
+                                <div class="text-muted">
+                                    Once a week the AI is sent today's date, your upcoming Special Events and
+                                    Releases and your best performing posts, and its suggestions are listed
+                                    under Posts > Proposed.
+                                </div>
+                                <button name="action_social_open_cron" type="object"
+                                        string="Set the day and time" class="btn-link" icon="fa-arrow-right"/>
+                            </div>
+                        </setting>
+                        <field name="social_ai_key_set" invisible="1"/>
+                        <div class="col-12 alert alert-warning mt-2" role="alert"
+                             invisible="social_ai_key_set or not (social_ai_analysis or social_ai_recommendations)">
+                            No AI is set up yet: add a Claude AI or Google Gemini API key in
+                            General Settings > Integrations.
+                        </div>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_social_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'social_manager', 'bin_size': False}</field>
+    </record>
+</odoo>

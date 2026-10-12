@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="sentiment_positive" model="social.sentiment">
+        <field name="name">Positive</field>
+        <field name="sequence">10</field>
+        <field name="color">10</field>
+        <field name="description">Happy, supportive, praising or thankful.</field>
+    </record>
+    <record id="sentiment_neutral" model="social.sentiment">
+        <field name="name">Neutral</field>
+        <field name="sequence">20</field>
+        <field name="color">0</field>
+        <field name="description">Factual, a question, or no clear feeling.</field>
+    </record>
+    <record id="sentiment_negative" model="social.sentiment">
+        <field name="name">Negative</field>
+        <field name="sequence">30</field>
+        <field name="color">1</field>
+        <field name="description">Unhappy, critical, a complaint or angry.</field>
+    </record>
+</odoo>

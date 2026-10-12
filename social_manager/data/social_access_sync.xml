@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Create any missing Platform / Page permissions and Permission Management roles (e.g. after
+     Permission Management is installed). Not noupdate, so it runs on every upgrade. -->
+<odoo>
+    <function model="social.access.mixin" name="_social_access_sync_all"/>
+</odoo>
