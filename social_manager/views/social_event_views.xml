@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_event_list" model="ir.ui.view">
+        <field name="name">social.event.list</field>
+        <field name="model">social.event</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_end" options="{'numeric': True}" optional="show"/>
+                <field name="name"/>
+                <field name="event_type_id"/>
+                <field name="channel_ids" widget="many2many_tags" optional="show"/>
+                <field name="post_count" string="Posts"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_event_calendar" model="ir.ui.view">
+        <field name="name">social.event.calendar</field>
+        <field name="model">social.event</field>
+        <field name="arch" type="xml">
+            <calendar date_start="date_start" date_stop="date_end" color="event_type_id" mode="month">
+                <field name="name"/>
+                <field name="event_type_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_social_event_form" model="ir.ui.view">
+        <field name="name">social.event.form</field>
+        <field name="model">social.event</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_posts" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                            <field name="post_count" widget="statinfo" string="Posts"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Spring range launch"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="event_type_id"/>
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <field name="date_end" options="{'numeric': True}"/>
+                        </group>
+                        <group>
+                            <field name="channel_ids" widget="many2many_tags"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <label for="description"/>
+                    <field name="description"
+                           placeholder="What the AI should know: what is being released or celebrated, key messages, offers, links."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_event_search" model="ir.ui.view">
+        <field name="name">social.event.search</field>
+        <field name="model">social.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="event_type_id"/>
+                <filter name="upcoming" string="Upcoming" domain="[('date_start', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_type" string="Type" context="{'group_by': 'event_type_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_social_event" model="ir.actions.act_window">
+        <field name="name">Special Events and Releases</field>
+        <field name="res_model">social.event</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="path">social-events</field>
+        <field name="context">{'search_default_upcoming': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add an upcoming event or release</p>
+            <p>The AI uses these to propose posts each week (with AI Recommendations on).</p>
+        </field>
+    </record>
+</odoo>

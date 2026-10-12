@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_platform_list" model="ir.ui.view">
+        <field name="name">social.platform.list</field>
+        <field name="model">social.platform</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="is_configured" string="OAuth App Set Up" widget="boolean"/>
+                <field name="channel_count" string="Pages / Channels"/>
+                <field name="is_monetised"/>
+                <field name="income_total" sum="Total" invisible="not is_monetised"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_platform_kanban" model="ir.ui.view">
+        <field name="name">social.platform.kanban</field>
+        <field name="model">social.platform</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="color"/>
+                <field name="is_configured"/>
+                <templates>
+                    <t t-name="card" t-attf-class="#{kanban_color(record.color.raw_value)}">
+                        <div class="d-flex align-items-center gap-2">
+                            <field name="image_128" widget="image" options="{'size': [40, 40]}" invisible="not image_128"/>
+                            <field name="name" class="fw-bold fs-5"/>
+                        </div>
+                        <div class="text-muted">
+                            <field name="channel_count"/> Pages / Channels
+                        </div>
+                        <div t-if="!record.is_configured.raw_value" class="text-warning">
+                            <i class="fa fa-exclamation-triangle" title="Warning"/> OAuth app not set up
+                        </div>
+                        <div invisible="not is_monetised">
+                            <i class="fa fa-money" title="Income"/> <field name="income_total" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_social_platform_form" model="ir.ui.view">
+        <field name="name">social.platform.form</field>
+        <field name="model">social.platform</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_connect" type="object" string="Connect an Account"
+                            class="btn-primary" icon="fa-plug"
+                            groups="social_manager.group_social_manager"/>
+                    <button name="action_reset_endpoints" type="object" string="Reset OAuth Endpoints"
+                            groups="social_manager.group_social_manager"
+                            confirm="Replace the authorisation / token URLs, API base URL and scopes with the integration's defaults?"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_accounts" type="object" class="oe_stat_button" icon="fa-user-circle">
+                            <field name="account_count" widget="statinfo" string="Accounts"/>
+                        </button>
+                        <button name="action_view_channels" type="object" class="oe_stat_button" icon="fa-bullhorn">
+                            <field name="channel_count" widget="statinfo" string="Pages / Channels"/>
+                        </button>
+                        <button name="action_view_posts" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                            <field name="post_count" widget="statinfo" string="Posts"/>
+                        </button>
+                        <button name="action_view_income" type="object" class="oe_stat_button" icon="fa-money"
+                                invisible="not is_monetised">
+                            <field name="income_total" widget="statinfo" string="Income"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="image_128" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Facebook"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="is_monetised"/>
+                            <field name="partner_id" invisible="not is_monetised"
+                                   required="is_monetised"/>
+                            <field name="income_total" invisible="not is_monetised"/>
+                            <field name="income_uninvoiced" invisible="not is_monetised"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="OAuth Sign-In" name="oauth" groups="social_manager.group_social_manager">
+                            <div class="alert alert-info" role="alert" invisible="not setup_notes">
+                                <field name="setup_notes" nolabel="1"/>
+                                <div class="mt-2">
+                                    <button name="action_open_developer_portal" type="object"
+                                            class="btn-link p-0" icon="fa-external-link"
+                                            string="Open the developer portal"/>
+                                </div>
+                            </div>
+                            <group>
+                                <group string="Your App">
+                                    <field name="redirect_uri" widget="CopyClipboardChar"/>
+                                    <field name="client_id"/>
+                                    <field name="client_secret" password="True"/>
+                                    <field name="is_configured" invisible="1"/>
+                                </group>
+                                <group string="Endpoints">
+                                    <field name="auth_url"/>
+                                    <field name="token_url"/>
+                                    <field name="api_base_url"/>
+                                    <field name="scopes"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Pages / Channels" name="channels">
+                            <field name="channel_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="external_username"/>
+                                    <field name="follower_count"/>
+                                    <field name="connection_state" widget="badge"
+                                           decoration-success="connection_state == 'connected'"
+                                           decoration-danger="connection_state != 'connected'"/>
+                                    <field name="is_monetised"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Permissions" name="permissions" groups="social_manager.group_social_manager">
+                            <p class="text-muted">
+                                These permissions are created automatically and cover every Page / Channel
+                                of this Platform. Give them to users (or to roles in Permission Management)
+                                under Settings > Users.
+                            </p>
+                            <group>
+                                <field name="group_draft_id"/>
+                                <field name="group_publish_id"/>
+                                <field name="group_approve_id"/>
+                                <field name="group_moderate_id"/>
+                                <field name="group_delete_id"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_platform_search" model="ir.ui.view">
+        <field name="name">social.platform.search</field>
+        <field name="model">social.platform</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="monetised" string="Monetised" domain="[('is_monetised', '=', True)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_social_platform" model="ir.actions.act_window">
+        <field name="name">Platforms</field>
+        <field name="res_model">social.platform</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="path">social-platforms</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a social media platform</p>
+            <p>Enter your app's OAuth credentials on a Platform, then use Connect an Account to
+                sign in and import your Pages / Channels.</p>
+        </field>
+    </record>
+</odoo>

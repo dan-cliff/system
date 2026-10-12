@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_social_root" name="Social Manager" sequence="45"
+              web_icon="social_manager,static/description/icon.png"
+              groups="social_manager.group_social_user"/>
+
+    <menuitem id="menu_social_posts" name="Posts" parent="menu_social_root" sequence="10"/>
+    <menuitem id="menu_social_post_all" name="All Posts" parent="menu_social_posts"
+              action="action_social_post" sequence="10"/>
+    <menuitem id="menu_social_post_proposed" name="Proposed" parent="menu_social_posts"
+              action="action_social_post_proposed" sequence="20"/>
+    <menuitem id="menu_social_event" name="Special Events and Releases" parent="menu_social_posts"
+              action="action_social_event" sequence="30"/>
+
+    <menuitem id="menu_social_engagement" name="Engagement" parent="menu_social_root" sequence="20"/>
+    <menuitem id="menu_social_comment" name="Comments" parent="menu_social_engagement"
+              action="action_social_comment" sequence="10"/>
+    <menuitem id="menu_social_moderation" name="Moderation Queue" parent="menu_social_engagement"
+              action="action_social_comment_moderation" sequence="20"/>
+    <menuitem id="menu_social_publication" name="Post Performance" parent="menu_social_engagement"
+              action="action_social_publication" sequence="30"/>
+
+    <menuitem id="menu_social_monetisation" name="Monetisation" parent="menu_social_root" sequence="30"/>
+    <menuitem id="menu_social_income" name="Income" parent="menu_social_monetisation"
+              action="action_social_income" sequence="10"/>
+    <menuitem id="menu_social_invoice" name="Invoices" parent="menu_social_monetisation"
+              action="action_social_invoice" sequence="20"/>
+    <menuitem id="menu_social_invoice_wizard" name="Create Invoices" parent="menu_social_monetisation"
+              action="action_social_invoice_wizard" sequence="30"
+              groups="social_manager.group_social_manager"/>
+
+    <menuitem id="menu_social_platforms" name="Platforms" parent="menu_social_root" sequence="40"/>
+    <menuitem id="menu_social_platform" name="Platforms" parent="menu_social_platforms"
+              action="action_social_platform" sequence="10"/>
+    <menuitem id="menu_social_channel" name="Pages / Channels" parent="menu_social_platforms"
+              action="action_social_channel" sequence="20"/>
+    <menuitem id="menu_social_account" name="Connected Accounts" parent="menu_social_platforms"
+              action="action_social_account" sequence="30"/>
+
+    <menuitem id="menu_social_configuration" name="Configuration" parent="menu_social_root" sequence="90"
+              groups="social_manager.group_social_manager"/>
+    <menuitem id="menu_social_settings" name="Settings" parent="menu_social_configuration"
+              action="action_social_config_settings" sequence="1"/>
+    <menuitem id="menu_social_sentiment" name="Sentiments" parent="menu_social_configuration"
+              action="action_social_sentiment" sequence="10"/>
+    <menuitem id="menu_social_income_type" name="Income Types" parent="menu_social_configuration"
+              action="action_social_income_type" sequence="20"/>
+    <menuitem id="menu_social_event_type" name="Special Event Types" parent="menu_social_configuration"
+              action="action_social_event_type" sequence="30"/>
+</odoo>

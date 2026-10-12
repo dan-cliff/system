@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_comment_list" model="ir.ui.view">
+        <field name="name">social.comment.list</field>
+        <field name="model">social.comment</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-danger="needs_moderation" decoration-muted="is_hidden or is_own">
+                <header>
+                    <button name="action_ai_analyse" type="object" string="Analyse by AI" icon="fa-magic"/>
+                    <button name="action_mark_reviewed" type="object" string="Mark Reviewed"/>
+                    <button name="action_hide" type="object" string="Hide on Platform"/>
+                </header>
+                <field name="comment_date" options="{'numeric': True}"/>
+                <field name="channel_id"/>
+                <field name="post_id" optional="show"/>
+                <field name="author_name"/>
+                <field name="message"/>
+                <field name="likes_count" optional="hide"/>
+                <field name="sentiment_id" widget="badge" optional="show"/>
+                <field name="needs_moderation" optional="show"/>
+                <field name="replied" optional="show"/>
+                <field name="is_hidden" optional="hide"/>
+                <field name="is_own" column_invisible="1"/>
+                <field name="ai_recommended_action" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_comment_form" model="ir.ui.view">
+        <field name="name">social.comment.form</field>
+        <field name="model">social.comment</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_reply" type="object" string="Reply" class="btn-primary"
+                            invisible="is_own"/>
+                    <button name="action_ai_analyse" type="object" string="Analyse by AI" icon="fa-magic"
+                            invisible="is_own or not ai_analysis_available"/>
+                    <button name="action_mark_reviewed" type="object" string="Mark Reviewed"
+                            invisible="not needs_moderation or not can_moderate"/>
+                    <button name="action_flag" type="object" string="Flag for Moderation"
+                            invisible="needs_moderation or not can_moderate"/>
+                    <button name="action_hide" type="object" string="Hide on Platform"
+                            invisible="is_hidden or not can_moderate"/>
+                    <button name="action_unhide" type="object" string="Show on Platform"
+                            invisible="not is_hidden or not can_moderate"/>
+                    <button name="action_delete_on_platform" type="object" string="Delete"
+                            invisible="not can_moderate"
+                            confirm="Delete this comment on the platform? This can't be undone."/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="not needs_moderation">
+                        <strong>Flagged for moderation.</strong>
+                        <field name="moderation_reason" class="d-inline" invisible="not moderation_reason"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="author_name"/>
+                            <field name="comment_date" options="{'numeric': True}"/>
+                            <field name="channel_id"/>
+                            <field name="post_id"/>
+                            <field name="parent_id" invisible="not parent_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="sentiment_id" readonly="not can_moderate"/>
+                            <field name="sentiment_score" invisible="not ai_analysed_date"/>
+                            <field name="likes_count"/>
+                            <field name="is_hidden"/>
+                            <field name="moderated_by_id" invisible="not moderated_by_id"/>
+                            <field name="moderated_date" options="{'numeric': True}" invisible="not moderated_date"/>
+                            <field name="ai_analysed_date" options="{'numeric': True}" invisible="not ai_analysed_date"/>
+                            <field name="is_own" invisible="1"/>
+                            <field name="needs_moderation" invisible="1"/>
+                            <field name="can_moderate" invisible="1"/>
+                            <field name="ai_analysis_available" invisible="1"/>
+                        </group>
+                    </group>
+                    <label for="message" string="Comment"/>
+                    <field name="message"/>
+                    <group string="AI Recommendation" invisible="not ai_analysed_date">
+                        <field name="ai_recommended_action"/>
+                        <field name="ai_suggested_reply"/>
+                    </group>
+                    <field name="child_ids" invisible="not child_ids">
+                        <list>
+                            <field name="comment_date" options="{'numeric': True}"/>
+                            <field name="author_name"/>
+                            <field name="message"/>
+                            <field name="is_own"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_comment_search" model="ir.ui.view">
+        <field name="name">social.comment.search</field>
+        <field name="model">social.comment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="message"/>
+                <field name="author_name"/>
+                <field name="post_id"/>
+                <field name="channel_id"/>
+                <filter name="flagged" string="Needs Moderation" domain="[('needs_moderation', '=', True)]"/>
+                <filter name="unanswered" string="Not Replied" domain="[('replied', '=', False), ('is_own', '=', False)]"/>
+                <filter name="not_analysed" string="Not Analysed" domain="[('ai_analysed_date', '=', False), ('is_own', '=', False)]"/>
+                <filter name="hide_own" string="Hide Our Replies" domain="[('is_own', '=', False)]"/>
+                <separator/>
+                <filter name="comment_date" string="Date" date="comment_date"/>
+                <group>
+                    <filter name="group_sentiment" string="Sentiment" context="{'group_by': 'sentiment_id'}"/>
+                    <filter name="group_platform" string="Platform" context="{'group_by': 'platform_id'}"/>
+                    <filter name="group_channel" string="Page / Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_post" string="Post" context="{'group_by': 'post_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_social_comment_pivot" model="ir.ui.view">
+        <field name="name">social.comment.pivot</field>
+        <field name="model">social.comment</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="channel_id" type="row"/>
+                <field name="sentiment_id" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_social_comment" model="ir.actions.act_window">
+        <field name="name">Comments</field>
+        <field name="res_model">social.comment</field>
+        <field name="view_mode">list,pivot,form</field>
+        <field name="path">social-comments</field>
+        <field name="context">{'search_default_hide_own': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No comments yet</p>
+            <p>Comments on published posts are synchronised every hour, or use Synchronise on a post.</p>
+        </field>
+    </record>
+
+    <record id="action_social_comment_moderation" model="ir.actions.act_window">
+        <field name="name">Moderation Queue</field>
+        <field name="res_model">social.comment</field>
+        <field name="view_mode">list,form</field>
+        <field name="path">social-moderation</field>
+        <field name="context">{'search_default_flagged': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing to moderate</p>
+            <p>Comments the AI (or a moderator) flags as inappropriate are listed here for review.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_publication_list" model="ir.ui.view">
+        <field name="name">social.post.publication.list</field>
+        <field name="model">social.post.publication</field>
+        <field name="arch" type="xml">
+            <list create="0" default_order="engagement_score desc">
+                <field name="post_id"/>
+                <field name="channel_id"/>
+                <field name="platform_id" optional="show"/>
+                <field name="published_date" options="{'numeric': True}"/>
+                <field name="likes_count" sum="Total"/>
+                <field name="reactions_count" sum="Total" optional="show"/>
+                <field name="comments_count" sum="Total"/>
+                <field name="shares_count" sum="Total"/>
+                <field name="views_count" sum="Total"/>
+                <field name="engagement_score"/>
+                <field name="income_total" sum="Total" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'"
+                       decoration-danger="state == 'failed'"/>
+                <button name="action_open_url" type="object" icon="fa-external-link"
+                        title="Open on the platform" invisible="not external_url"/>
+                <field name="external_url" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_publication_form" model="ir.ui.view">
+        <field name="name">social.post.publication.form</field>
+        <field name="model">social.post.publication</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <header>
+                    <button name="action_sync" type="object" string="Synchronise" icon="fa-refresh"
+                            invisible="state != 'posted'"/>
+                    <button name="action_open_url" type="object" string="Open on Platform"
+                            icon="fa-external-link" invisible="not external_url"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="post_id"/>
+                            <field name="channel_id"/>
+                            <field name="platform_id"/>
+                            <field name="external_id"/>
+                            <field name="external_url" widget="url"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="published_date" options="{'numeric': True}"/>
+                            <field name="last_sync" options="{'numeric': True}"/>
+                            <field name="likes_count"/>
+                            <field name="reactions_count"/>
+                            <field name="comments_count"/>
+                            <field name="shares_count"/>
+                            <field name="views_count"/>
+                            <field name="engagement_score"/>
+                            <field name="income_total" invisible="not is_monetised"/>
+                            <field name="is_monetised" invisible="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-danger" role="alert" invisible="not failure_reason">
+                        <field name="failure_reason"/>
+                    </div>
+                    <notebook>
+                        <page string="Comments" name="comments">
+                            <field name="comment_ids">
+                                <list>
+                                    <field name="comment_date" options="{'numeric': True}"/>
+                                    <field name="author_name"/>
+                                    <field name="message"/>
+                                    <field name="sentiment_id" widget="badge"/>
+                                    <field name="needs_moderation"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Income" name="income" invisible="not is_monetised">
+                            <field name="income_ids">
+                                <list>
+                                    <field name="date" options="{'numeric': True}"/>
+                                    <field name="name"/>
+                                    <field name="amount" sum="Total"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="invoiced"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_publication_search" model="ir.ui.view">
+        <field name="name">social.post.publication.search</field>
+        <field name="model">social.post.publication</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="post_id"/>
+                <field name="channel_id"/>
+                <field name="platform_id"/>
+                <filter name="posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+                <filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="published_date" string="Published" date="published_date"/>
+                <group>
+                    <filter name="group_platform" string="Platform" context="{'group_by': 'platform_id'}"/>
+                    <filter name="group_channel" string="Page / Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_month" string="Month Published" context="{'group_by': 'published_date:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_social_publication_pivot" model="ir.ui.view">
+        <field name="name">social.post.publication.pivot</field>
+        <field name="model">social.post.publication</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="platform_id" type="row"/>
+                <field name="published_date" interval="month" type="col"/>
+                <field name="likes_count" type="measure"/>
+                <field name="comments_count" type="measure"/>
+                <field name="shares_count" type="measure"/>
+                <field name="views_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_social_publication_graph" model="ir.ui.view">
+        <field name="name">social.post.publication.graph</field>
+        <field name="model">social.post.publication</field>
+        <field name="arch" type="xml">
+            <graph type="bar" stacked="1">
+                <field name="published_date" interval="month"/>
+                <field name="platform_id"/>
+                <field name="engagement_score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_social_publication" model="ir.actions.act_window">
+        <field name="name">Engagement</field>
+        <field name="res_model">social.post.publication</field>
+        <field name="view_mode">list,pivot,graph,form</field>
+        <field name="path">social-engagement</field>
+        <field name="context">{'search_default_posted': 1}</field>
+    </record>
+</odoo>

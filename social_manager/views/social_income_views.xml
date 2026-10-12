@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_income_list" model="ir.ui.view">
+        <field name="name">social.income.list</field>
+        <field name="model">social.income</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date" options="{'numeric': True}"/>
+                <field name="name"/>
+                <field name="income_type_id" optional="show"/>
+                <field name="platform_id"/>
+                <field name="channel_id"/>
+                <field name="post_id" optional="show"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="invoiced" optional="show"/>
+                <field name="move_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_income_form" model="ir.ui.view">
+        <field name="name">social.income.form</field>
+        <field name="model">social.income</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="invoiced"/>
+                            <field name="date" options="{'numeric': True}" readonly="invoiced"/>
+                            <field name="amount" readonly="invoiced"/>
+                            <field name="income_type_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="invoiced" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="channel_id" readonly="invoiced"/>
+                            <field name="platform_id"/>
+                            <field name="publication_id" readonly="invoiced"/>
+                            <field name="external_ref" invisible="not external_ref"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="invoiced"/>
+                        </group>
+                    </group>
+                    <group string="Invoicing" invisible="not invoiced">
+                        <field name="social_invoice_id"/>
+                        <field name="move_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_income_search" model="ir.ui.view">
+        <field name="name">social.income.search</field>
+        <field name="model">social.income</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="platform_id"/>
+                <field name="channel_id"/>
+                <field name="post_id"/>
+                <filter name="not_invoiced" string="Not Invoiced" domain="[('invoiced', '=', False)]"/>
+                <filter name="invoiced" string="Invoiced" domain="[('invoiced', '=', True)]"/>
+                <separator/>
+                <filter name="date" string="Date" date="date"/>
+                <group>
+                    <filter name="group_platform" string="Platform" context="{'group_by': 'platform_id'}"/>
+                    <filter name="group_channel" string="Page / Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_post" string="Post" context="{'group_by': 'post_id'}"/>
+                    <filter name="group_type" string="Income Type" context="{'group_by': 'income_type_id'}"/>
+                    <filter name="group_month" string="Month" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_social_income_pivot" model="ir.ui.view">
+        <field name="name">social.income.pivot</field>
+        <field name="model">social.income</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="platform_id" type="row"/>
+                <field name="channel_id" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_social_income_graph" model="ir.ui.view">
+        <field name="name">social.income.graph</field>
+        <field name="model">social.income</field>
+        <field name="arch" type="xml">
+            <graph type="bar" stacked="1">
+                <field name="date" interval="month"/>
+                <field name="platform_id"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_social_income" model="ir.actions.act_window">
+        <field name="name">Income</field>
+        <field name="res_model">social.income</field>
+        <field name="view_mode">list,pivot,graph,form</field>
+        <field name="path">social-income</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Record monetisation income</p>
+            <p>Income from YouTube and Facebook is imported for monetised Pages / Channels; enter other
+                income (sponsorships, TikTok, ...) here, per post where you know it.</p>
+        </field>
+    </record>
+</odoo>

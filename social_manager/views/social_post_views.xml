@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_post_list" model="ir.ui.view">
+        <field name="name">social.post.list</field>
+        <field name="model">social.post</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('dismissed', 'rejected')" decoration-danger="state == 'failed'">
+                <header>
+                    <button name="action_ai_rank" type="object" string="Rank Performance by AI"
+                            icon="fa-magic" display="always"/>
+                </header>
+                <field name="name"/>
+                <field name="channel_ids" widget="many2many_tags"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="scheduled_date" options="{'numeric': True}" optional="show"/>
+                <field name="published_date" options="{'numeric': True}" optional="show"/>
+                <field name="likes_count" optional="show"/>
+                <field name="reactions_count" optional="hide"/>
+                <field name="comments_count" optional="show"/>
+                <field name="shares_count" optional="hide"/>
+                <field name="views_count" optional="hide"/>
+                <field name="engagement_score" optional="show"/>
+                <field name="ai_performance_rank" optional="hide"/>
+                <field name="income_total" sum="Total" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('proposed', 'pending')"
+                       decoration-warning="state == 'scheduled'"
+                       decoration-success="state == 'posted'"
+                       decoration-danger="state == 'failed'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_post_kanban" model="ir.ui.view">
+        <field name="name">social.post.kanban</field>
+        <field name="model">social.post</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="0" group_delete="0" group_edit="0"
+                    records_draggable="0" quick_create="0">
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold"/>
+                        <field name="channel_ids" widget="many2many_tags"/>
+                        <div class="text-muted small" invisible="not message">
+                            <field name="message"/>
+                        </div>
+                        <div class="small" invisible="not scheduled_date or state != 'scheduled'">
+                            <i class="fa fa-clock-o" title="Scheduled"/>
+                            <field name="scheduled_date" options="{'numeric': True}"/>
+                        </div>
+                        <div class="small text-info" invisible="not ai_suggested_date or state != 'proposed'">
+                            <i class="fa fa-magic" title="Suggested by AI"/>
+                            <field name="ai_suggested_date" options="{'numeric': True}"/>
+                        </div>
+                        <footer invisible="state != 'posted'">
+                            <div class="d-flex gap-3 small">
+                                <span><i class="fa fa-thumbs-up" title="Likes"/> <field name="likes_count"/></span>
+                                <span><i class="fa fa-comments" title="Comments"/> <field name="comments_count"/></span>
+                                <span><i class="fa fa-share" title="Shares"/> <field name="shares_count"/></span>
+                                <span><i class="fa fa-eye" title="Views"/> <field name="views_count"/></span>
+                            </div>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_social_post_calendar" model="ir.ui.view">
+        <field name="name">social.post.calendar</field>
+        <field name="model">social.post</field>
+        <field name="arch" type="xml">
+            <calendar date_start="scheduled_date" color="state" mode="month" quick_create="0">
+                <field name="name"/>
+                <field name="channel_ids" widget="many2many_tags"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_social_post_pivot" model="ir.ui.view">
+        <field name="name">social.post.pivot</field>
+        <field name="model">social.post</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="published_date" interval="month" type="col"/>
+                <field name="likes_count" type="measure"/>
+                <field name="comments_count" type="measure"/>
+                <field name="shares_count" type="measure"/>
+                <field name="views_count" type="measure"/>
+                <field name="income_total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_social_post_graph" model="ir.ui.view">
+        <field name="name">social.post.graph</field>
+        <field name="model">social.post</field>
+        <field name="arch" type="xml">
+            <graph type="bar">
+                <field name="published_date" interval="month"/>
+                <field name="engagement_score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_social_post_form" model="ir.ui.view">
+        <field name="name">social.post.form</field>
+        <field name="model">social.post</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <!-- AI proposals -->
+                    <button name="action_accept_proposal" type="object" string="Progress This Post"
+                            class="btn-primary" invisible="state != 'proposed'"/>
+                    <button name="action_dismiss_proposal" type="object" string="Dismiss"
+                            invisible="state != 'proposed'"/>
+                    <button name="action_accept_proposal" type="object" string="Restore Proposal"
+                            invisible="state != 'dismissed'"/>
+                    <!-- Drafting and approval -->
+                    <button name="action_publish_now" type="object" string="Post Now" class="btn-primary"
+                            invisible="state not in ('draft', 'rejected', 'failed') or not can_publish"
+                            confirm="Publish this post on its Pages / Channels now?"/>
+                    <button name="action_schedule" type="object" string="Schedule"
+                            invisible="state not in ('draft', 'rejected', 'failed') or not can_publish"/>
+                    <button name="action_submit" type="object" string="Submit for Approval"
+                            class="btn-primary"
+                            invisible="state not in ('draft', 'rejected') or can_publish"/>
+                    <button name="action_submit" type="object" string="Submit for Approval"
+                            invisible="state not in ('draft', 'rejected') or not can_publish"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            invisible="state != 'pending' or not can_approve"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state != 'pending' or not can_approve"/>
+                    <button name="action_publish_now" type="object" string="Post Now"
+                            invisible="state != 'scheduled' or not can_publish"/>
+                    <button name="action_back_to_draft" type="object" string="Back to Draft"
+                            invisible="state not in ('pending', 'scheduled', 'rejected', 'failed')"/>
+                    <button name="action_retry" type="object" string="Retry Failed"
+                            invisible="state != 'posted' or not has_failed_publications or not can_publish"/>
+                    <!-- Published -->
+                    <button name="action_sync" type="object" string="Synchronise" icon="fa-refresh"
+                            invisible="state != 'posted'"/>
+                    <button name="action_ai_analyse_comments" type="object" string="Analyse Comments by AI"
+                            icon="fa-magic" invisible="state != 'posted' or not ai_analysis_available"/>
+                    <button name="action_delete_from_platforms" type="object" string="Delete from Platforms"
+                            invisible="state != 'posted' or not can_delete"
+                            confirm="Delete this post from every Page / Channel it was published on? This can't be undone."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,scheduled,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_comments" type="object" class="oe_stat_button" icon="fa-comments"
+                                invisible="state != 'posted'">
+                            <field name="comments_count" widget="statinfo" string="Comments"/>
+                        </button>
+                        <button name="action_view_income" type="object" class="oe_stat_button" icon="fa-money"
+                                invisible="not is_monetised or state != 'posted'">
+                            <field name="income_total" widget="statinfo" string="Income"/>
+                        </button>
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="state != 'proposed'">
+                        <strong>Proposed by AI.</strong> Review the draft and action items below, then choose
+                        Progress This Post to turn it into a draft, or Dismiss.
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not rejection_reason or state != 'rejected'">
+                        <strong>Rejected:</strong> <field name="rejection_reason" class="d-inline"/>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="not flagged_comment_count">
+                        <field name="flagged_comment_count" class="d-inline"/> comments are flagged for moderation.
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Spring range launch"
+                                   readonly="state in ('posting', 'posted') and not can_publish"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="channel_ids" widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   readonly="state in ('posting', 'posted')"/>
+                            <field name="scheduled_date" options="{'numeric': True}"
+                                   readonly="state in ('posting', 'posted')"/>
+                            <field name="event_id"/>
+                            <field name="link_url" widget="url"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="published_date" options="{'numeric': True}" invisible="not published_date"/>
+                            <field name="approved_by_id" invisible="not approved_by_id"/>
+                            <field name="approval_date" options="{'numeric': True}" invisible="not approval_date"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="is_monetised" invisible="1"/>
+                            <field name="can_publish" invisible="1"/>
+                            <field name="can_approve" invisible="1"/>
+                            <field name="can_delete" invisible="1"/>
+                            <field name="has_failed_publications" invisible="1"/>
+                            <field name="ai_analysis_available" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Content" name="content">
+                            <field name="message" placeholder="Write your post..."
+                                   readonly="state in ('posting', 'posted') and not can_publish"/>
+                            <field name="attachment_ids" widget="many2many_binary"
+                                   string="Images / Videos"/>
+                        </page>
+                        <page string="AI Proposal" name="ai_proposal" invisible="not is_ai_proposal">
+                            <group>
+                                <field name="ai_suggested_date" options="{'numeric': True}"/>
+                                <field name="ai_proposed_date" options="{'numeric': True}"/>
+                                <field name="is_ai_proposal" invisible="1"/>
+                            </group>
+                            <label for="ai_rationale"/>
+                            <field name="ai_rationale"/>
+                            <label for="ai_action_items"/>
+                            <field name="ai_action_items"/>
+                        </page>
+                        <page string="Results" name="results" invisible="state != 'posted'">
+                            <group>
+                                <group string="Engagement">
+                                    <field name="likes_count"/>
+                                    <field name="reactions_count"/>
+                                    <field name="comments_count"/>
+                                    <field name="shares_count"/>
+                                    <field name="views_count"/>
+                                    <field name="engagement_score"/>
+                                </group>
+                                <group string="AI Performance Ranking" invisible="not ai_ranked_date">
+                                    <field name="ai_performance_rank"/>
+                                    <field name="ai_performance_note"/>
+                                    <field name="ai_ranked_date" options="{'numeric': True}"/>
+                                </group>
+                            </group>
+                            <field name="publication_ids" readonly="1">
+                                <list decoration-danger="state == 'failed'">
+                                    <field name="channel_id"/>
+                                    <field name="platform_id"/>
+                                    <field name="published_date" options="{'numeric': True}"/>
+                                    <field name="likes_count"/>
+                                    <field name="reactions_count"/>
+                                    <field name="comments_count"/>
+                                    <field name="shares_count"/>
+                                    <field name="views_count"/>
+                                    <field name="income_total"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="failure_reason"/>
+                                    <field name="state" widget="badge"/>
+                                    <button name="action_open_url" type="object" icon="fa-external-link"
+                                            title="Open on the platform" invisible="not external_url"/>
+                                    <field name="external_url" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Publications" name="publications" invisible="state not in ('failed', 'posting')">
+                            <field name="publication_ids" readonly="1">
+                                <list decoration-danger="state == 'failed'">
+                                    <field name="channel_id"/>
+                                    <field name="failure_reason"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_post_search" model="ir.ui.view">
+        <field name="name">social.post.search</field>
+        <field name="model">social.post</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="message"/>
+                <field name="channel_ids"/>
+                <field name="event_id"/>
+                <field name="user_id"/>
+                <filter name="my_posts" string="My Posts" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="draft" string="Drafts" domain="[('state', 'in', ('draft', 'rejected'))]"/>
+                <filter name="pending" string="Awaiting Approval" domain="[('state', '=', 'pending')]"/>
+                <filter name="scheduled" string="Scheduled" domain="[('state', '=', 'scheduled')]"/>
+                <filter name="posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+                <filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="proposed" string="Proposed" domain="[('state', '=', 'proposed')]"/>
+                <filter name="hide_proposals" string="Hide Proposals"
+                        domain="[('state', 'not in', ('proposed', 'dismissed'))]"/>
+                <separator/>
+                <filter name="published_date" string="Published" date="published_date"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_user" string="Author" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_event" string="Special Event / Release" context="{'group_by': 'event_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_social_post" model="ir.actions.act_window">
+        <field name="name">Posts</field>
+        <field name="res_model">social.post</field>
+        <field name="view_mode">kanban,list,calendar,pivot,graph,form</field>
+        <field name="path">social-posts</field>
+        <field name="context">{'search_default_hide_proposals': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first post</p>
+            <p>Write once, choose the Pages / Channels, then post now, schedule it or send it for approval.</p>
+        </field>
+    </record>
+
+    <record id="view_social_post_proposed_list" model="ir.ui.view">
+        <field name="name">social.post.proposed.list</field>
+        <field name="model">social.post</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <header>
+                    <button name="action_ai_recommend" type="object" string="Ask AI for Proposals Now"
+                            icon="fa-magic" display="always" class="btn-primary"/>
+                    <button name="action_accept_proposal" type="object" string="Progress"/>
+                    <button name="action_dismiss_proposal" type="object" string="Dismiss"/>
+                </header>
+                <field name="name"/>
+                <field name="event_id"/>
+                <field name="ai_suggested_date" options="{'numeric': True}"/>
+                <field name="channel_ids" widget="many2many_tags"/>
+                <field name="ai_rationale" optional="show"/>
+                <field name="ai_proposed_date" options="{'numeric': True}" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'proposed'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_social_post_proposed" model="ir.actions.act_window">
+        <field name="name">Proposed Posts</field>
+        <field name="res_model">social.post</field>
+        <field name="view_mode">list,form</field>
+        <field name="path">social-proposed-posts</field>
+        <field name="domain">[('is_ai_proposal', '=', True), ('state', 'in', ('proposed', 'dismissed'))]</field>
+        <field name="context">{'search_default_proposed': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_social_post_proposed_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_social_post_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No proposed posts</p>
+            <p>With AI Recommendations on (Settings > Social Manager), the AI proposes posts every week
+                for upcoming Special Events and Releases, building on your best performing posts.</p>
+        </field>
+    </record>
+
+    <record id="view_social_post_reject_wizard_form" model="ir.ui.view">
+        <field name="name">social.post.reject.wizard.form</field>
+        <field name="model">social.post.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="post_id" readonly="1"/>
+                    <field name="reason" placeholder="What needs to change?"/>
+                </group>
+                <footer>
+                    <button name="action_reject" type="object" string="Reject" class="btn-primary"/>
+                    <button special="cancel" string="Cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

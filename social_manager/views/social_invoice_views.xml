@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_social_invoice_list" model="ir.ui.view">
+        <field name="name">social.invoice.list</field>
+        <field name="model">social.invoice</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="name"/>
+                <field name="platform_id"/>
+                <field name="date_from" options="{'numeric': True}"/>
+                <field name="date_to" options="{'numeric': True}"/>
+                <field name="move_id"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="move_state" widget="badge" optional="show"/>
+                <field name="payment_state" widget="badge" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_social_invoice_form" model="ir.ui.view">
+        <field name="name">social.invoice.form</field>
+        <field name="model">social.invoice</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_move" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not move_id" string="Invoice"/>
+                        <button name="action_view_income" type="object" class="oe_stat_button" icon="fa-money"
+                                string="Income"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="platform_id"/>
+                            <field name="date_from" options="{'numeric': True}"/>
+                            <field name="date_to" options="{'numeric': True}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="move_id"/>
+                            <field name="move_state"/>
+                            <field name="payment_state"/>
+                            <field name="amount_total"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <list>
+                            <field name="channel_id"/>
+                            <field name="date_from" options="{'numeric': True}"/>
+                            <field name="date_to" options="{'numeric': True}"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="move_line_id"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_social_invoice_search" model="ir.ui.view">
+        <field name="name">social.invoice.search</field>
+        <field name="model">social.invoice</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="platform_id"/>
+                <field name="move_id"/>
+                <group>
+                    <filter name="group_platform" string="Platform" context="{'group_by': 'platform_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_social_invoice" model="ir.actions.act_window">
+        <field name="name">Monetisation Invoices</field>
+        <field name="res_model">social.invoice</field>
+        <field name="view_mode">list,form</field>
+        <field name="path">social-invoices</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No monetisation invoices yet</p>
+            <p>With Integrate to Accounts on (Settings > Social Manager), last month's monetised income is
+                invoiced on the 1st of each month - one invoice per Platform, a line per Page / Channel.
+                Use Create Invoices to invoice another date range.</p>
+        </field>
+    </record>
+</odoo>
