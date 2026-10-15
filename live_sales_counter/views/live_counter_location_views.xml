@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_live_counter_location_list" model="ir.ui.view">
+        <field name="name">live.counter.location.list</field>
+        <field name="model">live.counter.location</field>
+        <field name="arch" type="xml">
+            <list string="Buyer Locations" editable="bottom" create="0">
+                <field name="city"/>
+                <field name="country_id"/>
+                <field name="latitude"/>
+                <field name="longitude"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'" decoration-warning="state == 'pending'"
+                       decoration-danger="state == 'failed'"/>
+                <field name="date_geocoded" options="{'numeric': True}" optional="show"/>
+                <button name="action_geocode" type="object" string="Look Up Again" icon="fa-refresh"
+                        groups="live_sales_counter.group_live_counter_manager"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_live_counter_location_search" model="ir.ui.view">
+        <field name="name">live.counter.location.search</field>
+        <field name="model">live.counter.location</field>
+        <field name="arch" type="xml">
+            <search string="Buyer Locations">
+                <field name="city"/>
+                <field name="country_id"/>
+                <filter name="pending" string="Waiting" domain="[('state', '=', 'pending')]"/>
+                <filter name="failed" string="Not Found" domain="[('state', '=', 'failed')]"/>
+                <group>
+                    <filter name="group_country" string="Country" context="{'group_by': 'country_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_live_counter_location" model="ir.actions.act_window">
+        <field name="name">Buyer Locations</field>
+        <field name="res_model">live.counter.location</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No buyer towns yet</p>
+            <p>Buyers' towns are added and looked up automatically as sales come in, so they can be
+                shown on the live map. Correct a town's position here if it was found in the wrong place.</p>
+        </field>
+    </record>
+</odoo>
