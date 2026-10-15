@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_live_sales_counter" model="ir.module.category">
+        <field name="name">Live Sales Counter</field>
+        <field name="sequence">46</field>
+    </record>
+    <record id="privilege_live_sales_counter" model="res.groups.privilege">
+        <field name="name">Live Sales Counter</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="group_live_counter_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="privilege_id" ref="privilege_live_sales_counter"/>
+        <field name="comment">Sees the live sales counters of their companies and opens private live pages.</field>
+    </record>
+    <record id="group_live_counter_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_live_sales_counter"/>
+        <field name="comment">Creates and configures live sales counters and decides which are public.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <record id="rule_live_counter_company" model="ir.rule">
+        <field name="name">Live Sales Counter: multi-company</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

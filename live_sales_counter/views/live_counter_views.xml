@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_live_counter_list" model="ir.ui.view">
+        <field name="name">live.counter.list</field>
+        <field name="model">live.counter</field>
+        <field name="arch" type="xml">
+            <list string="Live Sales Counters">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="visibility"/>
+                <field name="period"/>
+                <field name="include_sale_orders" optional="show"/>
+                <field name="show_map" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <button name="action_open_page" type="object" string="Open" icon="fa-external-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_live_counter_form" model="ir.ui.view">
+        <field name="name">live.counter.form</field>
+        <field name="model">live.counter</field>
+        <field name="arch" type="xml">
+            <form string="Live Sales Counter">
+                <header>
+                    <button name="action_open_page" type="object" string="Open Live Page"
+                            class="btn-primary" invisible="not id"/>
+                    <button name="action_open_demo" type="object" string="Preview with Demo Sales"
+                            invisible="not id"/>
+                    <button name="action_regenerate_token" type="object" string="New Link"
+                            invisible="not id" groups="live_sales_counter.group_live_counter_manager"
+                            confirm="Screens and people using the current link will need the new link. Continue?"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Public" bg_color="text-bg-warning"
+                            invisible="not active or visibility != 'public'"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Today's Sales"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="visibility" widget="radio"/>
+                            <field name="page_url" widget="CopyClipboardChar" invisible="not id"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="pos_available" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Sales Counted" name="sales">
+                            <group>
+                                <group string="Period">
+                                    <field name="period"/>
+                                    <field name="date_from" options="{'numeric': True}"
+                                           invisible="period != 'since'" required="period == 'since'"/>
+                                    <field name="tz"/>
+                                    <field name="tax_included"/>
+                                </group>
+                                <group string="Sales Channels">
+                                    <field name="include_sale_orders"/>
+                                    <field name="team_ids" widget="many2many_tags"
+                                           invisible="not include_sale_orders"
+                                           placeholder="All Sales Teams"
+                                           options="{'no_create': True}"/>
+                                    <field name="include_pos_orders" invisible="not pos_available"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Display" name="display">
+                            <group>
+                                <group string="Map">
+                                    <field name="show_map"/>
+                                    <field name="map_style" widget="radio" invisible="not show_map"/>
+                                </group>
+                                <group string="Page">
+                                    <field name="show_feed"/>
+                                    <field name="show_city" invisible="not show_feed"/>
+                                    <field name="show_channels"/>
+                                    <field name="dark_theme"/>
+                                    <field name="sound"/>
+                                    <field name="refresh_seconds"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_live_counter_search" model="ir.ui.view">
+        <field name="name">live.counter.search</field>
+        <field name="model">live.counter</field>
+        <field name="arch" type="xml">
+            <search string="Live Sales Counters">
+                <field name="name"/>
+                <filter name="public" string="Public" domain="[('visibility', '=', 'public')]"/>
+                <filter name="private" string="Private" domain="[('visibility', '=', 'private')]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_visibility" string="Visibility" context="{'group_by': 'visibility'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_live_counter" model="ir.actions.act_window">
+        <field name="name">Live Sales Counters</field>
+        <field name="res_model">live.counter</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a live sales counter</p>
+            <p>Each counter is a full-screen web page with an animated total of your sales across
+                every sales channel and a live map of where your buyers are. Keep it private to
+                signed in users or share it publicly.</p>
+        </field>
+    </record>
+</odoo>
