@@ -13,7 +13,7 @@ RECENT_LIMIT = 25
 PLACES_LIMIT = 2000
 
 
-def _new_token():
+def _new_token(*args):
     return secrets.token_urlsafe(24)
 
 
