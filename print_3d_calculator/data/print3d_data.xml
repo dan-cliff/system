@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="seq_print3d_estimate" model="ir.sequence">
+            <field name="name">3D Print Estimate</field>
+            <field name="code">print3d.estimate</field>
+            <field name="prefix">P3D/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Starting materials: densities are typical values, costs are per kg -->
+        <record id="material_pla" model="print3d.material">
+            <field name="name">PLA</field>
+            <field name="sequence">10</field>
+            <field name="slicer_names">PLA, PLA+, PLA Basic, PLA Matte, PLA Silk, PLA-S, PLA Tough, PLA-CF</field>
+            <field name="density">1.24</field>
+            <field name="cost_per_kg">25.0</field>
+        </record>
+        <record id="material_petg" model="print3d.material">
+            <field name="name">PETG</field>
+            <field name="sequence">20</field>
+            <field name="slicer_names">PETG, PET, PETG Basic, PETG HF, PETG-CF</field>
+            <field name="density">1.27</field>
+            <field name="cost_per_kg">28.0</field>
+        </record>
+        <record id="material_abs" model="print3d.material">
+            <field name="name">ABS</field>
+            <field name="sequence">30</field>
+            <field name="slicer_names">ABS, ABS-GF</field>
+            <field name="density">1.04</field>
+            <field name="cost_per_kg">28.0</field>
+        </record>
+        <record id="material_asa" model="print3d.material">
+            <field name="name">ASA</field>
+            <field name="sequence">40</field>
+            <field name="slicer_names">ASA</field>
+            <field name="density">1.07</field>
+            <field name="cost_per_kg">32.0</field>
+        </record>
+        <record id="material_tpu" model="print3d.material">
+            <field name="name">TPU</field>
+            <field name="sequence">50</field>
+            <field name="slicer_names">TPU, FLEX, TPU 95A, TPU for AMS</field>
+            <field name="density">1.21</field>
+            <field name="cost_per_kg">40.0</field>
+        </record>
+        <record id="material_nylon" model="print3d.material">
+            <field name="name">Nylon</field>
+            <field name="sequence">60</field>
+            <field name="slicer_names">PA, NYLON, PA6, PA12, PA-CF, PAHT-CF</field>
+            <field name="density">1.14</field>
+            <field name="cost_per_kg">60.0</field>
+        </record>
+        <record id="material_pc" model="print3d.material">
+            <field name="name">Polycarbonate</field>
+            <field name="sequence">70</field>
+            <field name="slicer_names">PC, PC-ABS</field>
+            <field name="density">1.20</field>
+            <field name="cost_per_kg">45.0</field>
+        </record>
+        <record id="material_pva" model="print3d.material">
+            <field name="name">PVA (support)</field>
+            <field name="sequence">80</field>
+            <field name="slicer_names">PVA, BVOH, HIPS</field>
+            <field name="density">1.23</field>
+            <field name="cost_per_kg">80.0</field>
+            <field name="website_published" eval="False"/>
+        </record>
+
+        <record id="profile_standard" model="print3d.pricing.profile">
+            <field name="name">Standard</field>
+            <field name="default_material_id" ref="material_pla"/>
+            <field name="machine_rate_per_hour">1.5</field>
+            <field name="setup_fee">3.0</field>
+            <field name="extra_filament_fee">1.0</field>
+            <field name="waste_percent">5.0</field>
+            <field name="markup_percent">50.0</field>
+            <field name="minimum_price">5.0</field>
+        </record>
+
+        <record id="product_print3d_custom" model="product.template">
+            <field name="name">Custom 3D Print</field>
+            <field name="type">consu</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="print3d_dynamic_pricing" eval="True"/>
+            <field name="print3d_profile_id" ref="profile_standard"/>
+            <field name="description_sale">Printed from your own 3D file. The price is worked out from the filament and print time your file needs.</field>
+        </record>
+
+        <record id="ir_cron_print3d_gc" model="ir.cron">
+            <field name="name">3D Print: remove abandoned website quotes</field>
+            <field name="model_id" ref="model_print3d_estimate"/>
+            <field name="state">code</field>
+            <field name="code">model._gc_website_estimates()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+
+    </data>
+</odoo>
