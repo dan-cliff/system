@@ -170,6 +170,7 @@ class EmbroideryJob(models.Model):
             if not job.design_id:
                 raise UserError(_('Choose the design for %s before marking it ready.', job.name))
         self.filtered(lambda j: j.state == 'draft').state = 'ready'
+        return True
 
     def action_send_to_machine(self):
         """Send the design to the job's machine to stitch the next piece."""
@@ -204,14 +205,17 @@ class EmbroideryJob(models.Model):
 
     def action_mark_done(self):
         self.write({'state': 'done', 'date_done': fields.Datetime.now()})
+        return True
 
     def action_cancel(self):
         for job in self:
             job.stitchout_ids.filtered(lambda s: s.state in s._OPEN_STATES)._set_state('cancelled')
         self.state = 'cancelled'
+        return True
 
     def action_reset_draft(self):
         self.write({'state': 'draft', 'date_done': False})
+        return True
 
     def action_view_stitchouts(self):
         self.ensure_one()

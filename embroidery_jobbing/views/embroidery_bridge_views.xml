@@ -11,6 +11,8 @@
                 <field name="machine_ids" widget="many2many_tags"/>
                 <field name="last_seen" options="{'numeric': True}"/>
                 <field name="bridge_version" optional="hide"/>
+                <field name="is_paired" optional="show"/>
+                <field name="last_mac" optional="hide"/>
             </list>
         </field>
     </record>
@@ -21,11 +23,12 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_generate_token" type="object" string="Generate Access Token"
-                            class="btn-primary" invisible="token_hint"/>
-                    <button name="action_generate_token" type="object" string="Replace Access Token"
-                            invisible="not token_hint"
-                            confirm="The bridge stops working until you give it the new token. Replace the token?"/>
+                    <button name="action_pair" type="object" string="Pair a Raspberry Pi" class="btn-primary"
+                            invisible="is_paired"/>
+                    <button name="action_pair" type="object" string="Pair Again" invisible="not is_paired"
+                            confirm="Pairing again replaces the key: the Pi stops connecting until the new install command is run on it. Continue?"/>
+                    <button name="action_revoke" type="object" string="Revoke Access" invisible="not is_paired"
+                            confirm="The Pi will be refused until it is paired again. Revoke its access?"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -39,15 +42,14 @@
                             <field name="last_seen" options="{'numeric': True}"/>
                             <field name="last_ip"/>
                             <field name="bridge_version"/>
-                            <field name="token_hint"/>
                             <field name="active" invisible="1"/>
                         </group>
                         <group string="Setting Up">
                             <div colspan="2" class="text-muted">
                                 The Embroidery Bridge runs on a Raspberry Pi on the same network as
-                                your machines. Click <b>Generate Access Token</b>: it shows the one
-                                command to run on the Pi to install the bridge. The bridge connects out
-                                to Odoo, so nothing needs opening on your router.
+                                your machines. Click <b>Pair a Raspberry Pi</b>: it shows the one
+                                command to run on the Pi to install the bridge and pair it. The bridge
+                                connects out to Odoo, so nothing needs opening on your router.
                             </div>
                         </group>
                     </group>
@@ -62,6 +64,34 @@
                                     <field name="bridge_message"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Security" name="security">
+                            <group>
+                                <group string="Pairing">
+                                    <field name="is_paired"/>
+                                    <field name="paired_on" options="{'numeric': True}" invisible="not is_paired"/>
+                                    <field name="paired_hostname" invisible="not is_paired"/>
+                                    <field name="pairing_expires" options="{'numeric': True}" invisible="not pairing_expires"/>
+                                    <field name="device_key"/>
+                                </group>
+                                <group string="Key">
+                                    <field name="key_rotate_days"/>
+                                    <field name="key_rotated_on" options="{'numeric': True}"/>
+                                    <field name="last_auth_error" invisible="not last_auth_error"/>
+                                    <field name="last_auth_error_on" options="{'numeric': True}" invisible="not last_auth_error"/>
+                                </group>
+                            </group>
+                            <group string="Authorised MAC Addresses">
+                                <field name="allowed_macs" nolabel="1" colspan="2"
+                                       placeholder="One per line, e.g. b8:27:eb:12:34:56. Empty allows any Raspberry Pi with the key."/>
+                                <field name="authorise_paired_mac"/>
+                                <field name="last_mac"/>
+                            </group>
+                            <div class="text-muted">
+                                The Pi signs every request with its own secret key, which never travels with
+                                the request, and Odoo refuses requests from any MAC address not listed here.
+                                The key is replaced automatically, so the Pi only needs pairing once.
+                            </div>
                         </page>
                         <page string="Notes" name="notes">
                             <field name="note"/>

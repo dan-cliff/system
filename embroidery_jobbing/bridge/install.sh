@@ -1,35 +1,40 @@
 #!/bin/bash
 # Installs (or updates) the Embroidery Bridge on a Raspberry Pi, or any
-# Debian-based Linux, as a systemd service that starts on boot.
+# Debian-based Linux, as a systemd service that starts on boot, and pairs it
+# with Odoo.
 #
-# Odoo shows the exact command on the bridge's access token screen:
+# Odoo shows the exact command when you click "Pair a Raspberry Pi" on the bridge:
 #
-#   curl -fsSL https://<odoo>/embroidery/bridge/install.sh | sudo bash -s -- --url https://<odoo> --token <token>
+#   curl -fsSL https://<odoo>/embroidery/bridge/install.sh | sudo bash -s -- --url https://<odoo> --pair <code>
 #
-# Run it again without --token to update the bridge and keep its settings.
+# The Pi keeps its key from then on (Odoo replaces it from time to time on
+# its own), so it is paired once. Run the command again without --pair to
+# update the bridge and keep its key.
 #
 # Options:
 #   --url URL       Odoo address (required for a new install)
-#   --token TOKEN   bridge access token from Odoo
+#   --pair CODE     one-time pairing code from Odoo
 #   --user USER     account the bridge runs as (default: the user running sudo)
-#   --uninstall     stop and remove the bridge (its settings are kept)
+#   --uninstall     stop and remove the bridge (its settings and key are kept)
 set -euo pipefail
 
 APP_DIR=/opt/embroidery-bridge
 CONFIG_DIR=/etc/embroidery-bridge
 CONFIG="$CONFIG_DIR/config.json"
+STATE_DIR=/var/lib/embroidery-bridge
+CREDENTIALS="$STATE_DIR/credentials.json"
 SERVICE=embroidery-bridge
 UNIT="/etc/systemd/system/$SERVICE.service"
 
 URL=""
-TOKEN=""
+CODE=""
 RUN_USER="${SUDO_USER:-}"
 UNINSTALL=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --url) URL="${2%/}"; shift 2 ;;
-        --token) TOKEN="$2"; shift 2 ;;
+        --pair) CODE="$2"; shift 2 ;;
         --user) RUN_USER="$2"; shift 2 ;;
         --uninstall) UNINSTALL=1; shift ;;
         *) echo "Unknown option: $1" >&2; exit 2 ;;
@@ -46,7 +51,7 @@ if [ "$UNINSTALL" -eq 1 ]; then
     rm -f "$UNIT"
     systemctl daemon-reload
     rm -rf "$APP_DIR"
-    say "Embroidery Bridge removed. Its settings are still in $CONFIG_DIR."
+    say "Embroidery Bridge removed. Its settings and key are still in $CONFIG_DIR and $STATE_DIR."
     exit 0
 fi
 
@@ -65,62 +70,80 @@ if [ -z "$URL" ] && [ -f "$CONFIG" ]; then
     URL="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("odoo_url", ""))' "$CONFIG")"
 fi
 [ -n "$URL" ] || fail "pass --url with your Odoo address."
-if [ -z "$TOKEN" ] && [ ! -f "$CONFIG" ]; then
-    fail "pass --token with the access token from Odoo (Embroidery > Configuration > Bridges)."
+if [ -z "$CODE" ] && [ ! -f "$CREDENTIALS" ]; then
+    fail "pass --pair with the pairing code from Odoo (Embroidery > Configuration > Bridges > Pair a Raspberry Pi)."
 fi
 
 say "Downloading the Embroidery Bridge from $URL"
 mkdir -p "$APP_DIR"
-# Run from a copy of the bridge folder: install the bridge beside it.
-# Piped from curl: download it from Odoo.
+# Run from a copy of the bridge folder: install the files beside it.
+# Piped from curl: download them from Odoo.
 SCRIPT_DIR=""
 if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
-if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/embroidery_bridge.py" ]; then
-    cp "$SCRIPT_DIR/embroidery_bridge.py" "$APP_DIR/embroidery_bridge.py.new"
-else
-    curl -fsSL "$URL/embroidery/bridge/embroidery_bridge.py" -o "$APP_DIR/embroidery_bridge.py.new" \
-        || fail "could not download the bridge from $URL."
-fi
-python3 -m py_compile "$APP_DIR/embroidery_bridge.py.new" || fail "the downloaded bridge is not valid Python."
-mv "$APP_DIR/embroidery_bridge.py.new" "$APP_DIR/embroidery_bridge.py"
+fetch() {  # fetch <name on Odoo> <local file beside this script> <installed name>
+    if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/$2" ]; then
+        cp "$SCRIPT_DIR/$2" "$APP_DIR/$3.new"
+    else
+        curl -fsSL "$URL/$1" -o "$APP_DIR/$3.new" || fail "could not download $1 from $URL."
+    fi
+    python3 -m py_compile "$APP_DIR/$3.new" || fail "the downloaded $3 is not valid Python."
+    mv "$APP_DIR/$3.new" "$APP_DIR/$3"
+}
+fetch embroidery/bridge/embroidery_bridge.py embroidery_bridge.py embroidery_bridge.py
+fetch embroidery/pi/embroidery_auth.py ../lib/device_auth.py embroidery_auth.py
 rm -rf "$APP_DIR/__pycache__"
 chmod 755 "$APP_DIR/embroidery_bridge.py"
+chmod 644 "$APP_DIR/embroidery_auth.py"
 
 say "Saving the settings in $CONFIG"
 mkdir -p "$CONFIG_DIR"
-python3 - "$CONFIG" "$URL" "$TOKEN" <<'PY'
+python3 - "$CONFIG" "$URL" "$CREDENTIALS" <<'PY'
 import json, os, sys
-path, url, token = sys.argv[1:4]
+path, url, credentials = sys.argv[1:4]
 config = {}
 if os.path.exists(path):
     with open(path) as file:
         config = json.load(file)
 config['odoo_url'] = url
-if token:
-    config['token'] = token
+config['credentials'] = credentials
+config.pop('token', None)
 config.setdefault('poll_seconds', 10)
 config.setdefault('drivers', {'folder': {}, 'simulator': {'speedup': 10, 'thread_breaks': True}})
 with open(path + '.new', 'w') as file:
     json.dump(config, file, indent=4)
 os.replace(path + '.new', path)
 PY
-chown root:"$(id -gn "$RUN_USER")" "$CONFIG"
-chmod 640 "$CONFIG"
+chmod 644 "$CONFIG"
+# The key: only the bridge's user can read it, and the bridge rewrites it
+# when Odoo replaces the key.
+mkdir -p "$STATE_DIR"
+chown "$RUN_USER":"$(id -gn "$RUN_USER")" "$STATE_DIR"
+chmod 700 "$STATE_DIR"
+
+if [ -n "$CODE" ]; then
+    say "Pairing this Raspberry Pi with Odoo"
+    systemctl stop "$SERVICE" 2>/dev/null || true
+    runuser -u "$RUN_USER" -- python3 "$APP_DIR/embroidery_bridge.py" --config "$CONFIG" --pair "$CODE" \
+        || fail "pairing failed (see above). Make a new pairing code in Odoo and run the command again."
+fi
 
 say "Setting up the $SERVICE service (runs as $RUN_USER)"
 cat > "$UNIT" <<EOF
 [Unit]
 Description=Embroidery Bridge (Odoo Embroidery Jobbing)
 Wants=network-online.target
-After=network-online.target
+After=network-online.target time-sync.target
 
 [Service]
 User=$RUN_USER
 ExecStart=/usr/bin/env python3 $APP_DIR/embroidery_bridge.py --config $CONFIG
 Restart=always
 RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=$STATE_DIR
 
 [Install]
 WantedBy=multi-user.target

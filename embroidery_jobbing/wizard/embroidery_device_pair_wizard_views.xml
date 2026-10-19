@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_embroidery_device_pair_wizard_form" model="ir.ui.view">
+        <field name="name">embroidery.device.pair.wizard.form</field>
+        <field name="model">embroidery.device.pair.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="alert alert-info" role="alert">
+                    On the Raspberry Pi (connected to the internet and the workshop network), open a terminal
+                    and run this command. It installs the program, pairs the Pi with Odoo and starts it
+                    whenever the Pi is switched on. The Pi keeps its own key from then on: you won't need
+                    to pair it again.
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not already_paired">
+                    This replaces the key the Pi already has: until the new install command is run,
+                    the Pi can't connect.
+                </div>
+                <field name="install_command" widget="CopyClipboardChar" class="font-monospace"/>
+                <group>
+                    <field name="name"/>
+                    <field name="code" widget="CopyClipboardChar"/>
+                    <field name="expires" options="{'numeric': True}"/>
+                    <field name="already_paired" invisible="1"/>
+                </group>
+                <p class="text-muted">
+                    The pairing code works once and expires after 24 hours.
+                </p>
+                <footer>
+                    <button string="Done" special="cancel" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

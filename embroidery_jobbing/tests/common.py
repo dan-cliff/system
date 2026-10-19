@@ -62,3 +62,47 @@ class EmbroideryCase(TransactionCase):
             'design_id': cls.design.id,
             'machine_id': cls.machine.id,
         })
+
+
+class Signer:
+    """Signs requests the way a paired Raspberry Pi does."""
+
+    def __init__(self, device_key, secret, mac='b8:27:eb:00:00:01'):
+        self.device_key = device_key
+        self.secret = secret
+        self.mac = mac
+        self.last = 0
+
+    def headers(self, method, path, body=b'', timestamp=None, secret=None):
+        from ..lib import device_auth
+        import time
+        if timestamp is None:
+            self.last = timestamp = max(int(time.time() * 1000), self.last + 1)
+        return {
+            device_auth.HEADER_DEVICE: self.device_key,
+            device_auth.HEADER_TIMESTAMP: str(timestamp),
+            device_auth.HEADER_MAC: self.mac,
+            device_auth.HEADER_SIGNATURE: device_auth.sign(
+                secret or self.secret, method, path, timestamp, self.mac, self.device_key, body),
+        }
+
+
+class FakeRequest:
+    """Enough of a werkzeug request for _auth_request."""
+
+    def __init__(self, method, path, headers, body=b''):
+        self.method = method
+        self.path, _sep, query = path.partition('?')
+        self.query_string = query.encode()
+        self.headers = headers
+        self.body = body
+
+    def get_data(self, cache=True):
+        return self.body
+
+
+def pair(device, mac='b8:27:eb:00:00:01', macs=None):
+    """Pair a device as a Pi would: returns a Signer holding its key."""
+    code = device.env['embroidery.device.pair.wizard'].browse(device.action_pair()['res_id']).code
+    paired, secret = device._auth_pair(code, mac, macs or [mac], 'raspberrypi')
+    return Signer(paired.device_key, secret, mac)

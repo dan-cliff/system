@@ -8,10 +8,15 @@ them, and reports the stitch-out progress back to Odoo. It only makes
 outgoing HTTPS requests, so nothing needs opening on the router.
 
 On a Raspberry Pi, install.sh sets it up as a service that starts on boot
-(Odoo shows the one-line install command when you generate the bridge's
-access token). To run it by hand:
+and pairs it with Odoo (Odoo shows the one-line install command when you
+click "Pair a Raspberry Pi" on the bridge). To run it by hand:
 
+    python3 embroidery_bridge.py --config config.json --pair ABCD-EFGH-JKLM-NPQR
     python3 embroidery_bridge.py --config config.json
+
+Every request to Odoo is signed with the key the Pi got when it was paired
+(see embroidery_auth.py); Odoo replaces the key from time to time without
+the Pi having to be paired again.
 
 How a design reaches each machine is the machine's "Connection" in Odoo:
 
@@ -36,11 +41,16 @@ import re
 import signal
 import sys
 import time
-import urllib.error
-import urllib.request
 from pathlib import Path
 
-VERSION = '1.0.0'
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import embroidery_auth
+except ImportError:  # running from the Odoo module's source
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib'))
+    import device_auth as embroidery_auth
+
+VERSION = '2.0.0'
 API = '/embroidery/bridge/v1'
 DEFAULT_POLL_SECONDS = 10
 MAX_BACKOFF_SECONDS = 300
@@ -50,44 +60,28 @@ _logger = logging.getLogger('embroidery_bridge')
 
 # ─── Odoo API ────────────────────────────────────────────────────────────────
 
-class OdooError(Exception):
-    pass
+OdooError = embroidery_auth.DeviceError
 
 
 class Odoo:
-    def __init__(self, url, token, timeout=30):
-        self.url = url.rstrip('/')
-        self.token = token
-        self.timeout = timeout
+    """The bridge's requests to Odoo, signed with the Pi's key."""
 
-    def _request(self, method, path, payload=None):
-        data = json.dumps(payload).encode() if payload is not None else None
-        request = urllib.request.Request(self.url + path, data=data, method=method)
-        request.add_header('Authorization', 'Bearer %s' % self.token)
-        request.add_header('User-Agent', 'EmbroideryBridge/%s' % VERSION)
-        if data is not None:
-            request.add_header('Content-Type', 'application/json')
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                return response.read()
-        except urllib.error.HTTPError as error:
-            body = error.read().decode(errors='replace')
-            try:
-                message = json.loads(body).get('message') or body
-            except ValueError:
-                message = body[:200]
-            raise OdooError('%s %s: HTTP %s %s' % (method, path, error.code, message)) from None
-        except (urllib.error.URLError, OSError) as error:
-            raise OdooError('%s %s: %s' % (method, path, error)) from None
+    def __init__(self, url, credentials_path, timeout=30):
+        self.client = embroidery_auth.DeviceClient(
+            url, credentials_path, user_agent='EmbroideryBridge/%s' % VERSION, timeout=timeout)
+        self.url = self.client.url
 
     def poll(self, machines):
-        return json.loads(self._request('POST', API + '/poll', {'version': VERSION, 'machines': machines}))
+        return self.client.request_json('POST', API + '/poll', {'version': VERSION, 'machines': machines})
 
     def download(self, path):
-        return self._request('GET', path)
+        status, _headers, data = self.client.request('GET', path)
+        if status != 200:
+            raise OdooError('GET %s: HTTP %s' % (path, status), status)
+        return data
 
     def report(self, stitchout_id, payload):
-        return json.loads(self._request('POST', '%s/stitchout/%s/report' % (API, stitchout_id), payload))
+        return self.client.request_json('POST', '%s/stitchout/%s/report' % (API, stitchout_id), payload)
 
 
 # ─── Drivers ─────────────────────────────────────────────────────────────────
@@ -255,7 +249,7 @@ DRIVERS = {
 class Bridge:
     def __init__(self, config):
         self.config = config
-        self.odoo = Odoo(config['odoo_url'], config['token'], timeout=config.get('timeout', 30))
+        self.odoo = Odoo(config['odoo_url'], config['credentials'], timeout=config.get('timeout', 30))
         self.drivers = {}        # machine id -> Driver
         self.delivered = {}      # stitchout id -> machine id
         self.failed = {}         # stitchout id -> last delivery error reported
@@ -346,7 +340,11 @@ class Bridge:
                     wait = min(wait, 2)
             except OdooError as error:
                 backoff = min(max(backoff * 2, 5), MAX_BACKOFF_SECONDS)
-                _logger.warning('%s - retrying in %ss', error, backoff)
+                if error.status == 401:
+                    _logger.error('Odoo refused this Pi: %s - pair it again from Odoo if this continues '
+                                  '(retrying in %ss)', error, backoff)
+                else:
+                    _logger.warning('%s - retrying in %ss', error, backoff)
                 wait = backoff
             time.sleep(wait)
 
@@ -354,9 +352,13 @@ class Bridge:
 def load_config(path):
     with open(path, encoding='utf-8') as file:
         config = json.load(file)
-    missing = [key for key in ('odoo_url', 'token') if not config.get(key)]
-    if missing:
-        raise SystemExit('%s is missing: %s' % (path, ', '.join(missing)))
+    if not config.get('odoo_url'):
+        raise SystemExit('%s is missing: odoo_url' % path)
+    # The key lives in its own file, which the bridge updates when Odoo
+    # replaces the key.
+    # A relative path is beside the config file.
+    config['credentials'] = os.path.join(os.path.dirname(os.path.abspath(path)),
+                                         config.get('credentials') or 'credentials.json')
     return config
 
 
@@ -364,6 +366,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     parser.add_argument('--config', default=str(Path(__file__).with_name('config.json')),
                         help='config file (default: config.json beside this script)')
+    parser.add_argument('--pair', metavar='CODE', help='pair this Pi with Odoo using a one-time pairing code')
     parser.add_argument('--once', action='store_true', help='poll Odoo once and exit')
     parser.add_argument('--verbose', action='store_true', help='log more detail')
     args = parser.parse_args(argv)
@@ -377,6 +380,15 @@ def main(argv=None):
     # systemd stops the service with SIGTERM.
     signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
     bridge = Bridge(config)
+    if args.pair:
+        try:
+            result = bridge.odoo.client.pair(args.pair, 'bridge', VERSION)
+        except OdooError as error:
+            raise SystemExit(str(error))
+        _logger.info('Paired with Odoo as "%s" (this Pi: %s)', result.get('name'), bridge.odoo.client.mac)
+        return
+    if not bridge.odoo.client.paired:
+        raise SystemExit('This Pi is not paired with Odoo yet: run it with --pair and the code from Odoo.')
     if args.once:
         bridge.run_once()
         return

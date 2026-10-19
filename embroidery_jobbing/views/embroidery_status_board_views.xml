@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Status Boards: what a screen shows and its layout ──────────── -->
+    <record id="view_embroidery_status_board_list" model="ir.ui.view">
+        <field name="name">embroidery.status.board.list</field>
+        <field name="model">embroidery.status.board</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="layout"/>
+                <field name="theme"/>
+                <field name="machine_ids" widget="many2many_tags"/>
+                <field name="display_count" string="Displays"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_status_board_form" model="ir.ui.view">
+        <field name="name">embroidery.status.board.form</field>
+        <field name="model">embroidery.status.board</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_preview" type="object" string="Preview" class="btn-primary" icon="fa-desktop"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_displays" type="object" class="oe_stat_button" icon="fa-television">
+                            <field name="display_count" widget="statinfo" string="Displays"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Workshop Wall"/></h1>
+                    </div>
+                    <group>
+                        <group string="Layout">
+                            <field name="title" placeholder="Shown at the top of the screen"/>
+                            <field name="layout" widget="radio"/>
+                            <field name="columns" invisible="layout != 'grid'"/>
+                            <field name="rotate_seconds" invisible="layout != 'focus'"/>
+                            <field name="theme" widget="radio" options="{'horizontal': true}"/>
+                            <field name="font_scale"/>
+                            <field name="refresh_seconds"/>
+                            <field name="tz"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Machines">
+                            <field name="machine_ids" widget="many2many_tags" nolabel="1" colspan="2"
+                                   placeholder="All active machines"/>
+                            <field name="show_offline"/>
+                        </group>
+                    </group>
+                    <group string="What Is Shown">
+                        <group string="Heading">
+                            <field name="show_header"/>
+                            <field name="show_logo" invisible="not show_header"/>
+                            <field name="show_clock" invisible="not show_header"/>
+                            <field name="show_summary" invisible="not show_header"/>
+                        </group>
+                        <group string="Current Job">
+                            <field name="show_job"/>
+                            <field name="show_customer"/>
+                            <field name="show_product"/>
+                            <field name="show_operator"/>
+                            <field name="show_preview"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="show_progress"/>
+                            <field name="show_stitches"/>
+                            <field name="show_colour"/>
+                            <field name="show_eta"/>
+                            <field name="show_errors"/>
+                        </group>
+                        <group string="Next Jobs">
+                            <field name="show_queue"/>
+                            <field name="queue_size" invisible="not show_queue"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_embroidery_status_board" model="ir.actions.act_window">
+        <field name="name">Status Boards</field>
+        <field name="res_model">embroidery.status.board</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a machine status board</p>
+            <p>A status board sets which machines a wall screen shows, what it shows about them
+               and how it is laid out. Use Preview to see it, then show it on a TV with a Display.</p>
+        </field>
+    </record>
+
+    <!-- ─── Displays: the Raspberry Pi plugged into each TV ────────────── -->
+    <record id="view_embroidery_display_list" model="ir.ui.view">
+        <field name="name">embroidery.display.list</field>
+        <field name="model">embroidery.display</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="board_id"/>
+                <field name="location_note" optional="show"/>
+                <field name="is_paired"/>
+                <field name="is_online" widget="boolean"/>
+                <field name="last_seen" options="{'numeric': True}"/>
+                <field name="screen_size" optional="hide"/>
+                <field name="last_mac" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_display_form" model="ir.ui.view">
+        <field name="name">embroidery.display.form</field>
+        <field name="model">embroidery.display</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_pair" type="object" string="Pair a Raspberry Pi" class="btn-primary"
+                            invisible="is_paired"/>
+                    <button name="action_pair" type="object" string="Pair Again" invisible="not is_paired"
+                            confirm="Pairing again replaces the key: the Pi stops connecting until the new install command is run on it. Continue?"/>
+                    <button name="action_revoke" type="object" string="Revoke Access" invisible="not is_paired"
+                            confirm="The Pi will be refused until it is paired again. Revoke its access?"/>
+                    <button name="action_reload_screen" type="object" string="Reload Screen" invisible="not is_paired"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Workshop TV"/></h1>
+                    </div>
+                    <group>
+                        <group string="Shows">
+                            <field name="board_id"/>
+                            <field name="location_note"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Connection">
+                            <field name="is_online"/>
+                            <field name="last_seen" options="{'numeric': True}"/>
+                            <field name="last_ip"/>
+                            <field name="screen_size"/>
+                            <field name="agent_version"/>
+                        </group>
+                    </group>
+                    <div class="text-muted" invisible="is_paired">
+                        Plug a Raspberry Pi (with Raspberry Pi OS with desktop) into the TV, connect it to the
+                        network and click <b>Pair a Raspberry Pi</b>: it shows the one command to run on the Pi.
+                        From then on the Pi opens this display's status board full screen whenever it starts.
+                    </div>
+                    <notebook>
+                        <page string="Security" name="security">
+                            <group>
+                                <group string="Pairing">
+                                    <field name="is_paired"/>
+                                    <field name="paired_on" options="{'numeric': True}" invisible="not is_paired"/>
+                                    <field name="paired_hostname" invisible="not is_paired"/>
+                                    <field name="pairing_expires" options="{'numeric': True}" invisible="not pairing_expires"/>
+                                    <field name="device_key"/>
+                                </group>
+                                <group string="Key">
+                                    <field name="key_rotate_days"/>
+                                    <field name="key_rotated_on" options="{'numeric': True}"/>
+                                    <field name="last_auth_error" invisible="not last_auth_error"/>
+                                    <field name="last_auth_error_on" options="{'numeric': True}" invisible="not last_auth_error"/>
+                                </group>
+                            </group>
+                            <group string="Authorised MAC Addresses">
+                                <field name="allowed_macs" nolabel="1" colspan="2"
+                                       placeholder="One per line, e.g. b8:27:eb:12:34:56. Empty allows any Raspberry Pi with the key."/>
+                                <field name="authorise_paired_mac"/>
+                                <field name="last_mac"/>
+                            </group>
+                            <div class="text-muted">
+                                The Pi signs every request with its own secret key, which never travels with
+                                the request, and Odoo refuses requests from any MAC address not listed here.
+                                The key is replaced automatically, so the Pi only needs pairing once.
+                            </div>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_embroidery_display" model="ir.actions.act_window">
+        <field name="name">Displays</field>
+        <field name="res_model">embroidery.display</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add the Raspberry Pi plugged into a TV</p>
+            <p>Each display shows a status board full screen. Pair the Pi once and choose its board here.</p>
+        </field>
+    </record>
+
+</odoo>
