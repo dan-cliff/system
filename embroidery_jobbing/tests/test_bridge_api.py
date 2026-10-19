@@ -13,7 +13,7 @@ class TestBridgeApi(HttpCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.bridge = cls.env['embroidery.bridge'].create({'name': 'Workshop PC'})
+        cls.bridge = cls.env['embroidery.bridge'].create({'name': 'Workshop Pi'})
         wizard_action = cls.bridge.action_generate_token()
         cls.token = cls.env['embroidery.bridge.token.wizard'].browse(wizard_action['res_id']).token
         cls.machine = cls.env['embroidery.machine'].create({
@@ -69,3 +69,14 @@ class TestBridgeApi(HttpCase):
         other_token = self.env['embroidery.bridge.token.wizard'].browse(
             other_bridge.action_generate_token()['res_id']).token
         self.assertEqual(self._post(report_url, {}, token=other_token).status_code, 404)
+
+    def test_install_files(self):
+        installer = self.url_open('/embroidery/bridge/install.sh')
+        self.assertEqual(installer.status_code, 200)
+        self.assertTrue(installer.text.startswith('#!/bin/bash'))
+        bridge = self.url_open('/embroidery/bridge/embroidery_bridge.py')
+        self.assertIn('class SimulatorDriver', bridge.text)
+
+        wizard = self.env['embroidery.bridge.token.wizard'].search([('bridge_id', '=', self.bridge.id)], limit=1)
+        self.assertIn('/embroidery/bridge/install.sh | sudo bash -s -- --url ', wizard.install_command)
+        self.assertTrue(wizard.install_command.endswith('--token %s' % self.token))

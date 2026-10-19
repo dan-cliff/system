@@ -6,10 +6,16 @@
         <field name="arch" type="xml">
             <form>
                 <div class="alert alert-warning" role="alert">
-                    Copy the token now: it is only shown once. Put it and the Odoo address in the
-                    bridge's <code>config.json</code>, then restart the bridge.
+                    Copy this now: the token is only shown once.
                 </div>
-                <group>
+                <p>
+                    On the Raspberry Pi (connected to the internet and to the machines' network),
+                    open a terminal and run this command. It installs the bridge as a service that
+                    starts whenever the Pi is switched on. Running it again on a Pi that already has
+                    the bridge replaces its token.
+                </p>
+                <field name="install_command" widget="CopyClipboardChar" class="font-monospace"/>
+                <group string="Setting it up by hand">
                     <field name="bridge_id"/>
                     <field name="odoo_url" widget="CopyClipboardChar"/>
                     <field name="token" widget="CopyClipboardChar"/>

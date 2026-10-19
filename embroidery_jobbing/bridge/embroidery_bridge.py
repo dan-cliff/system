@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
 """Embroidery Bridge - connects Odoo's Embroidery Jobbing app to your machines.
 
-Run it on a PC on the same network as the embroidery machines (Python 3.8+,
-nothing else to install). Every few seconds it asks Odoo for designs that
-were sent to its machines, delivers them, and reports the stitch-out
-progress back to Odoo. It only makes outgoing HTTPS requests, so nothing
-needs opening on the router.
+Run it on a Raspberry Pi (or any computer with Python 3.8+) on the same
+network as the embroidery machines; nothing else needs installing. Every few
+seconds it asks Odoo for designs that were sent to its machines, delivers
+them, and reports the stitch-out progress back to Odoo. It only makes
+outgoing HTTPS requests, so nothing needs opening on the router.
 
-    python embroidery_bridge.py --config config.json
+On a Raspberry Pi, install.sh sets it up as a service that starts on boot
+(Odoo shows the one-line install command when you generate the bridge's
+access token). To run it by hand:
+
+    python3 embroidery_bridge.py --config config.json
 
 How a design reaches each machine is the machine's "Connection" in Odoo:
 
-    folder     Save the .pes file into a folder on this PC (a USB stick,
-               or the folder your Brother software sends to the machine
-               from). Progress is then reported from Odoo by the operator.
+    folder     Save the .pes file into a folder: a USB stick plugged into
+               the Pi (e.g. /media/*/* for whichever stick is mounted) or a
+               shared network folder. Progress is then reported from Odoo
+               by the operator.
     simulator  Pretend to stitch the design, reporting live progress,
                colour changes and a thread break, to try the whole flow
                before a machine is connected.
@@ -22,11 +27,13 @@ New drivers (e.g. one reading the machine's live status over the network)
 subclass Driver and are added to DRIVERS.
 """
 import argparse
+import glob
 import json
 import logging
 import os
 import random
 import re
+import signal
 import sys
 import time
 import urllib.error
@@ -112,21 +119,36 @@ class Driver:
 
 
 def safe_filename(name):
-    name = re.sub(r'[^\w\-. ]+', '_', name).strip(' ._')
-    return name[:80] or 'design'
+    # Letters, digits, - and _ only: some machines don't show other characters.
+    name = re.sub(r'[^\w\-]+', '_', name).strip('_')
+    return name[:60] or 'design'
 
 
 class FolderDriver(Driver):
-    """Saves the .pes file into a folder (USB stick, Brother software folder)."""
+    """Saves the .pes file into a folder (USB stick, shared network folder).
+
+    The folder may be a pattern such as /media/*/* : the first folder that
+    matches is used, so any USB stick the Pi mounts there will do.
+    """
+
+    @property
+    def pattern(self):
+        return (self.machine.get('drop_folder') or self.settings.get('folder') or '').strip()
 
     @property
     def folder(self):
-        return Path(self.machine.get('drop_folder') or self.settings.get('folder') or '')
+        pattern = os.path.expanduser(self.pattern)
+        if glob.has_magic(pattern):
+            matches = sorted(m for m in glob.glob(pattern) if os.path.isdir(m))
+            return Path(matches[0]) if matches else None
+        return Path(pattern) if pattern else None
 
     def status(self):
-        folder = self.folder
-        if not str(folder) or str(folder) == '.':
+        if not self.pattern:
             return False, 'No folder set on the machine in Odoo'
+        folder = self.folder
+        if folder is None:
+            return False, 'Nothing mounted at %s - is the USB stick plugged in?' % self.pattern
         if not folder.is_dir():
             return False, 'Folder not found: %s' % folder
         if not os.access(folder, os.W_OK):
@@ -137,7 +159,7 @@ class FolderDriver(Driver):
         online, message = self.status()
         if not online:
             raise OSError(message)
-        stem = safe_filename('%s %s' % (job['name'].replace('/', '-'), Path(job['filename']).stem))
+        stem = safe_filename('%s_%s' % (job['name'].replace('/', '-'), Path(job['filename']).stem))
         target = self.folder / (stem + '.pes')
         tmp = target.with_suffix('.part')
         tmp.write_bytes(data)
@@ -352,13 +374,15 @@ def main(argv=None):
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format='%(asctime)s %(levelname)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S',
                         handlers=handlers)
+    # systemd stops the service with SIGTERM.
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
     bridge = Bridge(config)
     if args.once:
         bridge.run_once()
         return
     try:
         bridge.run_forever()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
         _logger.info('Stopped')
 
 

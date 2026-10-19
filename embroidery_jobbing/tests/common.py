@@ -49,7 +49,7 @@ class EmbroideryCase(TransactionCase):
             'design_file': base64.b64encode(make_pes(SAMPLE_BLOCKS)),
             'design_filename': 'logo.pes',
         })
-        cls.bridge = cls.env['embroidery.bridge'].create({'name': 'Workshop PC'})
+        cls.bridge = cls.env['embroidery.bridge'].create({'name': 'Workshop Pi'})
         cls.machine = cls.env['embroidery.machine'].create({
             'name': 'PR1060W #1',
             'machine_model_id': cls.env.ref('embroidery_jobbing.machine_model_brother_pr1060w').id,

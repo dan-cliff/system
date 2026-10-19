@@ -65,15 +65,16 @@ class EmbroideryMachine(models.Model):
         help='How designs reach the machine:\n'
              '- Manual: the operator downloads the .pes file (USB stick, Brother software) '
              'and reports progress from Odoo.\n'
-             '- Copy to a folder: the Embroidery Bridge saves the file into a folder on its PC, '
-             'e.g. a USB stick or the folder your Brother software sends from.\n'
+             '- Copy to a folder: the Embroidery Bridge saves the file into a folder on its Raspberry Pi, '
+             'e.g. a USB stick plugged into the Pi or a shared network folder.\n'
              '- Simulator: the Embroidery Bridge pretends to stitch the design, '
              'to try the whole flow without a machine.',
     )
     bridge_id = fields.Many2one('embroidery.bridge', string='Bridge', tracking=True)
     drop_folder = fields.Char(
-        string='Folder on Bridge PC',
-        help='Folder the bridge saves designs into, e.g. E:\\ or C:\\Embroidery\\To Machine.',
+        string='Folder on Bridge',
+        help='Folder on the Raspberry Pi the bridge saves designs into, e.g. /media/*/* for whichever '
+             'USB stick is plugged in, or /home/pi/embroidery for a fixed folder.',
     )
     bridge_reported_online = fields.Boolean(readonly=True, copy=False)
     bridge_message = fields.Char(string='Bridge Message', readonly=True, copy=False)

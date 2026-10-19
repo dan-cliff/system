@@ -10,7 +10,7 @@ BRIDGE_OFFLINE_AFTER = timedelta(minutes=2)
 
 
 class EmbroideryBridge(models.Model):
-    """A PC running the Embroidery Bridge program beside the machines.
+    """A Raspberry Pi running the Embroidery Bridge program beside the machines.
 
     The bridge polls Odoo over HTTPS (so nothing needs opening on the
     workshop's router), downloads the files queued for its machines,
@@ -20,7 +20,7 @@ class EmbroideryBridge(models.Model):
     _description = 'Embroidery Bridge'
     _order = 'name'
 
-    name = fields.Char(required=True, help='Where the bridge runs, e.g. "Workshop PC".')
+    name = fields.Char(required=True, help='Where the bridge runs, e.g. "Workshop Pi".')
     active = fields.Boolean(default=True)
     token_hash = fields.Char(copy=False, groups='base.group_system')
     token_hint = fields.Char(

@@ -3,6 +3,8 @@
 access token as ``Authorization: Bearer <token>``.
 
 Routes:
+    GET  /embroidery/bridge/install.sh                 Raspberry Pi installer (no token needed)
+    GET  /embroidery/bridge/embroidery_bridge.py       The bridge program (no token needed)
     POST /embroidery/bridge/v1/poll                    Heartbeat; returns machines and queued stitch outs
     GET  /embroidery/bridge/v1/stitchout/<id>/file     The stitch out's .pes file
     POST /embroidery/bridge/v1/stitchout/<id>/report   Progress / status / errors for a stitch out
@@ -13,6 +15,7 @@ import logging
 
 from odoo import SUPERUSER_ID, fields, http
 from odoo.http import request
+from odoo.tools import file_open
 
 _logger = logging.getLogger(__name__)
 
@@ -57,7 +60,25 @@ def _bridge_stitchout(bridge, stitchout_id):
     return stitchout
 
 
+# Bridge files anyone may download: they hold no settings or secrets.
+BRIDGE_FILES = {
+    'install.sh': 'text/x-shellscript; charset=utf-8',
+    'embroidery_bridge.py': 'text/x-python; charset=utf-8',
+}
+
+
 class EmbroideryBridgeController(http.Controller):
+
+    @http.route(['/embroidery/bridge/install.sh', '/embroidery/bridge/embroidery_bridge.py'], type='http',
+                auth='public', methods=['GET'], csrf=False, save_session=False)
+    def bridge_file(self, **kwargs):
+        name = request.httprequest.path.rsplit('/', 1)[-1]
+        with file_open('embroidery_jobbing/bridge/%s' % name, 'rb') as file:
+            data = file.read()
+        return request.make_response(data, headers=[
+            ('Content-Type', BRIDGE_FILES[name]),
+            ('Cache-Control', 'no-cache'),
+        ])
 
     @http.route('/embroidery/bridge/v1/poll', type='http', auth='public', methods=['POST'],
                 csrf=False, save_session=False)

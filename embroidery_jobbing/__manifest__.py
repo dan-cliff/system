@@ -15,9 +15,9 @@
           and design, sent straight to a machine one piece at a time
         - Progress monitor: each stitch out shows its progress, current colour,
           ETA to completion and any errors the machine reported
-        - Embroidery Bridge: a small program on a PC beside the machines that
-          collects the jobs from Odoo, delivers the files and reports progress
-          back (see README.md)
+        - Embroidery Bridge: a small program for a Raspberry Pi beside the
+          machines that collects the jobs from Odoo, delivers the files and
+          reports progress back, installed with one command (see README.md)
     """,
     'author': "Cliff's Country Crafts",
     'depends': ['base', 'mail', 'product'],
