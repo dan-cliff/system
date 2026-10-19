@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Kanban: the machine floor at a glance ────────────────────────── -->
+    <record id="view_embroidery_machine_kanban" model="ir.ui.view">
+        <field name="name">embroidery.machine.kanban</field>
+        <field name="model">embroidery.machine</field>
+        <field name="arch" type="xml">
+            <kanban highlight_color="color">
+                <field name="current_stitchout_id"/>
+                <templates>
+                    <t t-name="menu">
+                        <t t-if="widget.editable"><a role="menuitem" type="open" class="dropdown-item">Edit</a></t>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <div class="d-flex align-items-center">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <field name="status" widget="badge" class="ms-auto"
+                                   decoration-muted="status == 'offline'"
+                                   decoration-success="status == 'stitching'"
+                                   decoration-info="status in ('idle', 'waiting')"
+                                   decoration-warning="status == 'paused'"
+                                   decoration-danger="status == 'error'"/>
+                        </div>
+                        <field name="machine_model_id" class="text-muted"/>
+                        <div t-if="record.current_stitchout_id.raw_value" class="mt-2">
+                            <div><field name="current_stitchout_id"/> - <field name="current_job_id"/></div>
+                            <field name="current_progress" widget="progressbar"/>
+                        </div>
+                        <div t-else="" class="mt-2 text-muted">Nothing on the machine</div>
+                        <footer>
+                            <span class="text-muted small"><field name="stitchout_count"/> stitch outs done</span>
+                            <field name="bridge_message" class="ms-auto small text-muted"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ─── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_embroidery_machine_list" model="ir.ui.view">
+        <field name="name">embroidery.machine.list</field>
+        <field name="model">embroidery.machine</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="machine_model_id"/>
+                <field name="needle_count" optional="hide"/>
+                <field name="driver" optional="show"/>
+                <field name="bridge_id" optional="show"/>
+                <field name="status" widget="badge"
+                       decoration-muted="status == 'offline'"
+                       decoration-success="status == 'stitching'"
+                       decoration-info="status in ('idle', 'waiting')"
+                       decoration-warning="status == 'paused'"
+                       decoration-danger="status == 'error'"/>
+                <field name="current_job_id" optional="show"/>
+                <field name="current_progress" widget="progressbar" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Form ─────────────────────────────────────────────────────────── -->
+    <record id="view_embroidery_machine_form" model="ir.ui.view">
+        <field name="name">embroidery.machine.form</field>
+        <field name="model">embroidery.machine</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="status" widget="statusbar" statusbar_visible="idle,waiting,stitching"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_current_job" type="object" class="oe_stat_button" icon="fa-tasks"
+                                invisible="not current_job_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Current Job</span>
+                                <field name="current_job_id" readonly="1" class="o_stat_value"/>
+                            </div>
+                        </button>
+                        <button name="action_view_stitchouts" type="object" class="oe_stat_button" icon="fa-history">
+                            <field name="stitchout_count" widget="statinfo" string="Stitch Outs"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. PR1060W #1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Machine">
+                            <field name="machine_model_id"/>
+                            <field name="serial_number"/>
+                            <field name="needle_count"/>
+                            <field name="speed_spm"/>
+                            <field name="color_change_seconds"/>
+                            <field name="hoop_ids" widget="many2many_tags"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Connection">
+                            <field name="driver"/>
+                            <field name="bridge_id" invisible="driver == 'manual'" required="driver != 'manual'"/>
+                            <field name="drop_folder" invisible="driver != 'folder'" required="driver == 'folder'"/>
+                            <field name="ip_address"/>
+                            <field name="location_note"/>
+                            <field name="last_seen" options="{'numeric': True}" invisible="driver == 'manual'"/>
+                            <field name="bridge_message" invisible="driver == 'manual' or not bridge_message"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Progress" name="progress">
+                            <field name="current_stitchout_id" invisible="1"/>
+                            <widget name="embroidery_progress"/>
+                        </page>
+                        <page string="Stitch Outs" name="stitchouts">
+                            <field name="stitchout_ids" readonly="1">
+                                <list limit="20">
+                                    <field name="name"/>
+                                    <field name="job_id"/>
+                                    <field name="design_id"/>
+                                    <field name="date_started" options="{'numeric': True}"/>
+                                    <field name="date_done" options="{'numeric': True}"/>
+                                    <field name="error_count"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_embroidery_machine_search" model="ir.ui.view">
+        <field name="name">embroidery.machine.search</field>
+        <field name="model">embroidery.machine</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="machine_model_id"/>
+                <field name="bridge_id"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Model" name="group_model" context="{'group_by': 'machine_model_id'}"/>
+                    <filter string="Bridge" name="group_bridge" context="{'group_by': 'bridge_id'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_machine" model="ir.actions.act_window">
+        <field name="name">Machines</field>
+        <field name="res_model">embroidery.machine</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first embroidery machine</p>
+            <p>Add each machine you stitch on. Jobs are sent to a machine one piece at a time,
+               and the machine's card shows what it is stitching.</p>
+        </field>
+    </record>
+
+</odoo>

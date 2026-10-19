@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Lists and forms for the choice lists under Configuration. -->
+
+    <record id="view_embroidery_machine_model_list" model="ir.ui.view">
+        <field name="name">embroidery.machine.model.list</field>
+        <field name="model">embroidery.machine.model</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="manufacturer"/>
+                <field name="needle_count"/>
+                <field name="max_speed_spm"/>
+                <field name="max_width_mm"/>
+                <field name="max_height_mm"/>
+                <field name="hoop_ids" widget="many2many_tags"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_machine_model_form" model="ir.ui.view">
+        <field name="name">embroidery.machine.model.form</field>
+        <field name="model">embroidery.machine.model</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="manufacturer"/>
+                            <field name="needle_count"/>
+                            <field name="max_speed_spm"/>
+                            <field name="max_width_mm"/>
+                            <field name="max_height_mm"/>
+                            <field name="hoop_ids" widget="many2many_tags"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_embroidery_machine_model_search" model="ir.ui.view">
+        <field name="name">embroidery.machine.model.search</field>
+        <field name="model">embroidery.machine.model</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_machine_model" model="ir.actions.act_window">
+        <field name="name">Machine Models</field>
+        <field name="res_model">embroidery.machine.model</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_embroidery_hoop_list" model="ir.ui.view">
+        <field name="name">embroidery.hoop.list</field>
+        <field name="model">embroidery.hoop</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="width_mm"/>
+                <field name="height_mm"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_hoop_form" model="ir.ui.view">
+        <field name="name">embroidery.hoop.form</field>
+        <field name="model">embroidery.hoop</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="width_mm"/>
+                            <field name="height_mm"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_embroidery_hoop_search" model="ir.ui.view">
+        <field name="name">embroidery.hoop.search</field>
+        <field name="model">embroidery.hoop</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_hoop" model="ir.actions.act_window">
+        <field name="name">Hoops &amp; Frames</field>
+        <field name="res_model">embroidery.hoop</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_embroidery_placement_list" model="ir.ui.view">
+        <field name="name">embroidery.placement.list</field>
+        <field name="model">embroidery.placement</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_placement_form" model="ir.ui.view">
+        <field name="name">embroidery.placement.form</field>
+        <field name="model">embroidery.placement</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_embroidery_placement_search" model="ir.ui.view">
+        <field name="name">embroidery.placement.search</field>
+        <field name="model">embroidery.placement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_placement" model="ir.actions.act_window">
+        <field name="name">Placements</field>
+        <field name="res_model">embroidery.placement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_embroidery_stabiliser_list" model="ir.ui.view">
+        <field name="name">embroidery.stabiliser.list</field>
+        <field name="model">embroidery.stabiliser</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_stabiliser_form" model="ir.ui.view">
+        <field name="name">embroidery.stabiliser.form</field>
+        <field name="model">embroidery.stabiliser</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_embroidery_stabiliser_search" model="ir.ui.view">
+        <field name="name">embroidery.stabiliser.search</field>
+        <field name="model">embroidery.stabiliser</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_stabiliser" model="ir.actions.act_window">
+        <field name="name">Stabilisers</field>
+        <field name="res_model">embroidery.stabiliser</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_embroidery_bridge_list" model="ir.ui.view">
+        <field name="name">embroidery.bridge.list</field>
+        <field name="model">embroidery.bridge</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="is_online" widget="boolean"/>
+                <field name="machine_ids" widget="many2many_tags"/>
+                <field name="last_seen" options="{'numeric': True}"/>
+                <field name="bridge_version" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_bridge_form" model="ir.ui.view">
+        <field name="name">embroidery.bridge.form</field>
+        <field name="model">embroidery.bridge</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_token" type="object" string="Generate Access Token"
+                            class="btn-primary" invisible="token_hint"/>
+                    <button name="action_generate_token" type="object" string="Replace Access Token"
+                            invisible="not token_hint"
+                            confirm="The bridge stops working until you give it the new token. Replace the token?"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Workshop PC"/></h1>
+                    </div>
+                    <group>
+                        <group string="Connection">
+                            <field name="is_online"/>
+                            <field name="last_seen" options="{'numeric': True}"/>
+                            <field name="last_ip"/>
+                            <field name="bridge_version"/>
+                            <field name="token_hint"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Setting Up">
+                            <div colspan="2" class="text-muted">
+                                Install the Embroidery Bridge (the <code>bridge</code> folder of the
+                                Embroidery Jobbing module) on a PC on the same network as your machines,
+                                generate an access token here and put it in the bridge's
+                                <code>config.json</code>. The bridge connects out to Odoo, so nothing
+                                needs opening on your router.
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Machines" name="machines">
+                            <field name="machine_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="driver"/>
+                                    <field name="drop_folder"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="bridge_message"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_embroidery_bridge" model="ir.actions.act_window">
+        <field name="name">Bridges</field>
+        <field name="res_model">embroidery.bridge</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add the PC that connects Odoo to your machines</p>
+            <p>The Embroidery Bridge runs beside the machines, collects the designs you send from Odoo,
+               delivers them and reports the stitching progress back.</p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_embroidery_job_list" model="ir.ui.view">
+        <field name="name">embroidery.job.list</field>
+        <field name="model">embroidery.job</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancelled'">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="name"/>
+                <field name="title" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="design_id" optional="show"/>
+                <field name="machine_id" optional="show"/>
+                <field name="date_deadline" options="{'numeric': True}" optional="show"
+                       decoration-danger="date_deadline and date_deadline &lt; current_date and state not in ('done', 'cancelled')"/>
+                <field name="product_qty" string="Pieces"/>
+                <field name="qty_done" string="Done"/>
+                <field name="progress" widget="progressbar" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state in ('ready', 'in_progress')"
+                       decoration-muted="state == 'cancelled'"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Kanban ───────────────────────────────────────────────────────── -->
+    <record id="view_embroidery_job_kanban" model="ir.ui.view">
+        <field name="name">embroidery.job.kanban</field>
+        <field name="model">embroidery.job</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="0" group_delete="0" group_edit="0" records_draggable="0">
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex">
+                            <field name="name" class="fw-bold"/>
+                            <field name="priority" widget="priority" class="ms-auto"/>
+                        </div>
+                        <field name="title"/>
+                        <field name="partner_id" class="text-muted"/>
+                        <div class="small"><field name="qty_done"/> / <field name="product_qty"/> pieces</div>
+                        <field name="progress" widget="progressbar" invisible="state != 'in_progress'"/>
+                        <footer>
+                            <field name="date_deadline" options="{'numeric': True}" class="small"/>
+                            <field name="machine_id" class="small text-muted ms-2"/>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ─── Form ─────────────────────────────────────────────────────────── -->
+    <record id="view_embroidery_job_form" model="ir.ui.view">
+        <field name="name">embroidery.job.form</field>
+        <field name="model">embroidery.job</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" type="object" string="Mark Ready" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_send_to_machine" type="object" string="Send to Machine"
+                            class="btn-primary" icon="fa-paper-plane"
+                            invisible="state in ('done', 'cancelled') or not design_id or not machine_id or not qty_remaining or has_open_stitchout"/>
+                    <button name="action_download_design" type="object" string="Download Design" icon="fa-download"
+                            invisible="not design_id"/>
+                    <button name="action_mark_done" type="object" string="Mark Done"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('done', 'cancelled')"
+                            confirm="Cancel this job and any stitch out still open on a machine?"/>
+                    <button name="action_reset_draft" type="object" string="Reset to Draft"
+                            invisible="state not in ('done', 'cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_stitchouts" type="object" class="oe_stat_button" icon="fa-history">
+                            <field name="stitchout_count" widget="statinfo" string="Stitch Outs"/>
+                        </button>
+                    </div>
+                    <field name="design_image" widget="image" class="oe_avatar" readonly="1" invisible="not design_image"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1 class="d-flex">
+                            <field name="priority" widget="priority" class="me-2"/>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <field name="title" placeholder="e.g. Club polos - left chest logo"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not warning_message">
+                        <field name="warning_message" nolabel="1"/>
+                    </div>
+                    <group>
+                        <group string="Order">
+                            <field name="partner_id"/>
+                            <field name="date_deadline" options="{'numeric': True}"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="What Is Needed">
+                            <field name="product_id"/>
+                            <field name="product_qty"/>
+                            <field name="item_colour"/>
+                            <field name="item_size"/>
+                            <field name="placement_id" options="{'no_create': True}"/>
+                            <field name="stabiliser_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Design">
+                            <field name="design_id" context="{'default_partner_id': partner_id, 'default_company_id': company_id}"/>
+                            <field name="stitch_count" invisible="not design_id"/>
+                            <field name="color_count" invisible="not design_id"/>
+                            <field name="design_size" invisible="not design_id"/>
+                        </group>
+                        <group string="Machine">
+                            <field name="machine_id" options="{'no_create': True}"/>
+                            <field name="machine_status" widget="badge" invisible="not machine_id"
+                                   decoration-muted="machine_status == 'offline'"
+                                   decoration-success="machine_status == 'stitching'"
+                                   decoration-info="machine_status in ('idle', 'waiting')"
+                                   decoration-warning="machine_status == 'paused'"
+                                   decoration-danger="machine_status == 'error'"/>
+                            <field name="allowed_hoop_ids" invisible="1"/>
+                            <field name="hoop_id" domain="[('id', 'in', allowed_hoop_ids)]" options="{'no_create': True}"/>
+                            <field name="estimated_display" invisible="not design_id"/>
+                            <field name="qty_done"/>
+                            <field name="qty_remaining" invisible="1"/>
+                            <field name="estimated_total_display" invisible="not design_id or not qty_remaining"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Progress" name="progress">
+                            <field name="current_stitchout_id" invisible="1"/>
+                            <field name="has_open_stitchout" invisible="1"/>
+                            <widget name="embroidery_progress"/>
+                        </page>
+                        <page string="Instructions" name="instructions">
+                            <field name="instructions" placeholder="Anything the operator needs to know: thread brands, alignment, finishing..."/>
+                        </page>
+                        <page string="Thread Colours" name="colours" invisible="not design_id">
+                            <field name="design_color_ids" readonly="1">
+                                <list>
+                                    <field name="sequence"/>
+                                    <field name="color_hex" widget="color"/>
+                                    <field name="name"/>
+                                    <field name="palette_index"/>
+                                    <field name="stitch_count" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Stitch Outs" name="stitchouts">
+                            <field name="stitchout_ids" readonly="1">
+                                <list decoration-muted="state == 'cancelled'" decoration-danger="state == 'error'">
+                                    <field name="name"/>
+                                    <field name="piece_number"/>
+                                    <field name="machine_id"/>
+                                    <field name="date_started" options="{'numeric': True}"/>
+                                    <field name="date_done" options="{'numeric': True}"/>
+                                    <field name="elapsed_display"/>
+                                    <field name="error_count"/>
+                                    <field name="progress" widget="progressbar"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_embroidery_job_search" model="ir.ui.view">
+        <field name="name">embroidery.job.search</field>
+        <field name="model">embroidery.job</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('title', 'ilike', self)]"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="design_id"/>
+                <field name="machine_id"/>
+                <filter string="My Jobs" name="my_jobs" domain="[('user_id', '=', uid)]"/>
+                <filter string="Open" name="open" domain="[('state', 'in', ('draft', 'ready', 'in_progress'))]"/>
+                <filter string="Urgent" name="urgent" domain="[('priority', '=', '1')]"/>
+                <filter string="Overdue" name="overdue"
+                        domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d')), ('state', 'in', ('draft', 'ready', 'in_progress'))]"/>
+                <separator/>
+                <filter string="Due Date" name="date_deadline" date="date_deadline"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <group>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Machine" name="group_machine" context="{'group_by': 'machine_id'}"/>
+                    <filter string="Assigned To" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_job" model="ir.actions.act_window">
+        <field name="name">Jobs</field>
+        <field name="res_model">embroidery.job</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first embroidery job</p>
+            <p>A job says what to embroider, on which product, how many pieces and with which design.
+               Send it to a machine from the job and follow the stitch out live.</p>
+        </field>
+    </record>
+
+</odoo>

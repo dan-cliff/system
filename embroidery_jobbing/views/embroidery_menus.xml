@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_embroidery_root"
+              name="Embroidery"
+              web_icon="embroidery_jobbing,static/description/icon.png"
+              groups="group_embroidery_user"
+              sequence="82"/>
+
+    <menuitem id="menu_embroidery_jobs" name="Jobs" parent="menu_embroidery_root" sequence="10"/>
+    <menuitem id="menu_embroidery_job_list" name="Jobs" parent="menu_embroidery_jobs"
+              action="action_embroidery_job" sequence="10"/>
+    <menuitem id="menu_embroidery_stitchout_list" name="Stitch Outs" parent="menu_embroidery_jobs"
+              action="action_embroidery_stitchout" sequence="20"/>
+
+    <menuitem id="menu_embroidery_design_list" name="Designs" parent="menu_embroidery_root"
+              action="action_embroidery_design" sequence="20"/>
+
+    <menuitem id="menu_embroidery_machine_list" name="Machines" parent="menu_embroidery_root"
+              action="action_embroidery_machine" sequence="30"/>
+
+    <!-- ─── Configuration (Administrators) ─────────────────────────────── -->
+    <menuitem id="menu_embroidery_config" name="Configuration" parent="menu_embroidery_root"
+              groups="group_embroidery_admin" sequence="90"/>
+    <menuitem id="menu_embroidery_bridge_list" name="Bridges" parent="menu_embroidery_config"
+              action="action_embroidery_bridge" sequence="10"/>
+    <menuitem id="menu_embroidery_machine_model_list" name="Machine Models" parent="menu_embroidery_config"
+              action="action_embroidery_machine_model" sequence="20"/>
+    <menuitem id="menu_embroidery_hoop_list" name="Hoops &amp; Frames" parent="menu_embroidery_config"
+              action="action_embroidery_hoop" sequence="30"/>
+    <menuitem id="menu_embroidery_placement_list" name="Placements" parent="menu_embroidery_config"
+              action="action_embroidery_placement" sequence="40"/>
+    <menuitem id="menu_embroidery_stabiliser_list" name="Stabilisers" parent="menu_embroidery_config"
+              action="action_embroidery_stabiliser" sequence="50"/>
+
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_embroidery_stitchout_error_wizard_form" model="ir.ui.view">
+        <field name="name">embroidery.stitchout.error.wizard.form</field>
+        <field name="model">embroidery.stitchout.error.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="stitchout_id" readonly="1"/>
+                    <field name="message" placeholder="e.g. Upper thread broke on needle 3"/>
+                    <field name="code" placeholder="e.g. E01"/>
+                    <field name="stop"/>
+                </group>
+                <footer>
+                    <button name="action_report" type="object" string="Report" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
