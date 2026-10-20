@@ -144,6 +144,48 @@ models are not primary). This applies to core Odoo apps and our own modules.
   as `res.users`/`res.company`, `mail.*`, `bus.*`, `org.*`),
   transient/abstract models and SQL views.
 
+## Hardware on the local network (IoT Interfaces Nodes)
+
+Odoo is hosted outside our network (Cloudpepper), so it can never connect
+to hardware on the local network (machines, printers, screens, sensors),
+and anything without a public internet API is out of its reach. Whenever we
+build something that talks to such hardware, plan the interface through a
+**Node**: a Raspberry Pi on the local network that connects out to Odoo.
+Always call it a Node in code, views and docs.
+
+- All Node configuration lives in the **IoT Interfaces** app
+  (`iot_interfaces`): depend on it; never build a separate device, token
+  or pairing model, and never open a port into the network or have Odoo
+  call the hardware directly.
+- Add a **role** for the program the Node runs:
+  `role = fields.Selection(selection_add=[('<app>_<role>', '<Label>')],
+  ondelete={...: 'set default'})` on `iot.node`. Put the role's settings
+  (e.g. which machines a bridge serves) on `iot.node` with `_inherit`,
+  shown in an inherited Node form page with `invisible="role != '...'"`,
+  and add filtered Node menus under `iot_interfaces.menu_iot_nodes`.
+- Authentication is always IoT Interfaces' rolling-key scheme: Nodes pair
+  once with a one-time code, then every request is signed (HMAC-SHA256,
+  timestamped, replay-proof), the key rotates automatically and authorised
+  MAC addresses are enforced. In controllers, use
+  `from odoo.addons.iot_interfaces.controllers.main import authenticate`
+  and `node, error = authenticate(roles=['<role>'])` on every route
+  (`auth='public'`, `csrf=False`, `save_session=False`). Never add bearer
+  tokens, secrets in URLs or logins for Nodes.
+- Ship the role's program in `<module>/node_programs/<role>/` with an
+  `iot_program.json` (`entrypoint` the agent starts and supervises, `home`
+  for screens, `setup` for a root setup script), register it in
+  `iot.program._iot_builtin_programs()` and call
+  `<function model="iot.program" name="_iot_sync_builtin"/>` in a data
+  file. Programs reach Odoo only through the Node agent's local address
+  (`$IOT_PROXY_URL`), which signs for them: programs never hold the key.
+- Every Node is built with the same command
+  (`curl -fsSL <odoo>/iot/install.sh | sudo bash -s -- --url <odoo> --pair <code>`)
+  and takes program updates over the air, rolling back a version that keeps
+  crashing. Changes to a program go out as a new program version (or a
+  GitHub commit when GitHub is enabled in IoT Interfaces Settings), never by
+  logging in to the Node. Only `setup` changes need the install command run
+  again.
+
 ## ESM Measures inspections
 
 Every inspection type in `esm_measures` (First Aid Kit `fak`, Emergency

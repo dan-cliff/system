@@ -1,5 +1,5 @@
 /* Machine status page for wall displays. Plain JavaScript so it runs well
- * on a Raspberry Pi. Fetches the board's data every few seconds and draws
+ * on a Node (Raspberry Pi). Fetches the board's data every few seconds and draws
  * it in the board's layout: a grid of machine cards, a list, or one
  * machine at a time. */
 (function () {

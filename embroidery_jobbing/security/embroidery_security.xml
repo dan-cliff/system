@@ -29,8 +29,8 @@
             <field name="name">Administrator</field>
             <field name="privilege_id" ref="privilege_embroidery"/>
             <field name="sequence">20</field>
-            <field name="comment">Full access, including machines, bridges and the Configuration lists.</field>
-            <field name="implied_ids" eval="[(4, ref('group_embroidery_user'))]"/>
+            <field name="comment">Full access, including machines, the Configuration lists and Embroidery's Nodes in IoT Interfaces.</field>
+            <field name="implied_ids" eval="[(4, ref('group_embroidery_user')), (4, ref('iot_interfaces.group_iot_admin'))]"/>
             <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
         </record>
 

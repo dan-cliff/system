@@ -1,37 +1,30 @@
 #!/usr/bin/env python3
-"""Embroidery Bridge - connects Odoo's Embroidery Jobbing app to your machines.
+"""Embroidery Bridge - the program of an Embroidery Bridge Node.
 
-Run it on a Raspberry Pi (or any computer with Python 3.8+) on the same
-network as the embroidery machines; nothing else needs installing. Every few
-seconds it asks Odoo for designs that were sent to its machines, delivers
-them, and reports the stitch-out progress back to Odoo. It only makes
-outgoing HTTPS requests, so nothing needs opening on the router.
+Runs on a Node (a Raspberry Pi) on the same network as the embroidery
+machines, started and kept running by the Node agent (IoT Interfaces),
+which also keeps it up to date over the air. Every few seconds it asks
+Odoo for designs that were sent to its machines, delivers them, and
+reports the stitch-out progress back to Odoo.
 
-On a Raspberry Pi, install.sh sets it up as a service that starts on boot
-and pairs it with Odoo (Odoo shows the one-line install command when you
-click "Pair a Raspberry Pi" on the bridge). To run it by hand:
-
-    python3 embroidery_bridge.py --config config.json --pair ABCD-EFGH-JKLM-NPQR
-    python3 embroidery_bridge.py --config config.json
-
-Every request to Odoo is signed with the key the Pi got when it was paired
-(see embroidery_auth.py); Odoo replaces the key from time to time without
-the Pi having to be paired again.
+It reaches Odoo through the Node agent's local address ($IOT_PROXY_URL),
+which signs every request with the Node's rolling key: this program holds
+no key and needs no pairing of its own.
 
 How a design reaches each machine is the machine's "Connection" in Odoo:
 
     folder     Save the .pes file into a folder: a USB stick plugged into
-               the Pi (e.g. /media/*/* for whichever stick is mounted) or a
-               shared network folder. Progress is then reported from Odoo
-               by the operator.
+               the Node (e.g. /media/*/* for whichever stick is mounted) or
+               a shared network folder. Progress is then reported from
+               Odoo by the operator.
     simulator  Pretend to stitch the design, reporting live progress,
                colour changes and a thread break, to try the whole flow
                before a machine is connected.
 
 New drivers (e.g. one reading the machine's live status over the network)
-subclass Driver and are added to DRIVERS.
+subclass Driver and are added to DRIVERS. Driver settings are in
+config.json beside this file.
 """
-import argparse
 import glob
 import json
 import logging
@@ -41,16 +34,11 @@ import re
 import signal
 import sys
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-try:
-    import embroidery_auth
-except ImportError:  # running from the Odoo module's source
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib'))
-    import device_auth as embroidery_auth
-
-VERSION = '2.0.0'
+VERSION = '3.0.0'
 API = '/embroidery/bridge/v1'
 DEFAULT_POLL_SECONDS = 10
 MAX_BACKOFF_SECONDS = 300
@@ -58,30 +46,48 @@ MAX_BACKOFF_SECONDS = 300
 _logger = logging.getLogger('embroidery_bridge')
 
 
-# ─── Odoo API ────────────────────────────────────────────────────────────────
+# ─── Odoo API (through the Node agent) ───────────────────────────────────────
 
-OdooError = embroidery_auth.DeviceError
+class OdooError(Exception):
+    def __init__(self, message, status=None):
+        super().__init__(message)
+        self.status = status
 
 
 class Odoo:
-    """The bridge's requests to Odoo, signed with the Pi's key."""
+    """The bridge's requests to Odoo, sent through the Node agent, which signs them."""
 
-    def __init__(self, url, credentials_path, timeout=30):
-        self.client = embroidery_auth.DeviceClient(
-            url, credentials_path, user_agent='EmbroideryBridge/%s' % VERSION, timeout=timeout)
-        self.url = self.client.url
+    def __init__(self, proxy_url, timeout=30):
+        self.url = proxy_url.rstrip('/')
+        self.timeout = timeout
+
+    def _request(self, method, path, payload=None):
+        data = json.dumps(payload).encode() if payload is not None else None
+        request = urllib.request.Request(self.url + path, data=data, method=method)
+        request.add_header('User-Agent', 'EmbroideryBridge/%s' % VERSION)
+        if data is not None:
+            request.add_header('Content-Type', 'application/json')
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                return response.read()
+        except urllib.error.HTTPError as error:
+            body = error.read().decode(errors='replace')
+            try:
+                message = json.loads(body).get('message') or body
+            except ValueError:
+                message = body[:200]
+            raise OdooError('%s %s: HTTP %s %s' % (method, path, error.code, message), error.code) from None
+        except (urllib.error.URLError, OSError) as error:
+            raise OdooError('%s %s: %s' % (method, path, error)) from None
 
     def poll(self, machines):
-        return self.client.request_json('POST', API + '/poll', {'version': VERSION, 'machines': machines})
+        return json.loads(self._request('POST', API + '/poll', {'version': VERSION, 'machines': machines}))
 
     def download(self, path):
-        status, _headers, data = self.client.request('GET', path)
-        if status != 200:
-            raise OdooError('GET %s: HTTP %s' % (path, status), status)
-        return data
+        return self._request('GET', path)
 
     def report(self, stitchout_id, payload):
-        return self.client.request_json('POST', '%s/stitchout/%s/report' % (API, stitchout_id), payload)
+        return json.loads(self._request('POST', '%s/stitchout/%s/report' % (API, stitchout_id), payload))
 
 
 # ─── Drivers ─────────────────────────────────────────────────────────────────
@@ -122,7 +128,7 @@ class FolderDriver(Driver):
     """Saves the .pes file into a folder (USB stick, shared network folder).
 
     The folder may be a pattern such as /media/*/* : the first folder that
-    matches is used, so any USB stick the Pi mounts there will do.
+    matches is used, so any USB stick the Node mounts there will do.
     """
 
     @property
@@ -249,7 +255,7 @@ DRIVERS = {
 class Bridge:
     def __init__(self, config):
         self.config = config
-        self.odoo = Odoo(config['odoo_url'], config['credentials'], timeout=config.get('timeout', 30))
+        self.odoo = Odoo(config['proxy_url'], timeout=config.get('timeout', 30))
         self.drivers = {}        # machine id -> Driver
         self.delivered = {}      # stitchout id -> machine id
         self.failed = {}         # stitchout id -> last delivery error reported
@@ -328,7 +334,7 @@ class Bridge:
         return response.get('poll_seconds') or self.config.get('poll_seconds', DEFAULT_POLL_SECONDS)
 
     def run_forever(self):
-        _logger.info('Embroidery Bridge %s connecting to %s', VERSION, self.odoo.url)
+        _logger.info('Embroidery Bridge %s talking to Odoo through the Node agent at %s', VERSION, self.odoo.url)
         backoff = 0
         while True:
             try:
@@ -341,59 +347,31 @@ class Bridge:
             except OdooError as error:
                 backoff = min(max(backoff * 2, 5), MAX_BACKOFF_SECONDS)
                 if error.status == 401:
-                    _logger.error('Odoo refused this Pi: %s - pair it again from Odoo if this continues '
-                                  '(retrying in %ss)', error, backoff)
+                    _logger.error('Odoo refused this Node: %s (retrying in %ss)', error, backoff)
                 else:
                     _logger.warning('%s - retrying in %ss', error, backoff)
                 wait = backoff
             time.sleep(wait)
 
 
-def load_config(path):
-    with open(path, encoding='utf-8') as file:
-        config = json.load(file)
-    if not config.get('odoo_url'):
-        raise SystemExit('%s is missing: odoo_url' % path)
-    # The key lives in its own file, which the bridge updates when Odoo
-    # replaces the key.
-    # A relative path is beside the config file.
-    config['credentials'] = os.path.join(os.path.dirname(os.path.abspath(path)),
-                                         config.get('credentials') or 'credentials.json')
+def load_config():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    config = {}
+    path = os.path.join(folder, 'config.json')
+    if os.path.exists(path):
+        with open(path, encoding='utf-8') as file:
+            config = json.load(file)
+    config['proxy_url'] = os.environ.get('IOT_PROXY_URL') or config.get('proxy_url') or 'http://127.0.0.1:8099'
     return config
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    parser.add_argument('--config', default=str(Path(__file__).with_name('config.json')),
-                        help='config file (default: config.json beside this script)')
-    parser.add_argument('--pair', metavar='CODE', help='pair this Pi with Odoo using a one-time pairing code')
-    parser.add_argument('--once', action='store_true', help='poll Odoo once and exit')
-    parser.add_argument('--verbose', action='store_true', help='log more detail')
-    args = parser.parse_args(argv)
-    config = load_config(args.config)
-    handlers = [logging.StreamHandler(sys.stdout)]
-    if config.get('log_file'):
-        handlers.append(logging.FileHandler(config['log_file'], encoding='utf-8'))
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format='%(asctime)s %(levelname)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S',
-                        handlers=handlers)
-    # systemd stops the service with SIGTERM.
+def main():
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s %(message)s',
+                        handlers=[logging.StreamHandler(sys.stdout)])
+    # The Node agent stops the program with SIGTERM.
     signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
-    bridge = Bridge(config)
-    if args.pair:
-        try:
-            result = bridge.odoo.client.pair(args.pair, 'bridge', VERSION)
-        except OdooError as error:
-            raise SystemExit(str(error))
-        _logger.info('Paired with Odoo as "%s" (this Pi: %s)', result.get('name'), bridge.odoo.client.mac)
-        return
-    if not bridge.odoo.client.paired:
-        raise SystemExit('This Pi is not paired with Odoo yet: run it with --pair and the code from Odoo.')
-    if args.once:
-        bridge.run_once()
-        return
     try:
-        bridge.run_forever()
+        Bridge(load_config()).run_forever()
     except (KeyboardInterrupt, SystemExit):
         _logger.info('Stopped')
 

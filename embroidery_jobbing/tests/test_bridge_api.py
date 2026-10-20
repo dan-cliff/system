@@ -4,7 +4,9 @@ import json
 
 from odoo.tests import HttpCase, tagged
 
-from .common import SAMPLE_BLOCKS, make_pes, pair
+from odoo.addons.iot_interfaces.tests.common import pair
+
+from .common import SAMPLE_BLOCKS, make_pes
 
 
 @tagged('post_install', '-at_install')
@@ -13,7 +15,7 @@ class TestBridgeApi(HttpCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.bridge = cls.env['embroidery.bridge'].create({'name': 'Workshop Pi'})
+        cls.bridge = cls.env['iot.node'].create({'name': 'Workshop Bridge', 'role': 'embroidery_bridge'})
         cls.signer = pair(cls.bridge)
         cls.machine = cls.env['embroidery.machine'].create({
             'name': 'PR1060W #1', 'driver': 'simulator', 'bridge_id': cls.bridge.id,
@@ -51,7 +53,6 @@ class TestBridgeApi(HttpCase):
         data = response.json()
         self.assertEqual([m['id'] for m in data['machines']], [self.machine.id])
         self.assertEqual([q['stitchout_id'] for q in data['queued']], [stitchout.id])
-        self.assertNotIn('new_secret', data)
         self.assertTrue(self.bridge.is_online)
         self.assertEqual(self.machine.status, 'waiting')
 
@@ -69,38 +70,11 @@ class TestBridgeApi(HttpCase):
         self.assertEqual(self.job.state, 'done')
 
         # Another bridge can't see this bridge's stitch outs.
-        other = pair(self.env['embroidery.bridge'].create({'name': 'Other'}), mac='b8:27:eb:00:00:02')
+        other = pair(self.env['iot.node'].create({'name': 'Other', 'role': 'embroidery_bridge'}),
+                     mac='b8:27:eb:00:00:02')
         self.assertEqual(self._call('POST', report_url, {}, signer=other).status_code, 404)
-
-    def test_pair_endpoint(self):
-        bridge = self.env['embroidery.bridge'].create({'name': 'New Pi'})
-        code = self.env['embroidery.device.pair.wizard'].browse(bridge.action_pair()['res_id']).code
-        payload = {'code': code, 'kind': 'bridge', 'mac': 'B8-27-EB-AA-BB-CC', 'macs': [], 'hostname': 'pi'}
-        response = self.url_open('/embroidery/pi/v1/pair', data=json.dumps(payload),
-                                 headers={'Content-Type': 'application/json'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['device'], bridge.device_key)
-        self.env.invalidate_all()
-        self.assertTrue(bridge.is_paired)
-        self.assertEqual(bridge.allowed_macs, 'b8:27:eb:aa:bb:cc')
-        # The code works once.
-        again = self.url_open('/embroidery/pi/v1/pair', data=json.dumps(payload),
-                              headers={'Content-Type': 'application/json'})
-        self.assertEqual(again.status_code, 403)
-
-    def test_pi_files(self):
-        for path, start in [
-            ('/embroidery/bridge/install.sh', '#!/bin/bash'),
-            ('/embroidery/display/install.sh', '#!/bin/bash'),
-            ('/embroidery/bridge/embroidery_bridge.py', '#!/usr/bin/env python3'),
-            ('/embroidery/display/embroidery_display.py', '#!/usr/bin/env python3'),
-            ('/embroidery/pi/embroidery_auth.py', '# -*- coding: utf-8 -*-'),
-        ]:
-            response = self.url_open(path)
-            self.assertEqual(response.status_code, 200, path)
-            self.assertTrue(response.text.startswith(start), path)
-
-        bridge = self.env['embroidery.bridge'].create({'name': 'New Pi'})
-        wizard = self.env['embroidery.device.pair.wizard'].browse(bridge.action_pair()['res_id'])
-        self.assertIn('/embroidery/bridge/install.sh | sudo bash -s -- --url ', wizard.install_command)
-        self.assertTrue(wizard.install_command.endswith('--pair %s' % wizard.code))
+        # A Node with another role can't use the bridge API at all.
+        board = self.env['embroidery.status.board'].create({'name': 'Wall'})
+        screen = pair(self.env['iot.node'].create({'name': 'TV', 'role': 'embroidery_display',
+                                                   'embroidery_board_id': board.id}), mac='b8:27:eb:00:00:03')
+        self.assertEqual(self._call('POST', '/embroidery/bridge/v1/poll', {}, signer=screen).status_code, 401)

@@ -428,5 +428,5 @@ class EmbroideryStitchoutEvent(models.Model):
     user_id = fields.Many2one('res.users', string='By', default=lambda self: self._default_user_id())
 
     def _default_user_id(self):
-        # Reports from the bridge aren't made by anyone.
-        return False if self.env.context.get('embroidery_bridge') else self.env.user
+        # Reports from a Node aren't made by anyone.
+        return False if self.env.context.get('iot_node') else self.env.user

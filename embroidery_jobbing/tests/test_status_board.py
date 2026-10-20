@@ -3,7 +3,9 @@ import json
 
 from odoo.tests import HttpCase, tagged
 
-from .common import EmbroideryCase, pair
+from odoo.addons.iot_interfaces.tests.common import pair
+
+from .common import EmbroideryCase
 
 
 class TestStatusBoard(EmbroideryCase):
@@ -48,9 +50,10 @@ class TestDisplayApi(HttpCase):
         board = self.env['embroidery.status.board'].create({
             'name': 'Workshop Wall', 'layout': 'focus', 'machine_ids': [(6, 0, machine.ids)],
         })
-        display = self.env['embroidery.display'].create({'name': 'Workshop TV', 'board_id': board.id})
+        display = self.env['iot.node'].create({'name': 'Workshop TV', 'role': 'embroidery_display',
+                                               'embroidery_board_id': board.id})
 
-        self.assertEqual(self.url_open('/embroidery/pi/v1/display/data.json').status_code, 401)
+        self.assertEqual(self.url_open('/embroidery/node/v1/display/data.json').status_code, 401)
         signer = pair(display, mac='dc:a6:32:00:00:05')
 
         def get(path):
@@ -59,10 +62,10 @@ class TestDisplayApi(HttpCase):
             self.env.invalidate_all()
             return response
 
-        page = get('/embroidery/pi/v1/display/page')
+        page = get('/embroidery/node/v1/display/page')
         self.assertEqual(page.status_code, 200)
         self.assertIn('data-url="data.json"', page.text)
-        data = get('/embroidery/pi/v1/display/data.json?w=1920&h=1080').json()
+        data = get('/embroidery/node/v1/display/data.json?w=1920&h=1080').json()
         self.assertEqual(data['board']['layout'], 'focus')
         self.assertEqual([m['name'] for m in data['machines']], ['PR1060W #1'])
         self.assertEqual(data['display'], 'Workshop TV')
@@ -70,12 +73,14 @@ class TestDisplayApi(HttpCase):
         self.assertTrue(display.is_online)
 
         display.action_reload_screen()
-        hello = '/embroidery/pi/v1/display/hello'
+        self.assertEqual(get('/embroidery/node/v1/display/data.json').json()['reload'], 1)
+        # The check-in tells the Node agent the page its local address opens.
+        hello = '/iot/v1/hello'
         body = json.dumps({'version': '1.0.0'}).encode()
         self.env.invalidate_all()
         response = self.url_open(hello, data=body, headers={**signer.headers('POST', hello, body),
                                                              'Content-Type': 'application/json'})
-        self.assertEqual(response.json()['reload'], 1)
+        self.assertEqual(response.json()['program']['home'], '/embroidery/node/v1/display/page')
 
         # Logged-in users can preview the board.
         self.authenticate('admin', 'admin')

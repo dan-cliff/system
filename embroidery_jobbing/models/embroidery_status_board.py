@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-import shlex
-from datetime import timedelta
-
-from odoo import _, api, fields, models
+from odoo import fields, models
 from odoo.addons.base.models.res_partner import _tz_get
 
 from .embroidery_stitchout import format_duration
@@ -18,11 +15,6 @@ THEME_SELECTION = [
     ('light', 'Light'),
 ]
 
-# A display that hasn't asked for data for this long is shown as offline.
-DISPLAY_OFFLINE_AFTER = timedelta(minutes=2)
-# How often a display's "last seen" is written (it polls far more often).
-DISPLAY_HEARTBEAT_EVERY = timedelta(seconds=30)
-
 
 class EmbroideryStatusBoard(models.Model):
     """What a wall display shows about the machines, and how it is laid out."""
@@ -37,7 +29,7 @@ class EmbroideryStatusBoard(models.Model):
         'embroidery.machine', string='Machines',
         help='Machines on the board, in this order. Leave empty to show every active machine.',
     )
-    display_ids = fields.One2many('embroidery.display', 'board_id', string='Displays')
+    display_ids = fields.One2many('iot.node', 'embroidery_board_id', string='Wall Displays')
     display_count = fields.Integer(compute='_compute_display_count')
 
     # ── Layout ────────────────────────────────────────────────────────────
@@ -198,70 +190,7 @@ class EmbroideryStatusBoard(models.Model):
 
     def action_view_displays(self):
         self.ensure_one()
-        action = self.env['ir.actions.act_window']._for_xml_id('embroidery_jobbing.action_embroidery_display')
-        action['domain'] = [('board_id', '=', self.id)]
-        action['context'] = {'default_board_id': self.id}
+        action = self.env['ir.actions.act_window']._for_xml_id('embroidery_jobbing.action_embroidery_display_nodes')
+        action['domain'] = [('role', '=', 'embroidery_display'), ('embroidery_board_id', '=', self.id)]
+        action['context'] = {'default_role': 'embroidery_display', 'default_embroidery_board_id': self.id}
         return action
-
-
-class EmbroideryDisplay(models.Model):
-    """A Raspberry Pi plugged into a TV, showing a status board full screen.
-
-    The Pi runs a small agent that shows the board in Chromium and signs
-    every request to Odoo with the key it got when it was paired, so the
-    screen needs no login and no secret address.
-    """
-    _name = 'embroidery.display'
-    _description = 'Embroidery Status Display'
-    _inherit = ['embroidery.device.mixin']
-    _order = 'name'
-    _device_kind = 'display'
-
-    name = fields.Char(required=True, help='e.g. "Workshop TV".')
-    active = fields.Boolean(default=True)
-    board_id = fields.Many2one(
-        'embroidery.status.board', string='Status Board', required=True, ondelete='restrict',
-        help='What this screen shows. Change it here and the screen switches within a few seconds.',
-    )
-    location_note = fields.Char(string='Located', help='Where the screen is, e.g. "Above the embroidery bench".')
-    last_seen = fields.Datetime(readonly=True, copy=False)
-    last_ip = fields.Char(string='Last Address', readonly=True, copy=False)
-    agent_version = fields.Char(readonly=True, copy=False)
-    screen_size = fields.Char(readonly=True, copy=False, help='Screen size the display reported, in pixels.')
-    is_online = fields.Boolean(string='Online', compute='_compute_is_online')
-    reload_counter = fields.Integer(readonly=True, copy=False)
-    note = fields.Text(string='Notes')
-
-    @api.depends('last_seen')
-    def _compute_is_online(self):
-        limit = fields.Datetime.now() - DISPLAY_OFFLINE_AFTER
-        for display in self:
-            display.is_online = bool(display.last_seen and display.last_seen >= limit)
-
-    def _install_command(self, code):
-        base = self.get_base_url().rstrip('/')
-        return 'curl -fsSL %s/embroidery/display/install.sh | sudo bash -s -- --url %s --pair %s' % (
-            shlex.quote(base), shlex.quote(base), shlex.quote(code))
-
-    def _heartbeat(self, ip, screen_size=None, version=None):
-        """Note that the screen asked for data (written at most every 30 s)."""
-        self.ensure_one()
-        now = fields.Datetime.now()
-        vals = {}
-        if not self.last_seen or now - self.last_seen >= DISPLAY_HEARTBEAT_EVERY:
-            vals['last_seen'] = now
-        for field, value in (('last_ip', ip), ('screen_size', screen_size), ('agent_version', version)):
-            if value and value != self[field]:
-                vals[field] = value
-        if vals:
-            self.write(vals)
-
-    def action_reload_screen(self):
-        """Make the screen reload the page (e.g. after an update)."""
-        for display in self:
-            display.reload_counter += 1
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {'type': 'success', 'message': _('The screen reloads within a few seconds.')},
-        }
