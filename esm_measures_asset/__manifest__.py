@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'ESM Measures - Assets',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Human Resources/Health & Safety',
     'summary': 'Pick the asset being inspected in ESM Measures from Asset Management',
     'description': """
@@ -19,6 +19,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/res_config_settings_views.xml',
+        'views/esm_template_views.xml',
         'views/esm_fak_inspection_views.xml',
         'views/esm_eed_inspection_views.xml',
         'views/esm_sma_inspection_views.xml',

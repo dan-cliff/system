@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from . import res_company
+from . import esm_template_mixin
 from . import res_config_settings
 from . import esm_fak_inspection
 from . import esm_eed_inspection

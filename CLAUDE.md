@@ -184,3 +184,7 @@ gets all of the following:
 - With Asset Management (`esm_measures_asset`): Visible Asset Types /
   Subtypes settings in its block (fields on `res.company`) and a filtered
   `asset_id` on the inspection, with `_org_parent_field = 'asset_id'`.
+  Each template has an Asset tab (`esm.template.mixin` extension: Asset
+  Integration, Require Asset, Asset Filter domain, Asset Field Label);
+  the inspection shows, requires, filters and labels `asset_id` from its
+  template (`esm_asset_*` fields, the label in an `o_td_label` cell).

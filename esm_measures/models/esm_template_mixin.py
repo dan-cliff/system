@@ -53,6 +53,15 @@ class EsmTemplateMixin(models.AbstractModel):
         }
 
     @api.model
+    def _import_template_vals(self, template):
+        """Values of a new template from its exported data (questions aside)."""
+        return {
+            'name': template['name'],
+            'description': template.get('description') or False,
+            'sequence': template.get('sequence', 10),
+        }
+
+    @api.model
     def _import_json(self, content):
         """Create the templates in a JSON export; returns the new templates."""
         try:
@@ -88,12 +97,9 @@ class EsmTemplateMixin(models.AbstractModel):
                         'color': option.get('color') or False,
                     }) for option in question.get('options') or []],
                 }))
-            vals_list.append({
-                'name': template['name'],
-                'description': template.get('description') or False,
-                'sequence': template.get('sequence', 10),
-                'question_ids': questions,
-            })
+            vals = self._import_template_vals(template)
+            vals['question_ids'] = questions
+            vals_list.append(vals)
         if not vals_list:
             raise UserError(self.env._('This file holds no templates.'))
         return self.create(vals_list)

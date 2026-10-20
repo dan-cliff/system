@@ -13,8 +13,8 @@
                     <span t-field="doc.name"/>
                 </h2>
                 <table class="table table-sm table-borderless mb-4">
-                    <tr t-if="'asset_id' in doc._fields and doc.asset_id">
-                        <th class="w-25" t-esc="doc._fields['asset_id'].string"/>
+                    <tr t-if="'asset_id' in doc._fields and doc.esm_asset_enabled and doc.asset_id">
+                        <th class="w-25" t-esc="doc.esm_asset_label"/>
                         <td t-esc="doc.asset_id.display_name"/>
                     </tr>
                     <tr>
