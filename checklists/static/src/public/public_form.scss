@@ -1,0 +1,78 @@
+// Public Link form: the checklist layout of the backend form, on its own page.
+.o_checklist_public {
+    .o_checklist_public_card {
+        max-width: 1100px;
+    }
+
+    .o_checklist_section_title {
+        margin: map-get($spacers, 3) 0;
+        padding: map-get($spacers, 3);
+        border: 2px solid $border-color;
+        border-radius: $border-radius-lg;
+
+        .o_checklist_section_title_name {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .o_checklist_section_title_description {
+            margin-top: map-get($spacers, 1);
+            white-space: pre-line;
+        }
+    }
+
+    .o_checklist_section_break {
+        margin: map-get($spacers, 3) 0;
+
+        .o_checklist_section_break_title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .o_checklist_section_break_line {
+            margin: map-get($spacers, 2) 0;
+            border: 0;
+            border-top: 2px solid $border-color;
+            opacity: 1;
+        }
+    }
+
+    .o_checklist_instructions {
+        padding: map-get($spacers, 2) 0;
+
+        img {
+            max-width: 100%;
+        }
+    }
+
+    .o_checklist_columns {
+        display: grid;
+        grid-template-columns: repeat(var(--checklist-columns, 1), minmax(0, 1fr));
+        column-gap: map-get($spacers, 4);
+
+        @include media-breakpoint-down(md) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    .o_checklist_column {
+        min-width: 0;
+    }
+
+    .o_checklist_check {
+        padding: map-get($spacers, 2) 0 map-get($spacers, 3);
+        border-bottom: $border-width solid $border-color;
+    }
+
+    .o_checklist_check_description {
+        white-space: pre-line;
+    }
+
+    // Buttons answers: the chosen button takes its option's colour.
+    .o_checklist_public_button {
+        --checklist-button-color: #{$secondary};
+    }
+    .btn-check:checked + .o_checklist_public_button {
+        background-color: var(--checklist-button-color);
+        border-color: var(--checklist-button-color);
+        color: #fff;
+    }
+}

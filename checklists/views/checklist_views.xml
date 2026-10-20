@@ -5,14 +5,15 @@
         <field name="name">checklist.checklist.list</field>
         <field name="model">checklist.checklist</field>
         <field name="arch" type="xml">
-            <list string="Checklists" decoration-danger="is_overdue">
+            <list string="Checklists" decoration-danger="is_overdue" js_class="checklist_list">
                 <field name="is_overdue" column_invisible="1"/>
                 <field name="name"/>
                 <field name="checklist_date" options="{'numeric': True}"/>
                 <field name="date_due" options="{'numeric': True}"/>
                 <field name="template_id"/>
                 <field name="group_ids" widget="many2many_tags" optional="hide"/>
-                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="partner_id" string="Completed By" widget="many2one_avatar"/>
+                <field name="public_submission" optional="hide"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
@@ -41,7 +42,7 @@
                     <group>
                         <group name="checklist">
                             <field name="template_id" readonly="state == 'done'"
-                                   domain="[('can_create_checklist', '=', True)]"
+                                   domain="[('can_create_checklist', '=', True)] + ([('group_ids', 'in', [context.get('checklist_group_id')])] if context.get('checklist_group_id') else [])"
                                    options="{'no_create': True}"/>
                             <field name="group_ids" widget="many2many_tags" invisible="not group_ids"/>
                             <field name="company_id" groups="base.group_multi_company"
@@ -54,8 +55,16 @@
                             <field name="date_due" options="{'numeric': True}"
                                    readonly="state == 'done'"
                                    decoration-danger="is_overdue"/>
+                            <field name="public_submission" invisible="1"/>
                             <field name="user_id" widget="many2one_avatar_user"
-                                   readonly="state == 'done'"/>
+                                   readonly="state == 'done'"
+                                   invisible="public_submission" required="not public_submission"/>
+                            <!-- Submitted through the template's Public Link: the contact
+                                 of the Full Name and Email they gave. -->
+                            <field name="partner_id" string="Completed By" widget="many2one_avatar"
+                                   readonly="1" invisible="not public_submission"/>
+                            <field name="submitter_name" invisible="not public_submission"/>
+                            <field name="submitter_email" widget="email" invisible="not public_submission"/>
                         </group>
                     </group>
                     <notebook>
@@ -145,6 +154,34 @@
         </field>
     </record>
 
+    <!-- Preview Mode: the checklist form for trying a template, never saved
+         (js_class checklist_preview_form blocks saving; the server refuses too). -->
+    <record id="checklist_view_form_preview" model="ir.ui.view">
+        <field name="name">checklist.checklist.form.preview</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklist_view_form"/>
+        <field name="mode">primary</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">checklist_preview_form</attribute>
+                <attribute name="create">0</attribute>
+                <attribute name="class">o_checklist_preview</attribute>
+            </xpath>
+            <xpath expr="//header" position="replace">
+                <div class="alert alert-info mb-0 rounded-0 d-flex align-items-center gap-2" role="status">
+                    <i class="fa fa-eye fa-lg" title="Preview Mode"/>
+                    <span><strong>Preview Mode</strong>: try this template as it will appear. Nothing you
+                        enter is saved; close this tab when you're done.</span>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='template_id']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//chatter" position="replace"/>
+        </field>
+    </record>
+
     <record id="checklist_view_search" model="ir.ui.view">
         <field name="name">checklist.checklist.search</field>
         <field name="model">checklist.checklist</field>
@@ -153,8 +190,9 @@
                 <field name="name"/>
                 <field name="template_id"/>
                 <field name="group_ids"/>
-                <field name="user_id"/>
+                <field name="partner_id" string="Completed By"/>
                 <filter name="my_checklists" string="My Checklists" domain="[('user_id', '=', uid)]"/>
+                <filter name="public" string="Public Submissions" domain="[('public_submission', '=', True)]"/>
                 <separator/>
                 <filter name="draft" string="In Progress" domain="[('state', '=', 'draft')]"/>
                 <filter name="done" string="Completed" domain="[('state', '=', 'done')]"/>
@@ -164,7 +202,7 @@
                 <filter name="date_due" string="Due Date" date="date_due"/>
                 <group>
                     <filter name="group_template" string="Template" context="{'group_by': 'template_id'}"/>
-                    <filter name="group_user" string="Completed By" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_user" string="Completed By" context="{'group_by': 'partner_id'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>

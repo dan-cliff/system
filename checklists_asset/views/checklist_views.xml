@@ -16,7 +16,7 @@
                     <field name="asset_label" class="o_form_label" invisible="not asset_label"/>
                 </div>
                 <field name="asset_id" nolabel="1" invisible="not asset_enabled"
-                       required="asset_enabled and asset_required" readonly="state == 'done'"
+                       required="asset_enabled and asset_required and not public_submission" readonly="state == 'done'"
                        domain="asset_domain" options="{'no_create': True}"/>
             </xpath>
         </field>

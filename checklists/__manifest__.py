@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists',
-    'version': '19.0.1.7.0',
+    'version': '19.0.1.9.0',
     'category': 'Productivity',
     'summary': 'General-purpose checklists built from templates, grouped into Checklist Groups',
     'description': """
@@ -34,6 +34,7 @@
         'views/checklist_group_views.xml',
         'views/checklist_template_views.xml',
         'views/checklist_views.xml',
+        'views/checklist_public_templates.xml',
         'data/checklist_template_actions.xml',
         'views/res_config_settings_views.xml',
         'views/checklist_menus.xml',
@@ -44,6 +45,13 @@
             'checklists/static/src/colour_badge/*',
             'checklists/static/src/answer_widgets/*',
             'checklists/static/src/ai_generator/*',
+            'checklists/static/src/preview/*',
+            'checklists/static/src/checklist_list/*',
+        ],
+        # The Public Link form (no sign-in).
+        'web.assets_frontend': [
+            'checklists/static/src/checklist_checks/conditions.js',
+            'checklists/static/src/public/*',
         ],
     },
     'application': True,
