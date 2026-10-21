@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Status Boards: what a screen shows and its layout ──────────── -->
+    <record id="view_embroidery_status_board_list" model="ir.ui.view">
+        <field name="name">embroidery.status.board.list</field>
+        <field name="model">embroidery.status.board</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="layout"/>
+                <field name="theme"/>
+                <field name="machine_ids" widget="many2many_tags"/>
+                <field name="display_count" string="Wall Displays"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_status_board_form" model="ir.ui.view">
+        <field name="name">embroidery.status.board.form</field>
+        <field name="model">embroidery.status.board</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_preview" type="object" string="Preview" class="btn-primary" icon="fa-desktop"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_displays" type="object" class="oe_stat_button" icon="fa-television">
+                            <field name="display_count" widget="statinfo" string="Wall Displays"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Workshop Wall"/></h1>
+                    </div>
+                    <group>
+                        <group string="Layout">
+                            <field name="title" placeholder="Shown at the top of the screen"/>
+                            <field name="layout" widget="radio"/>
+                            <field name="columns" invisible="layout != 'grid'"/>
+                            <field name="rotate_seconds" invisible="layout != 'focus'"/>
+                            <field name="theme" widget="radio" options="{'horizontal': true}"/>
+                            <field name="font_scale"/>
+                            <field name="refresh_seconds"/>
+                            <field name="tz"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Machines">
+                            <field name="machine_ids" widget="many2many_tags" nolabel="1" colspan="2"
+                                   placeholder="All active machines"/>
+                            <field name="show_offline"/>
+                        </group>
+                    </group>
+                    <group string="What Is Shown">
+                        <group string="Heading">
+                            <field name="show_header"/>
+                            <field name="show_logo" invisible="not show_header"/>
+                            <field name="show_clock" invisible="not show_header"/>
+                            <field name="show_summary" invisible="not show_header"/>
+                        </group>
+                        <group string="Current Job">
+                            <field name="show_job"/>
+                            <field name="show_customer"/>
+                            <field name="show_product"/>
+                            <field name="show_operator"/>
+                            <field name="show_preview"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="show_progress"/>
+                            <field name="show_stitches"/>
+                            <field name="show_colour"/>
+                            <field name="show_eta"/>
+                            <field name="show_errors"/>
+                        </group>
+                        <group string="Next Jobs">
+                            <field name="show_queue"/>
+                            <field name="queue_size" invisible="not show_queue"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_embroidery_status_board" model="ir.actions.act_window">
+        <field name="name">Status Boards</field>
+        <field name="res_model">embroidery.status.board</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a machine status board</p>
+            <p>A status board sets which machines a wall screen shows, what it shows about them
+               and how it is laid out. Use Preview to see it, then show it on a TV with an Embroidery Wall
+               Display Node (IoT Interfaces).</p>
+        </field>
+    </record>
+
+</odoo>

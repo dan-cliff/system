@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ── Module Category ───────────────────────────────────────────── -->
+        <record id="module_category_iot_interfaces" model="ir.module.category">
+            <field name="name">IoT Interfaces</field>
+            <field name="description">Nodes (Raspberry Pis) that connect Odoo to local hardware.</field>
+            <field name="sequence">85</field>
+        </record>
+
+        <!-- ── Privilege ────────────────────────────────────────────────── -->
+        <record id="privilege_iot_interfaces" model="res.groups.privilege">
+            <field name="name">IoT Interfaces</field>
+            <field name="category_id" ref="module_category_iot_interfaces"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <!-- ── Security Groups ───────────────────────────────────────────── -->
+        <record id="group_iot_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="privilege_id" ref="privilege_iot_interfaces"/>
+            <field name="sequence">10</field>
+            <field name="comment">Can see the Nodes and whether they are online.</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="group_iot_admin" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="privilege_id" ref="privilege_iot_interfaces"/>
+            <field name="sequence">20</field>
+            <field name="comment">Adds, pairs and revokes Nodes, and sets their authorised MAC addresses.</field>
+            <field name="implied_ids" eval="[(4, ref('group_iot_user'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- ── Multi-company ────────────────────────────────────────────── -->
+        <record id="iot_node_company_rule" model="ir.rule">
+            <field name="name">IoT Nodes: multi-company</field>
+            <field name="model_id" ref="model_iot_node"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+    </data>
+</odoo>

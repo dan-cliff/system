@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Programs ─────────────────────────────────────────────────────── -->
+    <record id="view_iot_program_list" model="ir.ui.view">
+        <field name="name">iot.program.list</field>
+        <field name="model">iot.program</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="role"/>
+                <field name="current_version_id"/>
+                <field name="follow_latest" optional="show"/>
+                <field name="github_repository" optional="show"/>
+                <field name="github_last_sync" options="{'numeric': True}" optional="hide"/>
+                <field name="node_count"/>
+                <field name="nodes_updated_count" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iot_program_form" model="ir.ui.view">
+        <field name="name">iot.program.form</field>
+        <field name="model">iot.program</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_github_sync" type="object" string="Sync from GitHub" class="btn-primary"
+                            invisible="not uses_github"/>
+                    <button name="action_github_publish" type="object" string="Publish to GitHub"
+                            invisible="not uses_github or not current_version_id"
+                            confirm="Commit the current version's files to the GitHub folder?"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_versions" type="object" class="oe_stat_button" icon="fa-code-fork">
+                            <field name="version_count" widget="statinfo" string="Versions"/>
+                        </button>
+                        <button name="action_view_nodes" type="object" class="oe_stat_button" icon="fa-microchip">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="nodes_updated_count"/> / <field name="node_count"/></span>
+                                <span class="o_stat_text">Nodes Up to Date</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Program">
+                            <field name="role"/>
+                            <field name="current_version_id" options="{'no_create': True}"/>
+                            <field name="follow_latest"/>
+                            <field name="active" invisible="1"/>
+                            <field name="github_enabled" invisible="1"/>
+                            <field name="uses_github" invisible="1"/>
+                        </group>
+                        <group string="GitHub" invisible="not github_enabled">
+                            <field name="github_repository" placeholder="owner/repository"/>
+                            <field name="github_branch"/>
+                            <field name="github_path" placeholder="e.g. embroidery_bridge"/>
+                            <field name="github_last_sync" options="{'numeric': True}"/>
+                            <field name="github_head_sha"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-warning" role="alert" invisible="not github_sync_error">
+                        <field name="github_sync_error" nolabel="1"/>
+                    </div>
+                    <div class="text-muted" invisible="not uses_github">
+                        This program's code is held in GitHub: change it there, and Odoo syncs each commit as a
+                        version (every 15 minutes, or now with Sync from GitHub).
+                    </div>
+                    <notebook>
+                        <page string="Versions" name="versions">
+                            <field name="version_ids" readonly="1">
+                                <list decoration-bf="is_current" decoration-muted="state == 'draft'">
+                                    <field name="name"/>
+                                    <field name="source"/>
+                                    <field name="commit_message"/>
+                                    <field name="author_name" optional="show"/>
+                                    <field name="released_on" options="{'numeric': True}"/>
+                                    <field name="node_count"/>
+                                    <field name="is_current" invisible="1"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'released'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iot_program" model="ir.actions.act_window">
+        <field name="name">Programs</field>
+        <field name="res_model">iot.program</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Node programs yet</p>
+            <p>Each Node role has a program: the code the Nodes with that role run. Apps that add a role ship
+               its program, and you can hold the code in GitHub (Settings).</p>
+        </field>
+    </record>
+
+    <!-- ─── Versions ─────────────────────────────────────────────────────── -->
+    <record id="view_iot_program_version_list" model="ir.ui.view">
+        <field name="name">iot.program.version.list</field>
+        <field name="model">iot.program.version</field>
+        <field name="arch" type="xml">
+            <list decoration-bf="is_current" decoration-muted="state == 'draft'">
+                <field name="program_id"/>
+                <field name="name"/>
+                <field name="source"/>
+                <field name="commit_message" optional="show"/>
+                <field name="author_name" optional="show"/>
+                <field name="commit_date" options="{'numeric': True}" optional="hide"/>
+                <field name="released_on" options="{'numeric': True}"/>
+                <field name="node_count"/>
+                <field name="is_current" invisible="1"/>
+                <field name="state" widget="badge" decoration-success="state == 'released'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iot_program_version_form" model="ir.ui.view">
+        <field name="name">iot.program.version.form</field>
+        <field name="model">iot.program.version</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_release" type="object" string="Release" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_make_current" type="object" string="Make Current"
+                            invisible="state != 'released' or is_current"
+                            confirm="The Nodes on this program's current version update to this one within a minute. Continue?"/>
+                    <button name="action_duplicate_as_draft" type="object" string="New Draft from It"
+                            invisible="state != 'released'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="program_id" readonly="id"/> <field name="name" class="text-muted"/></h1>
+                    </div>
+                    <div class="alert alert-success" role="alert" invisible="not is_current">
+                        This is the current version: Nodes on the current version run it.
+                    </div>
+                    <group>
+                        <group string="Version">
+                            <field name="source"/>
+                            <field name="released_on" options="{'numeric': True}" invisible="state != 'released'"/>
+                            <field name="entrypoint" invisible="not entrypoint"/>
+                            <field name="home_path" invisible="not home_path"/>
+                            <field name="setup_script" invisible="not setup_script"/>
+                            <field name="digest" invisible="not digest"/>
+                            <field name="node_count"/>
+                            <field name="is_current" invisible="1"/>
+                        </group>
+                        <group string="Commit" invisible="not commit_sha">
+                            <field name="commit_sha"/>
+                            <field name="commit_url" widget="url"/>
+                            <field name="author_name"/>
+                            <field name="commit_date" options="{'numeric': True}"/>
+                            <field name="commit_message"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Files" name="files">
+                            <field name="file_ids" readonly="state == 'released'">
+                                <list editable="bottom">
+                                    <field name="path"/>
+                                    <field name="data" filename="path"/>
+                                    <field name="size"/>
+                                    <field name="sha256" optional="hide"/>
+                                </list>
+                            </field>
+                            <div class="text-muted">
+                                Include an <code>iot_program.json</code> saying how the Node runs the files, e.g.
+                                <code>{"entrypoint": "my_program.py", "home": "/my/page", "setup": "setup.sh"}</code>.
+                            </div>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_iot_program_version_search" model="ir.ui.view">
+        <field name="name">iot.program.version.search</field>
+        <field name="model">iot.program.version</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="program_id"/>
+                <field name="commit_sha"/>
+                <field name="commit_message"/>
+                <filter string="Released" name="released" domain="[('state', '=', 'released')]"/>
+                <filter string="Drafts" name="drafts" domain="[('state', '=', 'draft')]"/>
+                <group>
+                    <filter string="Program" name="group_program" context="{'group_by': 'program_id'}"/>
+                    <filter string="Source" name="group_source" context="{'group_by': 'source'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_iot_program_version" model="ir.actions.act_window">
+        <field name="name">Program Versions</field>
+        <field name="res_model">iot.program.version</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

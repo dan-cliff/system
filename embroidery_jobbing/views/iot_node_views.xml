@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Embroidery's settings on its Nodes (IoT Interfaces). -->
+    <record id="view_iot_node_form_embroidery" model="ir.ui.view">
+        <field name="name">iot.node.form.embroidery</field>
+        <field name="model">iot.node</field>
+        <field name="inherit_id" ref="iot_interfaces.view_iot_node_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_reload_screen" type="object" string="Reload Screen"
+                        invisible="role != 'embroidery_display' or not is_paired"/>
+            </xpath>
+            <xpath expr="//group[@name='node']" position="inside">
+                <field name="embroidery_board_id" invisible="role != 'embroidery_display'"
+                       required="role == 'embroidery_display'"/>
+            </xpath>
+            <xpath expr="//group[@name='connection']" position="inside">
+                <field name="screen_size" invisible="role != 'embroidery_display'"/>
+            </xpath>
+            <xpath expr="//page[@name='program']" position="before">
+                <page string="Embroidery Machines" name="embroidery_machines" invisible="role != 'embroidery_bridge'">
+                    <field name="embroidery_machine_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="driver"/>
+                            <field name="drop_folder"/>
+                            <field name="status" widget="badge"/>
+                            <field name="bridge_message"/>
+                        </list>
+                    </field>
+                    <div class="text-muted">
+                        Choose this Node as the Bridge Node on each machine (Embroidery &gt; Machines).
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_embroidery_bridge_nodes" model="ir.actions.act_window">
+        <field name="name">Embroidery Bridges</field>
+        <field name="res_model">iot.node</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('role', '=', 'embroidery_bridge')]</field>
+        <field name="context">{'default_role': 'embroidery_bridge'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add the Node that connects Odoo to your embroidery machines</p>
+            <p>A bridge Node is a Raspberry Pi on the same network as the machines. It collects the designs
+               sent from Odoo, delivers them and reports the stitch-out progress back.</p>
+        </field>
+    </record>
+
+    <record id="action_embroidery_display_nodes" model="ir.actions.act_window">
+        <field name="name">Embroidery Wall Displays</field>
+        <field name="res_model">iot.node</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('role', '=', 'embroidery_display')]</field>
+        <field name="context">{'default_role': 'embroidery_display'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add the Node plugged into a TV</p>
+            <p>A wall display Node is a Raspberry Pi (with Raspberry Pi OS with desktop) plugged into a TV.
+               It shows its status board full screen.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_iot_embroidery_bridges" name="Embroidery Bridges" parent="iot_interfaces.menu_iot_nodes"
+              action="action_embroidery_bridge_nodes" sequence="20"/>
+    <menuitem id="menu_iot_embroidery_displays" name="Embroidery Wall Displays" parent="iot_interfaces.menu_iot_nodes"
+              action="action_embroidery_display_nodes" sequence="21"/>
+</odoo>

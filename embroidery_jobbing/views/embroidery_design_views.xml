@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_embroidery_design_kanban" model="ir.ui.view">
+        <field name="name">embroidery.design.kanban</field>
+        <field name="model">embroidery.design</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="o_kanban_aside_full">
+                            <field name="image_128" widget="image" options="{'img_class': 'object-fit-contain'}"/>
+                        </aside>
+                        <main class="ms-2">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <field name="partner_id" class="text-muted"/>
+                            <div class="small">
+                                <field name="stitch_count"/> stitches · <field name="color_count"/> colours
+                            </div>
+                            <field name="size_display" class="small text-muted"/>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_embroidery_design_list" model="ir.ui.view">
+        <field name="name">embroidery.design.list</field>
+        <field name="model">embroidery.design</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="partner_id" optional="show"/>
+                <field name="design_filename" optional="hide"/>
+                <field name="stitch_count" sum="Total"/>
+                <field name="color_count"/>
+                <field name="size_display"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_embroidery_design_form" model="ir.ui.view">
+        <field name="name">embroidery.design.form</field>
+        <field name="model">embroidery.design</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_jobs" type="object" class="oe_stat_button" icon="fa-tasks">
+                            <field name="job_count" widget="statinfo" string="Jobs"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="image_1920" widget="image" class="oe_avatar" readonly="1"
+                           options="{'preview_image': 'image_256'}"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Club logo - left chest"/></h1>
+                    </div>
+                    <group>
+                        <group string="Design">
+                            <field name="design_file" filename="design_filename"/>
+                            <field name="design_filename" invisible="1"/>
+                            <field name="partner_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="From the File" invisible="not stitch_count">
+                            <field name="stitch_count"/>
+                            <field name="color_count"/>
+                            <field name="size_display"/>
+                            <field name="trim_count"/>
+                            <field name="jump_count"/>
+                            <field name="pes_label"/>
+                            <field name="pes_version"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Thread Colours" name="colours">
+                            <field name="color_ids">
+                                <list>
+                                    <field name="sequence"/>
+                                    <field name="color_hex" widget="color" readonly="1"/>
+                                    <field name="name"/>
+                                    <field name="palette_index"/>
+                                    <field name="stitch_count" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_embroidery_design_search" model="ir.ui.view">
+        <field name="name">embroidery.design.search</field>
+        <field name="model">embroidery.design</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('design_filename', 'ilike', self)]"/>
+                <field name="partner_id"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_design" model="ir.actions.act_window">
+        <field name="name">Designs</field>
+        <field name="res_model">embroidery.design</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Upload your first .pes design</p>
+            <p>The stitch count, thread colours, size and a stitch preview are read from the file.</p>
+        </field>
+    </record>
+
+</odoo>

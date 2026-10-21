@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Full-screen machine status page for wall displays. Standalone (not the
+         Odoo web client) so it stays light on a Node. -->
+    <template id="status_page" name="Embroidery Machine Status">&lt;!DOCTYPE html&gt;
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title t-esc="title"/>
+                <link rel="icon" href="data:,"/>
+                <link rel="stylesheet" t-attf-href="/embroidery_jobbing/static/src/status_page/status_page.css?v={{ version }}"/>
+            </head>
+            <body class="theme-dark" t-att-data-url="data_url">
+                <div id="board" class="board">
+                    <div class="board-message">Loading machine status…</div>
+                </div>
+                <script t-attf-src="/embroidery_jobbing/static/src/status_page/status_page.js?v={{ version }}"/>
+            </body>
+        </html>
+    </template>
+</odoo>
