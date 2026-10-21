@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_lms_course_form_scorm_authoring" model="ir.ui.view">
+        <field name="name">lms.course.form.scorm.authoring</field>
+        <field name="model">lms.course</field>
+        <field name="inherit_id" ref="learning_management.view_lms_course_form"/>
+        <field name="arch" type="xml">
+            <field name="scorm_package_id" position="before">
+                <field name="scorm_course_id" options="{'no_create': True}"
+                       placeholder="Pick a published course from SCORM Authoring, or upload a ZIP below"/>
+                <field name="scorm_course_version" invisible="not scorm_course_id"/>
+                <div colspan="2" invisible="not scorm_course_id" class="mb-2">
+                    <button name="action_refresh_scorm_package" type="object" string="Rebuild Package"
+                            class="btn-link ps-0" icon="fa-refresh"/>
+                    <button name="action_open_scorm_course" type="object" string="Open in SCORM Authoring"
+                            class="btn-link" icon="fa-external-link"
+                            groups="lms_scorm_authoring.group_scorm_user"/>
+                </div>
+            </field>
+            <field name="scorm_package_id" position="attributes">
+                <attribute name="readonly">scorm_course_id</attribute>
+            </field>
+            <field name="scorm_launch_file" position="attributes">
+                <attribute name="invisible">scorm_course_id</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>
