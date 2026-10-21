@@ -81,9 +81,9 @@ class EmbroiderySubmission(models.Model):
     duration_hours = fields.Float(string='Estimated Hours', compute='_compute_duration', store=True,
                                   digits=(16, 2))
     duration_display = fields.Char(string='Estimated Duration', compute='_compute_duration', store=True)
-    stitch_time_display = fields.Char(string='Stitching Time', compute='_compute_duration')
-    color_change_time_display = fields.Char(string='Colour Change Time', compute='_compute_duration')
-    hooping_time_display = fields.Char(string='Hooping Time', compute='_compute_duration')
+    stitch_time_display = fields.Char(string='Stitching Time', compute='_compute_time_displays')
+    color_change_time_display = fields.Char(string='Colour Change Time', compute='_compute_time_displays')
+    hooping_time_display = fields.Char(string='Hooping Time', compute='_compute_time_displays')
 
     # ── Costing (per piece) ───────────────────────────────────────────────
     stitch_cost = fields.Monetary(string='Stitch Cost', readonly=True)
@@ -135,13 +135,17 @@ class EmbroiderySubmission(models.Model):
                 '%.1f x %.1f mm' % (submission.width_mm, submission.height_mm) if submission.stitch_count else ''
             )
 
-    @api.depends('duration_seconds', 'stitch_seconds', 'color_change_seconds', 'hooping_seconds')
+    @api.depends('duration_seconds')
     def _compute_duration(self):
         for submission in self:
             submission.duration_hours = submission.duration_seconds / 3600.0
             submission.duration_display = (
                 format_duration(submission.duration_seconds) if submission.duration_seconds else ''
             )
+
+    @api.depends('stitch_seconds', 'color_change_seconds', 'hooping_seconds')
+    def _compute_time_displays(self):
+        for submission in self:
             submission.stitch_time_display = format_duration(submission.stitch_seconds)
             submission.color_change_time_display = format_duration(submission.color_change_seconds)
             submission.hooping_time_display = format_duration(submission.hooping_seconds)
@@ -291,7 +295,7 @@ class EmbroiderySubmission(models.Model):
     def _fit_warning(self, width, height):
         """A note when the design is bigger than every hoop we have."""
         hoops = self.env['embroidery.hoop'].sudo().search([('width_mm', '>', 0), ('height_mm', '>', 0)])
-        if not hoops or not (width and height):
+        if not hoops or not (width or height):
             return ''
         fits = hoops.filtered(lambda hoop: (width <= hoop.width_mm and height <= hoop.height_mm)
                               or (width <= hoop.height_mm and height <= hoop.width_mm))
