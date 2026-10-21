@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Sales orders ──────────────────────────────────────────────────── -->
+    <record id="view_order_form_embroidery" model="ir.ui.view">
+        <field name="name">sale.order.form.embroidery</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_embroidery_submissions" type="object" class="oe_stat_button"
+                        icon="fa-scissors" invisible="embroidery_submission_count == 0">
+                    <field name="embroidery_submission_count" widget="statinfo" string="Embroidery"/>
+                </button>
+                <button name="action_view_embroidery_jobs" type="object" class="oe_stat_button"
+                        icon="fa-tasks" invisible="embroidery_job_count == 0"
+                        groups="embroidery_jobbing.group_embroidery_user">
+                    <field name="embroidery_job_count" widget="statinfo" string="Embroidery Jobs"/>
+                </button>
+            </div>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
+                <field name="embroidery_dynamic_pricing" column_invisible="True"/>
+                <field name="embroidery_submission_id" optional="show"
+                       readonly="qty_invoiced &gt; 0"
+                       options="{'no_create': True}"/>
+                <field name="embroidery_stitch_count" optional="hide"/>
+                <field name="embroidery_duration" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── Invoices ──────────────────────────────────────────────────────── -->
+    <record id="view_move_form_embroidery" model="ir.ui.view">
+        <field name="name">account.move.form.embroidery</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_embroidery_submissions" type="object" class="oe_stat_button"
+                        icon="fa-scissors" invisible="embroidery_submission_count == 0">
+                    <field name="embroidery_submission_count" widget="statinfo" string="Embroidery"/>
+                </button>
+            </div>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='quantity']" position="before">
+                <field name="embroidery_submission_id" optional="hide"/>
+            </xpath>
+            <xpath expr="//page[@id='invoice_tab']" position="after">
+                <page id="embroidery_tab" name="embroidery_tab" string="Embroidery Costings"
+                      invisible="embroidery_submission_count == 0">
+                    <field name="embroidery_line_ids" readonly="1">
+                        <list>
+                            <field name="embroidery_submission_id"/>
+                            <field name="product_id" optional="hide"/>
+                            <field name="quantity"/>
+                            <field name="embroidery_stitch_count"/>
+                            <field name="embroidery_color_change_count"/>
+                            <field name="embroidery_duration"/>
+                            <field name="embroidery_stitch_cost" optional="show"/>
+                            <field name="embroidery_color_change_cost" optional="show"/>
+                            <field name="embroidery_machine_cost" optional="show"/>
+                            <field name="embroidery_setup_cost" optional="hide"/>
+                            <field name="embroidery_cost_total"/>
+                            <field name="embroidery_currency_id" column_invisible="True"/>
+                            <field name="price_unit" string="Price per Piece"/>
+                            <field name="price_subtotal"/>
+                            <field name="currency_id" column_invisible="True"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="embroidery_cost_total"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

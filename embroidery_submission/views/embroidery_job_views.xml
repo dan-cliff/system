@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_embroidery_job_form_submission" model="ir.ui.view">
+        <field name="name">embroidery.job.form.submission</field>
+        <field name="model">embroidery.job</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="sale_order_id" invisible="not sale_order_id"/>
+                <field name="submission_id" invisible="not submission_id"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

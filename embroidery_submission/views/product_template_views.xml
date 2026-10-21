@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="product_template_form_view_embroidery" model="ir.ui.view">
+        <field name="name">product.template.form.embroidery</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Embroidery" name="embroidery">
+                    <group>
+                        <group string="Dynamic Pricing">
+                            <field name="embroidery_dynamic_pricing"/>
+                            <field name="embroidery_profile_id"/>
+                        </group>
+                    </group>
+                    <div class="text-muted" invisible="not embroidery_dynamic_pricing">
+                        Customers upload their own .pes design on the website to get a price,
+                        and sales lines with an embroidery submission are priced from it.
+                        Confirming the order creates the embroidery job.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_search_view_embroidery" model="ir.ui.view">
+        <field name="name">product.template.search.embroidery</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_to_sell']" position="after">
+                <filter string="Embroidery Dynamic Pricing" name="embroidery_dynamic_pricing"
+                        domain="[('embroidery_dynamic_pricing', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

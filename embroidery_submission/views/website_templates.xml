@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Upload-and-quote widget, shared by the product page and the quote page.
+         Expects embroidery_product (product.template). -->
+    <template id="embroidery_quote_widget" name="Embroidery Quote Widget">
+        <t t-set="embroidery_max_mb" t-value="embroidery_product._embroidery_max_upload_mb()"/>
+        <div class="o_embroidery_quote card mb-4" t-att-data-product-id="embroidery_product.id">
+            <div class="card-body">
+                <h5 class="card-title mb-1">
+                    <i class="fa fa-scissors me-2" role="img" aria-label="Embroidery"/>Get an instant price for your embroidery
+                </h5>
+                <p class="text-muted small mb-3">
+                    Upload your design as a Brother .pes file. We count its stitches and
+                    colours and work out how long it takes to stitch.
+                    Files up to <t t-out="embroidery_max_mb"/> MB.
+                </p>
+                <!-- Not a <form>: on the product page this sits inside the shop's add-to-cart form. -->
+                <div class="o_embroidery_upload_form">
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-8">
+                            <label class="form-label" t-attf-for="embroidery_file_{{embroidery_product.id}}">Your design (.pes)</label>
+                            <input type="file" class="form-control o_embroidery_file" required="required" accept=".pes"
+                                   t-attf-id="embroidery_file_{{embroidery_product.id}}"/>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label" t-attf-for="embroidery_qty_{{embroidery_product.id}}">Pieces</label>
+                            <input type="number" min="1" step="1" value="1"
+                                   class="form-control o_embroidery_quantity"
+                                   t-attf-id="embroidery_qty_{{embroidery_product.id}}"/>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary o_embroidery_submit">
+                        <i class="fa fa-calculator me-2"/>Get Price
+                    </button>
+                </div>
+
+                <div class="o_embroidery_progress d-none mt-3" role="status" aria-live="polite">
+                    <ol class="list-unstyled mb-2 o_embroidery_steps">
+                        <li data-step="upload"><i class="fa fa-circle-o me-2"/>Uploading your design</li>
+                        <li data-step="read"><i class="fa fa-circle-o me-2"/>Counting the stitches and colours</li>
+                        <li data-step="price"><i class="fa fa-circle-o me-2"/>Working out the time and price</li>
+                    </ol>
+                    <div class="small text-muted">
+                        Please keep this page open. <span class="o_embroidery_elapsed"/>
+                    </div>
+                </div>
+
+                <div class="o_embroidery_error alert alert-danger d-none mt-3" role="alert"/>
+
+                <div class="o_embroidery_result d-none mt-3">
+                    <div class="d-flex flex-wrap gap-3 mb-3">
+                        <img class="o_embroidery_preview d-none border rounded bg-white" alt="Design preview"
+                             style="width: 128px; height: 128px; object-fit: contain;"/>
+                        <div class="d-flex flex-wrap gap-3 align-content-start">
+                            <div><div class="small text-muted">Stitches</div><div class="fw-bold o_embroidery_stitches"/></div>
+                            <div><div class="small text-muted">Colours</div><div class="fw-bold o_embroidery_colours"/></div>
+                            <div><div class="small text-muted">Colour changes</div><div class="fw-bold o_embroidery_changes"/></div>
+                            <div><div class="small text-muted">Size</div><div class="fw-bold o_embroidery_size"/></div>
+                            <div><div class="small text-muted">Time per piece (est.)</div><div class="fw-bold o_embroidery_duration"/></div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle o_embroidery_colors">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Thread colour</th>
+                                    <th class="text-end">Stitches</th>
+                                </tr>
+                            </thead>
+                            <tbody/>
+                        </table>
+                    </div>
+                    <ul class="small text-muted mb-3 o_embroidery_warnings"/>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div>
+                            <div class="h4 mb-0 o_embroidery_total"/>
+                            <div class="small text-muted">
+                                <span class="o_embroidery_price"/> per piece
+                                <span class="o_embroidery_tax"/>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg o_embroidery_add_to_cart">
+                            <i class="fa fa-shopping-cart me-2"/>Add to cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Product page: dynamically priced products are quoted from the customer's file -->
+    <template id="embroidery_product_cta" inherit_id="website_sale.cta_wrapper" name="Embroidery Quote on Product Page">
+        <xpath expr="//div[@id='o_wsale_cta_wrapper']" position="before">
+            <t t-if="product and product.embroidery_dynamic_pricing">
+                <t t-call="embroidery_submission.embroidery_quote_widget">
+                    <t t-set="embroidery_product" t-value="product.product_tmpl_id if product._name == 'product.product' else product"/>
+                </t>
+            </t>
+        </xpath>
+        <xpath expr="//div[@id='o_wsale_cta_wrapper']" position="attributes">
+            <attribute name="t-att-class" add="(' d-none' if product and product.embroidery_dynamic_pricing else '')" separator=" + "/>
+        </xpath>
+    </template>
+
+    <!-- The price comes from the customer's file, so hide the product's own (zero) price.
+         The section is hidden rather than the price: the shop's variant script re-shows the price. -->
+    <template id="embroidery_product_price" inherit_id="website_sale.product" name="Hide Price of Embroidery Products">
+        <xpath expr="//div[hasclass('o_wsale_product_details_content_section_price')]" position="attributes">
+            <attribute name="t-attf-class" add="{{'d-none' if product.embroidery_dynamic_pricing else ''}}" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="embroidery_products_item" inherit_id="website_sale.products_item" name="Embroidery Products in Shop Grid">
+        <xpath expr="//div[hasclass('product_price')]/span[1]" position="attributes">
+            <attribute name="t-attf-class" add="{{'d-none' if product.embroidery_dynamic_pricing else ''}}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('product_price')]/span[1]" position="after">
+            <span t-if="product.embroidery_dynamic_pricing" class="mb-0 fw-bold">Priced from your design</span>
+        </xpath>
+    </template>
+
+    <!-- /shop/embroidery-quote -->
+    <template id="embroidery_quote_page" name="Embroidery Quote">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Embroidery Quote</t>
+            <div id="wrap" class="oe_structure_not_nearest">
+                <section class="container py-5">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <h1 class="mb-2">Embroidery Quote</h1>
+                            <p class="lead text-muted">
+                                Upload your embroidery design to see how many stitches and colours it
+                                has, how long it takes to stitch and what it costs - then add it
+                                straight to your cart.
+                            </p>
+                            <t t-if="not embroidery_products">
+                                <div class="alert alert-info" role="status">
+                                    Online embroidery quotes are not available at the moment.
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <form t-if="len(embroidery_products) &gt; 1" method="get" action="/shop/embroidery-quote" class="mb-3">
+                                    <label class="form-label" for="embroidery_product_select">What would you like embroidered?</label>
+                                    <select id="embroidery_product_select" name="product_id" class="form-select"
+                                            onchange="this.form.submit()">
+                                        <t t-foreach="embroidery_products" t-as="p">
+                                            <option t-att-value="p.id" t-att-selected="p == embroidery_product" t-out="p.name"/>
+                                        </t>
+                                    </select>
+                                </form>
+                                <div t-if="embroidery_product.description_sale" class="text-muted mb-3"
+                                     t-field="embroidery_product.description_sale"/>
+                                <t t-call="embroidery_submission.embroidery_quote_widget"/>
+                            </t>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="embroidery_pricing_profile_view_list" model="ir.ui.view">
+        <field name="name">embroidery.pricing.profile.list</field>
+        <field name="model">embroidery.pricing.profile</field>
+        <field name="arch" type="xml">
+            <list string="Pricing Profiles">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="price_per_thousand_stitches"/>
+                <field name="color_change_fee"/>
+                <field name="machine_rate_per_hour"/>
+                <field name="setup_fee" optional="show"/>
+                <field name="markup_percent"/>
+                <field name="minimum_price" optional="show"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="embroidery_pricing_profile_view_form" model="ir.ui.view">
+        <field name="name">embroidery.pricing.profile.form</field>
+        <field name="model">embroidery.pricing.profile</field>
+        <field name="arch" type="xml">
+            <form string="Pricing Profile">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Standard"/></h1>
+                    </div>
+                    <group>
+                        <group string="Costs">
+                            <field name="price_per_thousand_stitches"/>
+                            <field name="color_change_fee"/>
+                            <field name="machine_rate_per_hour"/>
+                            <field name="setup_fee"/>
+                            <field name="markup_percent"/>
+                            <field name="minimum_price"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Time">
+                            <field name="color_change_seconds"/>
+                            <field name="hooping_minutes"/>
+                            <div colspan="2" class="text-muted">
+                                The stitching time comes from Settings › Embroidery ›
+                                Submission Defaults › "Estimate duration based on stitches".
+                            </div>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="embroidery_pricing_profile_view_search" model="ir.ui.view">
+        <field name="name">embroidery.pricing.profile.search</field>
+        <field name="model">embroidery.pricing.profile</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_pricing_profile" model="ir.actions.act_window">
+        <field name="name">Pricing Profiles</field>
+        <field name="res_model">embroidery.pricing.profile</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a pricing profile</p>
+            <p>A pricing profile costs out submitted designs from their stitches, colour changes and machine time.</p>
+        </field>
+    </record>
+
+</odoo>
