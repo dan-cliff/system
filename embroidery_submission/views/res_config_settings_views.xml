@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.embroidery_submission</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="82"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Embroidery" id="embroidery_submission" string="Embroidery" name="embroidery_submission"
+                     groups="embroidery_jobbing.group_embroidery_admin">
+                    <block title="Submission Defaults" id="embroidery_submission_defaults">
+                        <setting id="embroidery_submission_spm" string="Estimate duration based on stitches"
+                                 help="Stitches per minute used to estimate how long a submitted design takes to stitch. Colour changes and hooping time from the pricing profile are added to it.">
+                            <div class="content-group">
+                                <field name="embroidery_submission_spm" class="oe_inline"/> stitches per minute
+                            </div>
+                        </setting>
+                        <setting id="embroidery_submission_profile" string="Default Pricing Profile"
+                                 help="Used to cost out submissions when the product has no pricing profile of its own.">
+                            <field name="embroidery_profile_id"/>
+                            <div class="mt8">
+                                <button name="%(embroidery_submission.action_embroidery_pricing_profile)d" type="action"
+                                        string="Pricing Profiles" class="btn-link" icon="oi-arrow-right"/>
+                            </div>
+                        </setting>
+                        <setting id="embroidery_submission_upload" string="Website Upload Limit"
+                                 help="Largest .pes file customers can upload for a quote on the website.">
+                            <div class="content-group">
+                                <field name="embroidery_max_upload_mb" class="oe_inline"/> MB
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="embroidery_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'embroidery_submission', 'bin_size': False}</field>
+    </record>
+</odoo>

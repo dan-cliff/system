@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="seq_embroidery_submission" model="ir.sequence">
+            <field name="name">Embroidery Submission</field>
+            <field name="code">embroidery.submission</field>
+            <field name="prefix">EMBQ/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="profile_standard" model="embroidery.pricing.profile">
+            <field name="name">Standard</field>
+            <field name="price_per_thousand_stitches">0.40</field>
+            <field name="color_change_fee">0.30</field>
+            <field name="machine_rate_per_hour">15.0</field>
+            <field name="setup_fee">2.0</field>
+            <field name="markup_percent">40.0</field>
+            <field name="minimum_price">5.0</field>
+            <field name="color_change_seconds">15</field>
+            <field name="hooping_minutes">2.0</field>
+        </record>
+
+        <record id="product_embroidery_custom" model="product.template">
+            <field name="name">Custom Embroidery</field>
+            <field name="type">service</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="embroidery_dynamic_pricing" eval="True"/>
+            <field name="embroidery_profile_id" ref="profile_standard"/>
+            <field name="description_sale">Embroidered from your own design. The price is worked out from the stitches, colour changes and stitching time your file needs.</field>
+        </record>
+
+        <record id="ir_cron_embroidery_submission_gc" model="ir.cron">
+            <field name="name">Embroidery: remove abandoned website quotes</field>
+            <field name="model_id" ref="model_embroidery_submission"/>
+            <field name="state">code</field>
+            <field name="code">model._gc_website_submissions()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+
+        <!-- Settings › Embroidery › Submission Defaults ›
+             "Estimate duration based on stitches" (stitches per minute) -->
+        <record id="param_stitches_per_minute" model="ir.config_parameter">
+            <field name="key">embroidery_submission.stitches_per_minute</field>
+            <field name="value">600</field>
+        </record>
+
+    </data>
+</odoo>
