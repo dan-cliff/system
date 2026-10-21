@@ -24,8 +24,20 @@
                                     repositories. Set each program's repository under IoT Interfaces &gt;
                                     Configuration &gt; Programs.
                                 </div>
-                                <button name="action_iot_github_test" type="object" string="Test Connection"
-                                        class="btn-link ps-0" icon="fa-plug"/>
+                                <div class="text-muted small mt-1">
+                                    On GitHub, choose the owner and the program repositories under
+                                    Repository access, check Contents is "Read and write", then generate the
+                                    token and paste it above.
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <a href="https://github.com/settings/personal-access-tokens/new?name=Odoo%20IoT%20Interfaces&amp;description=Lets%20Odoo%20sync%20and%20publish%20IoT%20Node%20program%20code.&amp;contents=write"
+                                       target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"
+                                       id="iot_github_create_token">
+                                        <i class="fa fa-github me-1"/>Create Access Token on GitHub
+                                    </a>
+                                    <button name="action_iot_github_test" type="object" string="Test Connection"
+                                            class="btn-link" icon="fa-plug"/>
+                                </div>
                             </div>
                         </setting>
                     </block>

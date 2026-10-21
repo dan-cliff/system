@@ -118,7 +118,10 @@ the previous version and Odoo shows **Update Failed** with the reason.
 ### GitHub
 
 In **Settings**, turn on **GitHub** and enter a fine-grained access token
-with read and write access to Contents. Then give a program a
+with read and write access to Contents. **Create Access Token on GitHub**
+opens GitHub's new-token page with the name, description and Contents
+access filled in: pick the owner and the program repositories, generate the
+token and paste it into Odoo. Then give a program a
 **Repository** (`owner/repo`), **Branch** and **Folder**:
 
 * The code is managed in GitHub. Every commit to the program's folder
