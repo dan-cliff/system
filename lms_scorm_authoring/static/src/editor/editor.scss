@@ -273,6 +273,14 @@
         min-height: 1em;
         cursor: text;
     }
+    // While editing, the text box fills the whole item (keeping its vertical
+    // alignment) so clicking or dragging anywhere in it reaches the text
+    .o_scorm_text > .o_scorm_text_edit {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: inherit;
+    }
     .o_scorm_shape { width: 100%; height: 100%; position: relative; }
     .o_scorm_placeholder {
         width: 100%;

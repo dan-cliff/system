@@ -5,9 +5,9 @@
     <t t-name="lms_scorm_authoring.ElementPreview">
         <t t-set="p" t-value="el.props"/>
         <div t-if="el.type === 'text'" class="o_scorm_text" t-att-class="'o_scorm_valign_' + (p.valign || 'top')"
-             t-att-style="boxStyle(el)">
+             t-att-style="boxStyle(el) + (!thumb and state.editingId === el.id ? ';padding:0' : '')">
             <div t-if="!thumb and state.editingId === el.id" class="o_scorm_text_edit" contenteditable="true"
-                 data-rich="1" t-att-data-id="el.id"/>
+                 data-rich="1" t-att-data-id="el.id" t-att-style="editPadding(el)"/>
             <div t-else="" class="o_scorm_text_body"><t t-out="html(p.html)"/></div>
         </div>
         <div t-elif="el.type === 'shape'" class="o_scorm_shape" t-att-class="shapeClass(el)" t-att-style="boxStyle(el)"/>
