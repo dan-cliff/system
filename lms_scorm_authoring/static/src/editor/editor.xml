@@ -7,7 +7,7 @@
         <div t-if="el.type === 'text'" class="o_scorm_text" t-att-class="'o_scorm_valign_' + (p.valign || 'top')"
              t-att-style="boxStyle(el)">
             <div t-if="!thumb and state.editingId === el.id" class="o_scorm_text_edit" contenteditable="true"
-                 t-att-data-id="el.id" t-on-blur="() => this.commitTextEdit()"/>
+                 data-rich="1" t-att-data-id="el.id"/>
             <div t-else="" class="o_scorm_text_body"><t t-out="html(p.html)"/></div>
         </div>
         <div t-elif="el.type === 'shape'" class="o_scorm_shape" t-att-style="boxStyle(el)"/>
@@ -27,9 +27,11 @@
             <i class="fa fa-volume-up"/><span class="o_scorm_audio_bar"/>
             <span t-if="!p.attachment_id and !p.url" class="small">Double-click to add audio</span>
         </div>
-        <button t-elif="el.type === 'button'" class="o_scorm_button" t-att-style="buttonStyle(el)" tabindex="-1">
-            <t t-esc="p.label"/>
-        </button>
+        <div t-elif="el.type === 'button'" class="o_scorm_button" t-att-style="buttonStyle(el)">
+            <div t-if="!thumb and state.editingId === el.id" class="o_scorm_text_edit o_scorm_button_edit" contenteditable="true"
+                 data-rich="1" t-att-data-id="el.id"/>
+            <div t-else="" class="o_scorm_button_label"><t t-out="html(buttonHtml(el))"/></div>
+        </div>
         <div t-elif="el.type === 'hotspot'" class="o_scorm_hotspot" t-att-style="boxStyle(el)">
             <i class="fa fa-bullseye"/>
         </div>
@@ -110,6 +112,10 @@
                         <t t-elif="readonly">Read only – <t t-esc="state.course.state_label"/></t>
                     </div>
                     <div class="o_scorm_topbar_actions">
+                        <button t-if="canEdit and state.course.ai_available" class="btn btn-light o_scorm_ai_button"
+                                t-on-click="() => this.openAiDialog()" title="Write slides with AI">
+                            <i class="fa fa-magic"/> Generate with AI
+                        </button>
                         <t t-if="canEdit">
                             <button class="btn btn-light" title="Undo (Ctrl+Z)" t-on-click="() => this.undo()"><i class="fa fa-undo"/></button>
                             <button class="btn btn-light" title="Redo (Ctrl+Y)" t-on-click="() => this.redo()"><i class="fa fa-repeat"/></button>
@@ -206,7 +212,7 @@
                             <div t-else="" class="o_scorm_stage_frame" t-att-style="stageFrameStyle">
                                 <div class="o_scorm_stage" t-att-style="stageStyle">
                                     <div t-foreach="sortedElements" t-as="el" t-key="el.id" class="o_scorm_el"
-                                         t-attf-class="o_scorm_el_{{el.type}} {{el.id === state.selectedId ? 'o_scorm_selected' : ''}} {{el.id === state.editingId ? 'o_scorm_editing' : ''}} {{el.hidden ? 'o_scorm_hidden_el' : ''}}"
+                                         t-attf-class="o_scorm_el_{{el.type}} {{isSelected(el) ? 'o_scorm_selected' : ''}} {{el.id === state.editingId ? 'o_scorm_editing' : ''}} {{el.hidden ? 'o_scorm_hidden_el' : ''}}"
                                          t-att-style="elementStyle(el)"
                                          t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el)"
                                          t-on-dblclick="() => this.onElementDblClick(el)">
@@ -216,7 +222,7 @@
                                         <span t-if="el.scored and questionTypes.includes(el.type)" class="o_scorm_badge o_scorm_badge_scored" title="Scored">
                                             <i class="fa fa-star"/>
                                         </span>
-                                        <t t-if="canEdit and el.id === state.selectedId and el.id !== state.editingId">
+                                        <t t-if="canEdit and el.id === state.selectedId and !multiSelected and el.id !== state.editingId">
                                             <span t-foreach="['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']" t-as="handle" t-key="handle"
                                                   t-att-class="'o_scorm_handle o_scorm_handle_' + handle"
                                                   t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el, handle)"/>
@@ -229,6 +235,7 @@
                                           t-att-title="comment.author + ': ' + comment.body"
                                           t-on-pointerdown.stop="() => this.focusComment(comment)"
                                           t-esc="comment_index + 1"/>
+                                    <div t-if="state.marquee" class="o_scorm_marquee" t-att-style="marqueeStyle"/>
                                     <span t-if="state.pendingPin" class="o_scorm_pin o_scorm_pin_new"
                                           t-att-style="'left:' + state.pendingPin.pos_x + '%;top:' + state.pendingPin.pos_y + '%'">+</span>
                                 </div>
@@ -243,7 +250,9 @@
                     <div class="o_scorm_panel">
                         <div class="o_scorm_panel_tabs">
                             <button t-att-class="{'active': state.panel === 'item'}" t-att-disabled="!selected"
-                                    t-on-click="() => this.setPanel('item')">Item</button>
+                                    t-on-click="() => this.setPanel('item')">
+                                <t t-if="multiSelected">Items (<t t-esc="state.selectedIds.length"/>)</t><t t-else="">Item</t>
+                            </button>
                             <button t-att-class="{'active': state.panel === 'slide'}" t-on-click="() => this.setPanel('slide')">Slide</button>
                             <button t-if="state.course.permissions.can_comment" t-att-class="{'active': state.panel === 'comments'}"
                                     t-on-click="() => this.setPanel('comments')">
@@ -251,7 +260,8 @@
                             </button>
                         </div>
                         <div class="o_scorm_panel_body">
-                            <t t-if="state.panel === 'item' and selected" t-call="lms_scorm_authoring.ItemPanel">
+                            <t t-if="state.panel === 'item' and multiSelected" t-call="lms_scorm_authoring.MultiPanel"/>
+                            <t t-elif="state.panel === 'item' and selected" t-call="lms_scorm_authoring.ItemPanel">
                                 <t t-set="el" t-value="selected"/>
                             </t>
                             <t t-elif="state.panel === 'comments'" t-call="lms_scorm_authoring.CommentsPanel"/>
@@ -382,6 +392,46 @@
         </div>
     </t>
 
+    <!-- Several selected items -->
+    <t t-name="lms_scorm_authoring.MultiPanel">
+        <div class="o_scorm_item_head">
+            <strong><t t-esc="state.selectedIds.length"/> items selected</strong>
+            <div t-if="canEdit" class="ms-auto">
+                <button class="btn btn-sm btn-light" title="Duplicate (Ctrl+D)" t-on-click="() => this.duplicateSelected()"><i class="fa fa-clone"/></button>
+                <button class="btn btn-sm btn-light" title="Delete (Del)" t-on-click="() => this.deleteSelected()"><i class="fa fa-trash"/></button>
+            </div>
+        </div>
+        <p class="small text-muted">
+            Drag any of them to move them together, or use the arrow keys. Shift-click an item to
+            add it or take it out; drag a box on the slide to select what it touches.
+        </p>
+        <ul class="o_scorm_multi_list">
+            <li t-foreach="selectedEls" t-as="item" t-key="item.id">
+                <a href="#" t-on-click.prevent="() => this.select(item.id)" t-esc="typeLabels[item.type] or item.type"/>
+            </li>
+        </ul>
+        <t t-if="canEdit">
+            <h6 class="o_scorm_section">Line up with each other</h6>
+            <div class="btn-group btn-group-sm mb-2">
+                <button class="btn btn-light" title="Left edges" t-on-click="() => this.align('left')"><i class="fa fa-align-left"/></button>
+                <button class="btn btn-light" title="Centres" t-on-click="() => this.align('center')"><i class="fa fa-align-center"/></button>
+                <button class="btn btn-light" title="Right edges" t-on-click="() => this.align('right')"><i class="fa fa-align-right"/></button>
+                <button class="btn btn-light" title="Tops" t-on-click="() => this.align('top')"><i class="fa fa-long-arrow-up"/></button>
+                <button class="btn btn-light" title="Middles" t-on-click="() => this.align('middle')"><i class="fa fa-arrows-v"/></button>
+                <button class="btn btn-light" title="Bottoms" t-on-click="() => this.align('bottom')"><i class="fa fa-long-arrow-down"/></button>
+            </div>
+            <div class="btn-group btn-group-sm mb-2" t-if="state.selectedIds.length &gt; 2">
+                <button class="btn btn-light" t-on-click="() => this.distribute('x')"><i class="fa fa-arrows-h"/> Space across</button>
+                <button class="btn btn-light" t-on-click="() => this.distribute('y')"><i class="fa fa-arrows-v"/> Space down</button>
+            </div>
+            <h6 class="o_scorm_section">Order</h6>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-light" t-on-click="() => this.arrange('front')"><i class="fa fa-angle-double-up"/> Bring to front</button>
+                <button class="btn btn-light" t-on-click="() => this.arrange('back')"><i class="fa fa-angle-double-down"/> Send to back</button>
+            </div>
+        </t>
+    </t>
+
     <!-- Selected item -->
     <t t-name="lms_scorm_authoring.ItemPanel">
         <t t-set="p" t-value="el.props"/>
@@ -395,18 +445,10 @@
         <fieldset t-att-disabled="readonly">
             <!-- Text formatting -->
             <t t-if="el.type === 'text'">
-                <div class="o_scorm_toolbar">
-                    <button class="btn btn-sm btn-light" title="Bold" t-on-mousedown.prevent="() => this.format('bold')"><i class="fa fa-bold"/></button>
-                    <button class="btn btn-sm btn-light" title="Italic" t-on-mousedown.prevent="() => this.format('italic')"><i class="fa fa-italic"/></button>
-                    <button class="btn btn-sm btn-light" title="Underline" t-on-mousedown.prevent="() => this.format('underline')"><i class="fa fa-underline"/></button>
-                    <button class="btn btn-sm btn-light" title="Bullets" t-on-mousedown.prevent="() => this.format('insertUnorderedList')"><i class="fa fa-list-ul"/></button>
-                    <button class="btn btn-sm btn-light" title="Numbering" t-on-mousedown.prevent="() => this.format('insertOrderedList')"><i class="fa fa-list-ol"/></button>
-                    <button class="btn btn-sm btn-light" title="Left" t-on-mousedown.prevent="() => this.format('justifyLeft')"><i class="fa fa-align-left"/></button>
-                    <button class="btn btn-sm btn-light" title="Centre" t-on-mousedown.prevent="() => this.format('justifyCenter')"><i class="fa fa-align-center"/></button>
-                    <button class="btn btn-sm btn-light" title="Right" t-on-mousedown.prevent="() => this.format('justifyRight')"><i class="fa fa-align-right"/></button>
-                    <button class="btn btn-sm btn-light" title="Link" t-on-mousedown.prevent="() => this.format('createLink')"><i class="fa fa-link"/></button>
-                </div>
-                <p t-if="state.editingId !== el.id and canEdit" class="small text-muted">Double-click the text on the slide to edit it.</p>
+                <FormatToolbar t-if="canEdit"/>
+                <p t-if="state.editingId !== el.id and canEdit" class="small text-muted">
+                    Double-click the text on the slide to edit it, then select words and format them.
+                </p>
                 <div class="o_scorm_field">
                     <label>Vertical alignment</label>
                     <select class="form-select" t-on-change="(ev) => this.setProp(el, 'valign', ev.target.value)">
@@ -478,9 +520,10 @@
 
             <!-- Buttons and hotspots -->
             <t t-if="['button', 'hotspot'].includes(el.type)">
+                <FormatToolbar t-if="el.type === 'button' and canEdit and state.editingId === el.id"/>
                 <div class="o_scorm_field" t-if="el.type === 'button'">
-                    <label>Label</label>
-                    <input class="form-control" t-att-value="p.label" t-on-change="(ev) => this.setProp(el, 'label', ev.target.value)"/>
+                    <label>Label <small class="text-muted">(or double-click the button on the slide)</small></label>
+                    <RichText value="buttonHtml(el)" onChange="(v) => this.setButtonLabel(el, v)" readonly="readonly"/>
                 </div>
                 <div class="o_scorm_field">
                     <label>When clicked</label>
@@ -521,8 +564,7 @@
                     </div>
                     <div class="o_scorm_field">
                         <label>Pop-up text</label>
-                        <textarea class="form-control" rows="4" t-on-change="(ev) => this.setHtmlFromText(el, 'popup_text', ev.target.value)"
-                                  t-esc="textOf(p.popup_text)"/>
+                        <RichText value="p.popup_text or ''" onChange="(v) => this.setProp(el, 'popup_text', v)" readonly="readonly"/>
                     </div>
                 </t>
                 <div class="o_scorm_field form-check" t-if="el.type === 'hotspot'">
@@ -541,9 +583,7 @@
                                t-on-change="(ev) => this.listSet(el, 'items', item_index, 'title', ev.target.value)"/>
                         <t t-call="lms_scorm_authoring.ListTools"><t t-set="key" t-value="'items'"/><t t-set="index" t-value="item_index"/></t>
                     </div>
-                    <textarea class="form-control form-control-sm mt-1" rows="3"
-                              t-on-change="(ev) => this.listSetHtml(el, 'items', item_index, 'html', ev.target.value)"
-                              t-esc="textOf(item.html)"/>
+                    <RichText value="item.html or ''" onChange="(v) => this.listSet(el, 'items', item_index, 'html', v)" readonly="readonly"/>
                 </div>
                 <button class="btn btn-link btn-sm" t-on-click="() => this.listAdd(el, 'items', { title: 'New', html: '&lt;p&gt;&lt;/p&gt;' })">
                     <i class="fa fa-plus"/> Add
@@ -554,13 +594,11 @@
             <t t-if="el.type === 'flipcard'">
                 <div class="o_scorm_field">
                     <label>Front</label>
-                    <textarea class="form-control" rows="3" t-on-change="(ev) => this.setHtmlFromText(el, 'front_html', ev.target.value)"
-                              t-esc="textOf(p.front_html)"/>
+                    <RichText value="p.front_html or ''" onChange="(v) => this.setProp(el, 'front_html', v)" readonly="readonly"/>
                 </div>
                 <div class="o_scorm_field">
                     <label>Back</label>
-                    <textarea class="form-control" rows="4" t-on-change="(ev) => this.setHtmlFromText(el, 'back_html', ev.target.value)"
-                              t-esc="textOf(p.back_html)"/>
+                    <RichText value="p.back_html or ''" onChange="(v) => this.setProp(el, 'back_html', v)" readonly="readonly"/>
                 </div>
             </t>
 
@@ -582,9 +620,7 @@
                         <input type="number" min="0" max="100" class="form-control form-control-sm" t-att-value="marker.y"
                                t-on-change="(ev) => this.listSet(el, 'markers', marker_index, 'y', this.numberValue(ev))"/>
                     </div>
-                    <textarea class="form-control form-control-sm mt-1" rows="2"
-                              t-on-change="(ev) => this.listSetHtml(el, 'markers', marker_index, 'text', ev.target.value)"
-                              t-esc="textOf(marker.text)"/>
+                    <RichText value="marker.text or ''" onChange="(v) => this.listSet(el, 'markers', marker_index, 'text', v)" readonly="readonly"/>
                 </div>
                 <button class="btn btn-link btn-sm" t-on-click="() => this.listAdd(el, 'markers', { x: 50, y: 50, title: 'New', text: '' })">
                     <i class="fa fa-plus"/> Add marker
@@ -595,8 +631,7 @@
             <t t-if="isQuestion(el)">
                 <div class="o_scorm_field">
                     <label>Question</label>
-                    <textarea class="form-control" rows="3" t-on-change="(ev) => this.setHtmlFromText(el, 'prompt', ev.target.value)"
-                              t-esc="textOf(p.prompt)"/>
+                    <RichText value="p.prompt or ''" onChange="(v) => this.setProp(el, 'prompt', v)" readonly="readonly"/>
                 </div>
                 <t t-if="['mcq', 'mrq', 'truefalse', 'survey'].includes(el.type)">
                     <h6 class="o_scorm_section">
@@ -676,15 +711,11 @@
                     </div>
                     <div class="o_scorm_field">
                         <label>Feedback when correct <small class="text-muted">(blank = course default)</small></label>
-                        <textarea class="form-control form-control-sm" rows="2"
-                                  t-on-change="(ev) => this.setHtmlFromText(el, 'feedback_correct', ev.target.value)"
-                                  t-esc="textOf(p.feedback_correct)"/>
+                        <RichText value="p.feedback_correct or ''" onChange="(v) => this.setProp(el, 'feedback_correct', v)" readonly="readonly"/>
                     </div>
                     <div class="o_scorm_field">
                         <label>Feedback when wrong</label>
-                        <textarea class="form-control form-control-sm" rows="2"
-                                  t-on-change="(ev) => this.setHtmlFromText(el, 'feedback_incorrect', ev.target.value)"
-                                  t-esc="textOf(p.feedback_incorrect)"/>
+                        <RichText value="p.feedback_incorrect or ''" onChange="(v) => this.setProp(el, 'feedback_incorrect', v)" readonly="readonly"/>
                     </div>
                 </t>
             </t>
@@ -693,13 +724,11 @@
             <t t-if="el.type === 'results'">
                 <div class="o_scorm_field">
                     <label>Message when passed <small class="text-muted">(blank = course default)</small></label>
-                    <textarea class="form-control" rows="2" t-on-change="(ev) => this.setHtmlFromText(el, 'pass_html', ev.target.value)"
-                              t-esc="textOf(p.pass_html)"/>
+                    <RichText value="p.pass_html or ''" onChange="(v) => this.setProp(el, 'pass_html', v)" readonly="readonly"/>
                 </div>
                 <div class="o_scorm_field">
                     <label>Message when failed</label>
-                    <textarea class="form-control" rows="2" t-on-change="(ev) => this.setHtmlFromText(el, 'fail_html', ev.target.value)"
-                              t-esc="textOf(p.fail_html)"/>
+                    <RichText value="p.fail_html or ''" onChange="(v) => this.setProp(el, 'fail_html', v)" readonly="readonly"/>
                 </div>
                 <div class="o_scorm_field form-check">
                     <input type="checkbox" class="form-check-input" t-att-id="'retry_' + el.id" t-att-checked="p.allow_retry !== false"
@@ -782,6 +811,96 @@
                        t-on-change="(ev) => this.setStyle(el, 'shadow', ev.target.checked || '')"/>
             </div>
         </fieldset>
+    </t>
+
+    <!-- Generate with AI -->
+    <t t-name="lms_scorm_authoring.AiCourseDialog">
+        <Dialog title="'Generate the course with AI'" size="'md'">
+            <div class="o_scorm_ai_dialog">
+                <div class="mb-3">
+                    <label class="form-label fw-bold" for="scorm_ai_prompt">What should the course teach?</label>
+                    <textarea id="scorm_ai_prompt" class="form-control" rows="6"
+                              placeholder="e.g. A fire safety induction for new warehouse staff: raising the alarm, using extinguishers, evacuation routes and assembly points."
+                              t-on-input="(ev) => this.set('prompt', ev.target.value)" t-esc="state.prompt"/>
+                    <div class="form-text">Say who it is for, what they must be able to do afterwards and anything it must cover.</div>
+                </div>
+                <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="scorm_ai_checks" t-att-checked="state.includeChecks"
+                           t-on-change="(ev) => this.set('includeChecks', ev.target.checked)"/>
+                    <label class="form-check-label" for="scorm_ai_checks">Include assessments throughout the course</label>
+                    <div class="form-text">Knowledge-check questions after each part.</div>
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="scorm_ai_exam" t-att-checked="state.includeExam"
+                           t-on-change="(ev) => this.set('includeExam', ev.target.checked)"/>
+                    <label class="form-check-label" for="scorm_ai_exam">Include a single exam at the end</label>
+                    <div class="form-text">Scored questions and a results slide; learners must pass it.</div>
+                </div>
+                <div class="mb-3 d-flex align-items-center gap-2">
+                    <label class="form-label mb-0" for="scorm_ai_minutes">Roughly how long should it take?</label>
+                    <input type="number" id="scorm_ai_minutes" class="form-control" style="max-width: 6rem;" min="5" max="240"
+                           t-att-value="state.minutes" t-on-change="(ev) => this.set('minutes', ev.target.value)"/>
+                    <span>minutes</span>
+                </div>
+                <div class="form-check mb-2" t-if="props.hasSlides">
+                    <input type="checkbox" class="form-check-input" id="scorm_ai_replace" t-att-checked="state.replace"
+                           t-on-change="(ev) => this.set('replace', ev.target.checked)"/>
+                    <label class="form-check-label" for="scorm_ai_replace">Replace the current slides</label>
+                    <div class="form-text">Otherwise the new slides are added after them.</div>
+                </div>
+                <div t-if="state.error" class="alert alert-danger py-2 mb-0" role="alert" t-esc="state.error"/>
+                <p class="text-muted small mb-0 mt-2">
+                    Written by <t t-esc="props.provider"/>. Check the content before you submit the course for approval.
+                </p>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="() => this.generate()">
+                    <i class="fa fa-magic me-1"/>Generate
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <!-- Formatting for the selected words in any rich text box -->
+    <t t-name="lms_scorm_authoring.FormatToolbar">
+        <div class="o_scorm_toolbar" t-on-mousedown="onMouseDown">
+            <button class="btn btn-sm btn-light" title="Bold" t-on-click="() => this.apply('bold')"><i class="fa fa-bold"/></button>
+            <button class="btn btn-sm btn-light" title="Italic" t-on-click="() => this.apply('italic')"><i class="fa fa-italic"/></button>
+            <button class="btn btn-sm btn-light" title="Underline" t-on-click="() => this.apply('underline')"><i class="fa fa-underline"/></button>
+            <button class="btn btn-sm btn-light" title="Strikethrough" t-on-click="() => this.apply('strikeThrough')"><i class="fa fa-strikethrough"/></button>
+            <select class="form-select form-select-sm o_scorm_toolbar_size" title="Text size"
+                    t-on-change="(ev) => this.applySize(ev)">
+                <option value="">Size</option>
+                <option t-foreach="sizes" t-as="size" t-key="size" t-att-value="size" t-esc="size"/>
+            </select>
+            <label class="o_scorm_toolbar_colour" title="Text colour">
+                <i class="fa fa-font"/>
+                <input type="color" t-on-change="(ev) => this.apply('foreColor', ev.target.value)"/>
+            </label>
+            <label class="o_scorm_toolbar_colour" title="Highlight">
+                <i class="fa fa-paint-brush"/>
+                <input type="color" value="#fff59d" t-on-change="(ev) => this.apply('hiliteColor', ev.target.value)"/>
+            </label>
+            <t t-if="!props.compact">
+                <button class="btn btn-sm btn-light" title="Bullets" t-on-click="() => this.apply('insertUnorderedList')"><i class="fa fa-list-ul"/></button>
+                <button class="btn btn-sm btn-light" title="Numbering" t-on-click="() => this.apply('insertOrderedList')"><i class="fa fa-list-ol"/></button>
+                <button class="btn btn-sm btn-light" title="Left" t-on-click="() => this.apply('justifyLeft')"><i class="fa fa-align-left"/></button>
+                <button class="btn btn-sm btn-light" title="Centre" t-on-click="() => this.apply('justifyCenter')"><i class="fa fa-align-center"/></button>
+                <button class="btn btn-sm btn-light" title="Right" t-on-click="() => this.apply('justifyRight')"><i class="fa fa-align-right"/></button>
+            </t>
+            <button class="btn btn-sm btn-light" title="Link" t-on-click="() => this.link()"><i class="fa fa-link"/></button>
+            <button class="btn btn-sm btn-light" title="Clear formatting" t-on-click="() => this.apply('removeFormat')"><i class="fa fa-eraser"/></button>
+        </div>
+    </t>
+
+    <t t-name="lms_scorm_authoring.RichText">
+        <div class="o_scorm_rich" t-att-class="{'o_scorm_rich_readonly': props.readonly}">
+            <FormatToolbar t-if="!props.readonly" compact="true"/>
+            <div class="o_scorm_rich_body form-control" t-ref="editable" data-rich="1"
+                 t-att-contenteditable="props.readonly ? 'false' : 'true'"
+                 t-on-input="onInput" t-on-blur="commit"/>
+        </div>
     </t>
 
     <t t-name="lms_scorm_authoring.ListTools">

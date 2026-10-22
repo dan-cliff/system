@@ -308,9 +308,16 @@
     .o_scorm_button {
         width: 100%;
         height: 100%;
-        border: 0;
-        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4px 10px;
+        overflow: hidden;
+        p { margin: 0; }
     }
+    .o_scorm_button_label { pointer-events: none; }
+    .o_scorm_button_edit { min-width: 2em; cursor: text; }
     .o_scorm_hotspot {
         width: 100%;
         height: 100%;
@@ -435,6 +442,21 @@
         i { font-size: 48px; color: var(--brand-primary); }
     }
 
+    .o_scorm_marquee {
+        position: absolute;
+        z-index: 1999;
+        border: 1px dashed $o-brand-primary;
+        background: rgba(31, 111, 235, 0.08);
+        pointer-events: none;
+    }
+    .o_scorm_multi_list {
+        padding-left: 1.2em;
+        margin-bottom: 8px;
+        max-height: 160px;
+        overflow-y: auto;
+        font-size: 13px;
+    }
+
     // ── Review comment pins ────────────────────────────────────────────
     .o_scorm_pin {
         position: absolute;
@@ -524,8 +546,44 @@
     .o_scorm_toolbar {
         display: flex;
         flex-wrap: wrap;
+        align-items: center;
         gap: 2px;
         margin-bottom: 8px;
+        .o_scorm_toolbar_size { width: auto; padding-top: 2px; padding-bottom: 2px; }
+    }
+    .o_scorm_toolbar_colour {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2px 6px;
+        border-radius: 4px;
+        cursor: pointer;
+        background: var(--bs-light, #f8f9fa);
+        input[type="color"] {
+            width: 18px;
+            height: 5px;
+            padding: 0;
+            border: 0;
+            cursor: pointer;
+        }
+    }
+    .o_scorm_rich {
+        .o_scorm_toolbar {
+            margin-bottom: 2px;
+            gap: 1px;
+            .btn { padding: 1px 5px; }
+            .o_scorm_toolbar_colour { padding: 1px 4px; }
+        }
+        .o_scorm_rich_body {
+            min-height: 3.2em;
+            max-height: 14em;
+            overflow-y: auto;
+            height: auto;
+            p { margin: 0 0 0.3em; }
+            ul, ol { margin: 0 0 0.3em; padding-left: 1.3em; }
+        }
+        &.o_scorm_rich_readonly .o_scorm_rich_body { background: #f8f9fa; }
     }
     .o_scorm_list_item {
         margin-bottom: 8px;

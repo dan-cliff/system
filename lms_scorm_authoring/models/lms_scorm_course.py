@@ -11,7 +11,7 @@ from ..lib.package_builder import build_package
 
 EDITABLE_STATES = ('draft',)
 HTML_PROPS = ('html', 'front_html', 'back_html', 'pass_html', 'fail_html', 'popup_text', 'prompt',
-              'feedback_correct', 'feedback_incorrect')
+              'feedback_correct', 'feedback_incorrect', 'label_html')
 URL_PROPS = ('url',)
 DEFAULT_LABELS = {
     'label_start': 'Start',
@@ -827,6 +827,9 @@ class LmsScormCourse(models.Model):
             'width': self.slide_width,
             'height': self.slide_height,
             'permissions': self._editor_permissions(),
+            # Only whether a key is set: the keys never leave the server
+            'ai_available': bool(self._ai_providers()),
+            'ai_provider': (self._ai_providers() or [(None, '', None)])[0][1],
             'branding': {
                 'primary_color': brand['primary_color'] or '#1f6feb',
                 'secondary_color': brand['secondary_color'] or '#0b3d91',

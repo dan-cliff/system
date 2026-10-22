@@ -1,10 +1,14 @@
 /** @odoo-module **/
 
-import { Component, markup, onMounted, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
+import {
+    Component, markup, onMounted, onWillStart, onWillUnmount, onWillUpdateProps, useRef, useState,
+} from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { Dialog } from "@web/core/dialog/dialog";
+import { aiProgress } from "../ai_progress/ai_progress";
 
 const GRID = 8;
 const AUTOSAVE_MS = 2500;
@@ -77,21 +81,6 @@ function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text || "";
     return div.innerHTML;
-}
-
-/** Plain text from the editor's text boxes -> HTML stored on the item. */
-function textToHtml(text) {
-    return (text || "")
-        .split(/\n{2,}/)
-        .map((para) => `<p>${escapeHtml(para).replace(/\n/g, "<br/>")}</p>`)
-        .join("");
-}
-
-/** Stored HTML -> plain text for the editor's text boxes. */
-function htmlToText(html) {
-    const div = document.createElement("div");
-    div.innerHTML = (html || "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>\s*<p[^>]*>/gi, "\n\n");
-    return div.textContent || "";
 }
 
 function defaultElement(type, branding) {
@@ -188,8 +177,192 @@ function defaultElement(type, branding) {
     return base;
 }
 
+// ----------------------------------------------------------------------
+// Rich text: formatting applies to the words selected in whichever rich
+// text box (data-rich) the cursor was last in, so the size and colour
+// pickers, which take the focus, still format the right words.
+// ----------------------------------------------------------------------
+const TEXT_SIZES = [10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 96];
+const richSelection = { range: null, editable: null };
+
+function rememberSelection() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) {
+        return;
+    }
+    const range = selection.getRangeAt(0);
+    const node = range.commonAncestorContainer;
+    const editable = (node.nodeType === 1 ? node : node.parentElement)?.closest("[data-rich]");
+    if (editable && editable.isContentEditable) {
+        richSelection.range = range.cloneRange();
+        richSelection.editable = editable;
+    }
+}
+
+function applyFormat(command, value = null) {
+    const editable = richSelection.editable;
+    if (!editable || !editable.isConnected || !editable.isContentEditable) {
+        return false;
+    }
+    editable.focus();
+    if (richSelection.range) {
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(richSelection.range);
+    }
+    document.execCommand("styleWithCSS", false, command !== "fontSize");
+    if (command === "fontSize") {
+        // execCommand only knows sizes 1-7: mark the words with 7, then set the real size
+        document.execCommand("fontSize", false, "7");
+        const spans = [];
+        for (const font of editable.querySelectorAll('font[size="7"]')) {
+            const span = document.createElement("span");
+            span.style.fontSize = `${value}px`;
+            span.append(...font.childNodes);
+            font.replaceWith(span);
+            spans.push(span);
+        }
+        if (spans.length) {
+            // Keep the same words selected for the next format
+            const range = document.createRange();
+            range.setStartBefore(spans[0]);
+            range.setEndAfter(spans[spans.length - 1]);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    } else {
+        document.execCommand(command, false, value);
+    }
+    rememberSelection();
+    editable.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+}
+
+class FormatToolbar extends Component {
+    static template = "lms_scorm_authoring.FormatToolbar";
+    static props = { compact: { type: Boolean, optional: true } };
+
+    setup() {
+        this.sizes = TEXT_SIZES;
+    }
+
+    onMouseDown(ev) {
+        // Keep the cursor in the text box for the buttons (pickers need the focus)
+        if (ev.target.closest("button")) {
+            ev.preventDefault();
+        }
+    }
+
+    apply(command, value = null) {
+        applyFormat(command, value);
+    }
+
+    applySize(ev) {
+        if (ev.target.value) {
+            applyFormat("fontSize", ev.target.value);
+        }
+        ev.target.value = "";
+    }
+
+    link() {
+        const url = window.prompt(_t("Link address (https://…)"), "https://");
+        if (url && /^(https?:|mailto:)/i.test(url)) {
+            applyFormat("createLink", url);
+        }
+    }
+}
+
+/** A rich text box for the properties panel. */
+class RichText extends Component {
+    static template = "lms_scorm_authoring.RichText";
+    static components = { FormatToolbar };
+    static props = {
+        value: { type: String, optional: true },
+        onChange: Function,
+        readonly: { type: Boolean, optional: true },
+    };
+
+    setup() {
+        this.editable = useRef("editable");
+        onMounted(() => {
+            this.editable.el.innerHTML = this.props.value || "";
+        });
+        onWillUpdateProps((next) => {
+            const el = this.editable.el;
+            // Leave the box alone while someone is typing in it
+            if (el && document.activeElement !== el && (next.value || "") !== el.innerHTML) {
+                el.innerHTML = next.value || "";
+            }
+        });
+        onWillUnmount(() => clearTimeout(this.timer));
+    }
+
+    onInput() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.commit(), 600);
+    }
+
+    commit() {
+        clearTimeout(this.timer);
+        const el = this.editable.el;
+        if (!el || this.props.readonly) {
+            return;
+        }
+        const value = el.textContent.trim() || el.querySelector("img") ? el.innerHTML : "";
+        if (value !== (this.props.value || "")) {
+            this.props.onChange(value);
+        }
+    }
+}
+
+/** What the author wants the AI to write. */
+class AiCourseDialog extends Component {
+    static template = "lms_scorm_authoring.AiCourseDialog";
+    static components = { Dialog };
+    static props = { hasSlides: Boolean, provider: String, onGenerate: Function, close: Function };
+
+    setup() {
+        this.state = useState({
+            prompt: "",
+            includeChecks: true,
+            includeExam: true,
+            minutes: 15,
+            replace: false,
+            error: "",
+        });
+    }
+
+    set(field, value) {
+        this.state[field] = value;
+        this.state.error = "";
+    }
+
+    generate() {
+        const prompt = this.state.prompt.trim();
+        const minutes = parseInt(this.state.minutes, 10);
+        if (!prompt) {
+            this.state.error = _t("Describe what the course should teach.");
+            return;
+        }
+        if (!(minutes >= 5 && minutes <= 240)) {
+            this.state.error = _t("The course length must be between 5 and 240 minutes.");
+            return;
+        }
+        this.props.close();
+        this.props.onGenerate({
+            prompt,
+            include_checks: this.state.includeChecks,
+            include_exam: this.state.includeExam,
+            minutes,
+            replace: this.state.replace,
+        });
+    }
+}
+
 export class ScormEditor extends Component {
     static template = "lms_scorm_authoring.Editor";
+    static components = { FormatToolbar, RichText };
     static props = ["*"];
 
     setup() {
@@ -217,7 +390,9 @@ export class ScormEditor extends Component {
             slides: [],
             comments: [],
             current: 0,
-            selectedId: null,
+            selectedId: null, // the item the properties panel shows
+            selectedIds: [], // every selected item (Shift/Ctrl-click or drag a box)
+            marquee: null,
             editingId: null,
             panel: "item",
             zoom: "fit",
@@ -251,6 +426,7 @@ export class ScormEditor extends Component {
         onWillStart(() => this.load());
         onMounted(() => {
             document.addEventListener("keydown", this._onKeydown);
+            document.addEventListener("selectionchange", rememberSelection);
             window.addEventListener("beforeunload", this._onBeforeUnload);
             this.resizeObserver = new ResizeObserver(() => this.fit());
             if (this.stageArea.el) {
@@ -260,6 +436,7 @@ export class ScormEditor extends Component {
         });
         onWillUnmount(() => {
             document.removeEventListener("keydown", this._onKeydown);
+            document.removeEventListener("selectionchange", rememberSelection);
             window.removeEventListener("beforeunload", this._onBeforeUnload);
             document.removeEventListener("pointermove", this._onPointerMove);
             document.removeEventListener("pointerup", this._onPointerUp);
@@ -314,6 +491,26 @@ export class ScormEditor extends Component {
 
     get slide() {
         return this.state.slides[this.state.current];
+    }
+
+    /** Select these items (ids or one id); the last one is shown in the panel. */
+    select(ids) {
+        const list = (Array.isArray(ids) ? ids : [ids]).filter(Boolean);
+        this.state.selectedIds = list;
+        this.state.selectedId = list.length ? list[list.length - 1] : null;
+    }
+
+    isSelected(el) {
+        return this.state.selectedIds.includes(el.id);
+    }
+
+    get selectedEls() {
+        const ids = this.state.selectedIds;
+        return this.slide ? this.slide.elements.filter((el) => ids.includes(el.id)) : [];
+    }
+
+    get multiSelected() {
+        return this.state.selectedIds.length > 1;
     }
 
     get selected() {
@@ -433,7 +630,7 @@ export class ScormEditor extends Component {
         this.state.slides = data.slides;
         this.deleted = data.deleted;
         this.state.current = Math.min(data.current, data.slides.length - 1);
-        this.state.selectedId = null;
+        this.select(null);
         this.state.editingId = null;
         this.markDirty();
     }
@@ -513,7 +710,7 @@ export class ScormEditor extends Component {
     selectSlide(index) {
         this.commitTextEdit();
         this.state.current = index;
-        this.state.selectedId = null;
+        this.select(null);
         this.state.pendingPin = null;
         this.state.commentMode = false;
         if (this.state.panel === "item") {
@@ -553,7 +750,7 @@ export class ScormEditor extends Component {
                 }
                 this.state.slides.splice(index, 1);
                 this.state.current = Math.max(0, Math.min(this.state.current, this.state.slides.length - 1));
-                this.state.selectedId = null;
+                this.select(null);
                 this.markDirty();
             },
         });
@@ -720,7 +917,7 @@ export class ScormEditor extends Component {
         el.y = this.snap(Math.max(0, Math.min(cy - el.h / 2, course.height - el.h)));
         el.z = Math.max(0, ...this.slide.elements.map((e) => e.z || 0)) + 1;
         this.slide.elements.push(el);
-        this.state.selectedId = el.id;
+        this.select(el.id);
         this.state.panel = "item";
         this.markDirty();
         if (askForFile && ["image", "labeled_graphic"].includes(type)) {
@@ -863,14 +1060,59 @@ export class ScormEditor extends Component {
             this.state.panel = "comments";
             return;
         }
-        if (ev.target.closest(".o_scorm_el")) {
+        if (ev.target.closest(".o_scorm_el") || !ev.target.closest(".o_scorm_stage_frame") || ev.button !== 0) {
+            if (!ev.target.closest(".o_scorm_el")) {
+                this.clearSelection();
+            }
             return;
         }
         this.commitTextEdit();
-        this.state.selectedId = null;
+        // Drag a box on the empty slide to select the items it touches
+        const start = this.stagePoint(ev);
+        this.drag = {
+            marquee: true,
+            start,
+            additive: ev.shiftKey || ev.ctrlKey || ev.metaKey,
+            initial: [...this.state.selectedIds],
+            startX: ev.clientX,
+            startY: ev.clientY,
+            moved: false,
+        };
+        document.addEventListener("pointermove", this._onPointerMove);
+        document.addEventListener("pointerup", this._onPointerUp);
+    }
+
+    clearSelection() {
+        this.commitTextEdit();
+        this.select(null);
         if (this.state.panel === "item") {
             this.state.panel = "slide";
         }
+    }
+
+    updateMarquee(ev) {
+        const drag = this.drag;
+        const point = this.stagePoint(ev);
+        const box = {
+            x: Math.min(drag.start.x, point.x),
+            y: Math.min(drag.start.y, point.y),
+            w: Math.abs(point.x - drag.start.x),
+            h: Math.abs(point.y - drag.start.y),
+        };
+        this.state.marquee = box;
+        const hit = this.slide.elements.filter((el) =>
+            el.x < box.x + box.w && el.x + el.w > box.x && el.y < box.y + box.h && el.y + el.h > box.y
+        ).map((el) => el.id);
+        const ids = drag.additive ? [...new Set([...drag.initial, ...hit])] : hit;
+        this.select(ids);
+        if (ids.length) {
+            this.state.panel = "item";
+        }
+    }
+
+    get marqueeStyle() {
+        const m = this.state.marquee;
+        return m ? `left:${m.x}px;top:${m.y}px;width:${m.w}px;height:${m.h}px;` : "";
     }
 
     onElementPointerDown(ev, el, handle = null) {
@@ -884,8 +1126,22 @@ export class ScormEditor extends Component {
         if (this.state.editingId && this.state.editingId !== el.id) {
             this.commitTextEdit();
         }
-        this.state.selectedId = el.id;
         this.state.panel = "item";
+        if (!handle && (ev.shiftKey || ev.ctrlKey || ev.metaKey)) {
+            // Add to / take out of the selection
+            const ids = this.state.selectedIds.filter((id) => id !== el.id);
+            this.select(this.isSelected(el) ? ids : [...ids, el.id]);
+            if (!this.state.selectedIds.length) {
+                this.state.panel = "slide";
+            }
+            return;
+        }
+        if (!this.isSelected(el) || handle) {
+            this.select(el.id);
+        } else {
+            // Keep the group, show this one in the panel
+            this.select([...this.state.selectedIds.filter((id) => id !== el.id), el.id]);
+        }
         if (!this.canEdit || ev.button !== 0) {
             return;
         }
@@ -896,6 +1152,8 @@ export class ScormEditor extends Component {
             startX: ev.clientX,
             startY: ev.clientY,
             orig: { x: el.x, y: el.y, w: el.w, h: el.h },
+            // Every selected item moves together
+            group: handle ? [] : this.selectedEls.map((item) => ({ item, x: item.x, y: item.y, w: item.w, h: item.h })),
             moved: false,
             snapshotTaken: false,
             free: ev.altKey,
@@ -914,6 +1172,11 @@ export class ScormEditor extends Component {
         if (!drag.moved && Math.abs(dx) < 2 && Math.abs(dy) < 2) {
             return;
         }
+        if (drag.marquee) {
+            drag.moved = true;
+            this.updateMarquee(ev);
+            return;
+        }
         if (!drag.snapshotTaken) {
             this.snapshot();
             drag.snapshotTaken = true;
@@ -923,8 +1186,17 @@ export class ScormEditor extends Component {
         const { el, orig, handle } = drag;
         const course = this.state.course;
         if (!handle) {
-            el.x = snap(Math.max(-orig.w + 16, Math.min(orig.x + dx, course.width - 16)));
-            el.y = snap(Math.max(-orig.h + 16, Math.min(orig.y + dy, course.height - 16)));
+            // Snap the item being dragged, and move the rest of the group by the same amount
+            const x = snap(Math.max(-orig.w + 16, Math.min(orig.x + dx, course.width - 16)));
+            const y = snap(Math.max(-orig.h + 16, Math.min(orig.y + dy, course.height - 16)));
+            const moveX = x - orig.x;
+            const moveY = y - orig.y;
+            for (const g of drag.group) {
+                g.item.x = Math.max(-g.w + 16, Math.min(g.x + moveX, course.width - 16));
+                g.item.y = Math.max(-g.h + 16, Math.min(g.y + moveY, course.height - 16));
+            }
+            el.x = x;
+            el.y = y;
             return;
         }
         let { x, y, w, h } = orig;
@@ -949,34 +1221,43 @@ export class ScormEditor extends Component {
     onPointerUp() {
         document.removeEventListener("pointermove", this._onPointerMove);
         document.removeEventListener("pointerup", this._onPointerUp);
-        if (this.drag?.moved) {
+        const drag = this.drag;
+        this.drag = null;
+        if (drag?.marquee) {
+            this.state.marquee = null;
+            if (!drag.moved && !drag.additive) {
+                this.clearSelection();
+            }
+            return;
+        }
+        if (drag?.moved) {
             this.markDirty();
         }
-        this.drag = null;
     }
 
     onElementDblClick(el) {
         if (!this.canEdit) {
             return;
         }
-        if (el.type === "text") {
+        if (el.type === "text" || el.type === "button") {
             this.startTextEdit(el);
         } else if (["image", "video", "audio"].includes(el.type) && !el.props.attachment_id && !el.props.url) {
             this.uploadFor(el, `${el.type}/*`);
         }
     }
 
-    // Text boxes are edited in place; OWL leaves the content of the
-    // contenteditable alone, so it is filled once and read back on commit.
+    // Text boxes and button labels are edited in place; OWL leaves the
+    // content of the contenteditable alone, so it is filled once and read
+    // back on commit (clicking elsewhere, Escape, saving, changing slide).
     startTextEdit(el) {
         this.snapshot();
-        this.state.selectedId = el.id;
+        this.select(el.id);
         this.state.editingId = el.id;
         this.state.panel = "item";
         setTimeout(() => {
             const node = document.querySelector(`.o_scorm_text_edit[data-id="${el.id}"]`);
             if (node) {
-                node.innerHTML = el.props.html || "";
+                node.innerHTML = el.type === "button" ? this.buttonHtml(el) : el.props.html || "";
                 node.focus();
                 const range = document.createRange();
                 range.selectNodeContents(node);
@@ -994,92 +1275,178 @@ export class ScormEditor extends Component {
         }
         const node = document.querySelector(`.o_scorm_text_edit[data-id="${id}"]`);
         const el = this.state.slides.flatMap((s) => s.elements).find((e) => e.id === id);
-        if (node && el && el.props.html !== node.innerHTML) {
+        this.state.editingId = null;
+        if (!node || !el) {
+            return;
+        }
+        if (el.type === "button") {
+            if (node.innerHTML !== this.buttonHtml(el)) {
+                this.applyButtonLabel(el, node.innerHTML);
+                this.markDirty();
+            }
+        } else if (el.props.html !== node.innerHTML) {
             el.props.html = node.innerHTML;
             this.markDirty();
         }
-        this.state.editingId = null;
     }
 
-    format(command, value = null) {
-        if (!this.state.editingId) {
-            const el = this.selected;
-            if (el?.type === "text") {
-                this.startTextEdit(el);
-            }
-            return;
-        }
-        if (command === "createLink") {
-            value = window.prompt(_t("Link address (https://…)"), "https://");
-            if (!value || !/^(https?:|mailto:)/i.test(value)) {
-                return;
-            }
-        }
-        document.execCommand(command, false, value);
+    /** A button's label as HTML (older buttons only have plain text). */
+    buttonHtml(el) {
+        return el.props.label_html || escapeHtml(el.props.label || "");
+    }
+
+    applyButtonLabel(el, html) {
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        el.props.label_html = html;
+        // Plain text kept for screen readers and older players
+        el.props.label = div.textContent.trim();
+    }
+
+    setButtonLabel(el, html) {
+        this.snapshot();
+        this.applyButtonLabel(el, html);
+        this.markDirty();
     }
 
     // ------------------------------------------------------------------
     // Item actions
     // ------------------------------------------------------------------
     deleteSelected() {
-        const el = this.selected;
-        if (!el || !this.canEdit) {
+        const els = this.selectedEls;
+        if (!els.length || !this.canEdit) {
             return;
         }
         this.snapshot();
-        this.slide.elements = this.slide.elements.filter((e) => e.id !== el.id);
-        this.state.selectedId = null;
+        this.slide.elements = this.slide.elements.filter((e) => !els.includes(e));
+        this.select(null);
         this.state.editingId = null;
         this.state.panel = "slide";
         this.markDirty();
     }
 
-    duplicateSelected() {
-        const el = this.selected;
-        if (!el || !this.canEdit) {
-            return;
+    /** Copies of items, offset so they don't sit exactly on top of each other. */
+    pasteElements(items, offset) {
+        let z = Math.max(0, ...this.slide.elements.map((e) => e.z || 0));
+        const ordered = [...items].sort((a, b) => (a.z || 0) - (b.z || 0));
+        const newIds = new Map();
+        const copies = ordered.map((item) => {
+            const copy = clone(item);
+            copy.id = uid();
+            copy.x += offset;
+            copy.y += offset;
+            copy.z = ++z;
+            newIds.set(item.id, copy.id);
+            return copy;
+        });
+        // "Show a hidden item" actions copied together with their target point at the copy
+        for (const copy of copies) {
+            if (copy.props?.target_element && newIds.has(copy.props.target_element)) {
+                copy.props.target_element = newIds.get(copy.props.target_element);
+            }
         }
-        this.snapshot();
-        const copy = clone(el);
-        copy.id = uid();
-        copy.x += 24;
-        copy.y += 24;
-        copy.z = Math.max(...this.slide.elements.map((e) => e.z || 0)) + 1;
-        this.slide.elements.push(copy);
-        this.state.selectedId = copy.id;
+        this.slide.elements.push(...copies);
+        this.select(copies.map((copy) => copy.id));
+        this.state.panel = "item";
         this.markDirty();
     }
 
-    arrange(direction) {
-        const el = this.selected;
-        if (!el) {
+    duplicateSelected() {
+        const els = this.selectedEls;
+        if (!els.length || !this.canEdit) {
             return;
         }
         this.snapshot();
-        const ordered = this.sortedElements;
-        const index = ordered.indexOf(el);
-        ordered.splice(index, 1);
-        if (direction === "front") { ordered.push(el); }
-        else if (direction === "back") { ordered.unshift(el); }
-        else if (direction === "forward") { ordered.splice(Math.min(index + 1, ordered.length), 0, el); }
-        else { ordered.splice(Math.max(index - 1, 0), 0, el); }
+        this.pasteElements(els, 24);
+    }
+
+    copySelected() {
+        if (this.selectedEls.length) {
+            this.clipboard = { slideId: this.slide.id, items: clone(this.selectedEls) };
+        }
+    }
+
+    paste() {
+        if (!this.clipboard || !this.canEdit) {
+            return;
+        }
+        this.snapshot();
+        this.pasteElements(this.clipboard.items, this.clipboard.slideId === this.slide.id ? 24 : 0);
+    }
+
+    selectAll() {
+        if (this.slide) {
+            this.select(this.sortedElements.map((el) => el.id));
+            this.state.panel = "item";
+        }
+    }
+
+    arrange(direction) {
+        const els = this.selectedEls;
+        if (!els.length) {
+            return;
+        }
+        this.snapshot();
+        let ordered = this.sortedElements;
+        if (els.length > 1 || direction === "front" || direction === "back") {
+            const rest = ordered.filter((e) => !els.includes(e));
+            const group = ordered.filter((e) => els.includes(e));
+            ordered = direction === "back" || direction === "backward" ? [...group, ...rest] : [...rest, ...group];
+        } else {
+            const el = els[0];
+            const index = ordered.indexOf(el);
+            ordered.splice(index, 1);
+            if (direction === "forward") { ordered.splice(Math.min(index + 1, ordered.length), 0, el); }
+            else { ordered.splice(Math.max(index - 1, 0), 0, el); }
+        }
         ordered.forEach((e, i) => { e.z = i + 1; });
         this.markDirty();
     }
 
+    /** One item lines up with the slide; several line up with each other. */
     align(where) {
-        const el = this.selected;
-        if (!el) {
+        const els = this.selectedEls;
+        if (!els.length) {
             return;
         }
         this.snapshot();
         const course = this.state.course;
-        if (where === "left") { el.x = 0; }
-        if (where === "center") { el.x = Math.round((course.width - el.w) / 2); }
-        if (where === "right") { el.x = course.width - el.w; }
-        if (where === "top") { el.y = 0; }
-        if (where === "middle") { el.y = Math.round((course.height - el.h) / 2); }
-        if (where === "bottom") { el.y = course.height - el.h; }
+        const box = els.length > 1 ? {
+            left: Math.min(...els.map((e) => e.x)),
+            right: Math.max(...els.map((e) => e.x + e.w)),
+            top: Math.min(...els.map((e) => e.y)),
+            bottom: Math.max(...els.map((e) => e.y + e.h)),
+        } : { left: 0, right: course.width, top: 0, bottom: course.height };
+        for (const el of els) {
+            if (where === "left") { el.x = box.left; }
+            if (where === "center") { el.x = Math.round((box.left + box.right - el.w) / 2); }
+            if (where === "right") { el.x = box.right - el.w; }
+            if (where === "top") { el.y = box.top; }
+            if (where === "middle") { el.y = Math.round((box.top + box.bottom - el.h) / 2); }
+            if (where === "bottom") { el.y = box.bottom - el.h; }
+        }
+        this.markDirty();
+    }
+
+    /** Spread three or more items out evenly across or down. */
+    distribute(axis) {
+        const els = this.selectedEls;
+        if (els.length < 3) {
+            return;
+        }
+        this.snapshot();
+        const pos = axis === "x" ? "x" : "y";
+        const size = axis === "x" ? "w" : "h";
+        const sorted = [...els].sort((a, b) => a[pos] - b[pos]);
+        const first = sorted[0];
+        const last = sorted[sorted.length - 1];
+        const used = sorted.reduce((sum, e) => sum + e[size], 0);
+        const gap = (last[pos] + last[size] - first[pos] - used) / (sorted.length - 1);
+        let next = first[pos];
+        for (const el of sorted) {
+            el[pos] = Math.round(next);
+            next += el[size] + gap;
+        }
         this.markDirty();
     }
 
@@ -1211,18 +1578,6 @@ export class ScormEditor extends Component {
         this.markDirty();
     }
 
-    textOf(html) {
-        return htmlToText(html);
-    }
-
-    setHtmlFromText(el, key, text) {
-        this.setProp(el, key, textToHtml(text));
-    }
-
-    listSetHtml(el, key, index, field, text) {
-        this.listSet(el, key, index, field, textToHtml(text));
-    }
-
     elementsForReveal() {
         return (this.slide?.elements || []).filter((e) => e.id !== this.state.selectedId)
             .map((e) => ({ id: e.id, label: `${this.typeLabels[e.type] || e.type}${e.hidden ? " (" + _t("hidden") + ")" : ""}` }));
@@ -1312,7 +1667,7 @@ export class ScormEditor extends Component {
 
     focusComment(comment) {
         if (comment.element_id) {
-            this.state.selectedId = comment.element_id;
+            this.select(comment.element_id);
         }
         this.state.panel = "comments";
     }
@@ -1329,6 +1684,85 @@ export class ScormEditor extends Component {
             url += `?slide=${this.state.current + 1}`;
         }
         window.open(url, "_blank");
+    }
+
+    // ------------------------------------------------------------------
+    // Generate with AI
+    // ------------------------------------------------------------------
+    openAiDialog() {
+        const course = this.state.course;
+        if (!this.canEdit || !course.ai_available) {
+            return;
+        }
+        this.dialog.add(AiCourseDialog, {
+            hasSlides: this.state.slides.some((s) => s.elements.length),
+            provider: course.ai_provider || "AI",
+            onGenerate: (options) => this.generateWithAi(options),
+        });
+    }
+
+    async generateWithAi(options) {
+        const extras = [];
+        if (options.include_checks) {
+            extras.push(_t("knowledge checks"));
+        }
+        if (options.include_exam) {
+            extras.push(_t("a final exam"));
+        }
+        aiProgress.start(_t("Generating your course"), [
+            _t("Saving the course"),
+            _t("Checking what is needed"),
+            _t("Asking the AI to write the course"),
+            _t("Building the slides"),
+            _t("Updating the editor"),
+        ]);
+        try {
+            this.commitTextEdit();
+            if (this.state.dirty) {
+                await this.save(true);
+            }
+            aiProgress.next();
+            const plan = await this.orm.call("lms.scorm.course", "editor_ai_check", [[this.courseId], options]);
+            const asking = _t(
+                "Asking %(provider)s to write about %(slides)s slides on \"%(topic)s\" for a %(minutes)s-minute course%(extras)s",
+                {
+                    provider: plan.provider,
+                    slides: plan.content_slides,
+                    topic: plan.topic,
+                    minutes: plan.minutes,
+                    extras: extras.length ? ` ${_t("with")} ${extras.join(` ${_t("and")} `)}` : "",
+                }
+            );
+            aiProgress.next(plan.fallback ? `${asking} (${_t("%s if that fails", plan.fallback)})` : asking);
+            const written = await this.orm.call("lms.scorm.course", "editor_ai_write", [[this.courseId], options]);
+            aiProgress.next(_t("Building the slides from %s's course", written.provider));
+            const data = await this.orm.call("lms.scorm.course", "editor_ai_apply", [
+                [this.courseId], written.answer, options]);
+            aiProgress.next();
+            const firstNew = options.replace ? 0 : this.state.slides.length;
+            this.state.course = data;
+            this.state.slides = data.slides;
+            this.state.comments = data.comments;
+            this.deleted = [];
+            this.undoStack = [];
+            this.redoStack = [];
+            this.state.dirty = false;
+            this.selectSlide(Math.min(firstNew, Math.max(data.slides.length - 1, 0)));
+            const result = data.ai_result;
+            let message = _t("%s slides added. Check the content before publishing.", result.slides);
+            if (result.require_pass) {
+                message += " " + _t("Learners now need to pass the final exam to complete the course.");
+            }
+            this.notification.add(message, { type: "success", title: _t("Course generated") });
+            if (result.warnings.length) {
+                this.notification.add(result.warnings.join("\n"), { type: "warning", sticky: true });
+            }
+        } catch (error) {
+            const message = error?.data?.message || error?.message || String(error);
+            this.notification.add(message, { type: "danger", title: _t("The course could not be generated"), sticky: true });
+        } finally {
+            aiProgress.stop();
+        }
     }
 
     async importPresentation() {
@@ -1384,7 +1818,7 @@ export class ScormEditor extends Component {
             } else if (this.state.commentMode) {
                 this.cancelComment();
             } else {
-                this.state.selectedId = null;
+                this.select(null);
             }
             return;
         }
@@ -1401,24 +1835,25 @@ export class ScormEditor extends Component {
             this.redo();
             return;
         }
-        const el = this.selected;
-        if (!el) {
+        if (mod && ev.key.toLowerCase() === "a") {
+            ev.preventDefault();
+            this.selectAll();
+            return;
+        }
+        if (mod && ev.key.toLowerCase() === "v") {
+            ev.preventDefault();
+            this.paste();
+            return;
+        }
+        const els = this.selectedEls;
+        if (!els.length) {
             return;
         }
         if (mod && ev.key.toLowerCase() === "d") {
             ev.preventDefault();
             this.duplicateSelected();
         } else if (mod && ev.key.toLowerCase() === "c") {
-            this.clipboard = clone(el);
-        } else if (mod && ev.key.toLowerCase() === "v" && this.clipboard) {
-            ev.preventDefault();
-            this.snapshot();
-            const copy = clone(this.clipboard);
-            copy.id = uid();
-            copy.z = Math.max(0, ...this.slide.elements.map((e) => e.z || 0)) + 1;
-            this.slide.elements.push(copy);
-            this.state.selectedId = copy.id;
-            this.markDirty();
+            this.copySelected();
         } else if (ev.key === "Delete" || ev.key === "Backspace") {
             ev.preventDefault();
             this.deleteSelected();
@@ -1426,14 +1861,16 @@ export class ScormEditor extends Component {
             ev.preventDefault();
             this.snapshot();
             const step = ev.shiftKey ? 10 : 1;
-            if (ev.key === "ArrowLeft") { el.x -= step; }
-            if (ev.key === "ArrowRight") { el.x += step; }
-            if (ev.key === "ArrowUp") { el.y -= step; }
-            if (ev.key === "ArrowDown") { el.y += step; }
+            for (const el of els) {
+                if (ev.key === "ArrowLeft") { el.x -= step; }
+                if (ev.key === "ArrowRight") { el.x += step; }
+                if (ev.key === "ArrowUp") { el.y -= step; }
+                if (ev.key === "ArrowDown") { el.y += step; }
+            }
             this.markDirty();
-        } else if (ev.key === "Enter" && el.type === "text") {
+        } else if (ev.key === "Enter" && els.length === 1 && ["text", "button"].includes(els[0].type)) {
             ev.preventDefault();
-            this.startTextEdit(el);
+            this.startTextEdit(els[0]);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     'name': 'SCORM Authoring',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Design, review, approve and publish SCORM eLearning courses for the LMS',
     'description': '''
         SCORM Authoring - a companion app to the Learning Management System.
@@ -24,6 +24,9 @@
         - Preview mode to try a course without touching the LMS or training records
         - Download a SCORM 1.2 / 2004 .zip for other systems, or pick the published
           course in the LMS Course Library
+        - Generate a course's slides with AI (Claude or Google Gemini, using the keys on
+          Settings › General Settings › Integrations), with optional knowledge checks
+          and a final exam
     ''',
     'author': "Cliff's Country Crafts",
     'category': 'Human Resources/Learning',
@@ -40,6 +43,7 @@
     ],
     'assets': {
         'web.assets_backend': [
+            'lms_scorm_authoring/static/src/ai_progress/*',
             'lms_scorm_authoring/static/src/editor/*',
         ],
     },

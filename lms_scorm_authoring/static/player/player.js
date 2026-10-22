@@ -508,7 +508,12 @@
         button: function (node, el) {
             var btn = h('button', { class: 'sp-btn sp-btn-primary sp-btn-fill', type: 'button',
                                     onclick: function () { doAction(el.props, el); } });
-            btn.textContent = el.props.label || 'Button';
+            if (el.props.label_html) {
+                btn.innerHTML = el.props.label_html;
+                btn.setAttribute('aria-label', el.props.label || btn.textContent.trim());
+            } else {
+                btn.textContent = el.props.label || 'Button';
+            }
             applyStyle(btn, el.style);
             node.appendChild(btn);
         },
