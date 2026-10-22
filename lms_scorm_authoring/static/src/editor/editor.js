@@ -924,6 +924,12 @@ export class ScormEditor extends Component {
         return parts.join(";");
     }
 
+    /** While editing, the box's padding moves inside the editable area so its edges are clickable too. */
+    editPadding(el) {
+        const padding = el.style?.padding;
+        return `padding:${padding ? `${padding}px` : "4px 8px"};`;
+    }
+
     buttonStyle(el) {
         const s = el.style || {};
         let style = `background:${s.background || "var(--brand-primary)"};color:${s.color || "var(--brand-button-text)"};` +
@@ -1319,7 +1325,8 @@ export class ScormEditor extends Component {
     }
 
     onElementDblClick(el) {
-        if (!this.canEdit) {
+        if (!this.canEdit || this.state.editingId === el.id) {
+            // Already typing in it: let the browser select the word
             return;
         }
         if (el.type === "text" || (el.type === "button" && el.props.content !== "icon")) {
