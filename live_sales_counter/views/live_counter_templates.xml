@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="live_page" name="Live Sales Counter">
+        &lt;!DOCTYPE html&gt;
+        <html lang="en" t-att-data-theme="'dark' if counter.dark_theme else 'light'">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+                <meta name="robots" content="noindex, nofollow"/>
+                <meta name="theme-color" t-att-content="'#070b16' if counter.dark_theme else '#f4f6fb'"/>
+                <title t-out="counter.name"/>
+                <link rel="icon" type="image/png" href="/live_sales_counter/static/description/icon.png"/>
+                <link rel="stylesheet" href="/live_sales_counter/static/src/live/live.css"/>
+            </head>
+            <body t-att-data-config="config_json">
+                <div class="ls-app" id="ls-app">
+                    <header class="ls-header">
+                        <div class="ls-title">
+                            <span class="ls-live"><span class="ls-live-dot"/>LIVE</span>
+                            <h1 id="ls-name" t-out="counter.name"/>
+                        </div>
+                        <div class="ls-header-side">
+                            <span class="ls-period" id="ls-period"/>
+                            <span class="ls-clock" id="ls-clock"/>
+                            <button type="button" class="ls-icon-btn" id="ls-sound" title="Sound" hidden="hidden">&#x1F507;</button>
+                            <button type="button" class="ls-icon-btn" id="ls-fullscreen" title="Full screen">&#x26F6;</button>
+                        </div>
+                    </header>
+
+                    <main class="ls-main">
+                        <section class="ls-stats">
+                            <div class="ls-card ls-total-card">
+                                <div class="ls-label">Total sales</div>
+                                <div class="ls-total" id="ls-total" aria-live="polite"/>
+                                <div class="ls-bursts" id="ls-bursts"/>
+                            </div>
+                            <div class="ls-row">
+                                <div class="ls-card">
+                                    <div class="ls-label">Orders</div>
+                                    <div class="ls-number" id="ls-count"/>
+                                </div>
+                                <div class="ls-card">
+                                    <div class="ls-label">Average order</div>
+                                    <div class="ls-number" id="ls-aov"/>
+                                </div>
+                            </div>
+                            <div class="ls-card ls-channels-card" id="ls-channels-card">
+                                <div class="ls-label">Sales by channel</div>
+                                <div class="ls-channels" id="ls-channels"/>
+                            </div>
+                            <div class="ls-card ls-feed-card" id="ls-feed-card">
+                                <div class="ls-label">Latest sales</div>
+                                <ol class="ls-feed" id="ls-feed"/>
+                            </div>
+                        </section>
+                        <section class="ls-map-wrap" id="ls-map-wrap">
+                            <canvas id="ls-map" class="ls-map"/>
+                            <div class="ls-map-labels" id="ls-map-labels"/>
+                        </section>
+                    </main>
+                    <div class="ls-status" id="ls-status" hidden="hidden"/>
+                    <div class="ls-demo" id="ls-demo" hidden="hidden">Demo sales - not real orders</div>
+                </div>
+                <script src="/live_sales_counter/static/src/live/world_data.js"></script>
+                <script src="/live_sales_counter/static/src/live/live_map.js"></script>
+                <script src="/live_sales_counter/static/src/live/live.js"></script>
+            </body>
+        </html>
+    </template>
+</odoo>
