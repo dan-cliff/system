@@ -1,0 +1,794 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- What an item looks like on the canvas and in the slide thumbnails -->
+    <t t-name="lms_scorm_authoring.ElementPreview">
+        <t t-set="p" t-value="el.props"/>
+        <div t-if="el.type === 'text'" class="o_scorm_text" t-att-class="'o_scorm_valign_' + (p.valign || 'top')"
+             t-att-style="boxStyle(el)">
+            <div t-if="!thumb and state.editingId === el.id" class="o_scorm_text_edit" contenteditable="true"
+                 t-att-data-id="el.id" t-on-blur="() => this.commitTextEdit()"/>
+            <div t-else="" class="o_scorm_text_body"><t t-out="html(p.html)"/></div>
+        </div>
+        <div t-elif="el.type === 'shape'" class="o_scorm_shape" t-att-style="boxStyle(el)"/>
+        <t t-elif="el.type === 'image'">
+            <img t-if="p.attachment_id" t-att-src="mediaUrl(p.attachment_id)" t-att-alt="p.alt or ''" draggable="false"
+                 t-att-style="'object-fit:' + (p.fit || 'contain') + ';' + boxStyle(el)"/>
+            <div t-else="" class="o_scorm_placeholder"><i class="fa fa-picture-o"/><span>Double-click to add a picture</span></div>
+        </t>
+        <t t-elif="el.type === 'video'">
+            <video t-if="p.attachment_id and !thumb" t-att-src="mediaUrl(p.attachment_id)" preload="metadata" muted="muted"/>
+            <div t-else="" class="o_scorm_placeholder o_scorm_dark"
+                 t-att-style="videoThumb(el) ? 'background-image:url(' + videoThumb(el) + ')' : ''">
+                <i class="fa fa-play-circle"/><span t-esc="p.url or (p.attachment_id ? 'Video' : 'Double-click to add a video')"/>
+            </div>
+        </t>
+        <div t-elif="el.type === 'audio'" class="o_scorm_audio">
+            <i class="fa fa-volume-up"/><span class="o_scorm_audio_bar"/>
+            <span t-if="!p.attachment_id and !p.url" class="small">Double-click to add audio</span>
+        </div>
+        <button t-elif="el.type === 'button'" class="o_scorm_button" t-att-style="buttonStyle(el)" tabindex="-1">
+            <t t-esc="p.label"/>
+        </button>
+        <div t-elif="el.type === 'hotspot'" class="o_scorm_hotspot" t-att-style="boxStyle(el)">
+            <i class="fa fa-bullseye"/>
+        </div>
+        <div t-elif="el.type === 'embed'" class="o_scorm_placeholder">
+            <i class="fa fa-globe"/><span t-esc="p.url or 'Web page – set its address'"/>
+        </div>
+        <div t-elif="el.type === 'tabs'" class="o_scorm_tabs" t-att-style="boxStyle(el)">
+            <div class="o_scorm_tabs_head">
+                <span t-foreach="p.items or []" t-as="item" t-key="item_index"
+                      t-att-class="{'active': item_index === 0}" t-esc="item.title"/>
+            </div>
+            <div class="o_scorm_tabs_body" t-if="(p.items or []).length"><t t-out="html(p.items[0].html)"/></div>
+        </div>
+        <div t-elif="el.type === 'accordion'" class="o_scorm_accordion" t-att-style="boxStyle(el)">
+            <div t-foreach="p.items or []" t-as="item" t-key="item_index" class="o_scorm_acc_item">
+                <span t-esc="item.title"/><span>+</span>
+            </div>
+        </div>
+        <div t-elif="el.type === 'flipcard'" class="o_scorm_flip"
+             t-att-style="'background:' + ((el.style or {}).background || 'var(--brand-primary)') + ';color:' + ((el.style or {}).color || 'var(--brand-button-text)') + ';font-size:' + ((el.style or {}).fontSize || 22) + 'px;border-radius:' + ((el.style or {}).radius || 10) + 'px'">
+            <t t-out="html(p.front_html)"/>
+            <i class="fa fa-refresh o_scorm_flip_icon"/>
+        </div>
+        <div t-elif="el.type === 'labeled_graphic'" class="o_scorm_lg">
+            <img t-if="p.attachment_id" t-att-src="mediaUrl(p.attachment_id)" draggable="false"/>
+            <div t-else="" class="o_scorm_placeholder"><i class="fa fa-map-marker"/><span>Add a picture in the panel</span></div>
+            <span t-foreach="p.markers or []" t-as="marker" t-key="marker_index" class="o_scorm_lg_marker"
+                  t-att-style="'left:' + marker.x + '%;top:' + marker.y + '%'" t-esc="marker_index + 1"/>
+        </div>
+        <div t-elif="questionTypes.includes(el.type)" class="o_scorm_question" t-att-style="boxStyle(el)">
+            <div class="o_scorm_q_prompt"><t t-out="html(p.prompt)"/></div>
+            <t t-if="['mcq', 'mrq', 'truefalse', 'survey'].includes(el.type)">
+                <div t-foreach="p.options or []" t-as="option" t-key="option_index" class="o_scorm_q_option"
+                     t-att-class="{'o_scorm_q_correct': option.correct and !thumb}">
+                    <i t-att-class="el.type === 'mrq' ? 'fa fa-square-o' : 'fa fa-circle-o'"/>
+                    <span t-esc="option.text"/>
+                </div>
+            </t>
+            <div t-elif="el.type === 'fillblank'" class="o_scorm_q_blank">
+                <span t-esc="(p.answers or [])[0] or ''"/>
+            </div>
+            <t t-elif="el.type === 'matching'">
+                <div t-foreach="p.pairs or []" t-as="pair" t-key="pair_index" class="o_scorm_q_pair">
+                    <span t-esc="pair.left"/><i class="fa fa-arrows-h"/><span t-esc="pair.right"/>
+                </div>
+            </t>
+            <ol t-elif="el.type === 'sequence'" class="o_scorm_q_sequence">
+                <li t-foreach="p.items or []" t-as="item" t-key="item_index" t-esc="item"/>
+            </ol>
+            <span class="o_scorm_q_submit">Submit</span>
+        </div>
+        <div t-elif="el.type === 'results'" class="o_scorm_results" t-att-style="boxStyle(el)">
+            <i class="fa fa-trophy"/>
+            <strong>Results: score and pass / fail</strong>
+            <span class="small">Shows the learner's assessment score</span>
+        </div>
+    </t>
+
+    <t t-name="lms_scorm_authoring.Editor">
+        <div class="o_scorm_editor" t-att-class="{'o_scorm_readonly': readonly}">
+            <div t-if="state.loading" class="o_scorm_loading"><i class="fa fa-spinner fa-spin"/> Loading…</div>
+            <t t-else="">
+                <!-- Top bar -->
+                <div class="o_scorm_topbar">
+                    <button class="btn btn-link" t-on-click="() => this.backToCourse()" title="Back to the course">
+                        <i class="fa fa-arrow-left"/>
+                    </button>
+                    <div class="o_scorm_course_title">
+                        <span t-esc="state.course.display_name"/>
+                        <span class="badge rounded-pill" t-att-class="'o_scorm_state_' + state.course.state"
+                              t-esc="state.course.state_label"/>
+                    </div>
+                    <div class="o_scorm_save_state text-muted small">
+                        <t t-if="state.saving"><i class="fa fa-spinner fa-spin"/> Saving…</t>
+                        <t t-elif="state.uploading"><i class="fa fa-spinner fa-spin"/> Uploading…</t>
+                        <t t-elif="state.dirty">Unsaved changes</t>
+                        <t t-elif="state.lastSaved">Saved <t t-esc="state.lastSaved"/></t>
+                        <t t-elif="readonly">Read only – <t t-esc="state.course.state_label"/></t>
+                    </div>
+                    <div class="o_scorm_topbar_actions">
+                        <t t-if="canEdit">
+                            <button class="btn btn-light" title="Undo (Ctrl+Z)" t-on-click="() => this.undo()"><i class="fa fa-undo"/></button>
+                            <button class="btn btn-light" title="Redo (Ctrl+Y)" t-on-click="() => this.redo()"><i class="fa fa-repeat"/></button>
+                            <button class="btn btn-light" t-on-click="() => this.importPresentation()">
+                                <i class="fa fa-file-powerpoint-o"/> Import
+                            </button>
+                        </t>
+                        <select class="form-select form-select-sm o_scorm_zoom" t-on-change="setZoom" title="Zoom">
+                            <option value="fit" t-att-selected="state.zoom === 'fit'">Fit</option>
+                            <option value="0.5" t-att-selected="state.zoom === '0.5'">50%</option>
+                            <option value="0.75" t-att-selected="state.zoom === '0.75'">75%</option>
+                            <option value="1" t-att-selected="state.zoom === '1'">100%</option>
+                        </select>
+                        <div class="btn-group">
+                            <button class="btn btn-light" t-on-click="() => this.preview(true)" title="Preview from this slide">
+                                <i class="fa fa-play"/> Preview
+                            </button>
+                            <button class="btn btn-light" t-on-click="() => this.preview(false)" title="Preview the whole course">
+                                <i class="fa fa-step-backward"/>
+                            </button>
+                        </div>
+                        <button t-if="canEdit" class="btn btn-primary" t-att-disabled="state.saving" t-on-click="() => this.save()">
+                            Save
+                        </button>
+                    </div>
+                </div>
+
+                <div class="o_scorm_body">
+                    <!-- Slides -->
+                    <div class="o_scorm_slides">
+                        <div class="o_scorm_slides_list">
+                            <div t-foreach="state.slides" t-as="slideItem" t-key="slideItem.id" class="o_scorm_slide_item"
+                                 t-att-class="{'active': slideItem_index === state.current}"
+                                 t-att-draggable="canEdit ? 'true' : 'false'"
+                                 t-on-dragstart="(ev) => this.onSlideDragStart(ev, slideItem_index)"
+                                 t-on-dragover="(ev) => ev.preventDefault()"
+                                 t-on-drop="(ev) => this.onSlideDrop(ev, slideItem_index)"
+                                 t-on-click="() => this.selectSlide(slideItem_index)">
+                                <div class="o_scorm_slide_num">
+                                    <span t-esc="slideItem_index + 1"/>
+                                    <i t-if="isGated(slideItem)"
+                                       class="fa fa-lock" title="Gated"/>
+                                    <span t-if="openCommentCount(slideItem)" class="badge text-bg-warning" title="Open comments"
+                                          t-esc="openCommentCount(slideItem)"/>
+                                </div>
+                                <div class="o_scorm_thumb" t-att-style="thumbFrameStyle()">
+                                    <div class="o_scorm_stage o_scorm_thumb_stage" t-att-style="thumbStyle(slideItem)">
+                                        <div t-foreach="slideItem.elements" t-as="el" t-key="el.id" class="o_scorm_el"
+                                             t-att-class="'o_scorm_el_' + el.type" t-att-style="elementStyle(el)">
+                                            <t t-set="thumb" t-value="true"/>
+                                            <t t-call="lms_scorm_authoring.ElementPreview"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="o_scorm_slide_name" t-esc="slideItem.name"/>
+                                <div t-if="canEdit" class="o_scorm_slide_tools">
+                                    <button class="btn btn-sm" title="Move up" t-on-click.stop="() => this.moveSlide(slideItem_index, -1)"><i class="fa fa-chevron-up"/></button>
+                                    <button class="btn btn-sm" title="Move down" t-on-click.stop="() => this.moveSlide(slideItem_index, 1)"><i class="fa fa-chevron-down"/></button>
+                                    <button class="btn btn-sm" title="Duplicate" t-on-click.stop="() => this.duplicateSlide(slideItem_index)"><i class="fa fa-clone"/></button>
+                                    <button class="btn btn-sm" title="Delete" t-on-click.stop="() => this.deleteSlide(slideItem_index)"><i class="fa fa-trash"/></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-if="canEdit" class="o_scorm_add_slide">
+                            <button class="btn btn-secondary w-100" t-on-click="() => this.toggleLayouts()">
+                                <i class="fa fa-plus"/> Add Slide
+                            </button>
+                            <div t-if="state.showLayouts" class="o_scorm_layouts">
+                                <button t-foreach="layouts" t-as="layout" t-key="layout.key" class="btn btn-light btn-sm"
+                                        t-on-click="() => this.addSlide(layout.key)" t-esc="layout.label"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas -->
+                    <div class="o_scorm_center">
+                        <div t-if="canEdit" class="o_scorm_palette">
+                            <div t-foreach="palette" t-as="group" t-key="group.group" class="o_scorm_palette_group">
+                                <span class="o_scorm_palette_label" t-esc="group.group"/>
+                                <button t-foreach="group.items" t-as="item" t-key="item.type" class="o_scorm_palette_item"
+                                        draggable="true" t-att-title="item.label + ' – drag onto the slide or click to add'"
+                                        t-on-dragstart="(ev) => this.onPaletteDragStart(ev, item.type)"
+                                        t-on-click="() => this.addElement(item.type)">
+                                    <i t-att-class="'fa ' + item.icon"/>
+                                    <span t-esc="item.label"/>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="o_scorm_stage_area" t-ref="stageArea"
+                             t-att-class="{'o_scorm_comment_mode': state.commentMode}"
+                             t-on-dragover="onStageDragOver" t-on-drop="onStageDrop"
+                             t-on-pointerdown="onStagePointerDown">
+                            <div t-if="!slide" class="o_scorm_empty">No slides yet.</div>
+                            <div t-else="" class="o_scorm_stage_frame" t-att-style="stageFrameStyle">
+                                <div class="o_scorm_stage" t-att-style="stageStyle">
+                                    <div t-foreach="sortedElements" t-as="el" t-key="el.id" class="o_scorm_el"
+                                         t-attf-class="o_scorm_el_{{el.type}} {{el.id === state.selectedId ? 'o_scorm_selected' : ''}} {{el.id === state.editingId ? 'o_scorm_editing' : ''}} {{el.hidden ? 'o_scorm_hidden_el' : ''}}"
+                                         t-att-style="elementStyle(el)"
+                                         t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el)"
+                                         t-on-dblclick="() => this.onElementDblClick(el)">
+                                        <t t-set="thumb" t-value="false"/>
+                                        <t t-call="lms_scorm_authoring.ElementPreview"/>
+                                        <span t-if="el.required" class="o_scorm_badge o_scorm_badge_required" title="Required before Continue">*</span>
+                                        <span t-if="el.scored and questionTypes.includes(el.type)" class="o_scorm_badge o_scorm_badge_scored" title="Scored">
+                                            <i class="fa fa-star"/>
+                                        </span>
+                                        <t t-if="canEdit and el.id === state.selectedId and el.id !== state.editingId">
+                                            <span t-foreach="['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']" t-as="handle" t-key="handle"
+                                                  t-att-class="'o_scorm_handle o_scorm_handle_' + handle"
+                                                  t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el, handle)"/>
+                                        </t>
+                                    </div>
+                                    <!-- Review comment pins (never exported) -->
+                                    <span t-foreach="slideComments" t-as="comment" t-key="comment.id"
+                                          class="o_scorm_pin" t-att-class="{'o_scorm_pin_resolved': comment.resolved}"
+                                          t-att-style="'left:' + comment.pos_x + '%;top:' + comment.pos_y + '%'"
+                                          t-att-title="comment.author + ': ' + comment.body"
+                                          t-on-pointerdown.stop="() => this.focusComment(comment)"
+                                          t-esc="comment_index + 1"/>
+                                    <span t-if="state.pendingPin" class="o_scorm_pin o_scorm_pin_new"
+                                          t-att-style="'left:' + state.pendingPin.pos_x + '%;top:' + state.pendingPin.pos_y + '%'">+</span>
+                                </div>
+                            </div>
+                            <div t-if="state.commentMode" class="o_scorm_comment_hint">
+                                Click where the comment applies <button class="btn btn-sm btn-link" t-on-pointerdown.stop="() => this.cancelComment()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Properties -->
+                    <div class="o_scorm_panel">
+                        <div class="o_scorm_panel_tabs">
+                            <button t-att-class="{'active': state.panel === 'item'}" t-att-disabled="!selected"
+                                    t-on-click="() => this.setPanel('item')">Item</button>
+                            <button t-att-class="{'active': state.panel === 'slide'}" t-on-click="() => this.setPanel('slide')">Slide</button>
+                            <button t-if="state.course.permissions.can_comment" t-att-class="{'active': state.panel === 'comments'}"
+                                    t-on-click="() => this.setPanel('comments')">
+                                Comments <span t-if="slide and openCommentCount(slide)" class="badge text-bg-warning" t-esc="openCommentCount(slide)"/>
+                            </button>
+                        </div>
+                        <div class="o_scorm_panel_body">
+                            <t t-if="state.panel === 'item' and selected" t-call="lms_scorm_authoring.ItemPanel">
+                                <t t-set="el" t-value="selected"/>
+                            </t>
+                            <t t-elif="state.panel === 'comments'" t-call="lms_scorm_authoring.CommentsPanel"/>
+                            <t t-elif="slide" t-call="lms_scorm_authoring.SlidePanel"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Slide settings and gate -->
+    <t t-name="lms_scorm_authoring.SlidePanel">
+        <div class="o_scorm_field">
+            <label>Slide title</label>
+            <input class="form-control" t-att-value="slide.name" t-att-disabled="readonly"
+                   t-on-change="(ev) => this.setSlide('name', ev.target.value)"/>
+        </div>
+        <div class="o_scorm_field o_scorm_row">
+            <label>Background</label>
+            <input type="color" t-att-value="slide.background_color or state.course.branding.slide_color" t-att-disabled="readonly"
+                   t-on-change="(ev) => this.setSlide('background_color', ev.target.value)"/>
+            <button t-if="slide.background_color and canEdit" class="btn btn-link btn-sm" t-on-click="() => this.setSlide('background_color', '')">Default</button>
+        </div>
+        <div class="o_scorm_field o_scorm_row" t-if="canEdit">
+            <button class="btn btn-light btn-sm" t-on-click="() => this.uploadBackground()">
+                <i class="fa fa-picture-o"/> Background picture
+            </button>
+            <button t-if="slide.background_attachment_id" class="btn btn-link btn-sm"
+                    t-on-click="() => this.setSlide('background_attachment_id', false)">Remove</button>
+        </div>
+        <div class="o_scorm_field form-check">
+            <input type="checkbox" class="form-check-input" id="scorm_hide_menu" t-att-checked="slide.hide_in_menu"
+                   t-att-disabled="readonly" t-on-change="(ev) => this.setSlide('hide_in_menu', ev.target.checked)"/>
+            <label class="form-check-label" for="scorm_hide_menu">Hide in the slide menu</label>
+        </div>
+
+        <h6 class="o_scorm_section"><i class="fa fa-lock"/> Gate – before Continue appears</h6>
+        <div class="o_scorm_field form-check">
+            <input type="checkbox" class="form-check-input" id="scorm_gate_req" t-att-checked="slide.gate_require_interactions"
+                   t-att-disabled="readonly" t-on-change="(ev) => this.setSlide('gate_require_interactions', ev.target.checked)"/>
+            <label class="form-check-label" for="scorm_gate_req">
+                Required items must be completed (<t t-esc="requiredCount"/> on this slide)
+            </label>
+        </div>
+        <div class="o_scorm_field">
+            <label>Minimum time on slide (seconds)</label>
+            <input type="number" min="0" class="form-control" t-att-value="slide.gate_min_seconds" t-att-disabled="readonly"
+                   t-on-change="(ev) => this.setSlide('gate_min_seconds', this.numberValue(ev))"/>
+        </div>
+        <div class="o_scorm_field">
+            <label>Pass mark for this slide's questions (%)</label>
+            <input type="number" min="0" max="100" class="form-control" t-att-value="slide.gate_pass_score" t-att-disabled="readonly"
+                   t-on-change="(ev) => this.setSlide('gate_pass_score', Math.min(100, this.numberValue(ev)))"/>
+            <div t-if="slide.gate_pass_score and !questionCount" class="text-danger small">Add a question to this slide for the pass mark to apply.</div>
+        </div>
+        <t t-if="slide.gate_pass_score">
+            <div class="o_scorm_field">
+                <label>Attempts before review (0 = unlimited)</label>
+                <input type="number" min="0" class="form-control" t-att-value="slide.gate_max_attempts" t-att-disabled="readonly"
+                       t-on-change="(ev) => this.setSlide('gate_max_attempts', this.numberValue(ev))"/>
+            </div>
+            <div class="o_scorm_field" t-if="slide.gate_max_attempts">
+                <label>When attempts run out, send the learner to</label>
+                <select class="form-select" t-att-disabled="readonly"
+                        t-on-change="(ev) => this.setSlide('gate_fail_slide_id', this.slideKey(ev.target.value))">
+                    <option value="">Stay and try again</option>
+                    <option t-foreach="otherSlides" t-as="other" t-key="other.id" t-att-value="other.id"
+                            t-att-selected="other.id === slide.gate_fail_slide_id" t-esc="other.label"/>
+                </select>
+            </div>
+        </t>
+
+        <h6 class="o_scorm_section"><i class="fa fa-sticky-note-o"/> Notes</h6>
+        <textarea class="form-control" rows="5" placeholder="Speaker notes or narration script – learners don't see these"
+                  t-att-disabled="readonly" t-on-change="(ev) => this.setSlide('notes', ev.target.value)" t-esc="slide.notes"/>
+    </t>
+
+    <!-- Review comments -->
+    <t t-name="lms_scorm_authoring.CommentsPanel">
+        <p class="text-muted small">
+            Review comments are for authors and approvers only. They are never included in the course.
+        </p>
+        <div class="o_scorm_row mb-2">
+            <button class="btn btn-primary btn-sm" t-on-click="() => this.startComment()" t-att-disabled="state.commentMode">
+                <i class="fa fa-map-pin"/> Add comment
+            </button>
+            <div class="form-check ms-auto">
+                <input type="checkbox" class="form-check-input" id="scorm_show_resolved" t-att-checked="state.showResolved"
+                       t-on-change="(ev) => this.setShowResolved(ev.target.checked)"/>
+                <label class="form-check-label small" for="scorm_show_resolved">Show resolved</label>
+            </div>
+        </div>
+        <div t-if="state.pendingPin or state.commentMode" class="o_scorm_comment_new">
+            <textarea class="form-control" rows="3" placeholder="What should change?"
+                      t-on-input="(ev) => this.setNewComment(ev.target.value)" t-esc="state.newComment"/>
+            <div class="mt-1">
+                <button class="btn btn-primary btn-sm" t-on-click="() => this.addComment()">Post</button>
+                <button class="btn btn-link btn-sm" t-on-click="() => this.cancelComment()">Cancel</button>
+                <span t-if="state.commentMode" class="small text-muted">Click on the slide to place the pin.</span>
+            </div>
+        </div>
+        <div t-if="!slideComments.length and !state.pendingPin" class="text-muted small">No comments on this slide.</div>
+        <div t-foreach="slideComments" t-as="comment" t-key="comment.id" class="o_scorm_comment"
+             t-att-class="{'o_scorm_comment_resolved': comment.resolved}">
+            <div class="o_scorm_comment_head">
+                <span class="o_scorm_pin_num" t-esc="comment_index + 1"/>
+                <strong t-esc="comment.author"/>
+                <span class="text-muted small ms-auto" t-esc="comment.date"/>
+            </div>
+            <div class="o_scorm_comment_body" t-esc="comment.body"/>
+            <div t-foreach="replies(comment)" t-as="reply" t-key="reply.id" class="o_scorm_reply">
+                <strong t-esc="reply.author"/> <span class="text-muted small" t-esc="reply.date"/>
+                <div t-esc="reply.body"/>
+            </div>
+            <div class="o_scorm_comment_actions">
+                <button class="btn btn-link btn-sm" t-on-click="() => this.startReply(comment)">Reply</button>
+                <button t-if="state.course.permissions.can_resolve" class="btn btn-link btn-sm" t-on-click="() => this.toggleResolved(comment)">
+                    <t t-if="comment.resolved">Reopen</t><t t-else="">Resolve</t>
+                </button>
+                <span t-if="comment.resolved" class="small text-success"><i class="fa fa-check"/> <t t-esc="comment.resolved_by"/></span>
+            </div>
+            <div t-if="state.replyTo === comment.id" class="mt-1">
+                <textarea class="form-control" rows="2" t-on-input="(ev) => this.setReplyText(ev.target.value)"/>
+                <button class="btn btn-primary btn-sm mt-1" t-on-click="() => this.addReply(comment)">Reply</button>
+                <button class="btn btn-link btn-sm mt-1" t-on-click="() => this.startReply(null)">Cancel</button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Selected item -->
+    <t t-name="lms_scorm_authoring.ItemPanel">
+        <t t-set="p" t-value="el.props"/>
+        <div class="o_scorm_item_head">
+            <strong t-esc="typeLabels[el.type] or el.type"/>
+            <div t-if="canEdit" class="ms-auto">
+                <button class="btn btn-sm btn-light" title="Duplicate (Ctrl+D)" t-on-click="() => this.duplicateSelected()"><i class="fa fa-clone"/></button>
+                <button class="btn btn-sm btn-light" title="Delete (Del)" t-on-click="() => this.deleteSelected()"><i class="fa fa-trash"/></button>
+            </div>
+        </div>
+        <fieldset t-att-disabled="readonly">
+            <!-- Text formatting -->
+            <t t-if="el.type === 'text'">
+                <div class="o_scorm_toolbar">
+                    <button class="btn btn-sm btn-light" title="Bold" t-on-mousedown.prevent="() => this.format('bold')"><i class="fa fa-bold"/></button>
+                    <button class="btn btn-sm btn-light" title="Italic" t-on-mousedown.prevent="() => this.format('italic')"><i class="fa fa-italic"/></button>
+                    <button class="btn btn-sm btn-light" title="Underline" t-on-mousedown.prevent="() => this.format('underline')"><i class="fa fa-underline"/></button>
+                    <button class="btn btn-sm btn-light" title="Bullets" t-on-mousedown.prevent="() => this.format('insertUnorderedList')"><i class="fa fa-list-ul"/></button>
+                    <button class="btn btn-sm btn-light" title="Numbering" t-on-mousedown.prevent="() => this.format('insertOrderedList')"><i class="fa fa-list-ol"/></button>
+                    <button class="btn btn-sm btn-light" title="Left" t-on-mousedown.prevent="() => this.format('justifyLeft')"><i class="fa fa-align-left"/></button>
+                    <button class="btn btn-sm btn-light" title="Centre" t-on-mousedown.prevent="() => this.format('justifyCenter')"><i class="fa fa-align-center"/></button>
+                    <button class="btn btn-sm btn-light" title="Right" t-on-mousedown.prevent="() => this.format('justifyRight')"><i class="fa fa-align-right"/></button>
+                    <button class="btn btn-sm btn-light" title="Link" t-on-mousedown.prevent="() => this.format('createLink')"><i class="fa fa-link"/></button>
+                </div>
+                <p t-if="state.editingId !== el.id and canEdit" class="small text-muted">Double-click the text on the slide to edit it.</p>
+                <div class="o_scorm_field">
+                    <label>Vertical alignment</label>
+                    <select class="form-select" t-on-change="(ev) => this.setProp(el, 'valign', ev.target.value)">
+                        <option value="top" t-att-selected="p.valign === 'top'">Top</option>
+                        <option value="middle" t-att-selected="p.valign === 'middle'">Middle</option>
+                        <option value="bottom" t-att-selected="p.valign === 'bottom'">Bottom</option>
+                    </select>
+                </div>
+            </t>
+
+            <!-- Media -->
+            <t t-if="['image', 'labeled_graphic'].includes(el.type)">
+                <div class="o_scorm_field o_scorm_row">
+                    <button class="btn btn-light btn-sm" t-on-click="() => this.uploadFor(el, 'image/*')">
+                        <i class="fa fa-upload"/> <t t-if="p.attachment_id">Replace picture</t><t t-else="">Upload picture</t>
+                    </button>
+                </div>
+                <div class="o_scorm_field">
+                    <label>Alternative text</label>
+                    <input class="form-control" t-att-value="p.alt" placeholder="Describe the picture for screen readers"
+                           t-on-change="(ev) => this.setProp(el, 'alt', ev.target.value)"/>
+                </div>
+                <div class="o_scorm_field" t-if="el.type === 'image'">
+                    <label>Fit</label>
+                    <select class="form-select" t-on-change="(ev) => this.setProp(el, 'fit', ev.target.value)">
+                        <option value="contain" t-att-selected="p.fit === 'contain'">Whole picture</option>
+                        <option value="cover" t-att-selected="p.fit === 'cover'">Fill and crop</option>
+                        <option value="fill" t-att-selected="p.fit === 'fill'">Stretch</option>
+                    </select>
+                </div>
+            </t>
+            <t t-if="['video', 'audio'].includes(el.type)">
+                <div class="o_scorm_field o_scorm_row">
+                    <button class="btn btn-light btn-sm" t-on-click="() => this.uploadFor(el, el.type + '/*')">
+                        <i class="fa fa-upload"/> Upload <t t-esc="el.type"/>
+                    </button>
+                    <span t-if="p.attachment_id" class="small text-success"><i class="fa fa-check"/> File added</span>
+                </div>
+                <div class="o_scorm_field">
+                    <label>…or address <t t-if="el.type === 'video'">(YouTube, Vimeo or .mp4)</t></label>
+                    <input class="form-control" t-att-value="p.url" placeholder="https://"
+                           t-on-change="(ev) => this.setMediaUrl(el, ev.target.value)"/>
+                </div>
+                <div class="o_scorm_field form-check">
+                    <input type="checkbox" class="form-check-input" t-att-id="'autoplay_' + el.id" t-att-checked="p.autoplay"
+                           t-on-change="(ev) => this.setProp(el, 'autoplay', ev.target.checked)"/>
+                    <label class="form-check-label" t-att-for="'autoplay_' + el.id">Play automatically<t t-if="el.type === 'video'"> (muted)</t></label>
+                </div>
+            </t>
+            <t t-if="el.type === 'embed'">
+                <div class="o_scorm_field">
+                    <label>Web page address</label>
+                    <input class="form-control" t-att-value="p.url" placeholder="https://"
+                           t-on-change="(ev) => this.setProp(el, 'url', ev.target.value)"/>
+                    <div class="small text-muted">Some sites refuse to be shown inside other pages.</div>
+                </div>
+            </t>
+            <t t-if="el.type === 'shape'">
+                <div class="o_scorm_field">
+                    <label>Shape</label>
+                    <select class="form-select" t-on-change="(ev) => this.setProp(el, 'shape', ev.target.value)">
+                        <option value="rect" t-att-selected="p.shape === 'rect'">Rectangle</option>
+                        <option value="roundRect" t-att-selected="p.shape === 'roundRect'">Rounded rectangle</option>
+                        <option value="ellipse" t-att-selected="p.shape === 'ellipse'">Ellipse</option>
+                        <option value="line" t-att-selected="p.shape === 'line'">Line</option>
+                    </select>
+                </div>
+            </t>
+
+            <!-- Buttons and hotspots -->
+            <t t-if="['button', 'hotspot'].includes(el.type)">
+                <div class="o_scorm_field" t-if="el.type === 'button'">
+                    <label>Label</label>
+                    <input class="form-control" t-att-value="p.label" t-on-change="(ev) => this.setProp(el, 'label', ev.target.value)"/>
+                </div>
+                <div class="o_scorm_field">
+                    <label>When clicked</label>
+                    <select class="form-select" t-on-change="(ev) => this.setProp(el, 'action', ev.target.value)">
+                        <option value="next" t-att-selected="p.action === 'next'">Go to the next slide</option>
+                        <option value="prev" t-att-selected="p.action === 'prev'">Go to the previous slide</option>
+                        <option value="goto" t-att-selected="p.action === 'goto'">Go to a slide</option>
+                        <option value="popup" t-att-selected="p.action === 'popup'">Show a pop-up</option>
+                        <option value="reveal" t-att-selected="p.action === 'reveal'">Show a hidden item</option>
+                        <option value="url" t-att-selected="p.action === 'url'">Open a web page</option>
+                    </select>
+                </div>
+                <div class="o_scorm_field" t-if="p.action === 'goto'">
+                    <label>Slide</label>
+                    <select class="form-select" t-on-change="(ev) => this.setProp(el, 'target_slide', this.slideKey(ev.target.value))">
+                        <option value="">–</option>
+                        <option t-foreach="otherSlides" t-as="other" t-key="other.id" t-att-value="other.id"
+                                t-att-selected="other.id === p.target_slide" t-esc="other.label"/>
+                    </select>
+                </div>
+                <div class="o_scorm_field" t-if="p.action === 'reveal'">
+                    <label>Item to show (tick "Hidden at start" on it)</label>
+                    <select class="form-select" t-on-change="(ev) => this.setProp(el, 'target_element', ev.target.value)">
+                        <option value="">–</option>
+                        <option t-foreach="elementsForReveal()" t-as="other" t-key="other.id" t-att-value="other.id"
+                                t-att-selected="other.id === p.target_element" t-esc="other.label"/>
+                    </select>
+                </div>
+                <div class="o_scorm_field" t-if="p.action === 'url'">
+                    <label>Address</label>
+                    <input class="form-control" t-att-value="p.url" placeholder="https://"
+                           t-on-change="(ev) => this.setProp(el, 'url', ev.target.value)"/>
+                </div>
+                <t t-if="p.action === 'popup'">
+                    <div class="o_scorm_field">
+                        <label>Pop-up title</label>
+                        <input class="form-control" t-att-value="p.popup_title" t-on-change="(ev) => this.setProp(el, 'popup_title', ev.target.value)"/>
+                    </div>
+                    <div class="o_scorm_field">
+                        <label>Pop-up text</label>
+                        <textarea class="form-control" rows="4" t-on-change="(ev) => this.setHtmlFromText(el, 'popup_text', ev.target.value)"
+                                  t-esc="textOf(p.popup_text)"/>
+                    </div>
+                </t>
+                <div class="o_scorm_field form-check" t-if="el.type === 'hotspot'">
+                    <input type="checkbox" class="form-check-input" t-att-id="'pulse_' + el.id" t-att-checked="p.pulse !== false"
+                           t-on-change="(ev) => this.setProp(el, 'pulse', ev.target.checked)"/>
+                    <label class="form-check-label" t-att-for="'pulse_' + el.id">Pulse to draw attention</label>
+                </div>
+            </t>
+
+            <!-- Tabs / accordion -->
+            <t t-if="['tabs', 'accordion'].includes(el.type)">
+                <h6 class="o_scorm_section"><t t-if="el.type === 'tabs'">Tabs</t><t t-else="">Sections</t></h6>
+                <div t-foreach="p.items or []" t-as="item" t-key="item_index" class="o_scorm_list_item">
+                    <div class="o_scorm_row">
+                        <input class="form-control form-control-sm" t-att-value="item.title"
+                               t-on-change="(ev) => this.listSet(el, 'items', item_index, 'title', ev.target.value)"/>
+                        <t t-call="lms_scorm_authoring.ListTools"><t t-set="key" t-value="'items'"/><t t-set="index" t-value="item_index"/></t>
+                    </div>
+                    <textarea class="form-control form-control-sm mt-1" rows="3"
+                              t-on-change="(ev) => this.listSetHtml(el, 'items', item_index, 'html', ev.target.value)"
+                              t-esc="textOf(item.html)"/>
+                </div>
+                <button class="btn btn-link btn-sm" t-on-click="() => this.listAdd(el, 'items', { title: 'New', html: '&lt;p&gt;&lt;/p&gt;' })">
+                    <i class="fa fa-plus"/> Add
+                </button>
+            </t>
+
+            <!-- Flip card -->
+            <t t-if="el.type === 'flipcard'">
+                <div class="o_scorm_field">
+                    <label>Front</label>
+                    <textarea class="form-control" rows="3" t-on-change="(ev) => this.setHtmlFromText(el, 'front_html', ev.target.value)"
+                              t-esc="textOf(p.front_html)"/>
+                </div>
+                <div class="o_scorm_field">
+                    <label>Back</label>
+                    <textarea class="form-control" rows="4" t-on-change="(ev) => this.setHtmlFromText(el, 'back_html', ev.target.value)"
+                              t-esc="textOf(p.back_html)"/>
+                </div>
+            </t>
+
+            <!-- Labelled graphic markers -->
+            <t t-if="el.type === 'labeled_graphic'">
+                <h6 class="o_scorm_section">Markers</h6>
+                <div t-foreach="p.markers or []" t-as="marker" t-key="marker_index" class="o_scorm_list_item">
+                    <div class="o_scorm_row">
+                        <span class="o_scorm_pin_num" t-esc="marker_index + 1"/>
+                        <input class="form-control form-control-sm" t-att-value="marker.title" placeholder="Title"
+                               t-on-change="(ev) => this.listSet(el, 'markers', marker_index, 'title', ev.target.value)"/>
+                        <t t-call="lms_scorm_authoring.ListTools"><t t-set="key" t-value="'markers'"/><t t-set="index" t-value="marker_index"/></t>
+                    </div>
+                    <div class="o_scorm_row mt-1">
+                        <label class="small">Across %</label>
+                        <input type="number" min="0" max="100" class="form-control form-control-sm" t-att-value="marker.x"
+                               t-on-change="(ev) => this.listSet(el, 'markers', marker_index, 'x', this.numberValue(ev))"/>
+                        <label class="small">Down %</label>
+                        <input type="number" min="0" max="100" class="form-control form-control-sm" t-att-value="marker.y"
+                               t-on-change="(ev) => this.listSet(el, 'markers', marker_index, 'y', this.numberValue(ev))"/>
+                    </div>
+                    <textarea class="form-control form-control-sm mt-1" rows="2"
+                              t-on-change="(ev) => this.listSetHtml(el, 'markers', marker_index, 'text', ev.target.value)"
+                              t-esc="textOf(marker.text)"/>
+                </div>
+                <button class="btn btn-link btn-sm" t-on-click="() => this.listAdd(el, 'markers', { x: 50, y: 50, title: 'New', text: '' })">
+                    <i class="fa fa-plus"/> Add marker
+                </button>
+            </t>
+
+            <!-- Questions -->
+            <t t-if="isQuestion(el)">
+                <div class="o_scorm_field">
+                    <label>Question</label>
+                    <textarea class="form-control" rows="3" t-on-change="(ev) => this.setHtmlFromText(el, 'prompt', ev.target.value)"
+                              t-esc="textOf(p.prompt)"/>
+                </div>
+                <t t-if="['mcq', 'mrq', 'truefalse', 'survey'].includes(el.type)">
+                    <h6 class="o_scorm_section">
+                        <t t-if="el.type === 'survey'">Choices</t>
+                        <t t-else="">Answers <small class="text-muted">– tick the correct one<t t-if="el.type === 'mrq'">s</t></small></t>
+                    </h6>
+                    <div t-foreach="p.options or []" t-as="option" t-key="option_index" class="o_scorm_row o_scorm_list_item">
+                        <input t-if="el.type !== 'survey'" t-att-type="el.type === 'mrq' ? 'checkbox' : 'radio'"
+                               class="form-check-input" t-att-name="'correct_' + el.id" t-att-checked="option.correct"
+                               title="Correct answer" t-on-change="(ev) => this.setCorrect(el, option_index, ev.target.checked)"/>
+                        <input class="form-control form-control-sm" t-att-value="option.text"
+                               t-on-change="(ev) => this.listSet(el, 'options', option_index, 'text', ev.target.value)"/>
+                        <t t-if="el.type !== 'truefalse'" t-call="lms_scorm_authoring.ListTools">
+                            <t t-set="key" t-value="'options'"/><t t-set="index" t-value="option_index"/>
+                        </t>
+                    </div>
+                    <button t-if="el.type !== 'truefalse'" class="btn btn-link btn-sm"
+                            t-on-click="() => this.listAdd(el, 'options', { text: 'New answer', correct: false })">
+                        <i class="fa fa-plus"/> Add answer
+                    </button>
+                </t>
+                <t t-if="el.type === 'fillblank'">
+                    <h6 class="o_scorm_section">Accepted answers</h6>
+                    <div t-foreach="p.answers or []" t-as="answer" t-key="answer_index" class="o_scorm_row o_scorm_list_item">
+                        <input class="form-control form-control-sm" t-att-value="answer"
+                               t-on-change="(ev) => this.listSet(el, 'answers', answer_index, null, ev.target.value)"/>
+                        <t t-call="lms_scorm_authoring.ListTools"><t t-set="key" t-value="'answers'"/><t t-set="index" t-value="answer_index"/></t>
+                    </div>
+                    <button class="btn btn-link btn-sm" t-on-click="() => this.listAdd(el, 'answers', '')"><i class="fa fa-plus"/> Add answer</button>
+                    <div class="o_scorm_field form-check">
+                        <input type="checkbox" class="form-check-input" t-att-id="'case_' + el.id" t-att-checked="p.case_sensitive"
+                               t-on-change="(ev) => this.setProp(el, 'case_sensitive', ev.target.checked)"/>
+                        <label class="form-check-label" t-att-for="'case_' + el.id">Match capital letters</label>
+                    </div>
+                </t>
+                <t t-if="el.type === 'matching'">
+                    <h6 class="o_scorm_section">Pairs</h6>
+                    <div t-foreach="p.pairs or []" t-as="pair" t-key="pair_index" class="o_scorm_row o_scorm_list_item">
+                        <input class="form-control form-control-sm" t-att-value="pair.left"
+                               t-on-change="(ev) => this.listSet(el, 'pairs', pair_index, 'left', ev.target.value)"/>
+                        <i class="fa fa-arrows-h"/>
+                        <input class="form-control form-control-sm" t-att-value="pair.right"
+                               t-on-change="(ev) => this.listSet(el, 'pairs', pair_index, 'right', ev.target.value)"/>
+                        <t t-call="lms_scorm_authoring.ListTools"><t t-set="key" t-value="'pairs'"/><t t-set="index" t-value="pair_index"/></t>
+                    </div>
+                    <button class="btn btn-link btn-sm" t-on-click="() => this.listAdd(el, 'pairs', { left: '', right: '' })"><i class="fa fa-plus"/> Add pair</button>
+                </t>
+                <t t-if="el.type === 'sequence'">
+                    <h6 class="o_scorm_section">Steps in the correct order</h6>
+                    <div t-foreach="p.items or []" t-as="item" t-key="item_index" class="o_scorm_row o_scorm_list_item">
+                        <span class="o_scorm_pin_num" t-esc="item_index + 1"/>
+                        <input class="form-control form-control-sm" t-att-value="item"
+                               t-on-change="(ev) => this.listSet(el, 'items', item_index, null, ev.target.value)"/>
+                        <t t-call="lms_scorm_authoring.ListTools"><t t-set="key" t-value="'items'"/><t t-set="index" t-value="item_index"/></t>
+                    </div>
+                    <button class="btn btn-link btn-sm" t-on-click="() => this.listAdd(el, 'items', '')"><i class="fa fa-plus"/> Add step</button>
+                </t>
+                <t t-if="el.type !== 'survey'">
+                    <div class="o_scorm_field o_scorm_row">
+                        <label>Attempts</label>
+                        <input type="number" min="0" class="form-control form-control-sm" t-att-value="p.attempts"
+                               title="0 = unlimited (learners must get it right)"
+                               t-on-change="(ev) => this.setProp(el, 'attempts', this.numberValue(ev))"/>
+                        <label>Points</label>
+                        <input type="number" min="1" class="form-control form-control-sm" t-att-value="p.points or 1"
+                               t-on-change="(ev) => this.setProp(el, 'points', Math.max(1, this.numberValue(ev)))"/>
+                    </div>
+                    <div class="o_scorm_field form-check" t-if="!['truefalse', 'fillblank', 'sequence'].includes(el.type)">
+                        <input type="checkbox" class="form-check-input" t-att-id="'shuffle_' + el.id" t-att-checked="p.shuffle"
+                               t-on-change="(ev) => this.setProp(el, 'shuffle', ev.target.checked)"/>
+                        <label class="form-check-label" t-att-for="'shuffle_' + el.id">Shuffle answers</label>
+                    </div>
+                    <div class="o_scorm_field form-check">
+                        <input type="checkbox" class="form-check-input" t-att-id="'scored_' + el.id" t-att-checked="el.scored"
+                               t-on-change="(ev) => this.setFlag(el, 'scored', ev.target.checked)"/>
+                        <label class="form-check-label" t-att-for="'scored_' + el.id">Scored – counts towards the assessment</label>
+                    </div>
+                    <div class="o_scorm_field">
+                        <label>Feedback when correct <small class="text-muted">(blank = course default)</small></label>
+                        <textarea class="form-control form-control-sm" rows="2"
+                                  t-on-change="(ev) => this.setHtmlFromText(el, 'feedback_correct', ev.target.value)"
+                                  t-esc="textOf(p.feedback_correct)"/>
+                    </div>
+                    <div class="o_scorm_field">
+                        <label>Feedback when wrong</label>
+                        <textarea class="form-control form-control-sm" rows="2"
+                                  t-on-change="(ev) => this.setHtmlFromText(el, 'feedback_incorrect', ev.target.value)"
+                                  t-esc="textOf(p.feedback_incorrect)"/>
+                    </div>
+                </t>
+            </t>
+
+            <!-- Results -->
+            <t t-if="el.type === 'results'">
+                <div class="o_scorm_field">
+                    <label>Message when passed <small class="text-muted">(blank = course default)</small></label>
+                    <textarea class="form-control" rows="2" t-on-change="(ev) => this.setHtmlFromText(el, 'pass_html', ev.target.value)"
+                              t-esc="textOf(p.pass_html)"/>
+                </div>
+                <div class="o_scorm_field">
+                    <label>Message when failed</label>
+                    <textarea class="form-control" rows="2" t-on-change="(ev) => this.setHtmlFromText(el, 'fail_html', ev.target.value)"
+                              t-esc="textOf(p.fail_html)"/>
+                </div>
+                <div class="o_scorm_field form-check">
+                    <input type="checkbox" class="form-check-input" t-att-id="'retry_' + el.id" t-att-checked="p.allow_retry !== false"
+                           t-on-change="(ev) => this.setProp(el, 'allow_retry', ev.target.checked)"/>
+                    <label class="form-check-label" t-att-for="'retry_' + el.id">Offer a retry while attempts remain</label>
+                </div>
+            </t>
+
+            <!-- Behaviour -->
+            <h6 class="o_scorm_section">Behaviour</h6>
+            <div class="o_scorm_field form-check" t-if="isInteractive(el)">
+                <input type="checkbox" class="form-check-input" t-att-id="'req_' + el.id" t-att-checked="el.required"
+                       t-on-change="(ev) => this.setFlag(el, 'required', ev.target.checked)"/>
+                <label class="form-check-label" t-att-for="'req_' + el.id">
+                    Required before Continue <small class="text-muted">(<t t-esc="requiredHint(el)"/>)</small>
+                </label>
+            </div>
+            <div class="o_scorm_field form-check">
+                <input type="checkbox" class="form-check-input" t-att-id="'hidden_' + el.id" t-att-checked="el.hidden"
+                       t-on-change="(ev) => this.setFlag(el, 'hidden', ev.target.checked)"/>
+                <label class="form-check-label" t-att-for="'hidden_' + el.id">Hidden at start (shown by a button or hotspot)</label>
+            </div>
+
+            <!-- Appearance -->
+            <h6 class="o_scorm_section">Appearance</h6>
+            <div class="o_scorm_grid">
+                <t t-foreach="[['x', 'X'], ['y', 'Y'], ['w', 'Width'], ['h', 'Height'], ['rotation', 'Rotate']]" t-as="geom" t-key="geom[0]">
+                    <label t-esc="geom[1]"/>
+                    <input type="number" class="form-control form-control-sm" t-att-value="el[geom[0]]"
+                           t-on-change="(ev) => this.setGeom(el, geom[0], ev.target.value)"/>
+                </t>
+            </div>
+            <div class="o_scorm_row mt-1" t-if="canEdit">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-light" title="Align left" t-on-click="() => this.align('left')"><i class="fa fa-align-left"/></button>
+                    <button class="btn btn-light" title="Centre" t-on-click="() => this.align('center')"><i class="fa fa-align-center"/></button>
+                    <button class="btn btn-light" title="Align right" t-on-click="() => this.align('right')"><i class="fa fa-align-right"/></button>
+                    <button class="btn btn-light" title="Top" t-on-click="() => this.align('top')"><i class="fa fa-long-arrow-up"/></button>
+                    <button class="btn btn-light" title="Middle" t-on-click="() => this.align('middle')"><i class="fa fa-arrows-v"/></button>
+                    <button class="btn btn-light" title="Bottom" t-on-click="() => this.align('bottom')"><i class="fa fa-long-arrow-down"/></button>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-light" title="Bring to front" t-on-click="() => this.arrange('front')"><i class="fa fa-angle-double-up"/></button>
+                    <button class="btn btn-light" title="Forward" t-on-click="() => this.arrange('forward')"><i class="fa fa-angle-up"/></button>
+                    <button class="btn btn-light" title="Backward" t-on-click="() => this.arrange('backward')"><i class="fa fa-angle-down"/></button>
+                    <button class="btn btn-light" title="Send to back" t-on-click="() => this.arrange('back')"><i class="fa fa-angle-double-down"/></button>
+                </div>
+            </div>
+            <div class="o_scorm_grid mt-2">
+                <label>Text size</label>
+                <input type="number" min="6" class="form-control form-control-sm" t-att-value="el.style.fontSize"
+                       t-on-change="(ev) => this.setStyle(el, 'fontSize', this.numberValue(ev) || '')"/>
+                <label>Text colour</label>
+                <input type="color" t-att-value="el.style.color or state.course.branding.text_color"
+                       t-on-change="(ev) => this.setStyle(el, 'color', ev.target.value)"/>
+                <label>Fill</label>
+                <div class="o_scorm_row">
+                    <input type="color" t-att-value="(el.style.background or '').startsWith('#') ? el.style.background : '#ffffff'"
+                           t-on-change="(ev) => this.setStyle(el, 'background', ev.target.value)"/>
+                    <button t-if="el.style.background" class="btn btn-link btn-sm p-0" t-on-click="() => this.setStyle(el, 'background', '')">None</button>
+                </div>
+                <label>Border</label>
+                <div class="o_scorm_row">
+                    <input type="number" min="0" class="form-control form-control-sm" t-att-value="el.style.borderWidth or 0"
+                           t-on-change="(ev) => this.setStyle(el, 'borderWidth', this.numberValue(ev) || '')"/>
+                    <input type="color" t-att-value="el.style.borderColor or '#000000'"
+                           t-on-change="(ev) => this.setStyle(el, 'borderColor', ev.target.value)"/>
+                </div>
+                <label>Corners</label>
+                <input type="number" min="0" class="form-control form-control-sm" t-att-value="el.style.radius or 0"
+                       t-on-change="(ev) => this.setStyle(el, 'radius', this.numberValue(ev) || '')"/>
+                <label>Padding</label>
+                <input type="number" min="0" class="form-control form-control-sm" t-att-value="el.style.padding or 0"
+                       t-on-change="(ev) => this.setStyle(el, 'padding', this.numberValue(ev) || '')"/>
+                <label>Opacity</label>
+                <input type="range" min="0.1" max="1" step="0.05" t-att-value="el.style.opacity === undefined ? 1 : el.style.opacity"
+                       t-on-change="(ev) => this.setStyle(el, 'opacity', this.numberValue(ev) === 1 ? '' : this.numberValue(ev))"/>
+                <label>Shadow</label>
+                <input type="checkbox" class="form-check-input" t-att-checked="el.style.shadow"
+                       t-on-change="(ev) => this.setStyle(el, 'shadow', ev.target.checked || '')"/>
+            </div>
+        </fieldset>
+    </t>
+
+    <t t-name="lms_scorm_authoring.ListTools">
+        <div class="o_scorm_list_tools" t-if="canEdit">
+            <button class="btn btn-sm btn-link p-0" title="Up" t-on-click="() => this.listMove(el, key, index, -1)"><i class="fa fa-chevron-up"/></button>
+            <button class="btn btn-sm btn-link p-0" title="Down" t-on-click="() => this.listMove(el, key, index, 1)"><i class="fa fa-chevron-down"/></button>
+            <button class="btn btn-sm btn-link p-0 text-danger" title="Remove" t-on-click="() => this.listRemove(el, key, index)"><i class="fa fa-times"/></button>
+        </div>
+    </t>
+</templates>

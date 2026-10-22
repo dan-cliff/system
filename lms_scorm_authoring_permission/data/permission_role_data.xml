@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_scorm_admin" model="permission.role">
+            <field name="name">SCORM Authoring – Administrator</field>
+            <field name="description">Everything in SCORM Authoring: create, edit and delete any course, review, approve and publish, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_authoring'), 'group_id': ref('lms_scorm_authoring.group_scorm_admin')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_create_only'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_create_only')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_edit_own'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_edit_own')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_edit_team'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_edit_team')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_edit_all'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_edit_all')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_view_all'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_view_all')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_delete_own'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_delete_own')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_delete_all'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_delete_all')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_review'), 'group_id': ref('lms_scorm_authoring.group_scorm_review')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_approve'), 'group_id': ref('lms_scorm_authoring.group_scorm_approve')})
+            ]"/>
+        </record>
+        <record id="role_scorm_manager" model="permission.role">
+            <field name="name">SCORM Authoring – Manager</field>
+            <field name="description">Create, view and edit their own and their team's SCORM courses. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_edit_team'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_scorm_employee" model="permission.role">
+            <field name="name">SCORM Authoring – Employee</field>
+            <field name="description">Create, view and edit their own SCORM courses. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_edit_own'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_scorm_reviewer" model="permission.role">
+            <field name="name">SCORM Authoring – Reviewer</field>
+            <field name="description">View every SCORM course and add review comments to its slides.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_view_all'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_view_all')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_review'), 'group_id': ref('lms_scorm_authoring.group_scorm_review')})
+            ]"/>
+        </record>
+        <record id="role_scorm_approver" model="permission.role">
+            <field name="name">SCORM Authoring – Approver</field>
+            <field name="description">View every SCORM course, add review comments, approve or request changes, and publish approved courses.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_view_all'), 'group_id': ref('lms_scorm_authoring.group_scorm_course_view_all')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_review'), 'group_id': ref('lms_scorm_authoring.group_scorm_review')}),
+                (0, 0, {'privilege_id': ref('lms_scorm_authoring.privilege_scorm_course_approve'), 'group_id': ref('lms_scorm_authoring.group_scorm_approve')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

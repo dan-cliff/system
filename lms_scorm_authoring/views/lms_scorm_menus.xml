@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_scorm_root"
+              name="SCORM Authoring"
+              web_icon="lms_scorm_authoring,static/description/icon.png"
+              sequence="86"
+              groups="lms_scorm_authoring.group_scorm_user"/>
+
+    <menuitem id="menu_scorm_courses"
+              name="Courses"
+              parent="menu_scorm_root"
+              action="action_lms_scorm_course"
+              sequence="10"/>
+
+    <menuitem id="menu_scorm_to_approve"
+              name="Waiting for Approval"
+              parent="menu_scorm_root"
+              action="action_lms_scorm_course_to_approve"
+              sequence="20"
+              groups="lms_scorm_authoring.group_scorm_approve"/>
+
+    <menuitem id="menu_scorm_comments"
+              name="Review Comments"
+              parent="menu_scorm_root"
+              action="action_lms_scorm_comment"
+              sequence="30"/>
+
+    <menuitem id="menu_scorm_configuration"
+              name="Configuration"
+              parent="menu_scorm_root"
+              sequence="90"
+              groups="lms_scorm_authoring.group_scorm_admin"/>
+
+    <menuitem id="menu_scorm_fonts"
+              name="Fonts"
+              parent="menu_scorm_configuration"
+              action="action_lms_scorm_font"
+              sequence="10"/>
+</odoo>

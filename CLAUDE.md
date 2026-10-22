@@ -19,6 +19,69 @@ for every module we create or edit.
   `%Y-%m-%d` or `%m/%d/%Y`.
 - Store dates as Odoo `Date` / `Datetime` fields, never as text.
 
+## List views
+
+- Every list view starts with the record ID: make
+  `<field name="id" optional="show"/>` the first column, before any other
+  field (a `handle` widget for `sequence` may sit in front of it).
+
+## Permissions (privileges and roles)
+
+Every app gets the same access model, so Permission Management can build
+roles from it.
+
+- **Per-model privileges.** Each primary model (see Organisation structure)
+  gets these privileges, each its own `res.groups.privilege` under the app's
+  `ir.module.category`, named `<Records>: <Permission>` (e.g.
+  "SCORM Courses: Delete Own"), with one group named "Allowed":
+
+  | Permission | Gives |
+  | --- | --- |
+  | Create Only | create, and view their own (no editing after saving) |
+  | Create and Edit Own | create, view and edit their own |
+  | Create and Edit My Team | create, view and edit their own and their team's |
+  | Create and Edit All | create, view and edit all |
+  | View All | view all |
+  | Delete Own | delete their own |
+  | Delete All | delete all |
+
+  - *Own* = records they created (`create_uid`), or that name them in the
+    model's owner field (e.g. `user_id`) when it has one.
+  - *My Team* = their own plus those of users whose employee sits under
+    theirs in the org chart:
+    `('create_uid.employee_ids', 'child_of', user.employee_ids.ids)`.
+  - The meaning lives in `ir.rule`s on each "Allowed" group. Child models
+    (lines, slides, comments, …) get the same rules through the path to
+    their parent (e.g. `course_id.create_uid`), so access to a parent
+    covers its children.
+  - Each "Allowed" group implies the app's base user group (technical, no
+    privilege). That base group has the ACL (`ir.model.access.csv`) on the
+    app's models, plus a deny rule (`[(0, '=', 1)]`) for each of read,
+    write, create and delete. Rules of different groups are OR-ed, so
+    without a permission the user can do nothing, and each permission only
+    opens what it names. Never grant access through the ACL alone.
+  - Workflow actions that aren't CRUD (approve, publish, review, …) get
+    their own privilege with an "Allowed" group. Check it in code with
+    `has_group` before the action, and let the action write with `sudo()`.
+  - Option models under Configuration keep simple ACLs: read for the app's
+    users, full for the app's Administrator.
+- **App Administrator group.** The app's privilege (named after the app)
+  holds an "Administrator" group that implies every permission above
+  (including the workflow ones) and gives Configuration access.
+  `base.user_root` and `base.user_admin` are members.
+- **Standard roles.** Each app ships three `permission.role` records in a
+  bridge module `<app>_permission` (`depends: [<app>,
+  'permission_management']`, `auto_install: True`; see
+  `checklists_permission`), named `<App> – <Role>`:
+  - **Administrator**: everything, including Delete All and every workflow
+    privilege, plus the app's Administrator group.
+  - **Manager**: Create and Edit My Team on every primary model, no delete.
+  - **Employee**: Create and Edit Own on every primary model, no delete.
+
+  Add app-specific roles (e.g. Reviewer, Approver) to the same file when
+  the app has workflow privileges. Ship roles as `noupdate="1"` data so
+  admins can adjust them.
+
 ## Toolbar (systray) icons
 
 - Every icon a module adds to the top toolbar must also show on the `/odoo`
