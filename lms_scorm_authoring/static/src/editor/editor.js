@@ -316,6 +316,50 @@ class RichText extends Component {
     }
 }
 
+// Font Awesome 4.7 icons offered for buttons (any other fa-* name can be typed)
+const ICONS = [
+    "arrow-right", "arrow-left", "arrow-up", "arrow-down", "arrow-circle-right", "arrow-circle-left",
+    "chevron-right", "chevron-left", "chevron-up", "chevron-down", "angle-double-right", "angle-double-left",
+    "caret-right", "caret-left", "long-arrow-right", "long-arrow-left", "step-forward", "step-backward",
+    "forward", "backward", "play", "play-circle", "pause", "stop", "repeat", "refresh", "undo",
+    "home", "bars", "th", "list", "search", "info", "info-circle", "question", "question-circle",
+    "exclamation", "exclamation-circle", "exclamation-triangle", "warning", "check", "check-circle",
+    "check-square-o", "times", "times-circle", "plus", "plus-circle", "minus", "minus-circle",
+    "star", "star-o", "heart", "thumbs-up", "thumbs-down", "trophy", "certificate", "graduation-cap",
+    "book", "bookmark", "lightbulb-o", "pencil", "edit", "file-text-o", "file-pdf-o", "clipboard",
+    "download", "upload", "external-link", "link", "paperclip", "print", "share", "envelope", "phone",
+    "comment", "comments", "bell", "flag", "map-marker", "globe", "clock-o", "calendar", "hourglass-half",
+    "user", "users", "user-circle", "id-badge", "briefcase", "building", "industry", "truck", "car",
+    "wrench", "cog", "cogs", "gavel", "balance-scale", "shield", "lock", "unlock", "key", "eye",
+    "fire", "fire-extinguisher", "medkit", "ambulance", "heartbeat", "hand-paper-o", "hand-pointer-o",
+    "hand-o-right", "hand-o-up", "life-ring", "bolt", "recycle", "leaf", "tint", "flask", "magic",
+    "puzzle-piece", "rocket", "flag-checkered", "sign-in", "sign-out", "volume-up", "video-camera",
+    "camera", "picture-o", "headphones", "microphone", "smile-o", "frown-o", "meh-o",
+];
+
+/** Pick a Font Awesome icon from a searchable grid. */
+class IconPicker extends Component {
+    static template = "lms_scorm_authoring.IconPicker";
+    static props = { value: { type: String, optional: true }, onChange: Function };
+
+    setup() {
+        this.state = useState({ search: "" });
+    }
+
+    get icons() {
+        const term = this.state.search.trim().toLowerCase().replace(/^fa-/, "");
+        const names = ICONS.filter((name) => !term || name.includes(term)).map((name) => `fa-${name}`);
+        if (term && /^[a-z0-9-]+$/.test(term) && !names.includes(`fa-${term}`)) {
+            names.unshift(`fa-${term}`);
+        }
+        return names;
+    }
+
+    setSearch(ev) {
+        this.state.search = ev.target.value;
+    }
+}
+
 /** What the author wants the AI to write. */
 class AiCourseDialog extends Component {
     static template = "lms_scorm_authoring.AiCourseDialog";
@@ -362,7 +406,7 @@ class AiCourseDialog extends Component {
 
 export class ScormEditor extends Component {
     static template = "lms_scorm_authoring.Editor";
-    static components = { FormatToolbar, RichText };
+    static components = { FormatToolbar, RichText, IconPicker };
     static props = ["*"];
 
     setup() {
@@ -882,8 +926,21 @@ export class ScormEditor extends Component {
 
     buttonStyle(el) {
         const s = el.style || {};
-        return `background:${s.background || "var(--brand-primary)"};color:${s.color || "var(--brand-button-text)"};` +
-            `font-size:${s.fontSize || 18}px;border-radius:${s.radius || 6}px;`;
+        let style = `background:${s.background || "var(--brand-primary)"};color:${s.color || "var(--brand-button-text)"};` +
+            `font-size:${s.fontSize || 18}px;`;
+        if (!el.props.shape || el.props.shape === "rect") {
+            style += `border-radius:${s.radius || 6}px;`;
+        }
+        if (s.borderWidth) {
+            style += `border:${s.borderWidth}px solid ${s.borderColor || "#000"};`;
+        }
+        if (s.shadow && !["star", "triangle", "trapezoid"].includes(el.props.shape)) {
+            style += "box-shadow:0 6px 18px rgba(0,0,0,.18);";
+        }
+        if (s.opacity !== undefined && s.opacity !== "" && s.opacity !== null) {
+            style += `opacity:${s.opacity};`;
+        }
+        return style;
     }
 
     html(value) {
@@ -1146,6 +1203,20 @@ export class ScormEditor extends Component {
             return;
         }
         ev.preventDefault();
+        if (handle === "rotate") {
+            const box = ev.currentTarget.closest(".o_scorm_el").getBoundingClientRect();
+            this.drag = {
+                el,
+                rotate: true,
+                cx: box.left + box.width / 2,
+                cy: box.top + box.height / 2,
+                moved: false,
+                snapshotTaken: false,
+            };
+            document.addEventListener("pointermove", this._onPointerMove);
+            document.addEventListener("pointerup", this._onPointerUp);
+            return;
+        }
         this.drag = {
             el,
             handle,
@@ -1165,6 +1236,18 @@ export class ScormEditor extends Component {
     onPointerMove(ev) {
         const drag = this.drag;
         if (!drag) {
+            return;
+        }
+        if (drag.rotate) {
+            if (!drag.snapshotTaken) {
+                this.snapshot();
+                drag.snapshotTaken = true;
+            }
+            drag.moved = true;
+            // Angle from the item's centre to the pointer; the handle sits straight above
+            let angle = (Math.atan2(ev.clientY - drag.cy, ev.clientX - drag.cx) * 180) / Math.PI + 90;
+            angle = ev.shiftKey ? Math.round(angle / 15) * 15 : Math.round(angle);
+            drag.el.rotation = ((angle % 360) + 360) % 360;
             return;
         }
         const dx = (ev.clientX - drag.startX) / this.state.scale;
@@ -1204,7 +1287,7 @@ export class ScormEditor extends Component {
         if (handle.includes("s")) { h = orig.h + dy; }
         if (handle.includes("w")) { w = orig.w - dx; x = orig.x + dx; }
         if (handle.includes("n")) { h = orig.h - dy; y = orig.y + dy; }
-        if (ev.shiftKey && orig.h) {
+        if ((ev.shiftKey || el.props.shape === "circle") && orig.h) {
             // Keep proportions
             const ratio = orig.w / orig.h;
             if (handle.length === 2) {
@@ -1239,7 +1322,7 @@ export class ScormEditor extends Component {
         if (!this.canEdit) {
             return;
         }
-        if (el.type === "text" || el.type === "button") {
+        if (el.type === "text" || (el.type === "button" && el.props.content !== "icon")) {
             this.startTextEdit(el);
         } else if (["image", "video", "audio"].includes(el.type) && !el.props.attachment_id && !el.props.url) {
             this.uploadFor(el, `${el.type}/*`);
@@ -1471,6 +1554,25 @@ export class ScormEditor extends Component {
         this.snapshot();
         el[key] = Math.round(Number(value) || 0);
         this.markDirty();
+    }
+
+    setShape(el, shape) {
+        this.snapshot();
+        el.props.shape = shape;
+        if (shape === "circle") {
+            el.w = el.h = Math.min(el.w, el.h);
+        }
+        this.markDirty();
+    }
+
+    setRotation(el, degrees) {
+        this.snapshot();
+        el.rotation = ((Math.round(degrees) % 360) + 360) % 360;
+        this.markDirty();
+    }
+
+    shapeClass(el) {
+        return `o_scorm_shape_${el.props.shape || "rect"}`;
     }
 
     setFlag(el, key, value) {
@@ -1868,7 +1970,8 @@ export class ScormEditor extends Component {
                 if (ev.key === "ArrowDown") { el.y += step; }
             }
             this.markDirty();
-        } else if (ev.key === "Enter" && els.length === 1 && ["text", "button"].includes(els[0].type)) {
+        } else if (ev.key === "Enter" && els.length === 1 && (els[0].type === "text" ||
+                   (els[0].type === "button" && els[0].props.content !== "icon"))) {
             ev.preventDefault();
             this.startTextEdit(els[0]);
         }

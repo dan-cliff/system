@@ -6,10 +6,19 @@ import re
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import html_sanitize
+from odoo.tools.misc import file_path
 
 from ..lib.package_builder import build_package
 
 EDITABLE_STATES = ('draft',)
+# Font Awesome 4.7 (shipped with Odoo), copied into packages that use icons
+FONT_AWESOME_FILES = {
+    'fontawesome/css/font-awesome.css': 'web/static/src/libs/fontawesome/css/font-awesome.css',
+    'fontawesome/fonts/fontawesome-webfont.woff2': 'web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2',
+    'fontawesome/fonts/fontawesome-webfont.woff': 'web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff',
+}
+SHAPES = ('rect', 'roundRect', 'circle', 'oval', 'ellipse', 'pill', 'star', 'trapezoid', 'triangle', 'line')
+ICON_NAME = re.compile(r'^fa-[a-z0-9-]{1,40}$')
 HTML_PROPS = ('html', 'front_html', 'back_html', 'pass_html', 'fail_html', 'popup_text', 'prompt',
               'feedback_correct', 'feedback_incorrect', 'label_html')
 URL_PROPS = ('url',)
@@ -693,8 +702,17 @@ class LmsScormCourse(models.Model):
             if asset:
                 files[asset[0]] = asset[1]
 
+        uses_icons = any(
+            el.get('props', {}).get('icon') and el.get('props', {}).get('content') in ('icon', 'icon_text')
+            for slide in slides for el in slide['elements'])
+        if uses_icons:
+            for path, source in FONT_AWESOME_FILES.items():
+                with open(file_path(source), 'rb') as handle:
+                    files[path] = handle.read()
+
         font = brand['font']
         data = {
+            'icons': uses_icons,
             'identifier': course.identifier or 'cc_scorm_%d' % course.id,
             'title': course.name,
             'description': course.description or '',
@@ -962,8 +980,21 @@ def sanitize_element(element):
                       if isinstance(v, (str, int, float, bool)) and len(str(v)) < 300
                       and not re.search(r'url\s*\(|expression\s*\(|javascript:', str(v), re.I)}
     props = element.get('props') if isinstance(element.get('props'), dict) else {}
-    clean['props'] = _sanitize_value(props)
+    clean['props'] = _sanitize_choices(_sanitize_value(props))
     return clean
+
+
+def _sanitize_choices(props):
+    """Values the editor offers as fixed choices end up in class names: keep them to those."""
+    if 'icon' in props and not (isinstance(props['icon'], str) and ICON_NAME.match(props['icon'])):
+        props['icon'] = ''
+    if 'shape' in props and props['shape'] not in SHAPES:
+        props['shape'] = 'rect'
+    if 'content' in props and props['content'] not in ('text', 'icon', 'icon_text'):
+        props['content'] = 'text'
+    if 'icon_position' in props and props['icon_position'] not in ('left', 'right'):
+        props['icon_position'] = 'left'
+    return props
 
 
 def _sanitize_value(value, key=None):

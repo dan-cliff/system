@@ -17,6 +17,8 @@
     if (!C) { return; }
     var S = C.settings || {};
     var L = C.labels || {};
+    // Shapes cut out with clip-path (their borders and shadows can't show)
+    var CLIPPED_SHAPES = ['star', 'triangle', 'trapezoid'];
     var QUESTION_TYPES = ['mcq', 'mrq', 'truefalse', 'fillblank', 'matching', 'sequence', 'survey'];
     var params = new URLSearchParams(window.location.search);
 
@@ -406,7 +408,8 @@
         if (el.rotation) { node.style.transform = 'rotate(' + el.rotation + 'deg)'; }
         var render = RENDERERS[el.type];
         if (render) { render(node, el, slideIndex); }
-        if (!isQuestion(el) && el.type !== 'text' && el.type !== 'shape' && el.type !== 'results') {
+        // These style their own inner box (buttons: so shaped buttons keep their outline)
+        if (!isQuestion(el) && ['text', 'shape', 'results', 'button'].indexOf(el.type) === -1) {
             applyStyle(node, el.style);
         }
         return node;
@@ -464,7 +467,11 @@
                 inner.style.top = '50%';
             } else {
                 applyStyle(inner, el.style);
-                if (shape === 'ellipse') { inner.style.borderRadius = '50%'; }
+                if (CLIPPED_SHAPES.indexOf(shape) !== -1 && el.style.shadow) {
+                    // A clipped shape would cut its own shadow off: shadow the wrapper instead
+                    inner.style.boxShadow = '';
+                    node.classList.add('sp-drop-shadow');
+                }
                 if (!el.style.background && !el.style.borderWidth) { inner.style.background = 'var(--brand-primary)'; }
             }
             node.appendChild(inner);
@@ -506,15 +513,28 @@
             watchIframe(frame, el);
         },
         button: function (node, el) {
-            var btn = h('button', { class: 'sp-btn sp-btn-primary sp-btn-fill', type: 'button',
-                                    onclick: function () { doAction(el.props, el); } });
-            if (el.props.label_html) {
-                btn.innerHTML = el.props.label_html;
-                btn.setAttribute('aria-label', el.props.label || btn.textContent.trim());
+            var p = el.props;
+            var shape = p.shape || 'rect';
+            var content = p.content || 'text';
+            var btn = h('button', { class: 'sp-btn sp-btn-primary sp-btn-fill sp-shape-' + shape, type: 'button',
+                                    onclick: function () { doAction(p, el); } });
+            var label = h('span', { class: 'sp-btn-label' });
+            if (p.label_html) {
+                label.innerHTML = p.label_html;
             } else {
-                btn.textContent = el.props.label || 'Button';
+                label.textContent = p.label || 'Button';
             }
+            var icon = p.icon && content !== 'text' ? h('i', { class: 'fa ' + p.icon, 'aria-hidden': 'true' }) : null;
+            var inner = h('span', { class: 'sp-btn-content' + (p.icon_position === 'right' ? ' sp-icon-right' : '') });
+            if (icon) { inner.appendChild(icon); }
+            if (content !== 'icon') { inner.appendChild(label); }
+            btn.appendChild(inner);
+            btn.setAttribute('aria-label', p.label || label.textContent.trim() || (p.icon || '').replace('fa-', ''));
             applyStyle(btn, el.style);
+            if (CLIPPED_SHAPES.indexOf(shape) !== -1) {
+                btn.style.borderRadius = '';
+                if (el.style.shadow) { btn.style.boxShadow = ''; node.classList.add('sp-drop-shadow'); }
+            }
             node.appendChild(btn);
         },
         hotspot: function (node, el) {

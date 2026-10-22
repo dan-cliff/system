@@ -10,7 +10,7 @@
                  data-rich="1" t-att-data-id="el.id"/>
             <div t-else="" class="o_scorm_text_body"><t t-out="html(p.html)"/></div>
         </div>
-        <div t-elif="el.type === 'shape'" class="o_scorm_shape" t-att-style="boxStyle(el)"/>
+        <div t-elif="el.type === 'shape'" class="o_scorm_shape" t-att-class="shapeClass(el)" t-att-style="boxStyle(el)"/>
         <t t-elif="el.type === 'image'">
             <img t-if="p.attachment_id" t-att-src="mediaUrl(p.attachment_id)" t-att-alt="p.alt or ''" draggable="false"
                  t-att-style="'object-fit:' + (p.fit || 'contain') + ';' + boxStyle(el)"/>
@@ -27,10 +27,15 @@
             <i class="fa fa-volume-up"/><span class="o_scorm_audio_bar"/>
             <span t-if="!p.attachment_id and !p.url" class="small">Double-click to add audio</span>
         </div>
-        <div t-elif="el.type === 'button'" class="o_scorm_button" t-att-style="buttonStyle(el)">
-            <div t-if="!thumb and state.editingId === el.id" class="o_scorm_text_edit o_scorm_button_edit" contenteditable="true"
-                 data-rich="1" t-att-data-id="el.id"/>
-            <div t-else="" class="o_scorm_button_label"><t t-out="html(buttonHtml(el))"/></div>
+        <div t-elif="el.type === 'button'" class="o_scorm_button" t-att-class="shapeClass(el)" t-att-style="buttonStyle(el)">
+            <span class="o_scorm_button_content" t-att-class="{'o_scorm_icon_right': p.icon_position === 'right'}">
+                <i t-if="p.icon and p.content and p.content !== 'text'" t-att-class="'fa ' + p.icon" aria-hidden="true"/>
+                <t t-if="p.content !== 'icon'">
+                    <div t-if="!thumb and state.editingId === el.id" class="o_scorm_text_edit o_scorm_button_edit" contenteditable="true"
+                         data-rich="1" t-att-data-id="el.id"/>
+                    <div t-else="" class="o_scorm_button_label"><t t-out="html(buttonHtml(el))"/></div>
+                </t>
+            </span>
         </div>
         <div t-elif="el.type === 'hotspot'" class="o_scorm_hotspot" t-att-style="boxStyle(el)">
             <i class="fa fa-bullseye"/>
@@ -223,6 +228,10 @@
                                             <i class="fa fa-star"/>
                                         </span>
                                         <t t-if="canEdit and el.id === state.selectedId and !multiSelected and el.id !== state.editingId">
+                                            <span class="o_scorm_handle_rotate" title="Drag to rotate (Shift: 15° steps)"
+                                                  t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el, 'rotate')">
+                                                <i class="fa fa-repeat"/>
+                                            </span>
                                             <span t-foreach="['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']" t-as="handle" t-key="handle"
                                                   t-att-class="'o_scorm_handle o_scorm_handle_' + handle"
                                                   t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el, handle)"/>
@@ -509,8 +518,8 @@
             <t t-if="el.type === 'shape'">
                 <div class="o_scorm_field">
                     <label>Shape</label>
-                    <select class="form-select" t-on-change="(ev) => this.setProp(el, 'shape', ev.target.value)">
-                        <option value="rect" t-att-selected="p.shape === 'rect'">Rectangle</option>
+                    <select class="form-select" t-on-change="(ev) => this.setShape(el, ev.target.value)">
+                        <t t-call="lms_scorm_authoring.ShapeOptions"/>
                         <option value="roundRect" t-att-selected="p.shape === 'roundRect'">Rounded rectangle</option>
                         <option value="ellipse" t-att-selected="p.shape === 'ellipse'">Ellipse</option>
                         <option value="line" t-att-selected="p.shape === 'line'">Line</option>
@@ -521,10 +530,45 @@
             <!-- Buttons and hotspots -->
             <t t-if="['button', 'hotspot'].includes(el.type)">
                 <FormatToolbar t-if="el.type === 'button' and canEdit and state.editingId === el.id"/>
-                <div class="o_scorm_field" t-if="el.type === 'button'">
-                    <label>Label <small class="text-muted">(or double-click the button on the slide)</small></label>
-                    <RichText value="buttonHtml(el)" onChange="(v) => this.setButtonLabel(el, v)" readonly="readonly"/>
-                </div>
+                <t t-if="el.type === 'button'">
+                    <div class="o_scorm_field">
+                        <label>Show</label>
+                        <select class="form-select" t-on-change="(ev) => this.setProp(el, 'content', ev.target.value)">
+                            <option value="text" t-att-selected="!p.content or p.content === 'text'">Text</option>
+                            <option value="icon" t-att-selected="p.content === 'icon'">Icon</option>
+                            <option value="icon_text" t-att-selected="p.content === 'icon_text'">Icon and text</option>
+                        </select>
+                    </div>
+                    <div class="o_scorm_field" t-if="p.content and p.content !== 'text'">
+                        <label>Icon</label>
+                        <IconPicker value="p.icon or ''" onChange="(v) => this.setProp(el, 'icon', v)"/>
+                    </div>
+                    <div class="o_scorm_field" t-if="p.content === 'icon_text'">
+                        <label>Icon goes</label>
+                        <select class="form-select" t-on-change="(ev) => this.setProp(el, 'icon_position', ev.target.value)">
+                            <option value="left" t-att-selected="p.icon_position !== 'right'">Before the text</option>
+                            <option value="right" t-att-selected="p.icon_position === 'right'">After the text</option>
+                        </select>
+                    </div>
+                    <div class="o_scorm_field" t-if="p.content !== 'icon'">
+                        <label>Label <small class="text-muted">(or double-click the button on the slide)</small></label>
+                        <RichText value="buttonHtml(el)" onChange="(v) => this.setButtonLabel(el, v)" readonly="readonly"/>
+                    </div>
+                    <div class="o_scorm_field" t-else="">
+                        <label>Name for screen readers</label>
+                        <input class="form-control" t-att-value="p.label" placeholder="e.g. Next slide"
+                               t-on-change="(ev) => this.setProp(el, 'label', ev.target.value)"/>
+                    </div>
+                    <div class="o_scorm_field">
+                        <label>Shape</label>
+                        <select class="form-select" t-on-change="(ev) => this.setShape(el, ev.target.value)">
+                            <t t-call="lms_scorm_authoring.ShapeOptions"/>
+                        </select>
+                        <div t-if="['star', 'triangle', 'trapezoid'].includes(p.shape)" class="small text-muted">
+                            Borders and corners don't apply to this shape.
+                        </div>
+                    </div>
+                </t>
                 <div class="o_scorm_field">
                     <label>When clicked</label>
                     <select class="form-select" t-on-change="(ev) => this.setProp(el, 'action', ev.target.value)">
@@ -763,6 +807,13 @@
             </div>
             <div class="o_scorm_row mt-1" t-if="canEdit">
                 <div class="btn-group btn-group-sm">
+                    <button class="btn btn-light" title="Rotate 15° left" t-on-click="() => this.setRotation(el, (el.rotation or 0) - 15)"><i class="fa fa-undo"/></button>
+                    <button class="btn btn-light" title="Rotate 15° right" t-on-click="() => this.setRotation(el, (el.rotation or 0) + 15)"><i class="fa fa-repeat"/></button>
+                    <button class="btn btn-light" title="Straighten" t-on-click="() => this.setRotation(el, 0)">0°</button>
+                </div>
+            </div>
+            <div class="o_scorm_row mt-1" t-if="canEdit">
+                <div class="btn-group btn-group-sm">
                     <button class="btn btn-light" title="Align left" t-on-click="() => this.align('left')"><i class="fa fa-align-left"/></button>
                     <button class="btn btn-light" title="Centre" t-on-click="() => this.align('center')"><i class="fa fa-align-center"/></button>
                     <button class="btn btn-light" title="Align right" t-on-click="() => this.align('right')"><i class="fa fa-align-right"/></button>
@@ -900,6 +951,33 @@
             <div class="o_scorm_rich_body form-control" t-ref="editable" data-rich="1"
                  t-att-contenteditable="props.readonly ? 'false' : 'true'"
                  t-on-input="onInput" t-on-blur="commit"/>
+        </div>
+    </t>
+
+    <t t-name="lms_scorm_authoring.ShapeOptions">
+        <option value="rect" t-att-selected="!p.shape or p.shape === 'rect'">Rectangle</option>
+        <option value="circle" t-att-selected="p.shape === 'circle'">Circle</option>
+        <option value="oval" t-att-selected="p.shape === 'oval'">Oval</option>
+        <option value="pill" t-att-selected="p.shape === 'pill'">Pill</option>
+        <option value="star" t-att-selected="p.shape === 'star'">Star</option>
+        <option value="trapezoid" t-att-selected="p.shape === 'trapezoid'">Trapezoid</option>
+        <option value="triangle" t-att-selected="p.shape === 'triangle'">Triangle</option>
+    </t>
+
+    <t t-name="lms_scorm_authoring.IconPicker">
+        <div class="o_scorm_icon_picker">
+            <div class="o_scorm_row mb-1">
+                <span class="o_scorm_icon_current"><i t-if="props.value" t-att-class="'fa ' + props.value"/></span>
+                <input class="form-control form-control-sm" placeholder="Search icons, e.g. arrow"
+                       t-att-value="state.search" t-on-input="setSearch"/>
+            </div>
+            <div class="o_scorm_icon_grid">
+                <button t-foreach="icons" t-as="icon" t-key="icon" type="button" class="btn btn-sm"
+                        t-att-class="{'active': icon === props.value}" t-att-title="icon"
+                        t-on-click="() => props.onChange(icon)">
+                    <i t-att-class="'fa ' + icon"/>
+                </button>
+            </div>
         </div>
     </t>
 

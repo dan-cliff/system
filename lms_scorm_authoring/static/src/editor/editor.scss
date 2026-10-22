@@ -442,6 +442,77 @@
         i { font-size: 48px; color: var(--brand-primary); }
     }
 
+    // Shapes shared by buttons and shape items (same as the player)
+    .o_scorm_shape_circle, .o_scorm_shape_oval, .o_scorm_shape_ellipse { border-radius: 50% !important; }
+    .o_scorm_shape_pill { border-radius: 9999px !important; }
+    .o_scorm_shape_triangle { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); border: 0 !important; }
+    .o_scorm_shape_trapezoid { clip-path: polygon(18% 0%, 82% 0%, 100% 100%, 0% 100%); border: 0 !important; }
+    .o_scorm_shape_star {
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        border: 0 !important;
+    }
+    .o_scorm_button.o_scorm_shape_triangle { align-items: flex-end; padding-bottom: 14%; }
+    .o_scorm_button.o_scorm_shape_star { padding: 10% 22% 8%; }
+    .o_scorm_button_content {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45em;
+        max-width: 100%;
+        &.o_scorm_icon_right { flex-direction: row-reverse; }
+        .fa { font-size: 1.15em; }
+    }
+    .o_scorm_handle_rotate {
+        position: absolute;
+        left: calc(50% - 11px);
+        top: -36px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid $o-brand-primary;
+        color: $o-brand-primary;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        z-index: 10;
+        &::after {
+            content: "";
+            position: absolute;
+            top: 20px;
+            left: 9px;
+            width: 0;
+            height: 14px;
+            border-left: 2px solid $o-brand-primary;
+        }
+    }
+    .o_scorm_icon_picker {
+        .o_scorm_icon_current {
+            width: 32px;
+            height: 32px;
+            flex: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 18px;
+        }
+        .o_scorm_icon_grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 3px;
+            .btn { padding: 4px 0; font-size: 15px; }
+            .btn.active { background: $o-brand-primary; color: #fff; }
+        }
+    }
+
     .o_scorm_marquee {
         position: absolute;
         z-index: 1999;
