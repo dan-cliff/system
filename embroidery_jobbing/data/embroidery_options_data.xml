@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Starting options for the Configuration lists. noupdate so edits are kept. -->
+<odoo noupdate="1">
+    <!-- Hoops & frames (Brother PR series) -->
+    <record id="hoop_extra_large" model="embroidery.hoop"><field name="name">Extra Large Hoop</field><field name="width_mm">200</field><field name="height_mm">300</field><field name="sequence">10</field></record>
+    <record id="hoop_large" model="embroidery.hoop"><field name="name">Large Hoop</field><field name="width_mm">130</field><field name="height_mm">180</field><field name="sequence">20</field></record>
+    <record id="hoop_medium" model="embroidery.hoop"><field name="name">Medium Hoop</field><field name="width_mm">100</field><field name="height_mm">100</field><field name="sequence">30</field></record>
+    <record id="hoop_small" model="embroidery.hoop"><field name="name">Small Hoop</field><field name="width_mm">40</field><field name="height_mm">60</field><field name="sequence">40</field></record>
+    <record id="hoop_cap" model="embroidery.hoop"><field name="name">Cap Frame</field><field name="width_mm">60</field><field name="height_mm">130</field><field name="sequence">50</field></record>
+
+    <!-- Machine models -->
+    <record id="machine_model_brother_pr1060w" model="embroidery.machine.model">
+        <field name="name">Brother PR1060W</field>
+        <field name="manufacturer">Brother</field>
+        <field name="needle_count">10</field>
+        <field name="max_speed_spm">1000</field>
+        <field name="max_width_mm">200</field>
+        <field name="max_height_mm">300</field>
+        <field name="sequence">10</field>
+        <field name="hoop_ids" eval="[(6, 0, [ref('hoop_extra_large'), ref('hoop_large'), ref('hoop_medium'), ref('hoop_small'), ref('hoop_cap')])]"/>
+    </record>
+
+    <!-- Placements -->
+    <record id="placement_left_chest" model="embroidery.placement"><field name="name">Left Chest</field><field name="sequence">10</field></record>
+    <record id="placement_right_chest" model="embroidery.placement"><field name="name">Right Chest</field><field name="sequence">20</field></record>
+    <record id="placement_centre_chest" model="embroidery.placement"><field name="name">Centre Chest</field><field name="sequence">30</field></record>
+    <record id="placement_full_back" model="embroidery.placement"><field name="name">Full Back</field><field name="sequence">40</field></record>
+    <record id="placement_nape" model="embroidery.placement"><field name="name">Back of Neck</field><field name="sequence">50</field></record>
+    <record id="placement_sleeve" model="embroidery.placement"><field name="name">Sleeve</field><field name="sequence">60</field></record>
+    <record id="placement_cap_front" model="embroidery.placement"><field name="name">Cap Front</field><field name="sequence">70</field></record>
+    <record id="placement_cap_side" model="embroidery.placement"><field name="name">Cap Side</field><field name="sequence">80</field></record>
+    <record id="placement_bag" model="embroidery.placement"><field name="name">Bag / Accessory</field><field name="sequence">90</field></record>
+    <record id="placement_other" model="embroidery.placement"><field name="name">Other</field><field name="sequence">100</field></record>
+
+    <!-- Stabilisers -->
+    <record id="stabiliser_tear_away" model="embroidery.stabiliser"><field name="name">Tear Away</field><field name="sequence">10</field></record>
+    <record id="stabiliser_cut_away" model="embroidery.stabiliser"><field name="name">Cut Away</field><field name="sequence">20</field></record>
+    <record id="stabiliser_no_show_mesh" model="embroidery.stabiliser"><field name="name">No Show Mesh</field><field name="sequence">30</field></record>
+    <record id="stabiliser_wash_away" model="embroidery.stabiliser"><field name="name">Wash Away</field><field name="sequence">40</field></record>
+    <record id="stabiliser_heat_away" model="embroidery.stabiliser"><field name="name">Heat Away</field><field name="sequence">50</field></record>
+    <record id="stabiliser_none" model="embroidery.stabiliser"><field name="name">None</field><field name="sequence">90</field></record>
+</odoo>

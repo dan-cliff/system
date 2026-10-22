@@ -19,6 +19,69 @@ for every module we create or edit.
   `%Y-%m-%d` or `%m/%d/%Y`.
 - Store dates as Odoo `Date` / `Datetime` fields, never as text.
 
+## List views
+
+- Every list view starts with the record ID: make
+  `<field name="id" optional="show"/>` the first column, before any other
+  field (a `handle` widget for `sequence` may sit in front of it).
+
+## Permissions (privileges and roles)
+
+Every app gets the same access model, so Permission Management can build
+roles from it.
+
+- **Per-model privileges.** Each primary model (see Organisation structure)
+  gets these privileges, each its own `res.groups.privilege` under the app's
+  `ir.module.category`, named `<Records>: <Permission>` (e.g.
+  "SCORM Courses: Delete Own"), with one group named "Allowed":
+
+  | Permission | Gives |
+  | --- | --- |
+  | Create Only | create, and view their own (no editing after saving) |
+  | Create and Edit Own | create, view and edit their own |
+  | Create and Edit My Team | create, view and edit their own and their team's |
+  | Create and Edit All | create, view and edit all |
+  | View All | view all |
+  | Delete Own | delete their own |
+  | Delete All | delete all |
+
+  - *Own* = records they created (`create_uid`), or that name them in the
+    model's owner field (e.g. `user_id`) when it has one.
+  - *My Team* = their own plus those of users whose employee sits under
+    theirs in the org chart:
+    `('create_uid.employee_ids', 'child_of', user.employee_ids.ids)`.
+  - The meaning lives in `ir.rule`s on each "Allowed" group. Child models
+    (lines, slides, comments, …) get the same rules through the path to
+    their parent (e.g. `course_id.create_uid`), so access to a parent
+    covers its children.
+  - Each "Allowed" group implies the app's base user group (technical, no
+    privilege). That base group has the ACL (`ir.model.access.csv`) on the
+    app's models, plus a deny rule (`[(0, '=', 1)]`) for each of read,
+    write, create and delete. Rules of different groups are OR-ed, so
+    without a permission the user can do nothing, and each permission only
+    opens what it names. Never grant access through the ACL alone.
+  - Workflow actions that aren't CRUD (approve, publish, review, …) get
+    their own privilege with an "Allowed" group. Check it in code with
+    `has_group` before the action, and let the action write with `sudo()`.
+  - Option models under Configuration keep simple ACLs: read for the app's
+    users, full for the app's Administrator.
+- **App Administrator group.** The app's privilege (named after the app)
+  holds an "Administrator" group that implies every permission above
+  (including the workflow ones) and gives Configuration access.
+  `base.user_root` and `base.user_admin` are members.
+- **Standard roles.** Each app ships three `permission.role` records in a
+  bridge module `<app>_permission` (`depends: [<app>,
+  'permission_management']`, `auto_install: True`; see
+  `checklists_permission`), named `<App> – <Role>`:
+  - **Administrator**: everything, including Delete All and every workflow
+    privilege, plus the app's Administrator group.
+  - **Manager**: Create and Edit My Team on every primary model, no delete.
+  - **Employee**: Create and Edit Own on every primary model, no delete.
+
+  Add app-specific roles (e.g. Reviewer, Approver) to the same file when
+  the app has workflow privileges. Ship roles as `noupdate="1"` data so
+  admins can adjust them.
+
 ## Toolbar (systray) icons
 
 - Every icon a module adds to the top toolbar must also show on the `/odoo`
@@ -143,6 +206,48 @@ models are not primary). This applies to core Odoo apps and our own modules.
 - Never scoped: other technical and identity models (`ir.*`, `res.*` such
   as `res.users`/`res.company`, `mail.*`, `bus.*`, `org.*`),
   transient/abstract models and SQL views.
+
+## Hardware on the local network (IoT Interfaces Nodes)
+
+Odoo is hosted outside our network (Cloudpepper), so it can never connect
+to hardware on the local network (machines, printers, screens, sensors),
+and anything without a public internet API is out of its reach. Whenever we
+build something that talks to such hardware, plan the interface through a
+**Node**: a Raspberry Pi on the local network that connects out to Odoo.
+Always call it a Node in code, views and docs.
+
+- All Node configuration lives in the **IoT Interfaces** app
+  (`iot_interfaces`): depend on it; never build a separate device, token
+  or pairing model, and never open a port into the network or have Odoo
+  call the hardware directly.
+- Add a **role** for the program the Node runs:
+  `role = fields.Selection(selection_add=[('<app>_<role>', '<Label>')],
+  ondelete={...: 'set default'})` on `iot.node`. Put the role's settings
+  (e.g. which machines a bridge serves) on `iot.node` with `_inherit`,
+  shown in an inherited Node form page with `invisible="role != '...'"`,
+  and add filtered Node menus under `iot_interfaces.menu_iot_nodes`.
+- Authentication is always IoT Interfaces' rolling-key scheme: Nodes pair
+  once with a one-time code, then every request is signed (HMAC-SHA256,
+  timestamped, replay-proof), the key rotates automatically and authorised
+  MAC addresses are enforced. In controllers, use
+  `from odoo.addons.iot_interfaces.controllers.main import authenticate`
+  and `node, error = authenticate(roles=['<role>'])` on every route
+  (`auth='public'`, `csrf=False`, `save_session=False`). Never add bearer
+  tokens, secrets in URLs or logins for Nodes.
+- Ship the role's program in `<module>/node_programs/<role>/` with an
+  `iot_program.json` (`entrypoint` the agent starts and supervises, `home`
+  for screens, `setup` for a root setup script), register it in
+  `iot.program._iot_builtin_programs()` and call
+  `<function model="iot.program" name="_iot_sync_builtin"/>` in a data
+  file. Programs reach Odoo only through the Node agent's local address
+  (`$IOT_PROXY_URL`), which signs for them: programs never hold the key.
+- Every Node is built with the same command
+  (`curl -fsSL <odoo>/iot/install.sh | sudo bash -s -- --url <odoo> --pair <code>`)
+  and takes program updates over the air, rolling back a version that keeps
+  crashing. Changes to a program go out as a new program version (or a
+  GitHub commit when GitHub is enabled in IoT Interfaces Settings), never by
+  logging in to the Node. Only `setup` changes need the install command run
+  again.
 
 ## ESM Measures inspections
 

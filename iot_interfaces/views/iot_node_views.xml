@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Kanban ───────────────────────────────────────────────────────── -->
+    <record id="view_iot_node_kanban" model="ir.ui.view">
+        <field name="name">iot.node.kanban</field>
+        <field name="model">iot.node</field>
+        <field name="arch" type="xml">
+            <kanban highlight_color="color">
+                <field name="is_online"/>
+                <field name="is_paired"/>
+                <templates>
+                    <t t-name="menu">
+                        <t t-if="widget.editable"><a role="menuitem" type="open" class="dropdown-item">Edit</a></t>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <div class="d-flex align-items-center">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <span class="ms-auto badge rounded-pill text-bg-success" t-if="record.is_online.raw_value">Online</span>
+                            <span class="ms-auto badge rounded-pill text-bg-warning" t-elif="!record.is_paired.raw_value">Not Paired</span>
+                            <span class="ms-auto badge rounded-pill text-bg-secondary" t-else="">Offline</span>
+                        </div>
+                        <field name="role" class="text-muted"/>
+                        <field name="location_note" class="small"/>
+                        <footer>
+                            <span class="small text-muted" t-if="record.last_seen.raw_value">Last seen <field name="last_seen" options="{'numeric': True}"/></span>
+                            <span class="small text-muted" t-else="">Never connected</span>
+                            <field name="company_id" class="ms-auto small text-muted" groups="base.group_multi_company"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ─── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_iot_node_list" model="ir.ui.view">
+        <field name="name">iot.node.list</field>
+        <field name="model">iot.node</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="role"/>
+                <field name="location_note" optional="show"/>
+                <field name="is_paired"/>
+                <field name="is_online" widget="boolean"/>
+                <field name="installed_version_id" optional="show"/>
+                <field name="update_state" widget="badge" optional="show"
+                       decoration-success="update_state == 'current'"
+                       decoration-info="update_state == 'pending'"
+                       decoration-danger="update_state == 'failed'"/>
+                <field name="last_seen" options="{'numeric': True}"/>
+                <field name="agent_version" optional="hide"/>
+                <field name="last_mac" optional="hide"/>
+                <field name="last_auth_error" optional="hide"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Form ─────────────────────────────────────────────────────────── -->
+    <record id="view_iot_node_form" model="ir.ui.view">
+        <field name="name">iot.node.form</field>
+        <field name="model">iot.node</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_pair" type="object" string="Pair Node" class="btn-primary"
+                            invisible="is_paired"/>
+                    <button name="action_pair" type="object" string="Pair Again" invisible="not is_paired"
+                            confirm="Pairing again replaces the key: the Node stops connecting until it is paired with the new code. Continue?"/>
+                    <button name="action_revoke" type="object" string="Revoke Access" invisible="not is_paired"
+                            confirm="The Node will be refused until it is paired again. Revoke its access?"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Workshop Bridge"/></h1>
+                    </div>
+                    <group>
+                        <group string="Node" name="node">
+                            <field name="role" readonly="is_paired"/>
+                            <field name="location_note"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Connection" name="connection">
+                            <field name="is_online"/>
+                            <field name="last_seen" options="{'numeric': True}"/>
+                            <field name="last_ip"/>
+                            <field name="agent_version"/>
+                        </group>
+                    </group>
+                    <div class="text-muted" invisible="is_paired">
+                        A Node is a Raspberry Pi on your own network. It connects Odoo, which is hosted outside
+                        that network, to hardware Odoo can't reach itself. It only makes outgoing connections,
+                        so nothing needs opening on the router. Click <b>Pair Node</b> for the command that
+                        installs and pairs it.
+                    </div>
+                    <notebook>
+                        <page string="Program &amp; Updates" name="program">
+                            <group>
+                                <group string="Program">
+                                    <field name="program_id"/>
+                                    <field name="update_policy" widget="radio"/>
+                                    <field name="pinned_version_id" invisible="update_policy != 'pinned'"
+                                           required="update_policy == 'pinned'" options="{'no_create': True}"/>
+                                </group>
+                                <group string="Over-the-Air Updates">
+                                    <field name="update_state" widget="badge"
+                                           decoration-success="update_state == 'current'"
+                                           decoration-info="update_state == 'pending'"
+                                           decoration-danger="update_state == 'failed'"/>
+                                    <field name="target_version_id"/>
+                                    <field name="installed_version_id"/>
+                                    <field name="installed_on" options="{'numeric': True}"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-danger" role="alert" invisible="not update_error">
+                                <field name="update_error" nolabel="1"/>
+                            </div>
+                            <div class="alert alert-warning" role="alert" invisible="not setup_changed">
+                                This version changes the Node's setup, which over-the-air updates don't apply:
+                                run the install command on the Node again (Pair Again is not needed: run
+                                <code>curl -fsSL &lt;odoo&gt;/iot/install.sh | sudo bash -s -- --url &lt;odoo&gt;</code>).
+                            </div>
+                            <div class="text-muted">
+                                Odoo can't reach the Node, so updates are collected by the Node: it checks in every
+                                30 seconds and installs the version it should run, checking every file's checksum.
+                                If a new version keeps crashing, the Node goes back to the one before.
+                            </div>
+                        </page>
+                        <page string="Security" name="security">
+                            <group>
+                                <group string="Pairing">
+                                    <field name="is_paired"/>
+                                    <field name="paired_on" options="{'numeric': True}" invisible="not is_paired"/>
+                                    <field name="paired_hostname" invisible="not is_paired"/>
+                                    <field name="pairing_expires" options="{'numeric': True}" invisible="not pairing_expires"/>
+                                    <field name="node_key"/>
+                                </group>
+                                <group string="Rolling Key">
+                                    <field name="key_rotate_days"/>
+                                    <field name="key_rotated_on" options="{'numeric': True}"/>
+                                    <field name="last_auth_error" invisible="not last_auth_error"/>
+                                    <field name="last_auth_error_on" options="{'numeric': True}" invisible="not last_auth_error"/>
+                                </group>
+                            </group>
+                            <group string="Authorised MAC Addresses">
+                                <field name="allowed_macs" nolabel="1" colspan="2"
+                                       placeholder="One per line, e.g. b8:27:eb:12:34:56. Empty allows any Node with the key."/>
+                                <field name="authorise_paired_mac"/>
+                                <field name="last_mac"/>
+                            </group>
+                            <div class="text-muted">
+                                The Node signs every request with its own secret key, which never travels with the
+                                request. Odoo refuses unsigned, replayed or out-of-date requests and any MAC address
+                                not listed here, and replaces the key automatically, so the Node only needs pairing once.
+                            </div>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_iot_node_search" model="ir.ui.view">
+        <field name="name">iot.node.search</field>
+        <field name="model">iot.node</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="location_note"/>
+                <field name="last_mac"/>
+                <filter string="Not Paired" name="not_paired" domain="[('auth_secret', '=', False)]"
+                        groups="base.group_system"/>
+                <filter string="Refused Requests" name="refused" domain="[('last_auth_error', '!=', False)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Role" name="group_role" context="{'group_by': 'role'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_iot_node" model="ir.actions.act_window">
+        <field name="name">Nodes</field>
+        <field name="res_model">iot.node</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first Node</p>
+            <p>A Node is a Raspberry Pi on your own network that connects Odoo to hardware Odoo can't reach
+               from the internet: embroidery machines, wall screens and more. Each Node is paired once and
+               then keeps its own rolling key.</p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="embroidery_submission_view_list" model="ir.ui.view">
+        <field name="name">embroidery.submission.list</field>
+        <field name="model">embroidery.submission</field>
+        <field name="arch" type="xml">
+            <list string="Embroidery Submissions" decoration-danger="state == 'error'" decoration-muted="state == 'draft'">
+                <field name="name"/>
+                <field name="create_date" string="Date" options="{'numeric': True}" optional="show"/>
+                <field name="filename"/>
+                <field name="partner_id" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="stitch_count" sum="Total"/>
+                <field name="color_count"/>
+                <field name="color_change_count" optional="show"/>
+                <field name="size_display" optional="hide"/>
+                <field name="duration_display"/>
+                <field name="cost_total" sum="Total" optional="show"/>
+                <field name="price" sum="Total"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="source" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'error'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="embroidery_submission_view_form" model="ir.ui.view">
+        <field name="name">embroidery.submission.form</field>
+        <field name="model">embroidery.submission</field>
+        <field name="arch" type="xml">
+            <form string="Embroidery Submission">
+                <header>
+                    <button name="action_create_quotation" type="object" string="Create Quotation"
+                            class="btn-primary" invisible="state != 'done'"/>
+                    <button name="action_create_job" type="object" string="Create Job"
+                            invisible="state != 'done'" groups="embroidery_jobbing.group_embroidery_user"/>
+                    <button name="action_analyse" type="object" string="Re-read File"
+                            invisible="not file or locked"/>
+                    <button name="action_update_pricing" type="object" string="Update Pricing"
+                            invisible="state != 'done' or locked"
+                            help="Recalculate with the current pricing profile and stitches per minute setting."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sale_orders" type="object" class="oe_stat_button"
+                                icon="fa-dollar" invisible="sale_order_count == 0">
+                            <field name="sale_order_count" widget="statinfo" string="Sales Orders"/>
+                        </button>
+                        <button name="action_view_invoices" type="object" class="oe_stat_button"
+                                icon="fa-pencil-square-o" invisible="invoice_count == 0">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                        <button name="action_view_jobs" type="object" class="oe_stat_button"
+                                icon="fa-tasks" invisible="job_count == 0"
+                                groups="embroidery_jobbing.group_embroidery_user">
+                            <field name="job_count" widget="statinfo" string="Jobs"/>
+                        </button>
+                    </div>
+                    <field name="image_1920" widget="image" class="oe_avatar" readonly="1"
+                           options="{'preview_image': 'image_256'}" invisible="not image_1920"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'error'">
+                        <field name="error_message" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="not warnings">
+                        <field name="warnings" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="not locked">
+                        This submission has been invoiced, so its figures are kept as recorded.
+                    </div>
+                    <group>
+                        <group string="Design File">
+                            <field name="file" filename="filename" widget="binary" readonly="locked"/>
+                            <field name="filename" invisible="1"/>
+                            <field name="design_id" invisible="not design_id"/>
+                        </group>
+                        <group string="Pricing">
+                            <field name="product_id"/>
+                            <field name="partner_id"/>
+                            <field name="profile_id" readonly="locked"/>
+                            <field name="source"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="locked" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Design Summary" invisible="state != 'done'">
+                        <group>
+                            <field name="stitch_count"/>
+                            <field name="color_count"/>
+                            <field name="color_change_count"/>
+                            <field name="trim_count"/>
+                            <field name="size_display"/>
+                        </group>
+                        <group>
+                            <field name="duration_display" class="fw-bold"/>
+                            <field name="stitch_time_display"/>
+                            <field name="color_change_time_display"/>
+                            <field name="hooping_time_display"/>
+                            <field name="stitches_per_minute"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Thread Colours" name="colours">
+                            <field name="color_ids">
+                                <list>
+                                    <field name="sequence"/>
+                                    <field name="color_hex" widget="color"/>
+                                    <field name="name"/>
+                                    <field name="palette_index" optional="hide"/>
+                                    <field name="stitch_count" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Costing" name="costing">
+                            <group>
+                                <group>
+                                    <field name="stitch_cost"/>
+                                    <field name="color_change_cost"/>
+                                    <field name="machine_cost"/>
+                                    <field name="setup_cost"/>
+                                    <field name="cost_total" class="fw-bold"/>
+                                </group>
+                                <group>
+                                    <field name="markup_amount"/>
+                                    <field name="price" class="fw-bold"/>
+                                    <field name="duration_hours" string="Machine Hours"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Sales &amp; Invoices" name="sales" invisible="not sale_line_ids and not invoice_line_ids">
+                            <field name="sale_line_ids" readonly="1">
+                                <list>
+                                    <field name="order_id"/>
+                                    <field name="order_partner_id"/>
+                                    <field name="product_uom_qty"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                            <field name="invoice_line_ids" readonly="1">
+                                <list>
+                                    <field name="move_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="parent_state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="embroidery_submission_view_search" model="ir.ui.view">
+        <field name="name">embroidery.submission.search</field>
+        <field name="model">embroidery.submission</field>
+        <field name="arch" type="xml">
+            <search string="Embroidery Submissions">
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter string="Estimated" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Errors" name="error" domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter string="From Website" name="website" domain="[('source', '=', 'website')]"/>
+                <filter string="Ordered" name="ordered" domain="[('sale_line_ids', '!=', False)]"/>
+                <separator/>
+                <filter string="Created" name="filter_create_date" date="create_date"/>
+                <group>
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Source" name="group_source" context="{'group_by': 'source'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_embroidery_submission" model="ir.actions.act_window">
+        <field name="name">Submissions</field>
+        <field name="res_model">embroidery.submission</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="embroidery_submission_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Submit an embroidery file</p>
+            <p>
+                Attach a Brother .pes file to count its stitches, colours and colour
+                changes, estimate how long it takes to stitch and work out its price.
+                Customers can also submit their own files on the website.
+            </p>
+        </field>
+    </record>
+
+</odoo>

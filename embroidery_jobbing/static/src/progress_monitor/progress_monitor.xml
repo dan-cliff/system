@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="embroidery_jobbing.ProgressMonitor">
+        <div class="o_embroidery_progress">
+            <t t-if="!record.resId">
+                <div class="text-muted">Save first to send the design to a machine.</div>
+            </t>
+            <t t-elif="!data">
+                <div class="text-muted"><i class="fa fa-spinner fa-spin me-1"/>Loading…</div>
+            </t>
+            <t t-elif="data.empty">
+                <div class="text-muted">
+                    <i class="fa fa-info-circle me-1"/><t t-esc="data.message"/>
+                    <t t-if="data.qty"> <t t-esc="data.qty_done"/> of <t t-esc="data.qty"/> pieces done.</t>
+                </div>
+            </t>
+            <t t-else="">
+                <!-- Heading -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span t-attf-class="badge rounded-pill fs-6 {{ stateClass }}" t-esc="data.state_label"/>
+                    <a href="#" class="fw-bold" t-on-click.prevent="openStitchout" t-esc="data.name"/>
+                    <span class="text-muted">
+                        on <t t-esc="data.machine"/> · piece <t t-esc="data.piece"/> of <t t-esc="data.qty"/>
+                        (<t t-esc="data.qty_done"/> done)
+                    </span>
+                    <span class="ms-auto small text-muted">
+                        <t t-if="data.live"><i class="fa fa-circle text-success me-1"/>Live from the machine</t>
+                        <t t-else=""><i class="fa fa-clock-o me-1"/>Estimated from stitching time</t>
+                        <t t-if="data.last_update"> · updated <t t-esc="data.last_update"/></t>
+                    </span>
+                </div>
+
+                <!-- Error -->
+                <div t-if="data.state === 'error'" class="alert alert-danger py-2 mb-2" role="alert">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    <strong>The machine stopped:</strong> <t t-esc="data.error_message"/>
+                </div>
+                <div t-if="data.state === 'sent'" class="alert alert-info py-2 mb-2" role="alert">
+                    <i class="fa fa-info-circle me-1"/>
+                    <t t-if="data.machine_driver === 'manual'">Download the design, load it on the machine and press Start when it begins stitching.</t>
+                    <t t-else="">The design is on its way to the machine. Progress shows here once it starts stitching.</t>
+                </div>
+                <div t-if="data.state === 'queued'" class="alert alert-info py-2 mb-2" role="alert">
+                    <i class="fa fa-hourglass-half me-1"/>Waiting for the Embroidery Bridge to collect the design.
+                </div>
+
+                <!-- Progress bar -->
+                <div class="progress o_embroidery_progress_bar mb-3" role="progressbar"
+                     t-att-aria-valuenow="data.progress" aria-valuemin="0" aria-valuemax="100">
+                    <div t-attf-class="progress-bar {{ barClass }}" t-att-style="progressStyle">
+                        <t t-esc="data.progress"/>%
+                    </div>
+                </div>
+
+                <!-- Figures -->
+                <div class="row g-3 mb-3">
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="o_embroidery_stat_label">Stitches</div>
+                        <div class="o_embroidery_stat_value">
+                            <t t-esc="data.stitch.toLocaleString()"/> / <t t-esc="data.total_stitches.toLocaleString()"/>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="o_embroidery_stat_label">Colour</div>
+                        <div class="o_embroidery_stat_value d-flex align-items-center">
+                            <span t-if="data.color_hex" class="o_embroidery_swatch me-1" t-attf-style="background: {{ data.color_hex }}"/>
+                            <span><t t-esc="data.color_number"/> of <t t-esc="data.color_count"/></span>
+                        </div>
+                        <div class="small text-muted">
+                            <t t-esc="data.color_name"/>
+                            <t t-if="data.next_color_name and data.state !== 'done'"> · next <t t-esc="data.next_color_name"/></t>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="o_embroidery_stat_label">Time Stitching</div>
+                        <div class="o_embroidery_stat_value" t-esc="data.elapsed"/>
+                        <div class="small text-muted">estimate <t t-esc="data.estimated"/></div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="o_embroidery_stat_label">Time Remaining</div>
+                        <div class="o_embroidery_stat_value" t-esc="data.poll ? data.remaining : '-'"/>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="o_embroidery_stat_label"><t t-if="data.poll">ETA</t><t t-else="">Finished</t></div>
+                        <div class="o_embroidery_stat_value" t-esc="data.poll ? finishAt : (data.finished or '-')"/>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="o_embroidery_stat_label">Speed</div>
+                        <div class="o_embroidery_stat_value">
+                            <t t-if="data.speed"><t t-esc="data.speed"/> spm</t><t t-else="">-</t>
+                        </div>
+                        <div class="small text-muted" t-if="data.error_count">
+                            <t t-esc="data.error_count"/> error(s)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operator controls -->
+                <div class="d-flex flex-wrap gap-2 mb-3" t-if="data.poll">
+                    <button t-if="canStart" class="btn btn-primary btn-sm" t-att-disabled="state.busy"
+                            t-on-click="() => this.operatorAction('action_operator_start')">
+                        <i class="fa fa-play me-1"/><t t-if="data.state === 'sent'">Start</t><t t-else="">Resume</t>
+                    </button>
+                    <button t-if="canPause" class="btn btn-secondary btn-sm" t-att-disabled="state.busy"
+                            t-on-click="() => this.operatorAction('action_operator_pause')">
+                        <i class="fa fa-pause me-1"/>Pause
+                    </button>
+                    <button t-if="canReportProblem" class="btn btn-secondary btn-sm" t-att-disabled="state.busy"
+                            t-on-click="() => this.operatorAction('action_operator_error')">
+                        <i class="fa fa-exclamation-triangle me-1"/>Report a Problem
+                    </button>
+                    <button t-if="canFinish" class="btn btn-success btn-sm" t-att-disabled="state.busy"
+                            t-on-click="() => this.operatorAction('action_operator_done')">
+                        <i class="fa fa-check me-1"/>Mark Done
+                    </button>
+                    <button t-if="canCancel" class="btn btn-link btn-sm text-danger" t-att-disabled="state.busy"
+                            t-on-click="() => this.operatorAction('action_operator_cancel')">
+                        Cancel Stitch Out
+                    </button>
+                </div>
+
+                <!-- Events -->
+                <div t-if="data.events.length">
+                    <div class="o_embroidery_stat_label mb-1">Recent Events</div>
+                    <table class="table table-sm mb-0 o_embroidery_events">
+                        <tbody>
+                            <tr t-foreach="data.events" t-as="event" t-key="event.id" t-att-class="eventClass(event)">
+                                <td class="text-nowrap" t-esc="event.date"/>
+                                <td class="text-nowrap fw-bold" t-esc="event.label"/>
+                                <td>
+                                    <t t-if="event.code"><code t-esc="event.code"/> </t>
+                                    <t t-esc="event.message"/>
+                                </td>
+                                <td class="text-nowrap text-end text-muted">
+                                    <t t-if="event.stitch">stitch <t t-esc="event.stitch.toLocaleString()"/></t>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

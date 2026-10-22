@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iot_root"
+              name="IoT Interfaces"
+              web_icon="iot_interfaces,static/description/icon.png"
+              groups="group_iot_user"
+              sequence="85"/>
+
+    <menuitem id="menu_iot_nodes" name="Nodes" parent="menu_iot_root" sequence="10"/>
+    <menuitem id="menu_iot_node_list" name="All Nodes" parent="menu_iot_nodes"
+              action="action_iot_node" sequence="1"/>
+
+    <!-- ─── Configuration (Administrators) ─────────────────────────────── -->
+    <menuitem id="menu_iot_config" name="Configuration" parent="menu_iot_root"
+              groups="group_iot_admin" sequence="90"/>
+    <menuitem id="menu_iot_settings" name="Settings" parent="menu_iot_config"
+              action="iot_config_settings_action" groups="base.group_system" sequence="0"/>
+    <menuitem id="menu_iot_program_list" name="Programs" parent="menu_iot_config"
+              action="action_iot_program" sequence="10"/>
+    <menuitem id="menu_iot_program_version_list" name="Program Versions" parent="menu_iot_config"
+              action="action_iot_program_version" sequence="20"/>
+</odoo>

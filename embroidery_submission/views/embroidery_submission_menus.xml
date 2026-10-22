@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Embroidery › Submissions -->
+    <menuitem id="menu_embroidery_submission"
+              name="Submissions"
+              parent="embroidery_jobbing.menu_embroidery_root"
+              action="action_embroidery_submission"
+              sequence="15"/>
+
+    <!-- Sales › Orders › Embroidery Submissions -->
+    <menuitem id="menu_embroidery_submission_sale"
+              name="Embroidery Submissions"
+              parent="sale.sale_order_menu"
+              action="action_embroidery_submission"
+              sequence="45"/>
+
+    <!-- Embroidery › Configuration -->
+    <menuitem id="menu_embroidery_settings"
+              name="Settings"
+              parent="embroidery_jobbing.menu_embroidery_config"
+              action="embroidery_config_settings_action"
+              groups="base.group_system"
+              sequence="0"/>
+    <menuitem id="menu_embroidery_pricing_profile"
+              name="Pricing Profiles"
+              parent="embroidery_jobbing.menu_embroidery_config"
+              action="action_embroidery_pricing_profile"
+              sequence="60"/>
+
+</odoo>

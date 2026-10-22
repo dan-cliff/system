@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.iot_interfaces</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="92"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="IoT Interfaces" id="iot_interfaces" string="IoT Interfaces" name="iot_interfaces"
+                     groups="iot_interfaces.group_iot_admin">
+                    <block title="Node Program Code" id="iot_github">
+                        <setting id="iot_github_enabled" string="GitHub"
+                                 help="Hold each Node program's code in a GitHub repository. Odoo syncs every commit as a version, keeping the full history, and the Nodes update to the newest over the air.">
+                            <field name="iot_github_enabled"/>
+                            <div class="content-group mt-2" invisible="not iot_github_enabled">
+                                <div class="row">
+                                    <label for="iot_github_token" class="col-lg-4 o_light_label"/>
+                                    <field name="iot_github_token" password="True" class="col-lg-8"
+                                           placeholder="github_pat_..."/>
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    A fine-grained token with read and write access to Contents on the program
+                                    repositories. Set each program's repository under IoT Interfaces &gt;
+                                    Configuration &gt; Programs.
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    On GitHub, choose the owner and the program repositories under
+                                    Repository access, check Contents is "Read and write", then generate the
+                                    token and paste it above.
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <a href="https://github.com/settings/personal-access-tokens/new?name=Odoo%20IoT%20Interfaces&amp;description=Lets%20Odoo%20sync%20and%20publish%20IoT%20Node%20program%20code.&amp;contents=write"
+                                       target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"
+                                       id="iot_github_create_token">
+                                        <i class="fa fa-github me-1"/>Create Access Token on GitHub
+                                    </a>
+                                    <button name="action_iot_github_test" type="object" string="Test Connection"
+                                            class="btn-link" icon="fa-plug"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="iot_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'iot_interfaces', 'bin_size': False}</field>
+    </record>
+</odoo>

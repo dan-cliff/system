@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_lms_scorm_course_list" model="ir.ui.view">
+        <field name="name">lms.scorm.course.list</field>
+        <field name="model">lms.scorm.course</field>
+        <field name="arch" type="xml">
+            <list string="SCORM Courses" decoration-muted="state == 'superseded'"
+                  decoration-info="state == 'review'">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="version_number" string="Version"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'published'"
+                       decoration-info="state in ('review', 'approved')"
+                       decoration-muted="state == 'superseded'"/>
+                <field name="slide_count" string="Slides"/>
+                <field name="scorm_version" optional="hide"/>
+                <field name="open_comment_count" string="Open Comments" optional="show"/>
+                <field name="submitted_by_id" optional="hide"/>
+                <field name="published_date" optional="show" options="{'numeric': True}"/>
+                <field name="create_uid" string="Author" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_course_kanban" model="ir.ui.view">
+        <field name="name">lms.scorm.course.kanban</field>
+        <field name="model">lms.scorm.course</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_order="name">
+                <field name="id"/>
+                <field name="image"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="me-2" t-if="record.image.raw_value">
+                            <field name="image" widget="image" options="{'img_class': 'o_image_64_contain'}" alt="Course"/>
+                        </aside>
+                        <main>
+                            <field name="name" class="fw-bold fs-5"/>
+                            <div class="text-muted">
+                                v<field name="version_number"/> · <field name="slide_count"/> slides
+                            </div>
+                            <div class="mt-1">
+                                <field name="state" widget="badge"
+                                       decoration-success="state == 'published'"
+                                       decoration-info="state in ('review', 'approved')"
+                                       decoration-muted="state == 'superseded'"/>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_course_form" model="ir.ui.view">
+        <field name="name">lms.scorm.course.form</field>
+        <field name="model">lms.scorm.course</field>
+        <field name="arch" type="xml">
+            <form string="SCORM Course">
+                <header>
+                    <field name="user_can_edit" invisible="1"/>
+                    <field name="user_can_create" invisible="1"/>
+                    <button name="action_open_editor" type="object" string="Open Editor"
+                            class="btn-primary" invisible="not id or state != 'draft' or not user_can_edit"/>
+                    <button name="action_open_editor" type="object" string="View Slides"
+                            invisible="not id or (state == 'draft' and user_can_edit)"/>
+                    <button name="action_import_presentation" type="object" string="Import Presentation"
+                            invisible="not id or state != 'draft' or not user_can_edit"/>
+                    <button name="action_preview" type="object" string="Preview" icon="fa-play"
+                            invisible="not id"/>
+                    <button name="action_submit_review" type="object" string="Submit for Approval"
+                            class="btn-primary" invisible="state != 'draft' or not id or not user_can_edit"/>
+                    <button name="action_open_decision_wizard" type="object" string="Approve / Request Changes"
+                            class="btn-primary" invisible="not can_approve"
+                            groups="lms_scorm_authoring.group_scorm_approve"/>
+                    <button name="action_withdraw_review" type="object" string="Withdraw"
+                            invisible="state != 'review'"/>
+                    <button name="action_publish" type="object" string="Publish to Learners"
+                            class="btn-primary" invisible="state != 'approved'"
+                            groups="lms_scorm_authoring.group_scorm_approve"
+                            confirm="Learners will get this version. LMS courses using an earlier version will switch to it. Continue?"/>
+                    <button name="action_new_version" type="object" string="New Version"
+                            invisible="state not in ('published', 'superseded') or not user_can_create"/>
+                    <button name="action_download_package" type="object" string="Download SCORM (.zip)"
+                            icon="fa-download" invisible="state not in ('approved', 'published', 'superseded')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,review,approved,published"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_versions" type="object" class="oe_stat_button"
+                                icon="fa-code-fork" invisible="version_count &lt; 2">
+                            <field name="version_count" widget="statinfo" string="Versions"/>
+                        </button>
+                        <button name="action_view_comments" type="object" class="oe_stat_button"
+                                icon="fa-comments-o">
+                            <field name="open_comment_count" widget="statinfo" string="Open Comments"/>
+                        </button>
+                        <button name="action_view_lms_courses" type="object" class="oe_stat_button"
+                                icon="fa-graduation-cap" groups="learning_management.group_lms_manager">
+                            <field name="lms_course_count" widget="statinfo" string="LMS Courses"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Published" bg_color="text-bg-success"
+                            invisible="state != 'published'"/>
+                    <widget name="web_ribbon" title="Superseded" bg_color="text-bg-secondary"
+                            invisible="state != 'superseded'"/>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Fire Safety Induction"
+                                   readonly="state != 'draft'"/></h1>
+                        <div class="text-muted">
+                            Version <field name="version_number" class="oe_inline"/>
+                            <span invisible="not previous_version_id"> · based on
+                                <field name="previous_version_id" class="oe_inline"/></span>
+                        </div>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'review'">
+                        This version is waiting for approval and cannot be changed. Reviewers can add
+                        comments to its slides from the editor.
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="state != 'superseded'">
+                        A newer version has been published. Learners no longer get this version.
+                    </div>
+                    <group>
+                        <group string="Course">
+                            <field name="description" placeholder="Shown to learners on the start screen"
+                                   readonly="state != 'draft'"/>
+                            <field name="scorm_version" readonly="state != 'draft'"/>
+                            <label for="slide_width" string="Slide Size"/>
+                            <div class="o_row">
+                                <field name="slide_width" readonly="state != 'draft'" class="oe_inline"
+                                       options="{'format': false}" style="max-width: 6em;"/>
+                                <span>×</span>
+                                <field name="slide_height" readonly="state != 'draft'" class="oe_inline"
+                                       options="{'format': false}" style="max-width: 6em;"/>
+                                <span>px</span>
+                            </div>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group string="Status">
+                            <field name="slide_count" string="Slides"/>
+                            <field name="scored_question_count"/>
+                            <field name="submitted_by_id" invisible="not submitted_by_id"/>
+                            <field name="submitted_date" invisible="not submitted_date"
+                                   options="{'numeric': True}"/>
+                            <field name="published_by_id" invisible="not published_by_id"/>
+                            <field name="published_date" invisible="not published_date"
+                                   options="{'numeric': True}"/>
+                            <field name="can_approve" invisible="1"/>
+                            <field name="identifier" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Slides" name="slides">
+                            <field name="slide_ids" readonly="state != 'draft'">
+                                <list string="Slides" editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="element_count" string="Items"/>
+                                    <field name="has_gate" string="Gated"/>
+                                    <field name="gate_require_interactions" optional="show"/>
+                                    <field name="gate_min_seconds" optional="hide"/>
+                                    <field name="gate_pass_score" optional="show"/>
+                                    <field name="gate_max_attempts" optional="hide"/>
+                                    <field name="hide_in_menu" optional="hide"/>
+                                    <field name="open_comment_count" string="Open Comments" optional="show"/>
+                                    <button name="action_open_in_editor" type="object" icon="fa-pencil-square-o"
+                                            title="Open in the editor"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Navigation &amp; Completion" name="completion">
+                            <group>
+                                <group string="Navigation">
+                                    <field name="navigation_mode" widget="radio" readonly="state != 'draft'"/>
+                                    <field name="allow_back" readonly="state != 'draft'"/>
+                                    <field name="show_menu" readonly="state != 'draft'"/>
+                                    <field name="show_progress" readonly="state != 'draft'"/>
+                                    <field name="show_slide_numbers" readonly="state != 'draft'"/>
+                                    <field name="show_start_screen" readonly="state != 'draft'"/>
+                                    <field name="allow_resume" readonly="state != 'draft'"/>
+                                </group>
+                                <group string="Completion &amp; Assessment">
+                                    <field name="require_all_slides" readonly="state != 'draft'"/>
+                                    <field name="require_pass" readonly="state != 'draft'"/>
+                                    <field name="passing_score" readonly="state != 'draft'"/>
+                                    <field name="max_attempts" readonly="state != 'draft'"/>
+                                    <field name="show_answers" readonly="state != 'draft'"/>
+                                </group>
+                            </group>
+                            <div class="text-muted small">
+                                Questions marked <strong>Scored</strong> in the editor make up the assessment; the
+                                learner's score is reported to the LMS. Gates on each slide (required items,
+                                minimum time, pass mark) decide when its Continue button appears.
+                            </div>
+                        </page>
+                        <page string="Branding" name="branding">
+                            <group>
+                                <group>
+                                    <field name="branding_source" widget="radio" readonly="state != 'draft'"/>
+                                </group>
+                                <group invisible="branding_source != 'company'">
+                                    <field name="effective_logo" widget="image" options="{'size': [0, 60]}"/>
+                                    <field name="effective_primary_color" widget="color"/>
+                                    <field name="effective_secondary_color" widget="color"/>
+                                    <field name="effective_font_id"/>
+                                    <button name="action_copy_company_branding" type="object" colspan="2"
+                                            string="Customise, starting from the company's branding"
+                                            class="btn-link ps-0" invisible="state != 'draft'"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Logo &amp; Font" invisible="branding_source != 'manual'">
+                                    <field name="brand_logo" widget="image" options="{'size': [0, 60]}"
+                                           readonly="state != 'draft'"/>
+                                    <field name="brand_font_id" readonly="state != 'draft'"
+                                           options="{'no_create': True}"/>
+                                    <field name="brand_primary_color" widget="color" readonly="state != 'draft'"/>
+                                    <field name="brand_secondary_color" widget="color" readonly="state != 'draft'"/>
+                                </group>
+                                <group string="Colours">
+                                    <field name="brand_background_color" widget="color" readonly="state != 'draft'"/>
+                                    <field name="brand_slide_color" widget="color" readonly="state != 'draft'"/>
+                                    <field name="brand_text_color" widget="color" readonly="state != 'draft'"/>
+                                    <field name="brand_button_text_color" widget="color" readonly="state != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Button Labels" name="labels">
+                            <div class="text-muted mb-2">
+                                What learners see on the course's buttons and messages.
+                                <code>{seconds}</code> is replaced with the time left.
+                                <button name="action_reset_labels" type="object" string="Reset to defaults"
+                                        class="btn-link" invisible="state != 'draft'"/>
+                            </div>
+                            <group>
+                                <group string="Buttons">
+                                    <field name="label_start" readonly="state != 'draft'"/>
+                                    <field name="label_resume" readonly="state != 'draft'"/>
+                                    <field name="label_restart" readonly="state != 'draft'"/>
+                                    <field name="label_next" readonly="state != 'draft'"/>
+                                    <field name="label_continue" readonly="state != 'draft'"/>
+                                    <field name="label_back" readonly="state != 'draft'"/>
+                                    <field name="label_submit" readonly="state != 'draft'"/>
+                                    <field name="label_retry" readonly="state != 'draft'"/>
+                                    <field name="label_review" readonly="state != 'draft'"/>
+                                    <field name="label_finish" readonly="state != 'draft'"/>
+                                    <field name="label_menu" readonly="state != 'draft'"/>
+                                    <field name="label_close" readonly="state != 'draft'"/>
+                                </group>
+                                <group string="Messages">
+                                    <field name="label_correct" readonly="state != 'draft'"/>
+                                    <field name="label_incorrect" readonly="state != 'draft'"/>
+                                    <field name="label_locked" readonly="state != 'draft'"/>
+                                    <field name="label_wait" readonly="state != 'draft'"/>
+                                    <field name="label_score" readonly="state != 'draft'"/>
+                                    <field name="label_passed" readonly="state != 'draft'"/>
+                                    <field name="label_failed" readonly="state != 'draft'"/>
+                                    <field name="label_complete" readonly="state != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Approval" name="approval">
+                            <group>
+                                <field name="approver_ids" widget="many2many_tags"
+                                       readonly="state != 'draft'" options="{'no_create': True}"
+                                       placeholder="Any one Approver"/>
+                            </group>
+                            <field name="approval_ids" readonly="1">
+                                <list string="Approvals" create="false" delete="false"
+                                      decoration-success="state == 'approved'"
+                                      decoration-danger="state == 'rejected'"
+                                      decoration-muted="state == 'cancelled'">
+                                    <field name="id" optional="show"/>
+                                    <field name="round"/>
+                                    <field name="user_id" placeholder="Any Approver"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'approved'"
+                                           decoration-danger="state == 'rejected'"/>
+                                    <field name="decided_by_id" optional="hide"/>
+                                    <field name="decision_date" options="{'numeric': True}"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_course_search" model="ir.ui.view">
+        <field name="name">lms.scorm.course.search</field>
+        <field name="model">lms.scorm.course</field>
+        <field name="arch" type="xml">
+            <search string="SCORM Courses">
+                <field name="name"/>
+                <field name="create_uid" string="Author"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="current" string="Current Versions" domain="[('state', '!=', 'superseded')]"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="review" string="In Review" domain="[('state', '=', 'review')]"/>
+                <filter name="to_approve" string="Waiting for My Approval"
+                        domain="[('state', '=', 'review'), ('approval_ids', 'any', [('state', '=', 'pending'), '|', ('user_id', '=', uid), ('user_id', '=', False)])]"/>
+                <filter name="approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="published" string="Published" domain="[('state', '=', 'published')]"/>
+                <separator/>
+                <filter name="my_courses" string="My Courses" domain="[('create_uid', '=', uid)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_author" string="Author" context="{'group_by': 'create_uid'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lms_scorm_course" model="ir.actions.act_window">
+        <field name="name">SCORM Courses</field>
+        <field name="res_model">lms.scorm.course</field>
+        <field name="path">scorm-courses</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_lms_scorm_course_search"/>
+        <field name="context">{'search_default_current': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first SCORM course</p>
+            <p>
+                Design slides in the drag-and-drop editor, or import a PowerPoint or Google Slides
+                presentation. Send the course for approval, publish it, then pick it in the LMS
+                Course Library or download the SCORM .zip for another LMS.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_lms_scorm_course_to_approve" model="ir.actions.act_window">
+        <field name="name">Waiting for Approval</field>
+        <field name="res_model">lms.scorm.course</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_lms_scorm_course_search"/>
+        <field name="context">{'search_default_to_approve': 1}</field>
+    </record>
+
+    <!-- ── Review comments ─────────────────────────────────────────────── -->
+    <record id="view_lms_scorm_comment_list" model="ir.ui.view">
+        <field name="name">lms.scorm.comment.list</field>
+        <field name="model">lms.scorm.comment</field>
+        <field name="arch" type="xml">
+            <list string="Review Comments" create="false" decoration-muted="resolved">
+                <field name="id" optional="show"/>
+                <field name="course_id"/>
+                <field name="slide_id"/>
+                <field name="body"/>
+                <field name="author_id"/>
+                <field name="create_date" string="Date" options="{'numeric': True}"/>
+                <field name="parent_id" optional="hide"/>
+                <field name="resolved"/>
+                <field name="resolved_by_id" optional="hide"/>
+                <button name="action_resolve" type="object" string="Resolve" icon="fa-check"
+                        invisible="resolved"/>
+                <button name="action_reopen" type="object" string="Reopen" icon="fa-undo"
+                        invisible="not resolved"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_comment_form" model="ir.ui.view">
+        <field name="name">lms.scorm.comment.form</field>
+        <field name="model">lms.scorm.comment</field>
+        <field name="arch" type="xml">
+            <form string="Review Comment" create="false">
+                <header>
+                    <button name="action_resolve" type="object" string="Resolve" class="btn-primary"
+                            invisible="resolved"/>
+                    <button name="action_reopen" type="object" string="Reopen" invisible="not resolved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="course_id"/>
+                            <field name="slide_id" readonly="1"/>
+                            <field name="parent_id" invisible="not parent_id"/>
+                        </group>
+                        <group>
+                            <field name="author_id"/>
+                            <field name="create_date" string="Date" options="{'numeric': True}"/>
+                            <field name="resolved" readonly="1"/>
+                            <field name="resolved_by_id" invisible="not resolved"/>
+                            <field name="resolved_date" invisible="not resolved" options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <field name="body"/>
+                    <field name="child_ids" readonly="1" invisible="not child_ids">
+                        <list string="Replies">
+                            <field name="id" optional="show"/>
+                            <field name="author_id"/>
+                            <field name="body"/>
+                            <field name="create_date" string="Date" options="{'numeric': True}"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_comment_search" model="ir.ui.view">
+        <field name="name">lms.scorm.comment.search</field>
+        <field name="model">lms.scorm.comment</field>
+        <field name="arch" type="xml">
+            <search string="Review Comments">
+                <field name="body"/>
+                <field name="course_id"/>
+                <field name="author_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="open" string="Open" domain="[('resolved', '=', False), ('parent_id', '=', False)]"/>
+                <filter name="resolved" string="Resolved" domain="[('resolved', '=', True)]"/>
+                <separator/>
+                <filter name="mine" string="My Comments" domain="[('author_id', '=', uid)]"/>
+                <group name="group_by">
+                    <filter name="group_course" string="Course" context="{'group_by': 'course_id'}"/>
+                    <filter name="group_slide" string="Slide" context="{'group_by': 'slide_id'}"/>
+                    <filter name="group_author" string="Author" context="{'group_by': 'author_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lms_scorm_comment" model="ir.actions.act_window">
+        <field name="name">Review Comments</field>
+        <field name="res_model">lms.scorm.comment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_lms_scorm_comment_search"/>
+        <field name="context">{'search_default_open': 1, 'search_default_group_course': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No review comments</p>
+            <p>Reviewers add comments to slides from the editor. Learners never see them.</p>
+        </field>
+    </record>
+
+    <!-- ── Fonts (Configuration) ───────────────────────────────────────── -->
+    <record id="view_lms_scorm_font_list" model="ir.ui.view">
+        <field name="name">lms.scorm.font.list</field>
+        <field name="model">lms.scorm.font</field>
+        <field name="arch" type="xml">
+            <list string="Fonts" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="css_family"/>
+                <field name="google_font"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_font_form" model="ir.ui.view">
+        <field name="name">lms.scorm.font.form</field>
+        <field name="model">lms.scorm.font</field>
+        <field name="arch" type="xml">
+            <form string="Font">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="css_family"/>
+                        <field name="google_font"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_font_search" model="ir.ui.view">
+        <field name="name">lms.scorm.font.search</field>
+        <field name="model">lms.scorm.font</field>
+        <field name="arch" type="xml">
+            <search string="Fonts">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lms_scorm_font" model="ir.actions.act_window">
+        <field name="name">Fonts</field>
+        <field name="res_model">lms.scorm.font</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ── Editor (client action) ──────────────────────────────────────── -->
+    <record id="action_lms_scorm_editor" model="ir.actions.client">
+        <field name="name">SCORM Editor</field>
+        <field name="tag">lms_scorm_authoring.editor</field>
+    </record>
+</odoo>

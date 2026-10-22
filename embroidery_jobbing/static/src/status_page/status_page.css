@@ -1,0 +1,454 @@
+/* Machine status page for wall displays. Sizes are in rem, and the page sets
+   the root font size from the screen height and the board's text size, so
+   the same board fits any TV. */
+:root {
+    font-size: 1.3vh;
+}
+
+body {
+    --bg: #0f1218;
+    --card: #1a1f29;
+    --card-border: #2a3140;
+    --text: #f2f4f8;
+    --muted: #9aa3b5;
+    --track: #2b3240;
+    --stitching: #2fb36d;
+    --waiting: #3b8eea;
+    --paused: #f0a830;
+    --error: #e5484d;
+    --idle: #6b7487;
+    --offline: #4a5160;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", "Segoe UI", "DejaVu Sans", Roboto, Arial, sans-serif;
+    cursor: none;
+}
+
+body.theme-light {
+    --bg: #eef1f5;
+    --card: #ffffff;
+    --card-border: #d7dce5;
+    --text: #1c2230;
+    --muted: #5f6b80;
+    --track: #e2e6ee;
+    --idle: #8a93a5;
+    --offline: #a3abb9;
+}
+
+.board {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 1.6rem 2rem;
+    box-sizing: border-box;
+    gap: 1.4rem;
+}
+
+.board-message {
+    margin: auto;
+    text-align: center;
+    font-size: 3rem;
+    color: var(--muted);
+}
+
+.board-detail {
+    margin-top: 1rem;
+    font-size: 1.8rem;
+}
+
+/* ── Heading ─────────────────────────────────────────────────────────── */
+.board-head {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.board-head h1 {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.logo {
+    height: 4rem;
+    max-width: 14rem;
+    object-fit: contain;
+}
+
+.summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    flex: 1;
+}
+
+.clock {
+    text-align: right;
+    margin-left: auto;
+}
+
+.clock-time {
+    font-size: 3.4rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.clock-date {
+    font-size: 1.4rem;
+    color: var(--muted);
+}
+
+/* ── Status pills ────────────────────────────────────────────────────── */
+.pill {
+    display: inline-block;
+    padding: 0.35rem 1.1rem;
+    border-radius: 2rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--idle);
+    white-space: nowrap;
+}
+
+.pill.status-stitching { background: var(--stitching); }
+.pill.status-waiting { background: var(--waiting); }
+.pill.status-paused { background: var(--paused); color: #1c1c1c; }
+.pill.status-error { background: var(--error); animation: pulse 1.2s ease-in-out infinite; }
+.pill.status-offline { background: var(--offline); }
+
+@keyframes pulse {
+    50% { opacity: 0.55; }
+}
+
+/* ── Grid of cards ───────────────────────────────────────────────────── */
+.grid {
+    flex: 1;
+    display: grid;
+    gap: 1.4rem;
+    min-height: 0;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+    overflow: hidden;
+    padding: 1.4rem 1.6rem;
+    border-radius: 1rem;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-left: 0.7rem solid var(--idle);
+}
+
+.card.status-stitching { border-left-color: var(--stitching); }
+.card.status-waiting { border-left-color: var(--waiting); }
+.card.status-paused { border-left-color: var(--paused); }
+.card.status-error { border-left-color: var(--error); box-shadow: 0 0 0 0.25rem rgba(229, 72, 77, 0.35); }
+.card.status-offline { border-left-color: var(--offline); opacity: 0.75; }
+
+.card > * {
+    flex: none;
+}
+
+.card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.machine-name {
+    font-size: 2.3rem;
+    font-weight: 700;
+}
+
+.machine-model {
+    font-size: 1.3rem;
+    color: var(--muted);
+}
+
+.job {
+    display: flex;
+    flex: none;
+    gap: 1.2rem;
+}
+
+.preview {
+    width: 8rem;
+    height: 8rem;
+    flex: none;
+    object-fit: contain;
+    border-radius: 0.6rem;
+    background: #e2e2e2;
+}
+
+.job-text {
+    min-width: 0;
+}
+
+.job-ref {
+    font-size: 1.9rem;
+    font-weight: 700;
+}
+
+.piece {
+    font-weight: 400;
+    color: var(--muted);
+}
+
+.job-title {
+    font-size: 1.7rem;
+}
+
+.job-line {
+    font-size: 1.4rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.job-line.customer {
+    color: var(--text);
+}
+
+.overdue {
+    color: var(--error);
+    font-weight: 700;
+}
+
+.error-banner {
+    padding: 0.7rem 1rem;
+    border-radius: 0.6rem;
+    background: var(--error);
+    color: #fff;
+    font-size: 1.7rem;
+    font-weight: 700;
+}
+
+.bar {
+    position: relative;
+    height: 2.8rem;
+    border-radius: 1.4rem;
+    background: var(--track);
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: var(--waiting);
+    transition: width 1s ease;
+}
+
+.bar.status-stitching .bar-fill { background: var(--stitching); }
+.bar.status-paused .bar-fill { background: var(--paused); }
+.bar.status-error .bar-fill { background: var(--error); }
+
+.bar-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 0.3rem rgba(0, 0, 0, 0.6);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.8rem;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stat-sub {
+    font-size: 1.3rem;
+    color: var(--muted);
+}
+
+.swatch {
+    display: inline-block;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+    border: 0.15rem solid rgba(255, 255, 255, 0.4);
+    vertical-align: -0.15rem;
+}
+
+.idle-message {
+    margin: auto 0;
+    font-size: 1.9rem;
+    color: var(--muted);
+}
+
+.queue {
+    margin-top: auto;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--card-border);
+    font-size: 1.4rem;
+}
+
+.queue-title {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.queue ol {
+    margin: 0.3rem 0 0;
+    padding-left: 2rem;
+}
+
+.queue li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.queue-ref {
+    font-weight: 700;
+}
+
+.queue-meta {
+    color: var(--muted);
+}
+
+/* ── List ────────────────────────────────────────────────────────────── */
+.list {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.list table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.8rem;
+    font-size: 1.6rem;
+}
+
+.list th {
+    text-align: left;
+    padding: 0 1rem;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.list td {
+    padding: 1rem;
+    background: var(--card);
+    vertical-align: middle;
+}
+
+.list td:first-child {
+    border-left: 0.7rem solid var(--idle);
+    border-radius: 0.8rem 0 0 0.8rem;
+}
+
+.list td:last-child {
+    border-radius: 0 0.8rem 0.8rem 0;
+}
+
+.list tr.status-stitching td:first-child { border-left-color: var(--stitching); }
+.list tr.status-waiting td:first-child { border-left-color: var(--waiting); }
+.list tr.status-paused td:first-child { border-left-color: var(--paused); }
+.list tr.status-error td:first-child { border-left-color: var(--error); }
+.list tr.status-offline td:first-child { border-left-color: var(--offline); }
+
+.list .machine-name { font-size: 1.9rem; }
+.list .job-ref { font-size: 1.6rem; }
+.list .job-title { font-size: 1.4rem; color: var(--muted); }
+.list .bar { min-width: 14rem; height: 2.2rem; }
+.list-error { margin-top: 0.4rem; color: var(--error); font-weight: 700; }
+.muted { color: var(--muted); }
+
+/* ── One machine at a time ───────────────────────────────────────────── */
+.focus {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    min-height: 0;
+}
+
+.card.big {
+    flex: 1;
+    font-size: 1.6rem;
+}
+
+.card.big .machine-name { font-size: 4.5rem; }
+.card.big .machine-model { font-size: 2rem; }
+.card.big .pill { font-size: 2.6rem; }
+.card.big .preview { width: 22rem; height: 22rem; }
+.card.big .job-ref { font-size: 3.4rem; }
+.card.big .job-title { font-size: 3rem; }
+.card.big .job-line { font-size: 2.2rem; }
+.card.big .bar { height: 5rem; border-radius: 2.5rem; }
+.card.big .bar-label { font-size: 2.8rem; }
+.card.big .stat-label { font-size: 1.6rem; }
+.card.big .stat-value { font-size: 3.6rem; }
+.card.big .stat-sub { font-size: 2rem; }
+.card.big .error-banner { font-size: 2.6rem; }
+.card.big .queue { font-size: 2rem; }
+
+.strip {
+    display: flex;
+    gap: 1rem;
+    overflow: hidden;
+}
+
+.strip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.6rem 1rem;
+    border-radius: 0.8rem;
+    background: var(--card);
+    border: 0.2rem solid transparent;
+    font-size: 1.5rem;
+}
+
+.strip-item.current {
+    border-color: var(--text);
+}
+
+.strip-item .pill {
+    font-size: 1.2rem;
+}
+
+/* ── Connection lost ─────────────────────────────────────────────────── */
+.stale {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    padding: 0.8rem 1.6rem;
+    border-radius: 0.8rem;
+    background: var(--paused);
+    color: #1c1c1c;
+    font-size: 1.6rem;
+    font-weight: 700;
+}

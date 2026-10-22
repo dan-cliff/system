@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every permission below is its
+         own privilege with one "Allowed" group, whose record rules give it its
+         meaning. All of them imply the technical SCORM Authoring user group,
+         which holds the ACLs and a deny rule per operation, so users can only
+         do what a permission opens. Slides, review comments and approvals
+         follow their course. -->
+    <data noupdate="1">
+        <record id="module_category_scorm_authoring" model="ir.module.category">
+            <field name="name">SCORM Authoring</field>
+            <field name="description">Design, review, approve and publish SCORM eLearning courses.</field>
+            <field name="sequence">53</field>
+        </record>
+    </data>
+
+    <record id="group_scorm_user" model="res.groups">
+        <field name="name">SCORM Authoring: User</field>
+        <field name="comment">Technical: given by every SCORM Authoring permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_create_only" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Create Only</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">20</field>
+        <field name="description">Create SCORM courses, and view the ones they created (no editing after saving).</field>
+    </record>
+    <record id="group_scorm_course_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_create_only"/>
+        <field name="comment">Create SCORM courses, and view the ones they created (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_edit_own" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">30</field>
+        <field name="description">Create SCORM courses, and view and edit the ones they created.</field>
+    </record>
+    <record id="group_scorm_course_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_edit_own"/>
+        <field name="comment">Create SCORM courses, and view and edit the ones they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_edit_team" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">40</field>
+        <field name="description">Create SCORM courses, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_scorm_course_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_edit_team"/>
+        <field name="comment">Create SCORM courses, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_edit_all" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Create and Edit All</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">50</field>
+        <field name="description">Create, view and edit every SCORM course.</field>
+    </record>
+    <record id="group_scorm_course_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_edit_all"/>
+        <field name="comment">Create, view and edit every SCORM course.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_view_all" model="res.groups.privilege">
+        <field name="name">SCORM Courses: View All</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">60</field>
+        <field name="description">View every SCORM course.</field>
+    </record>
+    <record id="group_scorm_course_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_view_all"/>
+        <field name="comment">View every SCORM course.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_delete_own" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Delete Own</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">70</field>
+        <field name="description">Delete the SCORM courses they created.</field>
+    </record>
+    <record id="group_scorm_course_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_delete_own"/>
+        <field name="comment">Delete the SCORM courses they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_delete_all" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Delete All</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">80</field>
+        <field name="description">Delete any SCORM course.</field>
+    </record>
+    <record id="group_scorm_course_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_delete_all"/>
+        <field name="comment">Delete any SCORM course.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_review" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Review and Comment</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">90</field>
+        <field name="description">View every SCORM course and add review comments to its slides.</field>
+    </record>
+    <record id="group_scorm_review" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_review"/>
+        <field name="comment">View every SCORM course and add review comments to its slides.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_course_approve" model="res.groups.privilege">
+        <field name="name">SCORM Courses: Approve and Publish</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">100</field>
+        <field name="description">Approve or request changes to submitted SCORM courses, and publish approved ones to learners.</field>
+    </record>
+    <record id="group_scorm_approve" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_scorm_course_approve"/>
+        <field name="comment">Approve or request changes to submitted SCORM courses, and publish approved ones to learners.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_user'))]"/>
+    </record>
+
+    <record id="privilege_scorm_authoring" model="res.groups.privilege">
+        <field name="name">SCORM Authoring</field>
+        <field name="category_id" ref="module_category_scorm_authoring"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the SCORM Authoring app.</field>
+    </record>
+    <record id="group_scorm_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_scorm_authoring"/>
+        <field name="comment">Every SCORM Authoring permission, including deleting any course and approving their own submissions, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_scorm_course_create_only')), (4, ref('group_scorm_course_edit_own')), (4, ref('group_scorm_course_edit_team')), (4, ref('group_scorm_course_edit_all')), (4, ref('group_scorm_course_view_all')), (4, ref('group_scorm_course_delete_own')), (4, ref('group_scorm_course_delete_all')), (4, ref('group_scorm_review')), (4, ref('group_scorm_approve'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing -->
+    <record id="rule_lms_scorm_course_deny" model="ir.rule">
+        <field name="name">SCORM Courses: only through a permission</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_lms_scorm_slide_deny" model="ir.rule">
+        <field name="name">Slides: only through a permission</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_lms_scorm_comment_deny" model="ir.rule">
+        <field name="name">Review Comments: only through a permission</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_lms_scorm_approval_deny" model="ir.rule">
+        <field name="name">Approvals: only through a permission</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <!-- Create Only -->
+    <record id="rule_lms_scorm_course_create_only" model="ir.rule">
+        <field name="name">SCORM Courses: Create Only</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_create_only" model="ir.rule">
+        <field name="name">SCORM Slides: Create Only</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_create_only'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_create_only" model="ir.rule">
+        <field name="name">SCORM Review Comments: Create Only</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_create_only'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_approval_create_only" model="ir.rule">
+        <field name="name">SCORM Approvals: Create Only</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_create_only'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Create and Edit Own -->
+    <record id="rule_lms_scorm_course_edit_own" model="ir.rule">
+        <field name="name">SCORM Courses: Create and Edit Own</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_edit_own" model="ir.rule">
+        <field name="name">SCORM Slides: Create and Edit Own</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_own'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_lms_scorm_comment_edit_own" model="ir.rule">
+        <field name="name">SCORM Review Comments: Create and Edit Own</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_own'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_lms_scorm_approval_edit_own" model="ir.rule">
+        <field name="name">SCORM Approvals: Create and Edit Own</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_own'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+    </record>
+    <!-- Create and Edit My Team -->
+    <record id="rule_lms_scorm_course_edit_team" model="ir.rule">
+        <field name="name">SCORM Courses: Create and Edit My Team</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_edit_team" model="ir.rule">
+        <field name="name">SCORM Slides: Create and Edit My Team</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_team'))]"/>
+        <field name="domain_force">['|', ('course_id.create_uid', '=', user.id), ('course_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_lms_scorm_comment_edit_team" model="ir.rule">
+        <field name="name">SCORM Review Comments: Create and Edit My Team</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_team'))]"/>
+        <field name="domain_force">['|', ('course_id.create_uid', '=', user.id), ('course_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_lms_scorm_approval_edit_team" model="ir.rule">
+        <field name="name">SCORM Approvals: Create and Edit My Team</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_team'))]"/>
+        <field name="domain_force">['|', ('course_id.create_uid', '=', user.id), ('course_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <!-- Create and Edit All -->
+    <record id="rule_lms_scorm_course_edit_all" model="ir.rule">
+        <field name="name">SCORM Courses: Create and Edit All</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_edit_all" model="ir.rule">
+        <field name="name">SCORM Slides: Create and Edit All</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_lms_scorm_comment_edit_all" model="ir.rule">
+        <field name="name">SCORM Review Comments: Create and Edit All</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_lms_scorm_approval_edit_all" model="ir.rule">
+        <field name="name">SCORM Approvals: Create and Edit All</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <!-- View All -->
+    <record id="rule_lms_scorm_course_view_all" model="ir.rule">
+        <field name="name">SCORM Courses: View All</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_view_all" model="ir.rule">
+        <field name="name">SCORM Slides: View All</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_view_all" model="ir.rule">
+        <field name="name">SCORM Review Comments: View All</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_approval_view_all" model="ir.rule">
+        <field name="name">SCORM Approvals: View All</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Delete Own -->
+    <record id="rule_lms_scorm_course_delete_own" model="ir.rule">
+        <field name="name">SCORM Courses: Delete Own</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_delete_own" model="ir.rule">
+        <field name="name">SCORM Slides: Delete Own</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_own'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_delete_own" model="ir.rule">
+        <field name="name">SCORM Review Comments: Delete Own</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_own'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_approval_delete_own" model="ir.rule">
+        <field name="name">SCORM Approvals: Delete Own</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_own'))]"/>
+        <field name="domain_force">[('course_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Delete All -->
+    <record id="rule_lms_scorm_course_delete_all" model="ir.rule">
+        <field name="name">SCORM Courses: Delete All</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_delete_all" model="ir.rule">
+        <field name="name">SCORM Slides: Delete All</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_delete_all" model="ir.rule">
+        <field name="name">SCORM Review Comments: Delete All</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_approval_delete_all" model="ir.rule">
+        <field name="name">SCORM Approvals: Delete All</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_course_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Review and Comment / Approve and Publish -->
+    <record id="rule_lms_scorm_course_review" model="ir.rule">
+        <field name="name">SCORM Courses: Review and Comment</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_review'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_review" model="ir.rule">
+        <field name="name">SCORM Slides: Review and Comment</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_review'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_approval_review" model="ir.rule">
+        <field name="name">SCORM Approvals: Review and Comment</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_review'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_review" model="ir.rule">
+        <field name="name">SCORM Review Comments: Review and Comment, view and add</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_review'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_review_own" model="ir.rule">
+        <field name="name">SCORM Review Comments: Review and Comment, edit own</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_review'))]"/>
+        <field name="domain_force">[('author_id', '=', user.id)]</field>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_course_approve" model="ir.rule">
+        <field name="name">SCORM Courses: Approve and Publish</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_approve'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_approve" model="ir.rule">
+        <field name="name">SCORM Slides: Approve and Publish</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="groups" eval="[(4, ref('group_scorm_approve'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_approval_approve" model="ir.rule">
+        <field name="name">SCORM Approvals: Approve and Publish</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="groups" eval="[(4, ref('group_scorm_approve'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_approve" model="ir.rule">
+        <field name="name">SCORM Review Comments: Approve and Publish, view and add</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_approve'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_comment_approve_own" model="ir.rule">
+        <field name="name">SCORM Review Comments: Approve and Publish, edit own</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="groups" eval="[(4, ref('group_scorm_approve'))]"/>
+        <field name="domain_force">[('author_id', '=', user.id)]</field>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- LMS Training Managers pick published courses for the Course Library -->
+    <record id="rule_lms_scorm_course_lms_manager" model="ir.rule">
+        <field name="name">SCORM Courses: LMS managers see published courses</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('learning_management.group_lms_manager'))]"/>
+        <field name="domain_force">[('state', '=', 'published')]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Multi-company -->
+    <record id="rule_lms_scorm_course_company" model="ir.rule">
+        <field name="name">SCORM Courses: multi-company</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_lms_scorm_slide_company" model="ir.rule">
+        <field name="name">SCORM Slides: multi-company</field>
+        <field name="model_id" ref="model_lms_scorm_slide"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_lms_scorm_comment_company" model="ir.rule">
+        <field name="name">SCORM Review Comments: multi-company</field>
+        <field name="model_id" ref="model_lms_scorm_comment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_lms_scorm_approval_company" model="ir.rule">
+        <field name="name">SCORM Approvals: multi-company</field>
+        <field name="model_id" ref="model_lms_scorm_approval"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>
