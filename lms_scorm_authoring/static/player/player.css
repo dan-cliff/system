@@ -69,7 +69,25 @@ body {
 .sp-btn-secondary:hover { background: rgba(0, 0, 0, 0.04); }
 .sp-btn-small { padding: 3px 10px; font-size: 12px; }
 .sp-btn-large { padding: 12px 32px; font-size: 18px; }
-.sp-btn-fill { width: 100%; height: 100%; }
+.sp-btn-fill { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 4px 10px; }
+.sp-btn-fill p { margin: 0; }
+.sp-btn-content { display: inline-flex; align-items: center; gap: 0.45em; max-width: 100%; }
+.sp-btn-content.sp-icon-right { flex-direction: row-reverse; }
+.sp-btn-content .fa { font-size: 1.15em; }
+.sp-el-button:focus-within { filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6)); }
+
+/* Shapes shared by buttons and shape items */
+.sp-shape-circle, .sp-shape-oval, .sp-shape-ellipse { border-radius: 50% !important; }
+.sp-shape-pill { border-radius: 9999px !important; }
+.sp-shape-triangle { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); border: 0 !important; }
+.sp-shape-trapezoid { clip-path: polygon(18% 0%, 82% 0%, 100% 100%, 0% 100%); border: 0 !important; }
+.sp-shape-star {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    border: 0 !important;
+}
+.sp-btn.sp-shape-triangle { align-items: flex-end; padding-bottom: 14%; }
+.sp-btn.sp-shape-star { padding: 10% 22% 8%; }
+.sp-drop-shadow { filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25)); }
 .sp-btn:disabled { opacity: 0.5; cursor: default; }
 
 /* Footer */

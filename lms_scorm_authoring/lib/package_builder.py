@@ -28,6 +28,7 @@ MANIFEST_12 = """<?xml version="1.0" encoding="UTF-8"?>
   <organizations default="org_1">
     <organization identifier="org_1">
       <title>{title}</title>
+<link rel="icon" href="data:,"/>
       <item identifier="item_1" identifierref="res_1" isvisible="true">
         <title>{title}</title>{mastery}
       </item>
@@ -76,7 +77,7 @@ INDEX_HTML = """<!DOCTYPE html>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>{title}</title>
-{font_link}<link rel="stylesheet" href="player.css"/>
+{font_link}{icon_link}<link rel="stylesheet" href="player.css"/>
 <style>
 :root {{
   --brand-primary: {primary};
@@ -115,6 +116,7 @@ def render_index(data):
     return INDEX_HTML.format(
         title=html.escape(data.get('title') or 'Course'),
         font_link=font_link,
+        icon_link='<link rel="stylesheet" href="fontawesome/css/font-awesome.css"/>\n' if data.get('icons') else '',
         primary=_css_value(brand.get('primary_color'), '#1f6feb'),
         secondary=_css_value(brand.get('secondary_color'), '#0b3d91'),
         background=_css_value(brand.get('background_color'), '#f4f6f8'),

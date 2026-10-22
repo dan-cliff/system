@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="lms_scorm_authoring.AiProgressOverlay">
+        <div t-if="state.active" class="o_scorm_ai_progress" role="status" aria-live="polite">
+            <div class="o_scorm_ai_progress_card">
+                <div class="o_scorm_ai_progress_orb" aria-hidden="true">
+                    <i class="fa fa-magic"/>
+                </div>
+                <h3 class="mt-3 mb-3" t-esc="state.title"/>
+                <ol class="o_scorm_ai_progress_steps list-unstyled text-start mb-3">
+                    <li t-foreach="state.steps" t-as="step" t-key="step_index"
+                        t-attf-class="o_scorm_ai_progress_step o_scorm_ai_progress_step_{{ stepStatus(step_index) }}">
+                        <span class="o_scorm_ai_progress_icon">
+                            <i t-if="stepStatus(step_index) === 'done'" class="fa fa-check"/>
+                            <i t-elif="stepStatus(step_index) === 'active'" class="fa fa-circle-o-notch fa-spin"/>
+                            <i t-else="" class="fa fa-circle-thin"/>
+                        </span>
+                        <span t-esc="step"/>
+                    </li>
+                </ol>
+                <p class="text-muted small mb-0">
+                    This can take a few minutes - please keep this page open. <t t-esc="elapsed"/>
+                </p>
+            </div>
+        </div>
+    </t>
+</templates>
