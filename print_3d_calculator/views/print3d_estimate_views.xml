@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="print3d_estimate_view_list" model="ir.ui.view">
+        <field name="name">print3d.estimate.list</field>
+        <field name="model">print3d.estimate</field>
+        <field name="arch" type="xml">
+            <list string="3D Print Estimates" decoration-danger="state == 'error'" decoration-muted="state == 'draft'">
+                <field name="name"/>
+                <field name="create_date" string="Date" options="{'numeric': True}" optional="show"/>
+                <field name="filename"/>
+                <field name="partner_id" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="slicer" optional="hide"/>
+                <field name="filament_count"/>
+                <field name="total_filament_g" sum="Total"/>
+                <field name="print_time_display"/>
+                <field name="cost_total" sum="Total" optional="show"/>
+                <field name="price" sum="Total"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="source" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'error'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="print3d_estimate_view_form" model="ir.ui.view">
+        <field name="name">print3d.estimate.form</field>
+        <field name="model">print3d.estimate</field>
+        <field name="arch" type="xml">
+            <form string="3D Print Estimate">
+                <header>
+                    <button name="action_create_quotation" type="object" string="Create Quotation"
+                            class="btn-primary" invisible="state != 'done'"/>
+                    <button name="action_analyse" type="object" string="Re-read File"
+                            invisible="not file or locked"/>
+                    <button name="action_update_pricing" type="object" string="Update Pricing"
+                            invisible="state != 'done' or locked"
+                            help="Recalculate with the current material costs and pricing profile."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sale_orders" type="object" class="oe_stat_button"
+                                icon="fa-dollar" invisible="sale_order_count == 0">
+                            <field name="sale_order_count" widget="statinfo" string="Sales Orders"/>
+                        </button>
+                        <button name="action_view_invoices" type="object" class="oe_stat_button"
+                                icon="fa-pencil-square-o" invisible="invoice_count == 0">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'error'">
+                        <field name="error_message" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="not warnings">
+                        <field name="warnings" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="not locked">
+                        This estimate has been invoiced, so its figures are kept as recorded.
+                    </div>
+                    <group>
+                        <group string="Print File">
+                            <field name="file" filename="filename" widget="binary" readonly="locked"/>
+                            <field name="filename" invisible="1"/>
+                            <field name="file_format" invisible="not file_format"/>
+                            <field name="slicer" invisible="not slicer"/>
+                            <field name="sliced" invisible="state != 'done'"/>
+                            <field name="plate_count" invisible="plate_count &lt; 2"/>
+                        </group>
+                        <group string="Pricing">
+                            <field name="product_id"/>
+                            <field name="partner_id"/>
+                            <field name="profile_id" readonly="locked"/>
+                            <field name="source"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="locked" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Print Summary" invisible="state != 'done'">
+                        <group>
+                            <field name="filament_count"/>
+                            <field name="total_filament_g"/>
+                            <field name="total_filament_m"/>
+                            <field name="print_time_display"/>
+                        </group>
+                        <group>
+                            <field name="volume_cm3" invisible="not volume_cm3"/>
+                            <label for="size_x_mm" string="Size (W × D × H mm)" invisible="not size_x_mm"/>
+                            <div class="d-flex gap-1 align-items-baseline" invisible="not size_x_mm">
+                                <field name="size_x_mm" nolabel="1" class="oe_inline"/>
+                                <span>×</span>
+                                <field name="size_y_mm" nolabel="1" class="oe_inline"/>
+                                <span>×</span>
+                                <field name="size_z_mm" nolabel="1" class="oe_inline"/>
+                            </div>
+                            <field name="infill_percent" invisible="sliced"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Filaments" name="filaments">
+                            <field name="line_ids" readonly="locked">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="slot"/>
+                                    <field name="colour" widget="color" readonly="1"/>
+                                    <field name="slicer_material" readonly="1"/>
+                                    <field name="material_id"/>
+                                    <field name="length_m" readonly="1" sum="Total"/>
+                                    <field name="weight_g" readonly="1" sum="Total"/>
+                                    <field name="slicer_weight" optional="hide" readonly="1"/>
+                                    <field name="cost_per_kg" optional="show"/>
+                                    <field name="cost" sum="Total"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Costing" name="costing">
+                            <group>
+                                <group>
+                                    <field name="material_cost"/>
+                                    <field name="machine_cost"/>
+                                    <field name="setup_cost"/>
+                                    <field name="cost_total" class="fw-bold"/>
+                                </group>
+                                <group>
+                                    <field name="markup_amount"/>
+                                    <field name="price" class="fw-bold"/>
+                                    <field name="print_time_hours" string="Printer Hours"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Sales &amp; Invoices" name="sales" invisible="not sale_line_ids and not invoice_line_ids">
+                            <field name="sale_line_ids" readonly="1">
+                                <list>
+                                    <field name="order_id"/>
+                                    <field name="order_partner_id"/>
+                                    <field name="product_uom_qty"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                            <field name="invoice_line_ids" readonly="1">
+                                <list>
+                                    <field name="move_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="parent_state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="print3d_estimate_view_search" model="ir.ui.view">
+        <field name="name">print3d.estimate.search</field>
+        <field name="model">print3d.estimate</field>
+        <field name="arch" type="xml">
+            <search string="3D Print Estimates">
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter string="Estimated" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Errors" name="error" domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter string="From Website" name="website" domain="[('source', '=', 'website')]"/>
+                <filter string="Product Files" name="product_files" domain="[('source', '=', 'product')]"/>
+                <filter string="Ordered" name="ordered" domain="[('sale_line_ids', '!=', False)]"/>
+                <separator/>
+                <filter string="Created" name="filter_create_date" date="create_date"/>
+                <group>
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Source" name="group_source" context="{'group_by': 'source'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_print3d_estimate" model="ir.actions.act_window">
+        <field name="name">3D Print Estimates</field>
+        <field name="res_model">print3d.estimate</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="print3d_estimate_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Upload a 3D print file</p>
+            <p>
+                Attach a sliced file (G-code, binary G-code, 3MF, UFP) or a model
+                (STL, OBJ, AMF, 3MF) to see the filaments it needs, the total
+                filament, the print time and its price.
+            </p>
+        </field>
+    </record>
+
+</odoo>

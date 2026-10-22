@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inventory › Products › 3D Print Estimates -->
+    <menuitem id="menu_print3d_estimate_stock"
+              name="3D Print Estimates"
+              parent="stock.menu_stock_inventory_control"
+              action="action_print3d_estimate"
+              sequence="50"/>
+
+    <!-- Sales › Orders › 3D Print Estimates -->
+    <menuitem id="menu_print3d_estimate_sale"
+              name="3D Print Estimates"
+              parent="sale.sale_order_menu"
+              action="action_print3d_estimate"
+              sequence="40"/>
+
+    <!-- Inventory › Configuration › 3D Printing -->
+    <menuitem id="menu_print3d_config"
+              name="3D Printing"
+              parent="stock.menu_stock_config_settings"
+              sequence="60"
+              groups="stock.group_stock_manager"/>
+    <menuitem id="menu_print3d_material"
+              name="Materials"
+              parent="menu_print3d_config"
+              action="action_print3d_material"
+              sequence="10"/>
+    <menuitem id="menu_print3d_pricing_profile"
+              name="Pricing Profiles"
+              parent="menu_print3d_config"
+              action="action_print3d_pricing_profile"
+              sequence="20"/>
+
+</odoo>

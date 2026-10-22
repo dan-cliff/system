@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_print3d_farm" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.print3d.farm</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="print_farm_jobs.res_config_settings_view_form_print_farm"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='print_farm']" position="inside">
+                <block title="Inventory" name="print_farm_inventory_block">
+                    <setting id="print3d_consume_on_done"
+                             string="Consume Filament on Completion"
+                             help="When a print job is marked as done, take the filament its file uses (plus the pricing profile's waste allowance) out of stock, using each material's filament product.">
+                        <field name="print3d_consume_on_done"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

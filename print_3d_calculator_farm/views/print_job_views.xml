@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_print_job_form_print3d" model="ir.ui.view">
+        <field name="name">print.job.form.print3d</field>
+        <field name="model">print.job</field>
+        <field name="inherit_id" ref="print_farm_jobs.view_print_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_print3d_moves" type="object" class="oe_stat_button"
+                            icon="fa-cubes" invisible="print3d_move_count == 0">
+                        <field name="print3d_move_count" widget="statinfo" string="Stock Moves"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='total_filament_g']" position="after">
+                <field name="print3d_estimate_id" options="{'no_create': True}"/>
+                <field name="print3d_filament_count" invisible="not print3d_estimate_id"/>
+                <field name="print3d_total_filament_g" invisible="not print3d_estimate_id"/>
+                <field name="print3d_print_time" invisible="not print3d_estimate_id"/>
+                <field name="print3d_consumed" invisible="state != 'done'"/>
+            </xpath>
+            <xpath expr="//page[@name='file']" position="inside">
+                <field name="print3d_line_ids" readonly="1" invisible="not print3d_estimate_id">
+                    <list>
+                        <field name="slot"/>
+                        <field name="colour" widget="color"/>
+                        <field name="slicer_material"/>
+                        <field name="material_id"/>
+                        <field name="length_m" sum="Total"/>
+                        <field name="weight_g" sum="Total"/>
+                    </list>
+                </field>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="print3d_material_view_form_farm" model="ir.ui.view">
+        <field name="name">print3d.material.form.farm</field>
+        <field name="model">print3d.material</field>
+        <field name="inherit_id" ref="print_3d_calculator.print3d_material_view_form"/>
+        <field name="arch" type="xml">
+            <field name="cost_source" position="after">
+                <field name="pending_consumption_qty" invisible="not filament_product_id or not pending_consumption_qty"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_print3d" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.print3d</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="3D Printing" name="print3d_setting_container">
+                    <setting id="print3d_default_profile" string="Default Pricing Profile"
+                             help="Used for 3D print estimates when the product has no pricing profile of its own.">
+                        <field name="print3d_profile_id"/>
+                        <div class="mt8">
+                            <button name="%(print_3d_calculator.action_print3d_pricing_profile)d" type="action"
+                                    string="Pricing Profiles" class="btn-link" icon="oi-arrow-right"/>
+                            <button name="%(print_3d_calculator.action_print3d_material)d" type="action"
+                                    string="Materials" class="btn-link" icon="oi-arrow-right"/>
+                        </div>
+                    </setting>
+                    <setting id="print3d_max_upload" string="Website Upload Limit"
+                             help="Largest 3D print file customers can upload for a quote on the website.">
+                        <div class="content-group">
+                            <field name="print3d_max_upload_mb" class="oe_inline"/> MB
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

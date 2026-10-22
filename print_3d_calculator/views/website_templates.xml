@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Upload-and-quote widget, shared by the product page and the quote page.
+         Expects print3d_product (product.template). -->
+    <template id="print3d_quote_widget" name="3D Print Quote Widget">
+        <t t-set="print3d_materials" t-value="print3d_product._print3d_website_materials()"/>
+        <t t-set="print3d_extensions" t-value="print3d_product._print3d_accepted_extensions()"/>
+        <t t-set="print3d_max_mb" t-value="print3d_product._print3d_max_upload_mb()"/>
+        <div class="o_print3d_quote card mb-4" t-att-data-product-id="print3d_product.id">
+            <div class="card-body">
+                <h5 class="card-title mb-1">
+                    <i class="fa fa-cube me-2" role="img" aria-label="3D"/>Get an instant price for your 3D print
+                </h5>
+                <p class="text-muted small mb-3">
+                    Upload a sliced file (G-code, binary G-code, 3MF, UFP) for the most accurate
+                    price, or a model (STL, OBJ, AMF, 3MF) for an estimate.
+                    Files up to <t t-out="print3d_max_mb"/> MB.
+                </p>
+                <!-- Not a <form>: on the product page this sits inside the shop's add-to-cart form. -->
+                <div class="o_print3d_upload_form">
+                    <div class="mb-3">
+                        <label class="form-label" t-attf-for="print3d_file_{{print3d_product.id}}">Your 3D file</label>
+                        <input type="file" class="form-control o_print3d_file" required="required"
+                               t-attf-id="print3d_file_{{print3d_product.id}}"
+                               t-att-accept="print3d_extensions"/>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-8">
+                            <label class="form-label" t-attf-for="print3d_material_{{print3d_product.id}}">Material</label>
+                            <select class="form-select o_print3d_material"
+                                    t-attf-id="print3d_material_{{print3d_product.id}}">
+                                <option value="">As set in my file</option>
+                                <t t-foreach="print3d_materials" t-as="material">
+                                    <option t-att-value="material.id" t-out="material.name"/>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label" t-attf-for="print3d_qty_{{print3d_product.id}}">Quantity</label>
+                            <input type="number" min="1" step="1" value="1"
+                                   class="form-control o_print3d_quantity"
+                                   t-attf-id="print3d_qty_{{print3d_product.id}}"/>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary o_print3d_submit">
+                        <i class="fa fa-calculator me-2"/>Get Price
+                    </button>
+                </div>
+
+                <div class="o_print3d_progress d-none mt-3" role="status" aria-live="polite">
+                    <ol class="list-unstyled mb-2 o_print3d_steps">
+                        <li data-step="upload"><i class="fa fa-circle-o me-2"/>Uploading your file</li>
+                        <li data-step="read"><i class="fa fa-circle-o me-2"/>Reading the filaments and print time</li>
+                        <li data-step="price"><i class="fa fa-circle-o me-2"/>Working out your price</li>
+                    </ol>
+                    <div class="small text-muted">
+                        Large files can take a minute - please keep this page open.
+                        <span class="o_print3d_elapsed"/>
+                    </div>
+                </div>
+
+                <div class="o_print3d_error alert alert-danger d-none mt-3" role="alert"/>
+
+                <div class="o_print3d_result d-none mt-3">
+                    <div class="d-flex flex-wrap gap-3 mb-3">
+                        <div><div class="small text-muted">Filaments</div><div class="fw-bold o_print3d_filament_count"/></div>
+                        <div><div class="small text-muted">Total filament</div><div class="fw-bold o_print3d_total_filament"/></div>
+                        <div><div class="small text-muted">Print time</div><div class="fw-bold o_print3d_print_time"/></div>
+                        <div class="o_print3d_size_wrap"><div class="small text-muted">Size</div><div class="fw-bold o_print3d_size"/></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle o_print3d_lines">
+                            <thead>
+                                <tr>
+                                    <th>Filament</th>
+                                    <th>Material</th>
+                                    <th class="text-end">Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody/>
+                        </table>
+                    </div>
+                    <div class="small text-muted mb-2 o_print3d_note"/>
+                    <ul class="small text-muted mb-3 o_print3d_warnings"/>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div>
+                            <div class="h4 mb-0 o_print3d_total"/>
+                            <div class="small text-muted">
+                                <span class="o_print3d_price"/> per print
+                                <span class="o_print3d_tax"/>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg o_print3d_add_to_cart">
+                            <i class="fa fa-shopping-cart me-2"/>Add to cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Product page: dynamically priced products are quoted from the customer's file -->
+    <template id="print3d_product_cta" inherit_id="website_sale.cta_wrapper" name="3D Print Quote on Product Page">
+        <xpath expr="//div[@id='o_wsale_cta_wrapper']" position="before">
+            <t t-if="product and product.print3d_dynamic_pricing">
+                <t t-call="print_3d_calculator.print3d_quote_widget">
+                    <t t-set="print3d_product" t-value="product.product_tmpl_id if product._name == 'product.product' else product"/>
+                </t>
+            </t>
+        </xpath>
+        <xpath expr="//div[@id='o_wsale_cta_wrapper']" position="attributes">
+            <attribute name="t-att-class" add="(' d-none' if product and product.print3d_dynamic_pricing else '')" separator=" + "/>
+        </xpath>
+    </template>
+
+    <!-- The price comes from the customer's file, so hide the product's own (zero) price.
+         The section is hidden rather than the price: the shop's variant script re-shows the price. -->
+    <template id="print3d_product_price" inherit_id="website_sale.product" name="Hide Price of 3D Print Products">
+        <xpath expr="//div[hasclass('o_wsale_product_details_content_section_price')]" position="attributes">
+            <attribute name="class"/>
+            <attribute name="t-attf-class">o_wsale_product_details_content_section o_wsale_product_details_content_section_price mb-4 {{'d-none' if product.print3d_dynamic_pricing else ''}}</attribute>
+        </xpath>
+    </template>
+
+    <template id="print3d_products_item" inherit_id="website_sale.products_item" name="3D Print Products in Shop Grid">
+        <xpath expr="//div[hasclass('product_price')]/span[1]" position="attributes">
+            <attribute name="t-if">not product.print3d_dynamic_pricing and (template_price_vals['price_reduce'] or not website.prevent_zero_price_sale)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('product_price')]/span[1]" position="after">
+            <span t-if="product.print3d_dynamic_pricing" class="mb-0 fw-bold">Priced from your file</span>
+        </xpath>
+    </template>
+
+    <!-- /shop/3d-print-quote -->
+    <template id="print3d_quote_page" name="3D Print Quote">
+        <t t-call="website.layout">
+            <t t-set="additional_title">3D Print Quote</t>
+            <div id="wrap" class="oe_structure_not_nearest">
+                <section class="container py-5">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <h1 class="mb-2">3D Print Quote</h1>
+                            <p class="lead text-muted">
+                                Upload your 3D file to see the filaments it needs, how long it
+                                takes to print and what it costs - then add it straight to your cart.
+                            </p>
+                            <t t-if="not print3d_products">
+                                <div class="alert alert-info" role="status">
+                                    Online 3D print quotes are not available at the moment.
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <form t-if="len(print3d_products) &gt; 1" method="get" action="/shop/3d-print-quote" class="mb-3">
+                                    <label class="form-label" for="print3d_product_select">What would you like printed?</label>
+                                    <select id="print3d_product_select" name="product_id" class="form-select"
+                                            onchange="this.form.submit()">
+                                        <t t-foreach="print3d_products" t-as="p">
+                                            <option t-att-value="p.id" t-att-selected="p == print3d_product" t-out="p.name"/>
+                                        </t>
+                                    </select>
+                                </form>
+                                <div t-if="print3d_product.description_sale" class="text-muted mb-3"
+                                     t-field="print3d_product.description_sale"/>
+                                <t t-call="print_3d_calculator.print3d_quote_widget"/>
+                            </t>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+</odoo>
