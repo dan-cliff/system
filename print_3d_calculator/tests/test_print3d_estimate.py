@@ -105,6 +105,12 @@ class TestPrint3dEstimate(Print3dCommon):
         self.assertEqual(estimate.infill_percent, 20.0)
         self.assertEqual(estimate.line_ids.material_id, self.petg)
 
+    def test_manual_material_cost(self):
+        self.assertEqual(self.pla.cost_source, 'Entered manually')
+        self.assertEqual(self.pla.manual_cost_per_kg, 20.0)
+        self.pla.cost_per_kg = 22.0
+        self.assertEqual(self.pla.manual_cost_per_kg, 22.0)
+
     def test_bad_file(self):
         estimate = self._estimate(b'hello', 'notes.txt')
         self.assertEqual(estimate.state, 'error')

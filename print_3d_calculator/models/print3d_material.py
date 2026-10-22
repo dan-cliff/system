@@ -1,6 +1,6 @@
 import re
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 
 class Print3dMaterial(models.Model):
@@ -30,20 +30,32 @@ class Print3dMaterial(models.Model):
     )
     cost_per_kg = fields.Monetary(
         string='Cost per kg',
-        help='Filament cost per kilogram. Filled in from the filament product '
-             'when one is set.',
+        compute='_compute_cost_per_kg',
+        inverse='_inverse_cost_per_kg',
+        help='Filament cost per kilogram. With a filament product it is worked out '
+             'from the product\'s purchase price; otherwise enter it here.',
+    )
+    manual_cost_per_kg = fields.Monetary(
+        string='Manual Cost per kg',
+        help='Cost per kg used when the material has no filament product.',
+    )
+    cost_source = fields.Char(
+        string='Cost Source',
+        compute='_compute_cost_per_kg',
+        help='Where the cost per kg comes from.',
     )
     filament_product_id = fields.Many2one(
         'product.product',
         string='Filament Product',
-        help='Inventory product for this filament. Its cost is used as the cost per kg.',
+        help='Inventory product for this filament. Its purchase price gives the cost '
+             'per kg, and completed print jobs can consume it from stock.',
     )
     spool_weight_kg = fields.Float(
         string='Spool Weight (kg)',
         default=1.0,
         digits=(16, 3),
         help='Filament weight of one unit of the filament product, when it is '
-             'sold per spool rather than by weight.',
+             'bought and stocked per spool rather than by weight.',
     )
     colour = fields.Char(string='Colour', help='Display colour, e.g. #FF5733')
     description = fields.Text(string='Description', translate=True,
@@ -54,27 +66,65 @@ class Print3dMaterial(models.Model):
         help='Customers can choose this material on the website quote.',
     )
 
-    @api.onchange('filament_product_id', 'spool_weight_kg')
-    def _onchange_filament_product_id(self):
+    @api.depends(
+        'manual_cost_per_kg', 'spool_weight_kg', 'currency_id', 'filament_product_id.uom_id',
+        'filament_product_id.seller_ids.price', 'filament_product_id.seller_ids.product_uom_id',
+        'filament_product_id.seller_ids.currency_id', 'filament_product_id.seller_ids.sequence',
+    )
+    @api.depends_context('company')
+    def _compute_cost_per_kg(self):
         for material in self:
-            if material.filament_product_id:
-                material.cost_per_kg = material._get_cost_per_kg()
+            if not material.filament_product_id:
+                material.cost_per_kg = material.manual_cost_per_kg
+                material.cost_source = _('Entered manually')
+                continue
+            material.cost_per_kg, material.cost_source = material._purchase_cost_per_kg()
 
-    def _get_cost_per_kg(self):
-        """Current cost per kg, from the filament product when there is one."""
+    def _inverse_cost_per_kg(self):
+        for material in self:
+            if not material.filament_product_id:
+                material.manual_cost_per_kg = material.cost_per_kg
+
+    def _kg_quantity_in(self, uom):
+        """How many of `uom` hold one kg of this filament."""
+        self.ensure_one()
+        kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
+        if kg and uom and uom._has_common_reference(kg):
+            return kg._compute_quantity(1.0, uom, round=False)
+        # Counted in units (spools): one unit holds spool_weight_kg of filament.
+        return 1.0 / (self.spool_weight_kg or 1.0)
+
+    def _purchase_cost_per_kg(self):
+        """Cost per kg from the filament product's purchase price.
+
+        Uses the product's main vendor price (Purchase tab) when it has one,
+        otherwise the product's Cost (kept up to date by stock valuation).
+        """
         self.ensure_one()
         product = self.filament_product_id
-        if not product:
-            return self.cost_per_kg
-        price = product.standard_price
-        if product.currency_id and product.currency_id != self.currency_id:
-            price = product.currency_id._convert(
-                price, self.currency_id, self.env.company, fields.Date.context_today(self)
-            )
-        kg = self.env.ref('uom.product_uom_kgm', raise_if_not_found=False)
-        if kg and product.uom_id._has_common_reference(kg):
-            return product.uom_id._compute_price(price, kg)
-        return price / (self.spool_weight_kg or 1.0)
+        company = self.env.company
+        date = fields.Date.context_today(self)
+        sellers = product.seller_ids.filtered(
+            lambda s: s.price and (not s.product_id or s.product_id == product)
+            and (not s.company_id or s.company_id == company)
+        ).sorted(lambda s: (s.sequence, s.min_qty, s.id))
+        if sellers:
+            seller = sellers[0]
+            price = seller.currency_id._convert(seller.price, self.currency_id, company, date)
+            uom = seller.product_uom_id or product.uom_id
+            source = _('Vendor price from %s', seller.partner_id.display_name)
+        else:
+            price = product.with_company(company).standard_price
+            if product.cost_currency_id and product.cost_currency_id != self.currency_id:
+                price = product.cost_currency_id._convert(price, self.currency_id, company, date)
+            uom = product.uom_id
+            source = _('Product cost')
+        return price * self._kg_quantity_in(uom), source
+
+    def _get_cost_per_kg(self):
+        """Current cost per kg (from the filament product's purchase price when set)."""
+        self.ensure_one()
+        return self.cost_per_kg
 
     def _match_names(self):
         self.ensure_one()

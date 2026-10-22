@@ -13,7 +13,8 @@
                 <field name="colour" widget="color" optional="hide"/>
                 <field name="density"/>
                 <field name="filament_product_id" optional="show"/>
-                <field name="cost_per_kg"/>
+                <field name="cost_per_kg" readonly="filament_product_id"/>
+                <field name="cost_source" optional="hide"/>
                 <field name="currency_id" column_invisible="True"/>
                 <field name="website_published" optional="show"/>
             </list>
@@ -42,7 +43,8 @@
                         <group string="Cost">
                             <field name="filament_product_id"/>
                             <field name="spool_weight_kg" invisible="not filament_product_id"/>
-                            <field name="cost_per_kg"/>
+                            <field name="cost_per_kg" readonly="filament_product_id"/>
+                            <field name="cost_source" invisible="not filament_product_id"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
