@@ -82,6 +82,51 @@ roles from it.
   the app has workflow privileges. Ship roles as `noupdate="1"` data so
   admins can adjust them.
 
+## Icon style
+
+Every icon we create (app icons in `static/description/icon.png`, menu
+`web_icon`s, toolbar icons, pictures in empty-state help, illustrations)
+follows the samples in `docs/icon_style/`. Look at them before drawing an
+icon:
+
+- `sample_dashboard.webp` and `sample_checklist_alert.webp`, the
+  illustrated style (the default for app icons):
+  - soft, glossy, slightly 3D "clay" look: rounded corners everywhere,
+    gentle gradients, a soft highlight on top and a soft shadow below,
+    no hard outlines;
+  - one main object that says what the app is (a browser window with
+    charts, a clipboard with ticks), with a second accent object
+    overlapping its lower right corner (a pie chart, a warning beacon)
+    for the app's twist;
+  - bright, saturated colours on light surfaces:
+    - coral/red `#FF5A6E`;
+    - yellow to orange `#FFC93C`→`#FF9F1C`;
+    - sky to royal blue `#3BB8FF`→`#0A6CF0`;
+    - teal/green `#14C9A5`;
+    - purple/violet `#8E5CF0`→`#5B3DB8`;
+    - navy `#2A3F8F` for heavy parts;
+    - lavender-grey `#A9ABDC` for "text" bars;
+    - near-white `#F2F2FA` for panels;
+  - simple shapes only: placeholder bars instead of words, white ticks,
+    and no text, letters or logos;
+  - transparent (or white) background, with the subject centred and
+    filling about 80% of the square.
+- `sample_app_tile.webp`, the tile style (for when a flat tile suits
+  better, e.g. a small toolbar or menu icon):
+  - rounded square split into diagonal, faceted panels;
+  - gradient from violet `#B65CCB` / purple `#5B2E9E` (top left) to teal
+    `#14A3A3` (bottom right);
+  - one bold, geometric white glyph.
+- Keep icons in one family: the same palette, corner radius and lighting
+  across our apps. Never mix in Font Awesome glyphs, stock clip-art or
+  Odoo's flat default icons as an app icon.
+- Size and format:
+  - app icons are square PNGs, 256×256 or larger (1024×1024 preferred),
+    transparent background, at `static/description/icon.png`, also used as
+    the root menu's `web_icon`;
+  - draw them as SVG and export the PNG, keeping the SVG next to it
+    (`icon.svg`) so the icon can be changed later.
+
 ## Toolbar (systray) icons
 
 - Every icon a module adds to the top toolbar must also show on the `/odoo`
