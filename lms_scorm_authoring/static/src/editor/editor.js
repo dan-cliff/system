@@ -1204,6 +1204,19 @@ export class ScormEditor extends Component {
         if (this.state.editingId === el.id && !handle) {
             return; // typing in the text box
         }
+        // Spot double-clicks here: the first click selects the item and
+        // redraws its text, so the browser's dblclick often never fires
+        // when the words themselves are clicked.
+        const last = this.lastPointerDown;
+        const now = Date.now();
+        this.lastPointerDown = { id: el.id, time: now, x: ev.clientX, y: ev.clientY };
+        if (!handle && ev.button === 0 && last && last.id === el.id && now - last.time < 500
+            && Math.abs(ev.clientX - last.x) < 6 && Math.abs(ev.clientY - last.y) < 6) {
+            this.lastPointerDown = null;
+            ev.preventDefault();
+            this.onElementDblClick(el);
+            return;
+        }
         if (this.state.editingId && this.state.editingId !== el.id) {
             this.commitTextEdit();
         }
