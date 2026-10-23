@@ -486,6 +486,23 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
+    <!-- Standard slide sets: everyone can view the slides they add to courses
+         (their pictures live on the set's template course) -->
+    <record id="rule_lms_scorm_course_slide_set_read" model="ir.rule">
+        <field name="name">SCORM Courses: standard slide sets, view</field>
+        <field name="model_id" ref="model_lms_scorm_course"/>
+        <field name="groups" eval="[(4, ref('group_scorm_user'))]"/>
+        <field name="domain_force">[('is_slide_set', '=', True)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_lms_scorm_slide_set_company" model="ir.rule">
+        <field name="name">SCORM Standard Slide Sets: multi-company</field>
+        <field name="model_id" ref="model_lms_scorm_slide_set"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
     <!-- Multi-company -->
     <record id="rule_lms_scorm_course_company" model="ir.rule">
         <field name="name">SCORM Courses: multi-company</field>

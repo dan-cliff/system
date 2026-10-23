@@ -50,6 +50,16 @@ class LmsScormSlide(models.Model):
              'are used up. They then retry the gate.')
     has_gate = fields.Boolean(compute='_compute_has_gate', string='Gated')
     comment_ids = fields.One2many('lms.scorm.comment', 'slide_id', string='Review Comments', copy=False)
+
+    # Standard slides (Learning › Settings › Standard Slide Sets)
+    standard_position = fields.Selection([
+        ('start', 'At the start of every course'),
+        ('end', 'At the end of every course'),
+    ], string='Position in Courses', default='start',
+        help='On a standard slide set: where this slide goes in the courses that use the set.')
+    standard_set_id = fields.Many2one(
+        'lms.scorm.slide.set', string='From Standard Set', readonly=True, ondelete='set null', index=True)
+    standard_locked = fields.Boolean(string='Locked Standard Slide', readonly=True)
     open_comment_count = fields.Integer(compute='_compute_open_comment_count', string='Open Comments')
 
     _check_gate_pass_score = models.Constraint(
@@ -98,12 +108,25 @@ class LmsScormSlide(models.Model):
         slides._check_editable()
         return slides
 
+    def _check_standard_lock(self, vals=None):
+        if self.env.context.get('scorm_standard_sync'):
+            return
+        if vals is not None and set(vals) <= {'sequence'}:
+            return
+        locked = self.filtered('standard_locked')
+        if locked:
+            raise UserError(_(
+                '"%s" is a locked standard slide. Change it in Learning › Settings › SCORM '
+                'Standard Slides, then update the course\'s standard slides.', locked[0].name))
+
     def write(self, vals):
         self._check_editable()
+        self._check_standard_lock(vals)
         return super().write(vals)
 
     def unlink(self):
         self._check_editable()
+        self._check_standard_lock()
         return super().unlink()
 
     # ------------------------------------------------------------------
@@ -123,6 +146,9 @@ class LmsScormSlide(models.Model):
             'gate_pass_score': self.gate_pass_score,
             'gate_max_attempts': self.gate_max_attempts,
             'gate_fail_slide_id': self.gate_fail_slide_id.id or False,
+            'standard_position': self.standard_position or 'start',
+            'standard': bool(self.standard_set_id),
+            'standard_locked': self.standard_locked,
             'elements': self._elements(),
         }
 
@@ -137,7 +163,7 @@ class LmsScormSlide(models.Model):
                 return 0
 
         background = data.get('background_attachment_id')
-        return {
+        vals = {
             'sequence': sequence,
             'name': (data.get('name') or _('Slide %s', sequence))[:200],
             'notes': data.get('notes') or False,
@@ -150,6 +176,9 @@ class LmsScormSlide(models.Model):
             'gate_max_attempts': as_int(data.get('gate_max_attempts'), 0, 100),
             'elements_json': json.dumps(elements),
         }
+        if data.get('standard_position') in ('start', 'end'):
+            vals['standard_position'] = data['standard_position']
+        return vals
 
     def action_open_in_editor(self):
         self.ensure_one()

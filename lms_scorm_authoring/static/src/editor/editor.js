@@ -486,7 +486,7 @@ export class ScormEditor extends Component {
             document.removeEventListener("pointerup", this._onPointerUp);
             this.resizeObserver?.disconnect();
             clearTimeout(this.autosaveTimer);
-            if (this.state.dirty && this.canEdit) {
+            if (this.state.dirty && this.canEditCourse) {
                 // Leaving the editor: keep the work
                 this.save(true);
             }
@@ -525,8 +525,18 @@ export class ScormEditor extends Component {
         this.state.loading = false;
     }
 
-    get canEdit() {
+    /** The course can be changed (save, add slides, AI, import…). */
+    get canEditCourse() {
         return !!this.state.course?.permissions.can_edit;
+    }
+
+    /** The current slide can be changed: not a locked standard slide. */
+    get canEdit() {
+        return this.canEditCourse && !this.slide?.standard_locked;
+    }
+
+    canEditSlide(slide) {
+        return this.canEditCourse && !slide?.standard_locked;
     }
 
     get readonly() {
@@ -599,7 +609,7 @@ export class ScormEditor extends Component {
     }
 
     markDirty() {
-        if (!this.canEdit) {
+        if (!this.canEditCourse) {
             return;
         }
         this.state.dirty = true;
@@ -613,7 +623,7 @@ export class ScormEditor extends Component {
     }
 
     async save(silent = false) {
-        if (!this.canEdit || this.state.saving) {
+        if (!this.canEditCourse || this.state.saving) {
             return;
         }
         this.commitTextEdit();
@@ -640,6 +650,14 @@ export class ScormEditor extends Component {
                 }
             }
             this.deleted = [];
+            // Standard slides keep their places: follow the server's order
+            const order = new Map(result.slides.map((s, i) => [s.id, i]));
+            if (this.state.slides.every((s) => order.has(s.id))) {
+                const currentId = this.slide?.id;
+                this.state.slides.sort((a, b) => order.get(a.id) - order.get(b.id));
+                const index = this.state.slides.findIndex((s) => s.id === currentId);
+                this.state.current = index >= 0 ? index : this.state.current;
+            }
             // Still dirty if something changed while saving
             this.state.dirty = this.changes !== changesAtStart;
             const now = new Date();
@@ -659,7 +677,7 @@ export class ScormEditor extends Component {
     // Undo / redo
     // ------------------------------------------------------------------
     snapshot() {
-        if (!this.canEdit) {
+        if (!this.canEditCourse) {
             return;
         }
         this.undoStack.push(JSON.stringify({ slides: this.state.slides, current: this.state.current, deleted: this.deleted }));
@@ -758,7 +776,7 @@ export class ScormEditor extends Component {
         this.state.pendingPin = null;
         this.state.commentMode = false;
         if (this.state.panel === "item") {
-            this.state.panel = this.canEdit ? "slide" : this.state.panel;
+            this.state.panel = this.canEditCourse ? "slide" : this.state.panel;
         }
     }
 
@@ -813,7 +831,7 @@ export class ScormEditor extends Component {
     }
 
     onSlideDragStart(ev, index) {
-        if (!this.canEdit) {
+        if (!this.canEditSlide(this.state.slides[index])) {
             ev.preventDefault();
             return;
         }
@@ -1728,7 +1746,7 @@ export class ScormEditor extends Component {
     // ------------------------------------------------------------------
     startComment() {
         if (typeof this.slide.id !== "number") {
-            if (!this.canEdit) {
+            if (!this.canEditCourse) {
                 return;
             }
             this.save(true).then(() => this.startComment());
@@ -1800,7 +1818,7 @@ export class ScormEditor extends Component {
     // ------------------------------------------------------------------
     openAiDialog() {
         const course = this.state.course;
-        if (!this.canEdit || !course.ai_available) {
+        if (!this.canEditCourse || !course.ai_available) {
             return;
         }
         this.dialog.add(AiCourseDialog, {
@@ -1902,6 +1920,17 @@ export class ScormEditor extends Component {
     async backToCourse() {
         if (this.state.dirty) {
             await this.save(true);
+        }
+        const course = this.state.course;
+        if (course.is_slide_set && course.slide_set_record_id) {
+            this.action.doAction({
+                type: "ir.actions.act_window",
+                res_model: "lms.scorm.slide.set",
+                res_id: course.slide_set_record_id,
+                views: [[false, "form"]],
+                target: "current",
+            }, { clearBreadcrumbs: false });
+            return;
         }
         this.action.doAction({
             type: "ir.actions.act_window",

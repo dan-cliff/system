@@ -119,7 +119,7 @@ class LmsScormImportWizard(models.TransientModel):
 
         Slide = self.env['lms.scorm.slide']
         if self.mode == 'replace' and course.slide_ids:
-            course.slide_ids.unlink()
+            course.slide_ids.filtered(lambda s: not s.standard_set_id).unlink()
         if not course.slide_ids:
             course.write({'slide_width': result['width'], 'slide_height': result['height']})
         x_scale = course.slide_width / result['width'] if result['width'] else 1
@@ -167,6 +167,7 @@ class LmsScormImportWizard(models.TransientModel):
                 'elements_json': json.dumps(elements),
             })
         Slide.create(vals_list)
+        course._order_standard_slides()
 
         summary = _('%(slides)s slide(s) and %(media)s picture/media file(s) imported from %(name)s.',
                     slides=len(vals_list), media=len(attachment_ids), name=name)

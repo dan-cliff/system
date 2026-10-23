@@ -114,14 +114,14 @@
                         <t t-elif="state.uploading"><i class="fa fa-spinner fa-spin"/> Uploading…</t>
                         <t t-elif="state.dirty">Unsaved changes</t>
                         <t t-elif="state.lastSaved">Saved <t t-esc="state.lastSaved"/></t>
-                        <t t-elif="readonly">Read only – <t t-esc="state.course.state_label"/></t>
+                        <t t-elif="!canEditCourse">Read only – <t t-esc="state.course.state_label"/></t>
                     </div>
                     <div class="o_scorm_topbar_actions">
-                        <button t-if="canEdit and state.course.ai_available" class="btn btn-light o_scorm_ai_button"
+                        <button t-if="canEditCourse and state.course.ai_available" class="btn btn-light o_scorm_ai_button"
                                 t-on-click="() => this.openAiDialog()" title="Write slides with AI">
                             <i class="fa fa-magic"/> Generate with AI
                         </button>
-                        <t t-if="canEdit">
+                        <t t-if="canEditCourse">
                             <button class="btn btn-light" title="Undo (Ctrl+Z)" t-on-click="() => this.undo()"><i class="fa fa-undo"/></button>
                             <button class="btn btn-light" title="Redo (Ctrl+Y)" t-on-click="() => this.redo()"><i class="fa fa-repeat"/></button>
                             <button class="btn btn-light" t-on-click="() => this.importPresentation()">
@@ -142,7 +142,7 @@
                                 <i class="fa fa-step-backward"/>
                             </button>
                         </div>
-                        <button t-if="canEdit" class="btn btn-primary" t-att-disabled="state.saving" t-on-click="() => this.save()">
+                        <button t-if="canEditCourse" class="btn btn-primary" t-att-disabled="state.saving" t-on-click="() => this.save()">
                             Save
                         </button>
                     </div>
@@ -153,8 +153,8 @@
                     <div class="o_scorm_slides">
                         <div class="o_scorm_slides_list">
                             <div t-foreach="state.slides" t-as="slideItem" t-key="slideItem.id" class="o_scorm_slide_item"
-                                 t-att-class="{'active': slideItem_index === state.current}"
-                                 t-att-draggable="canEdit ? 'true' : 'false'"
+                                 t-att-class="{'active': slideItem_index === state.current, 'o_scorm_slide_standard': slideItem.standard}"
+                                 t-att-draggable="canEditSlide(slideItem) ? 'true' : 'false'"
                                  t-on-dragstart="(ev) => this.onSlideDragStart(ev, slideItem_index)"
                                  t-on-dragover="(ev) => ev.preventDefault()"
                                  t-on-drop="(ev) => this.onSlideDrop(ev, slideItem_index)"
@@ -165,6 +165,12 @@
                                        class="fa fa-lock" title="Gated"/>
                                     <span t-if="openCommentCount(slideItem)" class="badge text-bg-warning" title="Open comments"
                                           t-esc="openCommentCount(slideItem)"/>
+                                    <span t-if="slideItem.standard" class="badge text-bg-info"
+                                          t-att-title="slideItem.standard_locked ? 'Standard slide – change it in its slide set' : 'Standard slide'">
+                                        <i t-if="slideItem.standard_locked" class="fa fa-lock me-1"/>Standard
+                                    </span>
+                                    <span t-if="state.course.is_slide_set" class="badge text-bg-light"
+                                          t-esc="slideItem.standard_position === 'end' ? 'End' : 'Start'"/>
                                 </div>
                                 <div class="o_scorm_thumb" t-att-style="thumbFrameStyle()">
                                     <div class="o_scorm_stage o_scorm_thumb_stage" t-att-style="thumbStyle(slideItem)">
@@ -176,7 +182,7 @@
                                     </div>
                                 </div>
                                 <div class="o_scorm_slide_name" t-esc="slideItem.name"/>
-                                <div t-if="canEdit" class="o_scorm_slide_tools">
+                                <div t-if="canEditSlide(slideItem)" class="o_scorm_slide_tools">
                                     <button class="btn btn-sm" title="Move up" t-on-click.stop="() => this.moveSlide(slideItem_index, -1)"><i class="fa fa-chevron-up"/></button>
                                     <button class="btn btn-sm" title="Move down" t-on-click.stop="() => this.moveSlide(slideItem_index, 1)"><i class="fa fa-chevron-down"/></button>
                                     <button class="btn btn-sm" title="Duplicate" t-on-click.stop="() => this.duplicateSlide(slideItem_index)"><i class="fa fa-clone"/></button>
@@ -184,7 +190,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div t-if="canEdit" class="o_scorm_add_slide">
+                        <div t-if="canEditCourse" class="o_scorm_add_slide">
                             <button class="btn btn-secondary w-100" t-on-click="() => this.toggleLayouts()">
                                 <i class="fa fa-plus"/> Add Slide
                             </button>
@@ -284,6 +290,18 @@
 
     <!-- Slide settings and gate -->
     <t t-name="lms_scorm_authoring.SlidePanel">
+        <div t-if="slide.standard_locked" class="alert alert-info small py-2">
+            <i class="fa fa-lock"/> A standard slide from <strong t-esc="state.course.slide_set or 'its slide set'"/>.
+            Change it in the set (Learning › Settings › SCORM Standard Slides).
+        </div>
+        <div t-if="state.course.is_slide_set" class="o_scorm_field">
+            <label>Position in courses</label>
+            <select class="form-select" t-att-disabled="readonly"
+                    t-on-change="(ev) => this.setSlide('standard_position', ev.target.value)">
+                <option value="start" t-att-selected="slide.standard_position !== 'end'">At the start of every course</option>
+                <option value="end" t-att-selected="slide.standard_position === 'end'">At the end of every course</option>
+            </select>
+        </div>
         <div class="o_scorm_field">
             <label>Slide title</label>
             <input class="form-control" t-att-value="slide.name" t-att-disabled="readonly"

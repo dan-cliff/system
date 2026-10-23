@@ -1,6 +1,6 @@
 {
     'name': 'SCORM Authoring',
-    'version': '19.0.1.1.1',
+    'version': '19.0.1.2.0',
     'summary': 'Design, review, approve and publish SCORM eLearning courses for the LMS',
     'description': '''
         SCORM Authoring - a companion app to the Learning Management System.
