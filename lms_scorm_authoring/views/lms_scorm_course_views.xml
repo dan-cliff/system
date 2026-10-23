@@ -24,37 +24,6 @@
         </field>
     </record>
 
-    <record id="view_lms_scorm_course_kanban" model="ir.ui.view">
-        <field name="name">lms.scorm.course.kanban</field>
-        <field name="model">lms.scorm.course</field>
-        <field name="arch" type="xml">
-            <kanban class="o_kanban_mobile" default_order="name">
-                <field name="id"/>
-                <field name="image"/>
-                <field name="state"/>
-                <templates>
-                    <t t-name="card" class="flex-row">
-                        <aside class="me-2" t-if="record.image.raw_value">
-                            <field name="image" widget="image" options="{'img_class': 'o_image_64_contain'}" alt="Course"/>
-                        </aside>
-                        <main>
-                            <field name="name" class="fw-bold fs-5"/>
-                            <div class="text-muted">
-                                v<field name="version_number"/> · <field name="slide_count"/> slides
-                            </div>
-                            <div class="mt-1">
-                                <field name="state" widget="badge"
-                                       decoration-success="state == 'published'"
-                                       decoration-info="state in ('review', 'approved')"
-                                       decoration-muted="state == 'superseded'"/>
-                            </div>
-                        </main>
-                    </t>
-                </templates>
-            </kanban>
-        </field>
-    </record>
-
     <record id="view_lms_scorm_course_form" model="ir.ui.view">
         <field name="name">lms.scorm.course.form</field>
         <field name="model">lms.scorm.course</field>
@@ -336,7 +305,7 @@
         <field name="res_model">lms.scorm.course</field>
         <field name="path">scorm-courses</field>
         <field name="domain">[('is_slide_set', '=', False)]</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_lms_scorm_course_search"/>
         <field name="context">{'search_default_current': 1}</field>
         <field name="help" type="html">
@@ -353,7 +322,7 @@
         <field name="name">Waiting for Approval</field>
         <field name="res_model">lms.scorm.course</field>
         <field name="domain">[('is_slide_set', '=', False)]</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_lms_scorm_course_search"/>
         <field name="context">{'search_default_to_approve': 1}</field>
     </record>
