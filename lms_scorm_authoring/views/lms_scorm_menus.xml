@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- SCORM Authoring lives in the Learning app, under Courses. Authors and
+         reviewers who have no LMS role still see the Learning app, Courses and
+         Settings menus, but only the SCORM entries in them (the others keep
+         their own groups). -->
+    <record id="learning_management.menu_lms_root" model="ir.ui.menu">
+        <field name="group_ids" eval="[(4, ref('lms_scorm_authoring.group_scorm_user'))]"/>
+    </record>
+    <record id="learning_management.menu_lms_courses" model="ir.ui.menu">
+        <field name="group_ids" eval="[(4, ref('lms_scorm_authoring.group_scorm_user'))]"/>
+    </record>
+    <record id="learning_management.menu_lms_settings" model="ir.ui.menu">
+        <field name="group_ids" eval="[(4, ref('lms_scorm_authoring.group_scorm_admin'))]"/>
+    </record>
+
     <menuitem id="menu_scorm_root"
               name="SCORM Authoring"
-              web_icon="lms_scorm_authoring,static/description/icon.png"
-              sequence="86"
+              parent="learning_management.menu_lms_courses"
+              sequence="10"
               groups="lms_scorm_authoring.group_scorm_user"/>
 
     <menuitem id="menu_scorm_courses"
-              name="Courses"
+              name="SCORM Courses"
               parent="menu_scorm_root"
               action="action_lms_scorm_course"
               sequence="10"/>
@@ -25,15 +39,10 @@
               action="action_lms_scorm_comment"
               sequence="30"/>
 
-    <menuitem id="menu_scorm_configuration"
-              name="Configuration"
-              parent="menu_scorm_root"
-              sequence="90"
-              groups="lms_scorm_authoring.group_scorm_admin"/>
-
     <menuitem id="menu_scorm_fonts"
-              name="Fonts"
-              parent="menu_scorm_configuration"
+              name="SCORM Fonts"
+              parent="learning_management.menu_lms_settings"
               action="action_lms_scorm_font"
-              sequence="10"/>
+              sequence="20"
+              groups="lms_scorm_authoring.group_scorm_admin"/>
 </odoo>
