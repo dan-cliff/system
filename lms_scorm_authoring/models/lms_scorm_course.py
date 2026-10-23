@@ -91,6 +91,15 @@ class LmsScormCourse(models.Model):
     published_date = fields.Datetime(string='Published On', copy=False, readonly=True)
     published_by_id = fields.Many2one('res.users', string='Published By', copy=False, readonly=True)
 
+    # ── Standard slides ─────────────────────────────────────────────────
+    slide_set_id = fields.Many2one(
+        'lms.scorm.slide.set', string='Standard Slides', ondelete='set null', tracking=True,
+        help='Slides added at the start and end of the course from Learning › Settings › '
+             'Standard Slide Sets. New courses get the default set.')
+    is_slide_set = fields.Boolean(
+        string='Standard Slide Set Template', readonly=True, copy=False, index=True,
+        help='Holds the slides of a standard slide set; never published to learners.')
+
     # ── Approvals ───────────────────────────────────────────────────────
     approver_ids = fields.Many2many(
         'res.users', 'lms_scorm_course_approver_rel', 'course_id', 'user_id',
@@ -276,7 +285,17 @@ class LmsScormCourse(models.Model):
             if not vals.get('identifier'):
                 vals['identifier'] = 'cc_scorm_%s' % self.env['ir.sequence'].sudo().next_by_code(
                     'lms.scorm.course.identifier')
-        return super().create(vals_list)
+        courses = super().create(vals_list)
+        if not self.env.context.get('scorm_no_standard_slides'):
+            SlideSet = self.env['lms.scorm.slide.set'].sudo()
+            for course, vals in zip(courses, vals_list):
+                if course.is_slide_set:
+                    continue
+                if 'slide_set_id' not in vals:
+                    course.slide_set_id = SlideSet._default_for_company(course.company_id)
+                if course.slide_set_id:
+                    course._apply_slide_set()
+        return courses
 
     def write(self, vals):
         locked = set(vals) & self._content_fields()
@@ -390,7 +409,7 @@ class LmsScormCourse(models.Model):
             raise UserError(_(
                 '%s is already being worked on. Finish, publish or delete it before starting '
                 'another version.', open_draft[0].display_name))
-        new = self.copy({
+        new = self.with_context(scorm_no_standard_slides=True).copy({
             'origin_id': root.id,
             'previous_version_id': self.id,
             'version_number': max(family.mapped('version_number')) + 1,
@@ -398,10 +417,75 @@ class LmsScormCourse(models.Model):
             'name': self.name,
             'approver_ids': [(6, 0, self.approver_ids.ids)],
         })
-        new._remap_copied_slide_links(self)
+        # Locked standard slides come along as they are; only their links move
+        new.with_context(scorm_standard_sync=True)._remap_copied_slide_links(self)
         new.message_post(body=_('Version %(new)s created from version %(old)s.',
                                 new=new.version_number, old=self.version_number))
         return new.action_open_form()
+
+    # ------------------------------------------------------------------
+    # Standard slides
+    # ------------------------------------------------------------------
+    def _apply_slide_set(self):
+        """Replace this course's standard slides with the current ones of its set."""
+        self.ensure_one()
+        course = self.sudo().with_context(scorm_standard_sync=True)
+        if course.state not in EDITABLE_STATES:
+            raise UserError(_('Only draft courses can be updated. Create a new version first.'))
+        course.slide_ids.filtered('standard_set_id').unlink()
+        slide_set = course.slide_set_id
+        template = slide_set.template_course_id
+        if template and template.slide_ids:
+            Slide = self.env['lms.scorm.slide'].sudo().with_context(scorm_standard_sync=True)
+            mapping = {}
+            for source in template.slide_ids:
+                copy = source.copy({
+                    'course_id': course.id,
+                    'standard_set_id': slide_set.id,
+                    'standard_locked': slide_set.lock_slides,
+                    'gate_fail_slide_id': False,
+                })
+                mapping[source] = copy
+            # Links between the set's slides point at the copies
+            for source, copy in mapping.items():
+                elements = copy._elements()
+                changed = False
+                for el in elements:
+                    target = el.get('props', {}).get('target_slide')
+                    linked = Slide.browse(int(target)) if str(target or '').isdigit() else Slide
+                    if linked in mapping:
+                        el['props']['target_slide'] = mapping[linked].id
+                        changed = True
+                vals = {'elements_json': json.dumps(elements)} if changed else {}
+                if source.gate_fail_slide_id in mapping:
+                    vals['gate_fail_slide_id'] = mapping[source.gate_fail_slide_id].id
+                if vals:
+                    copy.write(vals)
+        course._order_standard_slides()
+        return True
+
+    def _order_standard_slides(self):
+        """Standard 'start' slides first and 'end' slides last, whatever authors add."""
+        for course in self.sudo().with_context(scorm_standard_sync=True):
+            if course.is_slide_set:
+                continue
+            slides = course.slide_ids
+            start = slides.filtered(lambda s: s.standard_set_id and s.standard_position != 'end')
+            end = slides.filtered(lambda s: s.standard_set_id and s.standard_position == 'end')
+            ordered = start + (slides - start - end) + end
+            for sequence, slide in enumerate(ordered, start=1):
+                if slide.sequence != sequence:
+                    slide.sequence = sequence
+            course.invalidate_recordset(['slide_ids'])
+
+    def action_apply_slide_set(self):
+        self.ensure_one()
+        self.check_access('write')
+        if not self.slide_set_id:
+            raise UserError(_('Choose the standard slides to use first.'))
+        self._apply_slide_set()
+        self.message_post(body=_('Standard slides updated from "%s".', self.slide_set_id.name))
+        return True
 
     def _remap_copied_slide_links(self, source):
         """Point 'go to slide' actions at the copied slides instead of the source's."""
@@ -836,6 +920,10 @@ class LmsScormCourse(models.Model):
         self.check_access('read')
         brand = self._get_branding()
         state_labels = dict(self._fields['state'].selection)
+        slide_set = self.slide_set_id
+        if self.is_slide_set:
+            slide_set = self.env['lms.scorm.slide.set'].sudo().with_context(active_test=False).search(
+                [('template_course_id', '=', self.id)], limit=1)
         return {
             'id': self.id,
             'name': self.name,
@@ -845,6 +933,9 @@ class LmsScormCourse(models.Model):
             'width': self.slide_width,
             'height': self.slide_height,
             'permissions': self._editor_permissions(),
+            'is_slide_set': self.is_slide_set,
+            'slide_set': slide_set.name or '',
+            'slide_set_record_id': slide_set.id if self.is_slide_set else False,
             # Only whether a key is set: the keys never leave the server
             'ai_available': bool(self._ai_providers()),
             'ai_provider': (self._ai_providers() or [(None, '', None)])[0][1],
@@ -871,14 +962,21 @@ class LmsScormCourse(models.Model):
         Slide = self.env['lms.scorm.slide']
         deleted = [int(i) for i in payload.get('deleted') or [] if str(i).isdigit()]
         if deleted:
-            Slide.search([('id', 'in', deleted), ('course_id', '=', self.id)]).unlink()
+            # Locked standard slides stay (the editor doesn't offer to delete them)
+            Slide.search([('id', 'in', deleted), ('course_id', '=', self.id),
+                          ('standard_locked', '=', False)]).unlink()
         key_map = {}
         saved = Slide
         for sequence, data in enumerate(payload.get('slides') or [], start=1):
             vals = Slide._editor_vals(data, sequence)
+            if not self.is_slide_set:
+                vals.pop('standard_position', None)
             key = data.get('id')
             slide = Slide.browse(int(key)) if isinstance(key, int) or str(key).isdigit() else Slide
             if slide and slide.exists() and slide.course_id == self:
+                if slide.standard_locked:
+                    key_map[str(key)] = slide.id
+                    continue
                 slide.write(vals)
             else:
                 vals['course_id'] = self.id
@@ -901,8 +999,9 @@ class LmsScormCourse(models.Model):
             slide = Slide.browse(key_map.get(str(data.get('id'))))
             if fail_key and str(fail_key) in key_map:
                 slide.gate_fail_slide_id = key_map[str(fail_key)]
-            elif not fail_key and slide.gate_fail_slide_id:
+            elif not fail_key and slide.gate_fail_slide_id and not slide.standard_locked:
                 slide.gate_fail_slide_id = False
+        self._order_standard_slides()
         return {'key_map': key_map, 'slides': [s._editor_data() for s in self.slide_ids]}
 
     def editor_upload_asset(self, name, data_b64, mimetype=False):

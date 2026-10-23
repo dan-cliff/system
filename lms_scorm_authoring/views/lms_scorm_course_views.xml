@@ -71,8 +71,12 @@
                             invisible="not id or state != 'draft' or not user_can_edit"/>
                     <button name="action_preview" type="object" string="Preview" icon="fa-play"
                             invisible="not id"/>
+                    <button name="action_apply_slide_set" type="object" string="Update Standard Slides"
+                            invisible="not id or state != 'draft' or not user_can_edit or not slide_set_id or is_slide_set"
+                            help="Replace this course's standard slides with the current ones from its set"/>
                     <button name="action_submit_review" type="object" string="Submit for Approval"
-                            class="btn-primary" invisible="state != 'draft' or not id or not user_can_edit"/>
+                            class="btn-primary" invisible="state != 'draft' or not id or not user_can_edit or is_slide_set"/>
+                    <field name="is_slide_set" invisible="1"/>
                     <button name="action_open_decision_wizard" type="object" string="Approve / Request Changes"
                             class="btn-primary" invisible="not can_approve"
                             groups="lms_scorm_authoring.group_scorm_approve"/>
@@ -130,6 +134,8 @@
                             <field name="description" placeholder="Shown to learners on the start screen"
                                    readonly="state != 'draft'"/>
                             <field name="scorm_version" readonly="state != 'draft'"/>
+                            <field name="slide_set_id" readonly="state != 'draft'" invisible="is_slide_set"
+                                   options="{'no_create': True}" placeholder="None"/>
                             <label for="slide_width" string="Slide Size"/>
                             <div class="o_row">
                                 <field name="slide_width" readonly="state != 'draft'" class="oe_inline"
@@ -329,6 +335,7 @@
         <field name="name">SCORM Courses</field>
         <field name="res_model">lms.scorm.course</field>
         <field name="path">scorm-courses</field>
+        <field name="domain">[('is_slide_set', '=', False)]</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_lms_scorm_course_search"/>
         <field name="context">{'search_default_current': 1}</field>
@@ -345,6 +352,7 @@
     <record id="action_lms_scorm_course_to_approve" model="ir.actions.act_window">
         <field name="name">Waiting for Approval</field>
         <field name="res_model">lms.scorm.course</field>
+        <field name="domain">[('is_slide_set', '=', False)]</field>
         <field name="view_mode">list,kanban,form</field>
         <field name="search_view_id" ref="view_lms_scorm_course_search"/>
         <field name="context">{'search_default_to_approve': 1}</field>
@@ -445,6 +453,102 @@
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No review comments</p>
             <p>Reviewers add comments to slides from the editor. Learners never see them.</p>
+        </field>
+    </record>
+
+    <!-- ── Standard slide sets (Configuration) ─────────────────────────── -->
+    <record id="view_lms_scorm_slide_set_list" model="ir.ui.view">
+        <field name="name">lms.scorm.slide.set.list</field>
+        <field name="model">lms.scorm.slide.set</field>
+        <field name="arch" type="xml">
+            <list string="Standard Slide Sets">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="is_default"/>
+                <field name="lock_slides"/>
+                <field name="start_slide_count"/>
+                <field name="end_slide_count"/>
+                <field name="course_count"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_slide_set_form" model="ir.ui.view">
+        <field name="name">lms.scorm.slide.set.form</field>
+        <field name="model">lms.scorm.slide.set</field>
+        <field name="arch" type="xml">
+            <form string="Standard Slide Set">
+                <header>
+                    <button name="action_edit_slides" type="object" string="Edit Slides" class="btn-primary"
+                            invisible="not id"/>
+                    <button name="action_preview" type="object" string="Preview" icon="fa-play" invisible="not id"/>
+                    <button name="action_apply_to_drafts" type="object" string="Apply to Draft Courses"
+                            invisible="not id or not course_count"
+                            confirm="Replace the standard slides in every draft course using this set with its current slides?"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_courses" type="object" class="oe_stat_button" icon="fa-graduation-cap">
+                            <field name="course_count" widget="statinfo" string="Courses"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Company standard slides"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="is_default"/>
+                            <field name="lock_slides"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"
+                                   placeholder="All companies"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="start_slide_count"/>
+                            <field name="end_slide_count"/>
+                        </group>
+                    </group>
+                    <div class="text-muted" invisible="id">Save the set, then use <strong>Edit Slides</strong> to design them.</div>
+                    <div class="text-muted" invisible="not id">
+                        Design the slides with <strong>Edit Slides</strong>, and choose on each slide (Slide tab)
+                        whether it goes at the start or the end of courses. New courses get the default set;
+                        draft courses pick up changes with <strong>Update Standard Slides</strong> or
+                        <strong>Apply to Draft Courses</strong>, published courses in their next version.
+                    </div>
+                    <field name="description" placeholder="Notes for administrators"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lms_scorm_slide_set_search" model="ir.ui.view">
+        <field name="name">lms.scorm.slide.set.search</field>
+        <field name="model">lms.scorm.slide.set</field>
+        <field name="arch" type="xml">
+            <search string="Standard Slide Sets">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lms_scorm_slide_set" model="ir.actions.act_window">
+        <field name="name">Standard Slide Sets</field>
+        <field name="res_model">lms.scorm.slide.set</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a standard slide set</p>
+            <p>Slides every SCORM course gets at its start or end: a welcome, a safety
+               acknowledgement, a feedback slide…</p>
         </field>
     </record>
 

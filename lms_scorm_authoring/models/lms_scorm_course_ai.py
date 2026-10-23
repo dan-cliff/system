@@ -265,7 +265,7 @@ class LmsScormCourse(models.Model):
             raise UserError(_('The AI did not write any usable slides. Try again with more detail.'))
         Slide = self.env['lms.scorm.slide']
         if opts['replace']:
-            self.slide_ids.unlink()
+            self.slide_ids.filtered(lambda s: not s.standard_set_id).unlink()
         sequence = max(self.slide_ids.mapped('sequence') or [0])
         vals_list = []
         for data in slides:
@@ -274,6 +274,7 @@ class LmsScormCourse(models.Model):
             vals['course_id'] = self.id
             vals_list.append(vals)
         Slide.create(vals_list)
+        self._order_standard_slides()
         course_vals = {}
         if opts['include_exam']:
             course_vals['require_pass'] = True
