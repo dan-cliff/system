@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_list_column_admin" model="permission.role">
+            <field name="name">List Columns – Administrator</field>
+            <field name="description">Customise the columns of every list view in every app, for all users, and manage the saved layouts under Settings > List Columns.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('list_column_config.privilege_list_column_config'), 'group_id': ref('list_column_config.group_list_column_admin')})
+            ]"/>
+        </record>
+    </data>
+    <!-- One "<App> – List Column Customiser" role per app, and the app's
+         privilege on its Administrator roles (on install and every upgrade;
+         each app is only done once). -->
+    <function model="list.column.app" name="_sync_permission_roles"/>
+</odoo>
