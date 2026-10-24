@@ -4,6 +4,7 @@ from datetime import datetime, time, timedelta
 import pytz
 
 from odoo import _, api, fields, models
+from odoo.http import request
 from odoo.addons.base.models.res_partner import _tz_get
 from odoo.exceptions import ValidationError
 
@@ -114,7 +115,9 @@ class LiveCounter(models.Model):
 
     @api.depends('access_token')
     def _compute_page_url(self):
-        base_url = self.get_base_url()
+        # The address the user is browsing from, so the link works even when
+        # web.base.url is out of date; the configured one outside a request.
+        base_url = request.httprequest.host_url.rstrip('/') if request else self.get_base_url()
         for counter in self:
             counter.page_url = f'{base_url}/live-sales/{counter.access_token}' if counter.access_token else False
 
@@ -130,11 +133,15 @@ class LiveCounter(models.Model):
     # ── Actions ────────────────────────────────────────────────────────────
     def action_open_page(self):
         self.ensure_one()
-        return {'type': 'ir.actions.act_url', 'url': self.page_url, 'target': 'new'}
+        return {'type': 'ir.actions.act_url', 'url': self._page_path(), 'target': 'new'}
 
     def action_open_demo(self):
         self.ensure_one()
-        return {'type': 'ir.actions.act_url', 'url': f'{self.page_url}?demo=1', 'target': 'new'}
+        return {'type': 'ir.actions.act_url', 'url': f'{self._page_path()}?demo=1', 'target': 'new'}
+
+    def _page_path(self):
+        """Link relative to the site the user is on, for the Open buttons."""
+        return f'/live-sales/{self.access_token}'
 
     def action_regenerate_token(self):
         for counter in self:
@@ -152,9 +159,11 @@ class LiveCounter(models.Model):
         self.ensure_one()
         if self.visibility == 'public':
             return True
-        return (not user._is_public()
-                and user.has_group('live_sales_counter.group_live_counter_user')
-                and self.company_id in user.company_ids)
+        if user._is_public() or self.company_id not in user.company_ids:
+            return False
+        # Private pages follow the user's Live Sales Counter permissions.
+        counter = self.with_user(user).with_company(self.company_id)
+        return counter.has_access('read')
 
     def _period_start(self, now=None):
         """Start of the counted period, as a naive UTC datetime."""

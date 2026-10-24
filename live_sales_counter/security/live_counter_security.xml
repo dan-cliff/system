@@ -1,25 +1,189 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every permission below is its
+         own privilege with one "Allowed" group, whose record rules give it its
+         meaning. All of them imply the technical Live Sales Counter user group,
+         which holds the ACLs and a deny rule per operation, so users can only
+         do what a permission opens. Opening a private live page needs read
+         access to its counter. -->
     <record id="module_category_live_sales_counter" model="ir.module.category">
         <field name="name">Live Sales Counter</field>
+        <field name="description">Live, animated sales counters and maps of where buyers are.</field>
         <field name="sequence">46</field>
     </record>
+
+    <record id="group_live_counter_user" model="res.groups">
+        <field name="name">Live Sales Counter: User</field>
+        <field name="privilege_id" eval="False"/>
+        <field name="comment">Technical: given by every Live Sales Counter permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="privilege_live_counter_create_only" model="res.groups.privilege">
+        <field name="name">Live Sales Counters: Create Only</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">20</field>
+        <field name="description">Create live sales counters, and view the ones they created (no editing after saving).</field>
+    </record>
+    <record id="group_live_counter_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_live_counter_create_only"/>
+        <field name="comment">Create live sales counters, and view the ones they created (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+    </record>
+
+    <record id="privilege_live_counter_edit_own" model="res.groups.privilege">
+        <field name="name">Live Sales Counters: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">30</field>
+        <field name="description">Create live sales counters, and view and edit the ones they created.</field>
+    </record>
+    <record id="group_live_counter_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_live_counter_edit_own"/>
+        <field name="comment">Create live sales counters, and view and edit the ones they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+    </record>
+
+    <record id="privilege_live_counter_edit_team" model="res.groups.privilege">
+        <field name="name">Live Sales Counters: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">40</field>
+        <field name="description">Create live sales counters, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_live_counter_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_live_counter_edit_team"/>
+        <field name="comment">Create live sales counters, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+    </record>
+
+    <record id="privilege_live_counter_edit_all" model="res.groups.privilege">
+        <field name="name">Live Sales Counters: Create and Edit All</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">50</field>
+        <field name="description">Create, view and edit every live sales counter.</field>
+    </record>
+    <record id="group_live_counter_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_live_counter_edit_all"/>
+        <field name="comment">Create, view and edit every live sales counter.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+    </record>
+
+    <record id="privilege_live_counter_view_all" model="res.groups.privilege">
+        <field name="name">Live Sales Counters: View All</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">60</field>
+        <field name="description">View every live sales counter and open its live page.</field>
+    </record>
+    <record id="group_live_counter_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_live_counter_view_all"/>
+        <field name="comment">View every live sales counter and open its live page.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+    </record>
+
+    <record id="privilege_live_counter_delete_own" model="res.groups.privilege">
+        <field name="name">Live Sales Counters: Delete Own</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">70</field>
+        <field name="description">Delete the live sales counters they created.</field>
+    </record>
+    <record id="group_live_counter_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_live_counter_delete_own"/>
+        <field name="comment">Delete the live sales counters they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+    </record>
+
+    <record id="privilege_live_counter_delete_all" model="res.groups.privilege">
+        <field name="name">Live Sales Counters: Delete All</field>
+        <field name="category_id" ref="module_category_live_sales_counter"/>
+        <field name="sequence">80</field>
+        <field name="description">Delete any live sales counter.</field>
+    </record>
+    <record id="group_live_counter_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_live_counter_delete_all"/>
+        <field name="comment">Delete any live sales counter.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+    </record>
+
     <record id="privilege_live_sales_counter" model="res.groups.privilege">
         <field name="name">Live Sales Counter</field>
         <field name="category_id" ref="module_category_live_sales_counter"/>
         <field name="sequence">10</field>
-    </record>
-    <record id="group_live_counter_user" model="res.groups">
-        <field name="name">User</field>
-        <field name="privilege_id" ref="privilege_live_sales_counter"/>
-        <field name="comment">Sees the live sales counters of their companies and opens private live pages.</field>
+        <field name="description">Configuration of the Live Sales Counter app.</field>
     </record>
     <record id="group_live_counter_manager" model="res.groups">
         <field name="name">Administrator</field>
         <field name="privilege_id" ref="privilege_live_sales_counter"/>
-        <field name="comment">Creates and configures live sales counters and decides which are public.</field>
-        <field name="implied_ids" eval="[(4, ref('group_live_counter_user'))]"/>
+        <field name="comment">Every Live Sales Counter permission, including deleting any counter, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_live_counter_create_only')), (4, ref('group_live_counter_edit_own')), (4, ref('group_live_counter_edit_team')), (4, ref('group_live_counter_edit_all')), (4, ref('group_live_counter_view_all')), (4, ref('group_live_counter_delete_own')), (4, ref('group_live_counter_delete_all'))]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing -->
+    <record id="rule_live_counter_deny" model="ir.rule">
+        <field name="name">Live Sales Counters: only through a permission</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_live_counter_create_only" model="ir.rule">
+        <field name="name">Live Sales Counters: Create Only</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_live_counter_edit_own" model="ir.rule">
+        <field name="name">Live Sales Counters: Create and Edit Own</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_live_counter_edit_team" model="ir.rule">
+        <field name="name">Live Sales Counters: Create and Edit My Team</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_live_counter_edit_all" model="ir.rule">
+        <field name="name">Live Sales Counters: Create and Edit All</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_live_counter_view_all" model="ir.rule">
+        <field name="name">Live Sales Counters: View All</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_live_counter_delete_own" model="ir.rule">
+        <field name="name">Live Sales Counters: Delete Own</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_live_counter_delete_all" model="ir.rule">
+        <field name="name">Live Sales Counters: Delete All</field>
+        <field name="model_id" ref="model_live_counter"/>
+        <field name="groups" eval="[(4, ref('group_live_counter_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
     </record>
 
     <record id="rule_live_counter_company" model="ir.rule">

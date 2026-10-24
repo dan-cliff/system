@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Live Sales Counter app icon (CLAUDE.md > Icon style, illustrated):
+       a browser window showing a globe with a sale flying in, and a live
+       sales badge with a rising arrow overlapping its lower right corner. -->
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <radialGradient id="globe" cx="0.36" cy="0.32" r="0.8">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </radialGradient>
+    <linearGradient id="land" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F9A3A3"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="globeClip"><circle cx="420" cy="520" r="200"/></clipPath>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#2A3F8F" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <!-- Browser window -->
+  <g filter="url(#shadow)">
+    <rect x="102" y="150" width="740" height="660" rx="64" fill="url(#panel)"/>
+    <path d="M166 150h612a64 64 0 0 1 64 64v58H102v-58a64 64 0 0 1 64-64z" fill="url(#header)"/>
+    <circle cx="186" cy="211" r="22" fill="#FF5A6E"/>
+    <circle cx="252" cy="211" r="22" fill="#FFC93C"/>
+    <circle cx="318" cy="211" r="22" fill="#14C9A5"/>
+  </g>
+
+  <!-- Globe -->
+  <circle cx="420" cy="520" r="200" fill="url(#globe)"/>
+  <g clip-path="url(#globeClip)" fill="url(#land)">
+    <path d="M262 420c40-48 104-62 150-40 30 14 26 52-6 66-34 14-36 46-10 70 28 26 8 70-40 64-56-8-108-62-112-110-2-20 6-36 18-50z"/>
+    <path d="M470 360c46-14 110 6 140 46 18 24 4 50-26 48-30-2-48 16-40 44 10 34-14 60-50 46-40-16-52-64-60-104-6-40 0-70 36-80z"/>
+    <path d="M488 610c34-16 84-8 100 22 12 24-8 58-46 70-40 12-86-2-90-30-4-26 10-48 36-62z"/>
+  </g>
+  <ellipse cx="368" cy="408" rx="120" ry="58" fill="url(#shine)" transform="rotate(-24 368 408)"/>
+
+  <!-- A sale flying in -->
+  <path d="M300 470C360 330 560 300 640 380" fill="none" stroke="url(#arc)" stroke-width="22" stroke-linecap="round"/>
+  <circle cx="300" cy="470" r="26" fill="#FFFFFF"/>
+  <circle cx="300" cy="470" r="14" fill="#FF5A6E"/>
+  <circle cx="640" cy="380" r="58" fill="#FF5A6E" opacity="0.18"/>
+  <circle cx="640" cy="380" r="34" fill="#FF5A6E"/>
+  <circle cx="640" cy="380" r="14" fill="#FFFFFF"/>
+
+  <!-- Placeholder "text" bars -->
+  <rect x="166" y="742" width="210" height="22" rx="11" fill="#A9ABDC"/>
+
+  <!-- Live sales badge with rising arrow -->
+  <g filter="url(#shadow)">
+    <rect x="596" y="586" width="326" height="290" rx="78" fill="url(#badge)"/>
+    <rect x="620" y="604" width="278" height="96" rx="48" fill="url(#shine)"/>
+    <rect x="650" y="764" width="44" height="66" rx="16" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="718" y="720" width="44" height="110" rx="16" fill="#FFFFFF" opacity="0.92"/>
+    <rect x="786" y="676" width="44" height="154" rx="16" fill="#FFFFFF"/>
+    <path d="M652 712l82-74 52 40 84-80" fill="none" stroke="#2A3F8F" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M832 592h52v52" fill="none" stroke="#2A3F8F" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
