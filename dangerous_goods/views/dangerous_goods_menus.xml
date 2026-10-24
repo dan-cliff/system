@@ -44,6 +44,10 @@
               groups="dangerous_goods.group_dg_manager"/>
 
     <!-- ── Configuration ─────────────────────────────────────────── -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_dangerous_goods_reports" name="Reports" parent="menu_dangerous_goods_root" sequence="99"/>
+
     <menuitem id="menu_dg_config_root"
               name="Configuration"
               parent="menu_dangerous_goods_root"

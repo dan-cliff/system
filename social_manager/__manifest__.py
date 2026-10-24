@@ -1,6 +1,6 @@
 {
     'name': 'Social Manager',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Marketing/Social Manager',
     'summary': 'Manage Facebook, X, LinkedIn, Instagram, TikTok and YouTube pages: posts, '
                'scheduling, comments, moderation, monetisation and AI insights',

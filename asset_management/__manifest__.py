@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Asset Management',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'category': 'Operations/Assets',
     'summary': 'Track physical assets with usage logs, defect reports, maintenance history and a mobile-first PWA control plane.',
     'author': 'Custom',

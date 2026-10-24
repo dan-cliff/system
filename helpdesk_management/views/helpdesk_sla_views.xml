@@ -4,6 +4,7 @@
         <field name="model">helpdesk.sla</field>
         <field name="arch" type="xml">
             <list>
+                <field name="id" optional="show"/>
                 <field name="name"/>
                 <field name="team_id"/>
                 <field name="priority" optional="show"/>
@@ -12,7 +13,7 @@
                 <field name="partner_ids" widget="many2many_tags" optional="hide"/>
                 <field name="stage_id"/>
                 <field name="time" widget="float_time"/>
-                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
             </list>
         </field>
     </record>
@@ -92,6 +93,7 @@
         <field name="arch" type="xml">
             <list create="0" edit="0" delete="0"
                   decoration-danger="status == 'failed'" decoration-success="status == 'reached'">
+                <field name="id" optional="show"/>
                 <field name="ticket_id"/>
                 <field name="sla_id"/>
                 <field name="team_id" optional="show"/>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Starting ticket sources and customer sentiments. noupdate so edits are kept.
+     Email, Website Form, Help Centre and Direct Entry are set by code on new tickets. -->
+<odoo noupdate="1">
+    <record id="ticket_source_email" model="helpdesk.ticket.source"><field name="name">Email</field><field name="sequence">10</field></record>
+    <record id="ticket_source_website" model="helpdesk.ticket.source"><field name="name">Website Form</field><field name="sequence">20</field></record>
+    <record id="ticket_source_help_centre" model="helpdesk.ticket.source"><field name="name">Help Centre</field><field name="sequence">30</field></record>
+    <record id="ticket_source_direct" model="helpdesk.ticket.source"><field name="name">Direct Entry</field><field name="sequence">40</field></record>
+    <record id="ticket_source_phone" model="helpdesk.ticket.source"><field name="name">Phone</field><field name="sequence">50</field></record>
+
+    <record id="sentiment_very_positive" model="helpdesk.sentiment"><field name="name">Very Positive</field><field name="score">5</field><field name="color">10</field></record>
+    <record id="sentiment_positive" model="helpdesk.sentiment"><field name="name">Positive</field><field name="score">4</field><field name="color">10</field></record>
+    <record id="sentiment_neutral" model="helpdesk.sentiment"><field name="name">Neutral</field><field name="score">3</field><field name="color">0</field></record>
+    <record id="sentiment_negative" model="helpdesk.sentiment"><field name="name">Negative</field><field name="score">2</field><field name="color">2</field></record>
+    <record id="sentiment_very_negative" model="helpdesk.sentiment"><field name="name">Very Negative</field><field name="score">1</field><field name="color">1</field></record>
+</odoo>

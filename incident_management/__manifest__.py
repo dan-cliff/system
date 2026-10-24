@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Incident Management',
-    'version': '19.0.1.1.1',
+    'version': '19.0.1.1.2',
     'category': 'Human Resources/Health & Safety',
     'summary': 'Workplace incident reporting, investigation (ICAM) and corrective action tracking',
     'description': """

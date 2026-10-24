@@ -1,6 +1,6 @@
 {
     'name': 'Injury Management',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'summary': 'Return to Work case management',
     'description': 'Manage Return to Work cases including case notes, medical appointments, meetings, file notes, costs, RTW plans, and medical certificates.',
     'category': 'Human Resources',

@@ -71,13 +71,14 @@ export class HelpCentreSystrayItem extends Component {
             articleLoading: false,
             articleId: null,
             rateSubmitted: false,
-            // Helpdesk / Lodge Ticket
+            // Helpdesk / Create Ticket
             helpdeskEnabled: false,
             ticketSubject: "",
             ticketDesc: "",
             ticketSubmitting: false,
             ticketSubmitted: false,
             ticketId: null,
+            ticketRef: null,
             ticketError: "",
             ticketSubjectError: "",
             // Branding
@@ -345,7 +346,7 @@ export class HelpCentreSystrayItem extends Component {
         this.state.chatLoading = false;
     }
 
-    // ── Lodge Ticket ─────────────────────────────────────────────────────────
+    // ── Create Ticket ─────────────────────────────────────────────────────────
 
     onTicketSubjectInput(event) {
         this.state.ticketSubject = event.target.value;
@@ -375,6 +376,7 @@ export class HelpCentreSystrayItem extends Component {
                 this.state.ticketError = result.message || "An error occurred. Please try again.";
             } else {
                 this.state.ticketId = result.ticket_id;
+                this.state.ticketRef = result.ticket_ref || null;
                 this.state.ticketSubmitted = true;
             }
         } catch (e) {
@@ -389,6 +391,7 @@ export class HelpCentreSystrayItem extends Component {
         this.state.ticketSubmitting = false;
         this.state.ticketSubmitted = false;
         this.state.ticketId = null;
+        this.state.ticketRef = null;
         this.state.ticketError = "";
         this.state.ticketSubjectError = "";
     }

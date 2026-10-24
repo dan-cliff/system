@@ -37,6 +37,10 @@
     <menuitem id="menu_social_account" name="Connected Accounts" parent="menu_social_platforms"
               action="action_social_account" sequence="30"/>
 
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_social_reports" name="Reports" parent="menu_social_root" sequence="89"/>
+
     <menuitem id="menu_social_configuration" name="Configuration" parent="menu_social_root" sequence="90"
               groups="social_manager.group_social_manager"/>
     <menuitem id="menu_social_settings" name="Settings" parent="menu_social_configuration"

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Membership Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'summary': 'Manage memberships, member cards, and instant check-in',
     'category': 'Membership',
     'author': "Cliff's Country Crafts",
