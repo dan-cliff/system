@@ -87,45 +87,75 @@ roles from it.
 Every icon we create (app icons in `static/description/icon.png`, menu
 `web_icon`s, toolbar icons, pictures in empty-state help, illustrations)
 follows the samples in `docs/icon_style/`. Look at them before drawing an
-icon:
+icon.
 
-- `sample_dashboard.webp` and `sample_checklist_alert.webp`, the
-  illustrated style (the default for app icons):
-  - soft, glossy, slightly 3D "clay" look: rounded corners everywhere,
-    gentle gradients, a soft highlight on top and a soft shadow below,
-    no hard outlines;
-  - one main object that says what the app is (a browser window with
-    charts, a clipboard with ticks), with a second accent object
-    overlapping its lower right corner (a pie chart, a warning beacon)
-    for the app's twist;
-  - bright, saturated colours on light surfaces:
-    - coral/red `#FF5A6E`;
-    - yellow to orange `#FFC93C`→`#FF9F1C`;
-    - sky to royal blue `#3BB8FF`→`#0A6CF0`;
-    - teal/green `#14C9A5`;
-    - purple/violet `#8E5CF0`→`#5B3DB8`;
-    - navy `#2A3F8F` for heavy parts;
-    - lavender-grey `#A9ABDC` for "text" bars;
-    - near-white `#F2F2FA` for panels;
-  - simple shapes only: placeholder bars instead of words, white ticks,
-    and no text, letters or logos;
-  - transparent (or white) background, with the subject centred and
-    filling about 80% of the square.
-- `sample_app_tile.webp`, the tile style (for when a flat tile suits
-  better, e.g. a small toolbar or menu icon):
-  - rounded square split into diagonal, faceted panels;
-  - gradient from violet `#B65CCB` / purple `#5B2E9E` (top left) to teal
-    `#14A3A3` (bottom right);
-  - one bold, geometric white glyph.
-- Keep icons in one family: the same palette, corner radius and lighting
-  across our apps. Never mix in Font Awesome glyphs, stock clip-art or
-  Odoo's flat default icons as an app icon.
-- Size and format:
-  - app icons are square PNGs, 256×256 or larger (1024×1024 preferred),
-    transparent background, at `static/description/icon.png`, also used as
-    the root menu's `web_icon`;
-  - draw them as SVG and export the PNG, keeping the SVG next to it
-    (`icon.svg`) so the icon can be changed later.
+Always:
+
+- **Transparent background.** No white, coloured or checkered square
+  behind the icon. The checkerboard in some samples only shows
+  transparency; it is not part of the icon. The only filled shape allowed
+  is the rounded tile of the tile style itself.
+- **No text.** No words, letters, numbers or logos. Use placeholder bars
+  where text would be.
+- **Stylised and abstract.** Simple geometric shapes that suggest the
+  subject (people as a circle and a rounded body, a truck as blocks), never
+  realistic drawings, photos, clip-art or detailed line art.
+- **The standard colours below.** Don't bring in new hues. Vary only the
+  shade and gradient within the palette.
+
+The palette:
+
+- coral/red `#FF5A6E` (soft pink `#F9A3A3` for secondary figures);
+- yellow to orange `#FFC93C`→`#FF9F1C`;
+- sky to royal blue `#3BB8FF`→`#0A6CF0`;
+- teal/green `#14C9A5` (deep teal `#14A3A3`);
+- purple/violet `#8E5CF0`→`#5B3DB8`, plum `#8E2F7A`;
+- navy `#2A3F8F` for heavy parts;
+- lavender-grey `#A9ABDC` for "text" bars;
+- near-white `#F2F2FA` for panels and white `#FFFFFF` for glyphs and ticks.
+
+The samples show three styles, all in the same family.
+
+- **Illustrated** (the default for app icons):
+  `sample_dashboard.webp`, `sample_checklist_alert.webp`,
+  `sample_logistics_flat.webp`.
+  - One main object that says what the app is (a browser window with
+    charts, a clipboard with ticks or check boxes).
+  - A second accent object overlapping its lower right corner for the
+    app's twist (a pie chart, a warning beacon, a truck and forklift in a
+    box).
+  - Rounded corners everywhere and no hard black outlines.
+  - Either soft, glossy "clay" shading (gentle gradients, a highlight on
+    top, a soft shadow below) or flat colour blocks with simple faceted
+    shading (a darker side and a lighter side on 3D shapes, as in the
+    logistics sample).
+  - The subject is centred and fills about 80% of the square.
+- **Tile** (for when a flat tile suits better, e.g. small toolbar or menu
+  icons): `sample_app_tile.webp`, `sample_healthcare_tile.webp`.
+  - A rounded square with a diagonal gradient from violet `#B65CCB` /
+    purple `#5B2E9E` (top left) to teal `#14A3A3` (bottom right),
+    optionally split into faceted panels.
+  - One or two bold glyphs in white and soft pink (people, a heart with a
+    cross, an exit door). A glyph overlapping another is separated by a
+    gap in the tile colour.
+  - Everything outside the rounded square is transparent.
+- **Small faceted mark** (for tiny sizes, e.g. 16 to 50 px):
+  `sample_small_facets.png`.
+  - A single angular shape made of two or three flat triangular facets in
+    blue, violet and pink, on a transparent background.
+
+Keep every icon in one family: the same palette, corner radius and lighting
+across our apps. Never use Font Awesome glyphs, stock clip-art or Odoo's flat
+default icons as an app icon.
+
+Size and format:
+
+- App icons are square PNGs with a transparent background (alpha channel),
+  256×256 or larger (1024×1024 preferred), at
+  `static/description/icon.png`, also used as the root menu's `web_icon`.
+- Draw them as SVG and export the PNG, keeping the SVG next to it
+  (`icon.svg`) so the icon can be changed later. Check the exported PNG
+  really has transparent corners.
 
 ## Toolbar (systray) icons
 
