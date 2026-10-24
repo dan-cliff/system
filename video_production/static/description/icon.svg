@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="purpleH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/><stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="coralDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF5A6E"/><stop offset="1" stop-color="#E8405A"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FBB8B8"/><stop offset="1" stop-color="#F9A3A3"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="yellowV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/><stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="blueH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3BB8FF"/><stop offset="0.5" stop-color="#1E90F8"/><stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/><stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A55B0"/><stop offset="1" stop-color="#2A3F8F"/>
+    </linearGradient>
+    <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="1" stop-color="#8E2F7A"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF5A6E"/><stop offset="0.5" stop-color="#8E5CF0"/><stop offset="1" stop-color="#3BB8FF"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+    <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#2A3F8F" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <ellipse cx="512" cy="926" rx="370" ry="32" fill="url(#shadow)"/>
+
+  <defs><clipPath id="stick1"><rect x="130" y="330" width="660" height="110" rx="26"/></clipPath>
+  <clipPath id="stick2"><rect x="130" y="200" width="660" height="110" rx="26"/></clipPath></defs>
+  <g filter="url(#soft)">
+    <rect x="130" y="380" width="660" height="460" rx="64" fill="url(#purple)"/>
+  </g>
+  <rect x="190" y="470" width="540" height="14" rx="7.0" fill="#FFFFFF" opacity="0.2"/>
+  <rect x="200" y="520" width="240" height="34" rx="17.0" fill="#F2F2FA"/>
+  <rect x="200" y="590" width="360" height="34" rx="17.0" fill="#A9ABDC"/>
+  <rect x="200" y="660" width="300" height="34" rx="17.0" fill="#A9ABDC"/>
+  <rect x="200" y="730" width="200" height="34" rx="17.0" fill="#A9ABDC"/>
+  <g filter="url(#soft)">
+    <rect x="130" y="330" width="660" height="110" rx="26" fill="url(#navy)"/>
+  </g>
+  <g clip-path="url(#stick1)"><polygon points="140,330 216,330 176,440 100,440" fill="#F2F2FA"/><polygon points="292,330 368,330 328,440 252,440" fill="#F2F2FA"/><polygon points="444,330 520,330 480,440 404,440" fill="#F2F2FA"/><polygon points="596,330 672,330 632,440 556,440" fill="#F2F2FA"/><polygon points="748,330 824,330 784,440 708,440" fill="#F2F2FA"/></g>
+  <g transform="rotate(-14 150 300)" filter="url(#soft)">
+    <rect x="130" y="200" width="660" height="110" rx="26" fill="url(#navy)"/>
+    <g clip-path="url(#stick2)"><polygon points="60,200 136,200 176,310 100,310" fill="#F2F2FA"/><polygon points="212,200 288,200 328,310 252,310" fill="#F2F2FA"/><polygon points="364,200 440,200 480,310 404,310" fill="#F2F2FA"/><polygon points="516,200 592,200 632,310 556,310" fill="#F2F2FA"/><polygon points="668,200 744,200 784,310 708,310" fill="#F2F2FA"/></g>
+  </g>
+  <circle cx="170" cy="320" r="34" fill="url(#coral)"/>
+  <g filter="url(#lift)">
+    <circle cx="770" cy="740" r="165" fill="url(#coral)"/>
+  </g>
+  <path d="M720 650 L850 740 L720 830 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="36" stroke-linejoin="round"/>
+  <path d="M650 660 a150 150 0 0 1 80 -70" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" opacity="0.4"/>
+</svg>
