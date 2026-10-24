@@ -1334,6 +1334,26 @@
                 var scormInitialized = false;
                 var scormFinished    = false;
 
+                // Leave full screen once the content is done: the portal page
+                // (or the backend page around it) holds it on its iframe.
+                function exitFullscreen() {
+                    var win = window;
+                    for (var depth = 0; depth &lt; 10; depth++) {
+                        try {
+                            var doc = win.document;
+                            if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+                                var result = doc.exitFullscreen ? doc.exitFullscreen() : doc.webkitExitFullscreen();
+                                if (result &amp;&amp; result.catch) { result.catch(function () {}); }
+                                return;
+                            }
+                            if (win === win.parent) { return; }
+                            win = win.parent;
+                        } catch (e) {
+                            return;
+                        }
+                    }
+                }
+
                 function postProgress(data) {
                     var xhr = new XMLHttpRequest();
                     xhr.open('POST', '/lms/scorm/' + RECORD_ID + '/commit', true);
@@ -1351,6 +1371,7 @@
                     LMSFinish: function (s) {
                         scormFinished = true;
                         postProgress({ action: 'finish', cmi: cmiData });
+                        exitFullscreen();
                         return 'true';
                     },
                     LMSGetValue: function (key) {
@@ -1362,6 +1383,13 @@
                                 key === 'cmi.completion_status' ||
                                 key === 'cmi.score.raw') {
                             postProgress({ action: 'set', key: key, value: value, cmi: cmiData });
+                        }
+                        // Packages that don't say which slide is last: leave
+                        // full screen when they report the course finished
+                        if ((key === 'cmi.core.lesson_status' || key === 'cmi.completion_status' ||
+                                key === 'cmi.success_status') &amp;&amp;
+                                (value === 'completed' || value === 'passed')) {
+                            exitFullscreen();
                         }
                         return 'true';
                     },

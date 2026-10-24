@@ -1013,6 +1013,7 @@
 
     function showEndScreen(result) {
         clearTimer();
+        exitFullscreen();
         var a = result.assessment;
         ui.stageWrap.innerHTML = '';
         ui.footer.classList.add('sp-hidden');
@@ -1071,11 +1072,33 @@
         if (ui.menu && ui.menu.classList.contains('open')) { drawMenu(); }
     }
 
+    // The LMS shows the course in an iframe that the learner may have made
+    // full screen: leave full screen in whichever page (this one or an
+    // LMS page around it, when we may reach it) holds it.
+    function exitFullscreen() {
+        var win = window;
+        for (var depth = 0; depth < 10; depth++) {
+            try {
+                var doc = win.document;
+                if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+                    var result = doc.exitFullscreen ? doc.exitFullscreen() : doc.webkitExitFullscreen();
+                    if (result && result.catch) { result.catch(function () {}); }
+                    return;
+                }
+                if (win === win.parent) { return; }
+                win = win.parent;
+            } catch (e) {
+                return; // another site's page
+            }
+        }
+    }
+
     function renderSlide() {
         clearTimer();
         document.querySelectorAll('iframe').forEach(function (f) { if (f._cleanup) { f._cleanup(); } });
         var index = state.current;
         var slide = slides[index];
+        if (index === slides.length - 1) { exitFullscreen(); }
         state.visited[index] = 1;
         slideEnteredAt = Date.now();
         ui.notice.classList.add('sp-hidden');
