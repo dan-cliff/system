@@ -25,6 +25,36 @@ for every module we create or edit.
   `<field name="id" optional="show"/>` the first column, before any other
   field (a `handle` widget for `sequence` may sit in front of it).
 
+## Customisable list columns (List Column Settings)
+
+Every list view has a "Customise columns" icon that lets permitted users
+reorder, hide, show, rename and add columns for all users
+(`list_column_config`, with the roles in `list_column_config_permission`).
+Every app we create or edit must support it:
+
+- **Depend on it.** Add `'list_column_config'` to the app's `depends` (and
+  to existing apps whenever we edit them), so it is always installed with
+  our apps.
+- **Give the app a top-level menu.** Each top-level menu automatically gets
+  an "`<App> List Columns: Customise`" privilege with an "Allowed" group,
+  placed under the app's privilege category, and an
+  "`<App>` – List Column Customiser" role. Both are created when the menu
+  appears, renamed with it and removed with it. They are made at runtime and
+  have no XML ID, so never define them yourself or `ref()` them in data
+  files. Never build a separate column picker or column settings.
+- **Keep the app's Administrator group and role findable.** Name the group
+  "Administrator" and put it under the app's own privilege (see App
+  Administrator group). The app's Administrator role must hold that group,
+  so the app's Customise privilege is added to it automatically.
+- **Write list views it can customise.** Make every user-facing column a
+  direct `<field>` child of `<list>`. Use `optional="show"` / `"hide"` for
+  columns users may switch off. Keep `column_invisible="1"` for technical
+  columns only, because the wizard leaves those out.
+- **Keep the icon on custom list views.** Custom list views must extend
+  `ListController` and `web.ListView`. Inherit the template with
+  `t-inherit` (primary or extension) and never replace it outright, or the
+  icon disappears.
+
 ## Permissions (privileges and roles)
 
 Every app gets the same access model, so Permission Management can build
@@ -74,7 +104,9 @@ roles from it.
   'permission_management']`, `auto_install: True`; see
   `checklists_permission`), named `<App> – <Role>`:
   - **Administrator**: everything, including Delete All and every workflow
-    privilege, plus the app's Administrator group.
+    privilege, plus the app's Administrator group. (Its "List Columns:
+    Customise" privilege is added automatically; see Customisable list
+    columns.)
   - **Manager**: Create and Edit My Team on every primary model, no delete.
   - **Employee**: Create and Edit Own on every primary model, no delete.
 
