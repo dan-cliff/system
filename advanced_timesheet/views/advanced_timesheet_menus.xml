@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_advanced_timesheet_root"
+              name="Advanced Timesheets"
+              sequence="46"
+              web_icon="advanced_timesheet,static/description/icon.png"
+              groups="advanced_timesheet.group_timesheet_user"/>
+
+    <menuitem id="menu_my_timesheet"
+              name="My Timesheet"
+              parent="menu_advanced_timesheet_root"
+              action="action_my_timesheet"
+              sequence="10"/>
+
+    <menuitem id="menu_advanced_timesheet"
+              name="Timesheets"
+              parent="menu_advanced_timesheet_root"
+              action="action_advanced_timesheet"
+              sequence="20"/>
+
+    <menuitem id="menu_advanced_timesheet_config"
+              name="Configuration"
+              parent="menu_advanced_timesheet_root"
+              sequence="100"
+              groups="advanced_timesheet.group_timesheet_admin"/>
+
+    <menuitem id="menu_advanced_timesheet_settings"
+              name="Settings"
+              parent="menu_advanced_timesheet_config"
+              action="advanced_timesheet_config_settings_action"
+              sequence="0"
+              groups="base.group_system"/>
+</odoo>
