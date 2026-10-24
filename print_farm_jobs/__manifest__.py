@@ -1,6 +1,6 @@
 {
     'name': 'Print Farm Jobs',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'summary': '3D Print Farm Job Queue & Printer Management',
     'description': """
         Manage a fleet of 3D printers (Bambu Labs and others) with:

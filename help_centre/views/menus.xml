@@ -33,6 +33,10 @@
         groups="help_centre.group_help_centre_manager"/>
 
     <!-- ── Configuration ──────────────────────────────────────────────────────── -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_help_centre_reports" name="Reports" parent="menu_help_centre_root" sequence="89"/>
+
     <menuitem
         id="menu_help_config"
         name="Configuration"

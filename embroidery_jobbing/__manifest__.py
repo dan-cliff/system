@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Embroidery Jobbing',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.2.1',
     'category': 'Manufacturing/Embroidery',
     'summary': 'Embroidery work orders, a .pes design library and machine management with live stitch-out progress',
     'description': """

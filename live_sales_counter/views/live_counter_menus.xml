@@ -5,6 +5,10 @@
               groups="live_sales_counter.group_live_counter_user"/>
     <menuitem id="menu_live_counter" name="Counters" parent="menu_live_counter_root"
               action="action_live_counter" sequence="10"/>
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_live_counter_reports" name="Reports" parent="menu_live_counter_root" sequence="89"/>
+
     <menuitem id="menu_live_counter_config" name="Configuration" parent="menu_live_counter_root"
               sequence="90" groups="live_sales_counter.group_live_counter_manager"/>
     <menuitem id="menu_live_counter_location" name="Buyer Locations" parent="menu_live_counter_config"

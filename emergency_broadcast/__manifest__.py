@@ -1,6 +1,6 @@
 {
     'name': 'Emergency Broadcast',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Communication',
     'summary': 'Emergency broadcast messages with real-time notifications and acknowledgement tracking',
     'description': """

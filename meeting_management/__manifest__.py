@@ -1,6 +1,6 @@
 {
     'name': 'Meeting Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'summary': 'Comprehensive meeting management with agenda, minutes, Teams integration and To-Do',
     'description': """
 Meeting Management

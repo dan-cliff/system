@@ -99,6 +99,10 @@
               sequence="10"/>
 
     <!-- ── Level 1: Configuration ────────────────────────────────────── -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_video_production_reports" name="Reports" parent="menu_video_production_root" sequence="98"/>
+
     <menuitem id="menu_video_configuration"
               name="Configuration"
               parent="menu_video_production_root"

@@ -22,6 +22,10 @@
     <menuitem id="menu_zoo_weight" name="Weights" parent="menu_zoo_care"
               action="zoo_animal_weight_action" sequence="30"/>
 
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_zoo_manager_reports" name="Reports" parent="menu_zoo_manager_root" sequence="89"/>
+
     <menuitem id="menu_zoo_config" name="Configuration" parent="menu_zoo_manager_root"
               groups="group_zoo_manager" sequence="90"/>
     <menuitem id="menu_zoo_settings" name="Settings" parent="menu_zoo_config"

@@ -11,6 +11,10 @@
          Risk Matrix design models. Each list is shown to users who can create, update or
          delete its records; everyone else still uses Risk Templates and Controls via the
          fields on a Risk Assessment. -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_risk_reports" name="Reports" parent="menu_risk_root" sequence="99"/>
+
     <menuitem id="menu_risk_configuration" name="Configuration" parent="menu_risk_root"
               sequence="100" groups="risk_management.group_risk_template_create,risk_management.group_risk_template_update,risk_management.group_risk_template_delete,risk_management.group_risk_category_create,risk_management.group_risk_category_update,risk_management.group_risk_category_delete,risk_management.group_risk_control_create,risk_management.group_risk_control_update,risk_management.group_risk_control_delete,risk_management.group_risk_control_hierarchy_create,risk_management.group_risk_control_hierarchy_update,risk_management.group_risk_control_hierarchy_delete,risk_management.group_risk_type_create,risk_management.group_risk_type_update,risk_management.group_risk_type_delete,risk_management.group_risk_subtype_create,risk_management.group_risk_subtype_update,risk_management.group_risk_subtype_delete,risk_management.group_risk_stage_create,risk_management.group_risk_stage_update,risk_management.group_risk_stage_delete,risk_management.group_risk_likelihood_create,risk_management.group_risk_likelihood_update,risk_management.group_risk_likelihood_delete,risk_management.group_risk_consequence_create,risk_management.group_risk_consequence_update,risk_management.group_risk_consequence_delete,risk_management.group_risk_severity_create,risk_management.group_risk_severity_update,risk_management.group_risk_severity_delete,risk_management.group_risk_score_create,risk_management.group_risk_score_update,risk_management.group_risk_score_delete"/>
 
