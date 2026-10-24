@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="nextcloud_folder_rule_view_list" model="ir.ui.view">
+        <field name="name">nextcloud.folder.rule.list</field>
+        <field name="model">nextcloud.folder.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="model_id"/>
+                <field name="folder_path"/>
+                <field name="auto_create"/>
+                <field name="public_link" optional="show"/>
+                <field name="folder_count" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="nextcloud_folder_rule_view_form" model="ir.ui.view">
+        <field name="name">nextcloud.folder.rule.form</field>
+        <field name="model">nextcloud.folder.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_create_existing" type="object" invisible="not id"
+                            string="Create Folders for Existing Records"
+                            confirm="Queue a folder for every record (matching Only For) that doesn't have one yet?"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_folders" type="object" class="oe_stat_button"
+                                icon="fa-folder" invisible="not id">
+                            <field name="folder_count" widget="statinfo" string="Folders"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="model_id" options="{'no_create': True}" readonly="id"/>
+                            <field name="model" invisible="1"/>
+                            <field name="folder_path" placeholder="e.g. {model}/{partner_id}/{name}"/>
+                            <field name="example_path" invisible="not example_path"/>
+                        </group>
+                        <group>
+                            <field name="auto_create"/>
+                            <field name="filter_domain" widget="domain" options="{'model': 'model'}"
+                                   invisible="not auto_create"/>
+                            <field name="public_link"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <div class="text-muted">
+                        Each / in the Folder Path starts a subfolder, under the Root Folder set in
+                        Settings. Use {field} for a field of the record, e.g. {name} or {partner_id},
+                        or {field.subfield}, e.g. {partner_id.city}; {model} is the model's name and
+                        {id} the record's id. Dates show as dd-mm-yyyy, as a folder name can't hold /.
+                        Changing the path only affects folders created from then on: existing folders
+                        are never moved or renamed from Odoo, and their links keep working if you
+                        move or rename them in Nextcloud.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="nextcloud_folder_rule_view_search" model="ir.ui.view">
+        <field name="name">nextcloud.folder.rule.search</field>
+        <field name="model">nextcloud.folder.rule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="model_id"/>
+                <field name="folder_path"/>
+                <filter name="auto_create" string="Create Automatically" domain="[('auto_create', '=', True)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="nextcloud_folder_rule_action" model="ir.actions.act_window">
+        <field name="name">Folder Rules</field>
+        <field name="res_model">nextcloud.folder.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Choose which records get a Nextcloud folder</p>
+            <p>Add a rule for a model (e.g. Contacts or Projects) and the path its folders are
+               created at. Its records get a Folder button that opens the folder in Nextcloud.</p>
+        </field>
+    </record>
+</odoo>
