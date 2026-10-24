@@ -1,6 +1,6 @@
 {
     'name': 'Zoo Manager',
-    'version': '19.0.1.11.3',
+    'version': '19.0.1.11.4',
     'category': 'Services',
     'summary': 'Manage the wildlife park',
     'description': """
