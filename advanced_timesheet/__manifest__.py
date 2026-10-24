@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Advanced Timesheets',
-    'version': '19.0.1.0.0',
+    'name': 'Timesheets',
+    'version': '19.0.1.0.1',
     'category': 'Services/Timesheets',
     'summary': 'Weekly, fortnightly or monthly timesheets filled in on a grid, with optional manager approval',
     'description': """
-        Advanced Timesheets
+        Timesheets
 
-        - One timesheet per person per period. Settings › Advanced Timesheets chooses whether
+        - One timesheet per person per period. Settings › Timesheets chooses whether
           timesheets are submitted weekly, fortnightly or monthly, and the date the periods
           count from; every timesheet shows its whole period on the grid
         - Grid entry like Odoo's Timesheets grid: a row per project / task, a column per day,
