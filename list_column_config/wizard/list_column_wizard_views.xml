@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="list_column_wizard_view_form" model="ir.ui.view">
+        <field name="name">list.column.wizard.form</field>
+        <field name="model">list.column.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Customise Columns">
+                <field name="res_model" invisible="1"/>
+                <field name="has_layout" invisible="1"/>
+                <p class="text-muted">
+                    Drag the columns into the order you want, choose how each one shows and,
+                    if you like, give it a new heading. Add a line to show another field.
+                    The layout is used for <strong>everyone</strong> who opens this list.
+                </p>
+                <ul class="text-muted small">
+                    <li><strong>Always Shown</strong>: always in the list.</li>
+                    <li><strong>Optional, Shown</strong> / <strong>Optional, Hidden</strong>: users can switch it on or off from the list's column picker; this sets whether it starts on or off.</li>
+                    <li><strong>Hidden</strong>: never shown. Avoid hiding a column that must be filled in when lines are entered in the list itself.</li>
+                </ul>
+                <field name="line_ids" nolabel="1">
+                    <list editable="bottom">
+                        <field name="sequence" widget="handle"/>
+                        <field name="field_option_id" options="{'no_create': True, 'no_open': True}" readonly="in_view"/>
+                        <field name="field_name" optional="hide"/>
+                        <field name="default_label" force_save="1"/>
+                        <field name="label" placeholder="Default heading"/>
+                        <field name="visibility"/>
+                        <field name="in_view" widget="boolean" optional="hide"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_save" type="object" string="Save for Everyone" class="btn-primary" data-hotkey="q"/>
+                    <button name="action_reset" type="object" string="Reset to Default" class="btn-secondary"
+                            invisible="not has_layout"
+                            confirm="Go back to the list view's own columns for everyone?"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

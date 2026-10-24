@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): customising list columns is
+         a workflow action, so every app gets its own privilege with one
+         "Allowed" group, created by list.column.app._sync_apps() under that
+         app's privilege category ("Sales List Columns: Customise"). Each of
+         those groups implies the technical List Columns user group below. The
+         wizard checks the group of the app it is opened from with has_group
+         and saves with sudo(); the saved layouts are never written through
+         ACLs by users. -->
+    <data noupdate="1">
+        <record id="module_category_list_column_config" model="ir.module.category">
+            <field name="name">List Columns</field>
+            <field name="description">Customise the columns list views show, for all users.</field>
+            <field name="sequence">95</field>
+        </record>
+    </data>
+
+    <record id="group_list_column_user" model="res.groups">
+        <field name="name">List Columns: User</field>
+        <field name="comment">Technical: given by every "List Columns: Customise" permission. What users may customise comes from their per-app permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="privilege_list_column_config" model="res.groups.privilege">
+        <field name="name">List Columns</field>
+        <field name="category_id" ref="module_category_list_column_config"/>
+        <field name="sequence">10</field>
+        <field name="description">Customise the columns of every list view and manage the saved layouts.</field>
+    </record>
+    <record id="group_list_column_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_list_column_config"/>
+        <field name="comment">Customise the columns of every list view in every app, and manage the saved layouts under Settings > List Columns.</field>
+        <field name="implied_ids" eval="[(4, ref('group_list_column_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>
