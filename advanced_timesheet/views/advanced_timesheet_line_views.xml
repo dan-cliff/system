@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_timesheet_line_view_list" model="ir.ui.view">
+        <field name="name">advanced.timesheet.line.list</field>
+        <field name="model">advanced.timesheet.line</field>
+        <field name="arch" type="xml">
+            <list string="Timesheet Entries" editable="bottom">
+                <field name="id" optional="show"/>
+                <field name="date" options="{'numeric': True}" readonly="is_auto"/>
+                <field name="project_id" optional="show"/>
+                <field name="task_id" optional="show" context="{'default_project_id': project_id}"/>
+                <field name="name"/>
+                <field name="unit_amount" widget="float_time" sum="Total" readonly="is_auto"/>
+                <field name="is_auto" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Opened by "Add a line" on the grid. -->
+    <record id="advanced_timesheet_line_view_form" model="ir.ui.view">
+        <field name="name">advanced.timesheet.line.form</field>
+        <field name="model">advanced.timesheet.line</field>
+        <field name="arch" type="xml">
+            <form string="Timesheet Entry">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="sheet_id" invisible="1"/>
+                            <field name="is_auto" invisible="1"/>
+                            <field name="project_id"/>
+                            <field name="task_id" context="{'default_project_id': project_id}"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="date" options="{'numeric': True}" readonly="is_auto"/>
+                            <field name="unit_amount" widget="float_time" readonly="is_auto"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

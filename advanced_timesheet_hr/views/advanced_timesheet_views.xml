@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_timesheet_view_form" model="ir.ui.view">
+        <field name="name">advanced.timesheet.form.hr</field>
+        <field name="model">advanced.timesheet</field>
+        <field name="inherit_id" ref="advanced_timesheet.advanced_timesheet_view_form"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="before">
+                <field name="employee_id" readonly="id" required="not user_id" options="{'no_create': True}"/>
+            </field>
+            <field name="user_id" position="attributes">
+                <attribute name="readonly">id or employee_id</attribute>
+                <attribute name="invisible">employee_id and not user_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_timesheet_view_list" model="ir.ui.view">
+        <field name="name">advanced.timesheet.list.hr</field>
+        <field name="model">advanced.timesheet</field>
+        <field name="inherit_id" ref="advanced_timesheet.advanced_timesheet_view_list"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="before">
+                <field name="employee_id" optional="hide"/>
+            </field>
+            <field name="approver_user_id" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_timesheet_view_search" model="ir.ui.view">
+        <field name="name">advanced.timesheet.search.hr</field>
+        <field name="model">advanced.timesheet</field>
+        <field name="inherit_id" ref="advanced_timesheet.advanced_timesheet_view_search"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="before">
+                <field name="employee_id"/>
+            </field>
+            <filter name="my_timesheets" position="attributes">
+                <attribute name="domain">['|', ('user_id', '=', uid), ('employee_id.user_id', '=', uid)]</attribute>
+            </filter>
+            <filter name="group_state" position="before">
+                <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="action_advanced_timesheet_to_approve" model="ir.actions.act_window">
+        <field name="name">To Approve</field>
+        <field name="res_model">advanced.timesheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="advanced_timesheet.advanced_timesheet_view_search"/>
+        <field name="context">{'search_default_to_approve': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing to approve</p>
+            <p>Timesheets submitted by the employees you manage show here when Manager Approval is
+                turned on in Settings.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_advanced_timesheet_to_approve"
+              name="To Approve"
+              parent="advanced_timesheet.menu_advanced_timesheet_root"
+              action="action_advanced_timesheet_to_approve"
+              sequence="30"
+              groups="advanced_timesheet.group_timesheet_approve"/>
+</odoo>

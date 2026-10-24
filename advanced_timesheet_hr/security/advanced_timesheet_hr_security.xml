@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- With Employees, "my team" is their own timesheets plus those of the
+         employees under theirs in the org chart, and approvers can read the
+         timesheets they approve (the employee's Manager). Rules of different
+         groups are OR-ed, so these add to advanced_timesheet's rules. -->
+    <record id="rule_sheet_edit_team_org_chart" model="ir.rule">
+        <field name="name">Timesheets: Create and Edit My Team (org chart)</field>
+        <field name="model_id" ref="advanced_timesheet.model_advanced_timesheet"/>
+        <field name="groups" eval="[(4, ref('advanced_timesheet.group_timesheet_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids), ('employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_sheet_approve" model="ir.rule">
+        <field name="name">Timesheets: Approve (the employees they manage)</field>
+        <field name="model_id" ref="advanced_timesheet.model_advanced_timesheet"/>
+        <field name="groups" eval="[(4, ref('advanced_timesheet.group_timesheet_approve'))]"/>
+        <field name="domain_force">[('approver_user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_line_edit_team_org_chart" model="ir.rule">
+        <field name="name">Timesheet Entries: Create and Edit My Team (org chart)</field>
+        <field name="model_id" ref="advanced_timesheet.model_advanced_timesheet_line"/>
+        <field name="groups" eval="[(4, ref('advanced_timesheet.group_timesheet_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('sheet_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('sheet_id.user_id.employee_ids', 'child_of', user.employee_ids.ids), ('sheet_id.employee_id', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_line_approve" model="ir.rule">
+        <field name="name">Timesheet Entries: Approve (the employees they manage)</field>
+        <field name="model_id" ref="advanced_timesheet.model_advanced_timesheet_line"/>
+        <field name="groups" eval="[(4, ref('advanced_timesheet.group_timesheet_approve'))]"/>
+        <field name="domain_force">[('sheet_id.approver_user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

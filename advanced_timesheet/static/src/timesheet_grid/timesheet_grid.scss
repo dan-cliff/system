@@ -1,0 +1,112 @@
+.o_timesheet_grid {
+    &.o_timesheet_grid_busy {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .o_timesheet_grid_empty {
+        padding: 1rem 0;
+    }
+
+    .o_timesheet_grid_scroll {
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    .o_timesheet_grid_table {
+        width: auto;
+        min-width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+
+        th, td {
+            vertical-align: middle;
+            white-space: nowrap;
+            border-bottom: 1px solid $border-color;
+        }
+
+        // The project / task column stays in view while scrolling a long period.
+        .o_timesheet_grid_label {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            min-width: 12rem;
+            max-width: 18rem;
+            background-color: $o-view-background-color;
+            border-right: 1px solid $border-color;
+        }
+
+        .o_timesheet_grid_week {
+            background-color: $o-gray-100;
+        }
+
+        .o_timesheet_grid_week_total {
+            font-weight: normal;
+            opacity: 0.7;
+        }
+
+        .o_timesheet_grid_days th {
+            font-weight: normal;
+            min-width: 5.25rem;
+        }
+
+        .o_timesheet_grid_weekday {
+            font-weight: bold;
+        }
+
+        .o_timesheet_grid_date {
+            font-size: 0.75rem;
+            opacity: 0.75;
+        }
+
+        .o_timesheet_grid_week_start {
+            border-left: 2px solid $border-color;
+        }
+
+        .o_timesheet_grid_weekend {
+            background-color: rgba($o-gray-500, 0.08);
+        }
+
+        .o_timesheet_grid_today {
+            background-color: rgba($o-action, 0.08);
+        }
+
+        .o_timesheet_grid_cell {
+            text-align: center;
+            padding: 0.125rem;
+        }
+
+        .o_timesheet_grid_input {
+            width: 4.5rem;
+            text-align: center;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+            background: transparent;
+            padding: 0.25rem;
+
+            &:hover {
+                border-color: $border-color;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: $o-action;
+                background-color: $o-view-background-color;
+            }
+        }
+
+        .o_timesheet_grid_auto {
+            .o_timesheet_grid_value {
+                color: $text-muted;
+            }
+        }
+
+        .o_timesheet_grid_total {
+            min-width: 5rem;
+        }
+
+        tfoot td {
+            border-top: 2px solid $border-color;
+        }
+    }
+}

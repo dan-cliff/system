@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_timesheet.TimesheetGrid">
+        <div class="o_timesheet_grid w-100" t-att-class="{ 'o_timesheet_grid_busy': state.busy }">
+            <div t-if="!state.data" class="o_timesheet_grid_empty text-muted">
+                <p>Save the timesheet to fill in its hours on the grid.</p>
+                <button t-if="!props.readonly" class="btn btn-primary" t-on-click="onStart">Save and Start</button>
+            </div>
+            <t t-else="">
+                <t t-set="data" t-value="state.data"/>
+                <div class="o_timesheet_grid_scroll">
+                    <table class="table table-sm o_timesheet_grid_table mb-0">
+                        <thead>
+                            <tr class="o_timesheet_grid_weeks">
+                                <th rowspan="2" class="o_timesheet_grid_label">Project / Task</th>
+                                <th t-foreach="data.weeks" t-as="week" t-key="week.start"
+                                    t-att-colspan="week.days.length" class="o_timesheet_grid_week text-center">
+                                    <span>Week of <t t-esc="dateLabel(week.start)"/></span>
+                                    <span class="o_timesheet_grid_week_total ms-2" t-esc="hours(weekTotal(week)) or '00:00'"/>
+                                </th>
+                                <th rowspan="2" class="o_timesheet_grid_total text-end">Total</th>
+                            </tr>
+                            <tr class="o_timesheet_grid_days">
+                                <th t-foreach="data.days" t-as="iso" t-key="iso" class="text-center"
+                                    t-att-class="cellClass(iso)">
+                                    <div class="o_timesheet_grid_weekday" t-esc="weekdayLabel(iso)"/>
+                                    <div class="o_timesheet_grid_date" t-esc="dateLabel(iso)"/>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-if="!data.rows.length">
+                                <td t-att-colspan="data.days.length + 2" class="text-muted fst-italic py-3">
+                                    No hours yet. Add a line for a project or task, then type the hours into the days.
+                                </td>
+                            </tr>
+                            <tr t-foreach="data.rows" t-as="row" t-key="row.key"
+                                t-att-class="{ 'o_timesheet_grid_auto': row.is_auto }">
+                                <td class="o_timesheet_grid_label">
+                                    <div class="fw-bold text-truncate" t-att-title="row.project">
+                                        <i t-if="row.is_auto" class="fa fa-lock me-1 text-muted"
+                                           title="Filled in automatically"/>
+                                        <t t-esc="row.project"/>
+                                    </div>
+                                    <div t-if="row.task" class="text-muted small text-truncate" t-att-title="row.task"
+                                         t-esc="row.task"/>
+                                </td>
+                                <td t-foreach="data.days" t-as="iso" t-key="iso" class="o_timesheet_grid_cell"
+                                    t-att-class="cellClass(iso)">
+                                    <t t-set="value" t-value="hours(cellValue(row, iso))"/>
+                                    <span t-if="readonly or row.is_auto" class="o_timesheet_grid_value" t-esc="value"/>
+                                    <input t-else="" type="text" inputmode="decimal" class="o_timesheet_grid_input"
+                                           t-att-value="value" t-att-data-value="value"
+                                           t-att-title="dateLabel(iso)" placeholder="-"
+                                           t-on-focus="onFocus" t-on-keydown="onKeydown"
+                                           t-on-change="(ev) => this.onCellChange(row, iso, ev)"/>
+                                </td>
+                                <td class="o_timesheet_grid_total text-end fw-bold" t-esc="hours(row.total) or '00:00'"/>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="o_timesheet_grid_label fw-bold">Total</td>
+                                <td t-foreach="data.days" t-as="iso" t-key="iso" class="text-center fw-bold"
+                                    t-att-class="cellClass(iso)" t-esc="hours(dayTotal(iso))"/>
+                                <td class="o_timesheet_grid_total text-end fw-bold" t-esc="hours(grandTotal) or '00:00'"/>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <button t-if="!readonly" class="btn btn-link o_timesheet_grid_add mt-1 px-0" t-on-click="onAddLine">
+                    <i class="fa fa-plus me-1"/>Add a line
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>
