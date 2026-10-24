@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Advanced Timesheets - Employees',
-    'version': '19.0.1.0.0',
+    'name': 'Timesheets - Employees',
+    'version': '19.0.1.0.1',
     'category': 'Services/Timesheets',
     'summary': 'Timesheets per employee, with optional approval by their Manager',
     'description': """
-        Installs automatically when both Advanced Timesheets and Employees are installed.
+        Installs automatically when both Timesheets and Employees are installed.
 
         - Timesheets belong to an employee and show the employee's name (the user's name
           is used without Employees)
-        - Settings › Advanced Timesheets › Manager Approval: submitted timesheets wait for
+        - Settings › Timesheets › Manager Approval: submitted timesheets wait for
           the employee's Manager, who approves them or sends them back with a reason
         - "To Approve" menu for Managers
         - Create and Edit My Team covers the timesheets of the employees under theirs in
