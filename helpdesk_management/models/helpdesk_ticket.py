@@ -1,6 +1,17 @@
+import logging
+from datetime import timedelta
+
+import pytz
+from dateutil.relativedelta import relativedelta
+
 from odoo import _, api, fields, models, tools
 from odoo.exceptions import UserError
 from odoo.fields import Domain
+from odoo.tools import html2plaintext
+
+from .helpdesk_ai import ai_credentials, ai_provider_label, ai_request_json
+
+_logger = logging.getLogger(__name__)
 
 # Priority stays a fixed selection: the star widget needs one, and SLA policies
 # and the Urgent filters compare against these values.
@@ -13,6 +24,9 @@ TICKET_PRIORITY = [
 
 # Changes to these fields can change which SLA policies apply to a ticket.
 SLA_FIELDS = {'team_id', 'priority', 'ticket_type_id', 'tag_ids', 'partner_id'}
+
+# Products offered to the AI by name, so it can pick the ones a ticket is about.
+AI_PRODUCT_LIMIT = 200
 
 
 class HelpdeskTicket(models.Model):
@@ -33,6 +47,10 @@ class HelpdeskTicket(models.Model):
         return (Team.search([('member_ids', 'in', self.env.uid)], limit=1)
                 or Team.search([], limit=1))
 
+    def _default_source_id(self):
+        # tickets logged in the backend; email, website form and Help Centre set their own
+        return self.env.ref('helpdesk_management.ticket_source_direct', raise_if_not_found=False)
+
     name = fields.Char('Subject', required=True, tracking=True, index='trigram')
     ticket_ref = fields.Char('Ticket Number', readonly=True, copy=False, index=True)
     description = fields.Html()
@@ -44,7 +62,7 @@ class HelpdeskTicket(models.Model):
         'res.company', compute='_compute_company_id', store=True, readonly=False,
         required=True, default=lambda self: self.env.company)
     user_id = fields.Many2one(
-        'res.users', string='Assigned to', tracking=True, index=True,
+        'res.users', string='Agent', tracking=True, index=True,
         domain="[('share', '=', False), ('company_ids', 'in', company_id)]")
     partner_id = fields.Many2one('res.partner', string='Customer', tracking=True, index=True)
     commercial_partner_id = fields.Many2one(related='partner_id.commercial_partner_id')
@@ -58,6 +76,35 @@ class HelpdeskTicket(models.Model):
     priority = fields.Selection(TICKET_PRIORITY, default='0', tracking=True, index=True)
     ticket_type_id = fields.Many2one('helpdesk.ticket.type', string='Type', tracking=True)
     tag_ids = fields.Many2many('helpdesk.tag', string='Tags')
+    product_ids = fields.Many2many('product.product', string='Products', tracking=True)
+    source_id = fields.Many2one(
+        'helpdesk.ticket.source', string='Source', tracking=True, index=True, ondelete='restrict',
+        default=_default_source_id, help='How the ticket came in.')
+    date_raised = fields.Datetime(
+        'Date Raised', required=True, default=fields.Datetime.now, tracking=True, index=True, copy=False,
+        help='When the customer raised the ticket (for emails: when the email was sent).')
+    days_open = fields.Float(
+        'Days Open', compute='_compute_days', store=True, digits=(16, 1), aggregator='avg',
+        help='Days from being raised until closed, or until today while the ticket is open.')
+    days_to_resolution = fields.Float(
+        'Days to Resolution', compute='_compute_days', store=True, digits=(16, 1), aggregator='avg',
+        help='Days from being raised until closed; 0 while the ticket is open, so filter on '
+             'closed tickets when averaging it.')
+    sentiment_id = fields.Many2one(
+        'helpdesk.sentiment', string='Customer Sentiment', tracking=True, index=True, ondelete='restrict',
+        help='How the customer feels, judged from the tone of the ticket (estimated by AI when it is set up).')
+    sentiment_score = fields.Integer(
+        related='sentiment_id.score', store=True, aggregator='avg', string='Sentiment Score')
+    sentiment_reason = fields.Text('Sentiment Notes', help='Why the AI judged the sentiment as it did.')
+    ai_recommended_actions = fields.Html('Recommended Actions', copy=False)
+    ai_state = fields.Selection([
+        ('pending', 'Queued'),
+        ('done', 'Analysed'),
+        ('failed', 'Failed'),
+    ], string='AI Analysis', copy=False, readonly=True, index=True)
+    ai_date = fields.Datetime('AI Analysed On', copy=False, readonly=True)
+    ai_error = fields.Char('AI Error', copy=False, readonly=True)
+    ai_available = fields.Boolean(compute='_compute_ai_available')
     stage_id = fields.Many2one(
         'helpdesk.stage', string='Stage', compute='_compute_stage_id', store=True, readonly=False,
         tracking=True, index=True, copy=False, ondelete='restrict', group_expand='_read_group_stage_ids',
@@ -125,6 +172,25 @@ class HelpdeskTicket(models.Model):
             ticket.partner_ticket_count = sum(
                 n for partner, n in counts.items() if partner.commercial_partner_id == commercial
             ) if commercial else 0
+
+    @api.depends('date_raised', 'close_date')
+    def _compute_days(self):
+        now = fields.Datetime.now()
+        for ticket in self:
+            if not ticket.date_raised:
+                ticket.days_open = ticket.days_to_resolution = 0.0
+                continue
+            end = ticket.close_date or now
+            ticket.days_open = max((end - ticket.date_raised).total_seconds(), 0) / 86400
+            ticket.days_to_resolution = (
+                max((ticket.close_date - ticket.date_raised).total_seconds(), 0) / 86400
+                if ticket.close_date else 0.0
+            )
+
+    def _compute_ai_available(self):
+        available = bool(ai_credentials(self.env)[1])
+        for ticket in self:
+            ticket.ai_available = available
 
     @api.depends('assign_date')
     def _compute_assign_hours(self):
@@ -234,12 +300,14 @@ class HelpdeskTicket(models.Model):
                     })
                     vals['partner_id'] = partner.id
         tickets = super().create(vals_list)
-        tickets.filtered(lambda t: t.fold).close_date = now
+        # sudo: users with "Create Only" can't edit what they have just created
+        tickets.filtered(lambda t: t.fold).sudo().close_date = now
         tickets.filtered(lambda t: not t.user_id and t.team_id)._assign_from_team()
         for ticket in tickets.filtered('partner_id'):
-            ticket.message_subscribe(partner_ids=ticket.partner_id.ids)
+            ticket.sudo().message_subscribe(partner_ids=ticket.partner_id.ids)
         tickets._sla_apply()
         tickets._send_rating_requests()
+        tickets._ai_queue()
         return tickets
 
     def write(self, vals):
@@ -288,7 +356,7 @@ class HelpdeskTicket(models.Model):
         for ticket in self:
             user = ticket.team_id._determine_user_to_assign()[ticket.team_id]
             if user:
-                ticket.user_id = user
+                ticket.sudo().user_id = user
 
     def action_assign_to_me(self):
         self.user_id = self.env.user
@@ -367,6 +435,12 @@ class HelpdeskTicket(models.Model):
             'description': msg_dict.get('body'),
             'partner_id': msg_dict.get('author_id'),
         }
+        source = self.env.ref('helpdesk_management.ticket_source_email', raise_if_not_found=False)
+        if source:
+            values['source_id'] = source.id
+        if msg_dict.get('date'):
+            # the sender's clock decides the date; never later than its arrival
+            values['date_raised'] = min(fields.Datetime.to_datetime(msg_dict['date']), fields.Datetime.now())
         if not values['partner_id']:
             name, email = tools.parse_contact_from_email(msg_dict.get('email_from') or '')
             values.update(partner_name=name, partner_email=email)
@@ -438,3 +512,286 @@ class HelpdeskTicket(models.Model):
                     subtype_xmlid='mail.mt_note',
                     author_id=(ticket.partner_id if user._is_public() else user.partner_id).id,
                 )
+
+    # ------------------------------------------------------------
+    # Metrics
+    # ------------------------------------------------------------
+
+    @api.model
+    def _cron_refresh_days_open(self):
+        """Days Open of open tickets grows every day: recompute it nightly."""
+        tickets = self.search([('fold', '=', False)])
+        self.env.add_to_compute(self._fields['days_open'], tickets)
+        tickets._recompute_recordset(['days_open'])
+
+    # ------------------------------------------------------------
+    # AI triage
+    # ------------------------------------------------------------
+
+    def _ai_queue(self):
+        """Queue new tickets for AI triage in the background (only when an AI key is set),
+        so creating a ticket never waits on the AI."""
+        if not self or not ai_credentials(self.env)[1]:
+            return
+        self.sudo().write({'ai_state': 'pending'})
+        cron = self.env.ref('helpdesk_management.ir_cron_helpdesk_ai_triage', raise_if_not_found=False)
+        if cron:
+            cron.sudo()._trigger()
+
+    @api.model
+    def _cron_ai_triage(self):
+        if not ai_credentials(self.env)[1]:
+            return
+        tickets = self.search([('ai_state', '=', 'pending')], order='id')
+        Cron = self.env['ir.cron']
+        Cron._commit_progress(remaining=len(tickets))
+        for ticket in tickets:
+            ticket._ai_analyse_safe()
+            # commits each ticket; stops when the run is out of time (the rest go next run)
+            if not Cron._commit_progress(1):
+                break
+
+    def _ai_analyse_safe(self):
+        """Run the AI triage, recording a failure on the ticket rather than raising."""
+        self.ensure_one()
+        try:
+            with self.env.cr.savepoint():
+                self._ai_analyse()
+        except Exception as exc:  # noqa: BLE001 - any failure is kept on the ticket for the user
+            _logger.warning('Helpdesk AI triage failed for ticket %s: %s', self.id, exc)
+            self.sudo().write({'ai_state': 'failed', 'ai_error': str(exc)[:500]})
+
+    def _ai_missing_fields(self):
+        """Labels of the fields the AI will fill in on this ticket because they are empty."""
+        self.ensure_one()
+        missing = []
+        if not self.team_id:
+            missing.append(self._fields['team_id'].get_description(self.env)['string'])
+        if not self.ticket_type_id:
+            missing.append(self._fields['ticket_type_id'].get_description(self.env)['string'])
+        if not self.product_ids:
+            missing.append(self._fields['product_ids'].get_description(self.env)['string'])
+        if not self.tag_ids:
+            missing.append(self._fields['tag_ids'].get_description(self.env)['string'])
+        if self.priority == '0':
+            missing.append(self._fields['priority'].get_description(self.env)['string'])
+        return missing
+
+    def get_ai_job_info(self):
+        """What the AI is about to do, worded for the progress overlay."""
+        self.ensure_one()
+        self.check_access('write')
+        return {
+            'provider': ai_provider_label(self.env),
+            'missing': self._ai_missing_fields(),
+        }
+
+    def action_ai_analyse(self):
+        """Explicit "Analyse with AI" (run from the form behind the progress overlay)."""
+        if not ai_credentials(self.env)[1]:
+            raise UserError(_('No AI is set up. Add a Claude AI or Google Gemini API key in '
+                              'Settings > General Settings > Integrations.'))
+        self.check_access('write')
+        for ticket in self:
+            ticket._ai_analyse()
+        return True
+
+    def _ai_prompt(self):
+        self.ensure_one()
+        env = self.env
+        teams = env['helpdesk.team'].sudo().search([('company_id', 'in', [self.company_id.id, False])])
+        types = env['helpdesk.ticket.type'].sudo().search([])
+        tags = env['helpdesk.tag'].sudo().search([])
+        sentiments = env['helpdesk.sentiment'].sudo().search([])
+        products = env['product.product'].sudo().search(
+            [('sale_ok', '=', True), ('company_id', 'in', [self.company_id.id, False])],
+            limit=AI_PRODUCT_LIMIT, order='name')
+        priorities = [label for _value, label in TICKET_PRIORITY]
+
+        def names(records):
+            return ', '.join(f'"{name}"' for name in records.mapped('display_name')) or '(none)'
+
+        description = html2plaintext(self.description or '').strip()
+        lines = [
+            'A customer support ticket follows. Triage it.',
+            '',
+            f'Subject: {self.name}',
+            f'Customer: {self.partner_id.display_name or self.partner_name or "(unknown)"}',
+            f'Customer email: {self.partner_email or "(unknown)"}',
+            f'Source: {self.source_id.name or "(unknown)"}',
+            'Description:',
+            description[:12000] or '(no description)',
+        ]
+        # the customer's later emails on the ticket also show their tone
+        messages = self.message_ids.filtered(
+            lambda m: m.message_type in ('email', 'comment') and m.author_id
+            and m.author_id == self.partner_id and m.body)[:5]
+        if messages:
+            lines += ['', 'Messages from the customer (newest first):']
+            lines += ['- ' + html2plaintext(m.body).strip()[:2000] for m in messages]
+        lines += [
+            '',
+            'Choose only from these lists (copy names exactly; use null or [] when nothing fits):',
+            f'Teams: {names(teams)}',
+            f'Ticket types: {names(types)}',
+            f'Tags: {names(tags)}',
+            f'Priorities: {", ".join(chr(34) + p + chr(34) for p in priorities)}',
+            f'Customer sentiments (most positive first): {names(sentiments)}',
+            f'Products: {names(products)}',
+            '',
+            'Answer with ONLY a JSON object, no other text:',
+            '{',
+            '  "team": "<team name or null>",',
+            '  "ticket_type": "<ticket type or null>",',
+            '  "tags": ["<tag>", ...],',
+            '  "priority": "<priority>",',
+            '  "products": ["<product>", ...],',
+            '  "sentiment": "<customer sentiment>",',
+            '  "sentiment_reason": "<one or two sentences on the tone that led to the sentiment>",',
+            '  "recommended_actions": ["<a concrete next step for the support agent>", ...]',
+            '}',
+            'Judge the sentiment from the tone of the customer\'s words. Give 2 to 5 recommended '
+            'actions, most important first, that would resolve the issue and restore the customer\'s '
+            'confidence.',
+        ]
+        return '\n'.join(lines)
+
+    @staticmethod
+    def _ai_match(records, name):
+        """The record in `records` named `name` (case-insensitive), or an empty recordset."""
+        if not isinstance(name, str) or not name.strip():
+            return records.browse()
+        wanted = name.strip().lower()
+        return records.filtered(lambda r: (r.display_name or '').lower() == wanted)[:1] \
+            or records.filtered(lambda r: (r.name or '').lower() == wanted)[:1]
+
+    def _ai_analyse(self):
+        """Send the ticket to the AI, fill in what is missing, estimate the customer
+        sentiment and store the recommended corrective actions."""
+        self.ensure_one()
+        system = ('You are an experienced customer support lead triaging helpdesk tickets. '
+                  'You answer with JSON only.')
+        data = ai_request_json(self.env, self._ai_prompt(), system=system)
+        ticket = self.sudo()
+        env = ticket.env
+        vals = {}
+
+        def as_list(value):
+            return [v for v in value if isinstance(v, str)] if isinstance(value, list) else []
+
+        if not ticket.team_id:
+            team = self._ai_match(env['helpdesk.team'].search([('company_id', 'in', [ticket.company_id.id, False])]),
+                                  data.get('team'))
+            if team:
+                vals['team_id'] = team.id
+        if not ticket.ticket_type_id:
+            ticket_type = self._ai_match(env['helpdesk.ticket.type'].search([]), data.get('ticket_type'))
+            if ticket_type:
+                vals['ticket_type_id'] = ticket_type.id
+        if not ticket.tag_ids:
+            all_tags = env['helpdesk.tag'].search([])
+            tags = env['helpdesk.tag'].union(*(self._ai_match(all_tags, n) for n in as_list(data.get('tags'))))
+            if tags:
+                vals['tag_ids'] = [(6, 0, tags.ids)]
+        if ticket.priority == '0':
+            priority = {label.lower(): value for value, label in TICKET_PRIORITY}.get(
+                str(data.get('priority') or '').strip().lower())
+            if priority and priority != '0':
+                vals['priority'] = priority
+        if not ticket.product_ids:
+            Product = env['product.product']
+            products = Product
+            for name in as_list(data.get('products')):
+                products |= Product.search(
+                    [('name', '=ilike', name.strip()), ('company_id', 'in', [ticket.company_id.id, False])], limit=1)
+            if products:
+                vals['product_ids'] = [(6, 0, products.ids)]
+        sentiment = self._ai_match(env['helpdesk.sentiment'].search([]), data.get('sentiment'))
+        if sentiment:
+            vals['sentiment_id'] = sentiment.id
+        if isinstance(data.get('sentiment_reason'), str):
+            vals['sentiment_reason'] = data['sentiment_reason'].strip()
+        actions = as_list(data.get('recommended_actions'))
+        if actions:
+            vals['ai_recommended_actions'] = '<ol>%s</ol>' % ''.join(
+                '<li>%s</li>' % tools.html_escape(action.strip()) for action in actions if action.strip())
+        vals.update(ai_state='done', ai_date=fields.Datetime.now(), ai_error=False)
+        ticket.write(vals)
+        return True
+
+    # ------------------------------------------------------------
+    # Dashboard
+    # ------------------------------------------------------------
+
+    @api.model
+    def get_dashboard_data(self):
+        """Numbers and sentiment series for the Helpdesk dashboard, as the current user sees them."""
+        open_domain = Domain('fold', '=', False)
+        by_company = [
+            {'id': company.id, 'name': company.name, 'count': count}
+            for company, count in self._read_group(open_domain, ['company_id'], ['__count'],
+                                                   order='__count desc')
+        ]
+        by_team = [
+            {'id': team.id or False, 'name': team.name or _('No Team'), 'count': count}
+            for team, count in self._read_group(open_domain, ['team_id'], ['__count'], order='__count desc')
+        ]
+        mine = Domain('user_id', '=', self.env.uid)
+        today = fields.Date.context_today(self)
+        month_start = today.replace(day=1)
+        return {
+            'uid': self.env.uid,
+            'my_open_count': self.search_count(open_domain & mine),
+            'open_count': self.search_count(open_domain),
+            'by_company': by_company,
+            'by_team': by_team,
+            'multi_company': len(by_company) > 1 or self.env.user.has_group('base.group_multi_company'),
+            'sentiments': [
+                {'score': s.score, 'name': s.name}
+                for s in self.env['helpdesk.sentiment'].search([])
+            ],
+            'charts': {
+                'last_12_months': self._sentiment_series(
+                    mine, month_start - relativedelta(months=11), today, 'month'),
+                'year_to_date': self._sentiment_series(mine, today.replace(month=1, day=1), today, 'month'),
+                'last_30_days': self._sentiment_series(mine, today - timedelta(days=29), today, 'day'),
+            },
+        }
+
+    def _sentiment_series(self, domain, start, end, interval):
+        """Average sentiment score of the tickets in `domain` raised from `start` to
+        `end` (dates, inclusive), one point per `interval` ('month' or 'day')."""
+        tz_start = self._date_to_utc(start)
+        tz_end = self._date_to_utc(end + timedelta(days=1))
+        domain = (Domain(domain) & Domain('sentiment_id', '!=', False)
+                  & Domain('date_raised', '>=', tz_start) & Domain('date_raised', '<', tz_end))
+        groups = self._read_group(domain, [f'date_raised:{interval}'], ['sentiment_score:avg', '__count'])
+        values = {}
+        for bucket, average, count in groups:
+            key = (bucket.date() if hasattr(bucket, 'date') else bucket)
+            key = key.replace(day=1) if interval == 'month' else key
+            values[key] = (average, count)
+        labels, points, counts = [], [], []
+        current = start.replace(day=1) if interval == 'month' else start
+        step = relativedelta(months=1) if interval == 'month' else timedelta(days=1)
+        while current <= end:
+            average, count = values.get(current, (None, 0))
+            labels.append(current.strftime('%m/%Y') if interval == 'month' else current.strftime('%d/%m/%Y'))
+            points.append(round(average, 2) if average is not None else None)
+            counts.append(count)
+            current += step
+        total = sum(counts)
+        overall = (sum(p * c for p, c in zip(points, counts) if p is not None) / total) if total else None
+        return {
+            'labels': labels,
+            'values': points,
+            'counts': counts,
+            'average': round(overall, 2) if overall is not None else None,
+            'ticket_count': total,
+        }
+
+    def _date_to_utc(self, day):
+        """Midnight of `day` in the user's timezone, as a naive UTC datetime."""
+        tz = pytz.timezone(self.env.context.get('tz') or self.env.user.tz or 'UTC')
+        local = tz.localize(fields.Datetime.to_datetime(day))
+        return local.astimezone(pytz.utc).replace(tzinfo=None)

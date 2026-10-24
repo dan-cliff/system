@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_helpdesk_admin" model="permission.role">
+            <field name="name">Helpdesk – Administrator</field>
+            <field name="description">Everything in the Helpdesk: create, edit and delete any ticket, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('helpdesk_management.res_groups_privilege_helpdesk'), 'group_id': ref('helpdesk_management.group_helpdesk_manager')}),
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_create_only'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_create_only')}),
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_edit_own'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_edit_own')}),
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_edit_team'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_edit_team')}),
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_edit_all'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_edit_all')}),
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_view_all'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_view_all')}),
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_delete_own'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_delete_own')}),
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_delete_all'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_helpdesk_manager" model="permission.role">
+            <field name="name">Helpdesk – Manager</field>
+            <field name="description">Create, view and edit their own and their team's tickets. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_edit_team'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_helpdesk_employee" model="permission.role">
+            <field name="name">Helpdesk – Employee</field>
+            <field name="description">Create, view and edit their own tickets (created by them or assigned to them). No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_edit_own'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_helpdesk_agent" model="permission.role">
+            <field name="name">Helpdesk – Agent</field>
+            <field name="description">Create, view and edit every ticket, to work the shared support queue. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('helpdesk_management.privilege_helpdesk_ticket_edit_all'), 'group_id': ref('helpdesk_management.group_helpdesk_ticket_edit_all')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

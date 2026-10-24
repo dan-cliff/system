@@ -56,7 +56,7 @@
                     <tr class="active">
                         <th>Ticket</th>
                         <th>Subject</th>
-                        <th class="d-none d-md-table-cell">Created On</th>
+                        <th class="d-none d-md-table-cell">Date Raised</th>
                         <th class="d-none d-md-table-cell">Assigned to</th>
                         <th class="text-end">Stage</th>
                     </tr>
@@ -65,7 +65,7 @@
                     <tr t-foreach="tickets" t-as="ticket">
                         <td><a t-att-href="ticket.get_portal_url()">#<t t-out="ticket.ticket_ref"/></a></td>
                         <td><a t-att-href="ticket.get_portal_url()"><span t-field="ticket.name"/></a></td>
-                        <td class="d-none d-md-table-cell"><span t-field="ticket.create_date" t-options="{'widget': 'date'}"/></td>
+                        <td class="d-none d-md-table-cell"><span t-field="ticket.date_raised" t-options="{'widget': 'date'}"/></td>
                         <td class="d-none d-md-table-cell"><span t-out="ticket.user_id.sudo().name or ''"/></td>
                         <td class="text-end">
                             <span t-attf-class="badge #{'text-bg-success' if ticket.fold else 'text-bg-info'}"
@@ -124,8 +124,8 @@
                         <div class="card-body">
                             <div class="row mb-3">
                                 <div class="col-6 col-md-3">
-                                    <strong>Created On</strong><br/>
-                                    <span t-field="ticket.create_date" t-options="{'widget': 'date'}"/>
+                                    <strong>Date Raised</strong><br/>
+                                    <span t-field="ticket.date_raised" t-options="{'widget': 'date'}"/>
                                 </div>
                                 <div class="col-6 col-md-3" t-if="ticket.team_id">
                                     <strong>Team</strong><br/>

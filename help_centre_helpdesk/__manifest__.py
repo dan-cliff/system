@@ -1,7 +1,7 @@
 {
     'name': 'Help Centre - Helpdesk',
-    'version': '19.0.1.0.0',
-    'summary': 'Lodge helpdesk tickets from the Help Centre widget',
+    'version': '19.0.1.1.0',
+    'summary': 'Create helpdesk tickets from the Help Centre widget',
     'category': 'Website/Website',
     'author': "Cliff's Country Crafts",
     'depends': ['help_centre', 'helpdesk_management'],

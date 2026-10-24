@@ -32,6 +32,7 @@ class HelpCentreHelpdeskController(HelpCentreController):
             'name': subject.strip(),
             'description': plaintext2html(description or ''),
             'partner_id': user.partner_id.id,
+            'source_id': request.env.ref('helpdesk_management.ticket_source_help_centre').id,
         }
         if team:
             vals['team_id'] = team.id
@@ -41,5 +42,6 @@ class HelpCentreHelpdeskController(HelpCentreController):
 
         return {
             'ticket_id': ticket.id,
+            'ticket_ref': ticket.ticket_ref,
             'ticket_name': ticket.display_name,
         }

@@ -25,6 +25,28 @@ for every module we create or edit.
   `<field name="id" optional="show"/>` the first column, before any other
   field (a `handle` widget for `sequence` may sit in front of it).
 
+## Reports menu (Report Builder)
+
+Every app has a **Reports** menu where Report Builder (`report_builder`)
+saves the app's custom reports.
+
+- Add it to the app's root menu as a plain folder: no action, no `groups`,
+  e.g. `<menuitem id="menu_<app>_reports" name="Reports"
+  parent="menu_<app>_root" sequence="..."/>`. Don't depend on
+  `report_builder` for it.
+- It must only show when it holds reports. Odoo already hides a menu that
+  has no action and no visible children, so the folder stays invisible
+  until Report Builder places a report under it (it can only get reports
+  once Report Builder is installed). Never give it an action, a
+  placeholder child or an empty-state page, as that would make it show
+  while empty.
+- Place it last, directly before the app's **Configuration** / **Settings**
+  menu (give it a sequence between the menu before it and Configuration).
+  If the app has no Configuration or Settings menu, make it the app's last
+  menu.
+- It is separate from any built-in **Reporting** menu (analysis views) the
+  app already has; keep both.
+
 ## Permissions (privileges and roles)
 
 Every app gets the same access model, so Permission Management can build
