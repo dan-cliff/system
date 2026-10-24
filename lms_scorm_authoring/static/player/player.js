@@ -1013,6 +1013,7 @@
 
     function showEndScreen(result) {
         clearTimer();
+        // Finish was pressed and the course is over: leave full screen
         exitFullscreen();
         var a = result.assessment;
         ui.stageWrap.innerHTML = '';
@@ -1098,7 +1099,6 @@
         document.querySelectorAll('iframe').forEach(function (f) { if (f._cleanup) { f._cleanup(); } });
         var index = state.current;
         var slide = slides[index];
-        if (index === slides.length - 1) { exitFullscreen(); }
         state.visited[index] = 1;
         slideEnteredAt = Date.now();
         ui.notice.classList.add('sp-hidden');

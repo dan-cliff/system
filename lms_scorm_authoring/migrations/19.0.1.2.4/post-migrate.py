@@ -1,5 +1,5 @@
 """Rebuild the packages of LMS courses made from SCORM courses, so they get
-the current player (it leaves full screen on the final slide)."""
+the current player (it leaves full screen when Finish is pressed)."""
 import logging
 
 from odoo import SUPERUSER_ID, api

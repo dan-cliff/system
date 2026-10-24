@@ -1334,7 +1334,8 @@
                 var scormInitialized = false;
                 var scormFinished    = false;
 
-                // Leave full screen once the content is done: the portal page
+                // Leave full screen when the content finishes (its Finish or
+                // Exit button calls LMSFinish / Terminate): the portal page
                 // (or the backend page around it) holds it on its iframe.
                 function exitFullscreen() {
                     var win = window;
@@ -1383,13 +1384,6 @@
                                 key === 'cmi.completion_status' ||
                                 key === 'cmi.score.raw') {
                             postProgress({ action: 'set', key: key, value: value, cmi: cmiData });
-                        }
-                        // Packages that don't say which slide is last: leave
-                        // full screen when they report the course finished
-                        if ((key === 'cmi.core.lesson_status' || key === 'cmi.completion_status' ||
-                                key === 'cmi.success_status') &amp;&amp;
-                                (value === 'completed' || value === 'passed')) {
-                            exitFullscreen();
                         }
                         return 'true';
                     },
