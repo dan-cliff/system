@@ -127,9 +127,11 @@
                     <button name="action_export_json" type="object" string="Export JSON"/>
                 </header>
                 <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
                 <field name="name"/>
                 <field name="group_ids" widget="many2many_tags"/>
                 <field name="question_count"/>
+                <field name="public_enabled" string="Public" widget="boolean" optional="show"/>
             </list>
         </field>
     </record>
@@ -144,6 +146,10 @@
                     <button name="action_import_json" type="object" string="Import JSON"
                             groups="checklists.group_checklist_admin"
                             help="Update this template's questions from a JSON file (matched by their hidden GUIDs)."/>
+                    <button name="action_open_public_url_wizard" type="object" string="Public URL Builder"
+                            icon="fa-link" invisible="not public_enabled or not id"
+                            groups="checklists.group_checklist_admin,checklists.group_checklist_template_author"
+                            help="Build a public link that fills in chosen fields from its query string."/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -174,6 +180,33 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Public Submission" name="public_submission">
+                            <group>
+                                <group>
+                                    <field name="public_enabled" widget="boolean_toggle"/>
+                                    <field name="public_company_id" groups="base.group_multi_company"
+                                           invisible="not public_enabled" required="public_enabled"
+                                           options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                            <div invisible="not public_enabled">
+                                <p class="text-muted">
+                                    Anyone with this link can fill in the checklist without logging in. Instead of
+                                    the Completed By, Asset, Company and Organisation fields they give their First
+                                    Name, Last Name and Email or Phone Number; the checklist is saved as Completed,
+                                    with the contact that has their email (or a new contact) as its Completed By.
+                                </p>
+                                <group>
+                                    <field name="public_url" widget="CopyClipboardChar" invisible="not public_url"/>
+                                    <span invisible="public_url" colspan="2" class="text-muted">Save the template to get its link.</span>
+                                    <field name="public_thank_you" placeholder="Thanks - your checklist has been submitted."/>
+                                </group>
+                                <button name="action_regenerate_public_token" type="object" string="New Link"
+                                        icon="fa-refresh" class="btn-secondary" invisible="not public_url"
+                                        groups="checklists.group_checklist_admin,checklists.group_checklist_template_author"
+                                        confirm="The current link, and every link built from it, will stop working. Continue?"/>
+                            </div>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -187,6 +220,7 @@
             <search string="Checklist Templates">
                 <field name="name"/>
                 <field name="group_ids"/>
+                <filter name="public" string="Public Submission" domain="[('public_enabled', '=', True)]"/>
                 <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
                 <!-- Pick a Checklist Group to list its templates (values and
                      counters come from checklist.template.search_panel_select_range). -->

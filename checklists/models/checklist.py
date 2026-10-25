@@ -4,7 +4,7 @@ import logging
 import requests
 
 from odoo import Command, api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .checklist_question_condition import (
     MULTI_OPTION_TYPES, SINGLE_OPTION_TYPES, combine, eval_domain, evaluate_rule,
@@ -45,10 +45,22 @@ class Checklist(models.Model):
         string='Date', required=True, default=fields.Date.context_today, tracking=True,
     )
     date_due = fields.Date(string='Due Date', tracking=True)
+    # Required on the form, except for public submissions (completed by a
+    # contact instead, see checklist_public.py).
     user_id = fields.Many2one(
-        'res.users', string='Completed By', required=True, tracking=True,
+        'res.users', string='Completed By', tracking=True,
         default=lambda self: self.env.user,
     )
+    # Public submission: the person who filled in the public link, as given
+    # and as the contact matched by email (or created).
+    is_public = fields.Boolean(string='Public Submission', readonly=True, copy=False)
+    partner_id = fields.Many2one(
+        'res.partner', string='Completed By (Contact)', tracking=True, ondelete='restrict', index='btree_not_null',
+    )
+    public_first_name = fields.Char(string='First Name')
+    public_last_name = fields.Char(string='Last Name')
+    public_email = fields.Char(string='Email')
+    public_phone = fields.Char(string='Phone Number')
     # Technical workflow state, so a fixed selection.
     state = fields.Selection(
         [('draft', 'In Progress'), ('done', 'Completed')],
@@ -87,6 +99,28 @@ class Checklist(models.Model):
         if field_name == 'group_ids':
             return group_panel_range(self, field_name, **kwargs)
         return super().search_panel_select_range(field_name, **kwargs)
+
+    @api.model
+    def _get_view(self, view_id=None, view_type='form', **options):
+        arch, view = super()._get_view(view_id, view_type, **options)
+        if view_type == 'form':
+            # Public submissions have no Organisation (org_structure's
+            # automatic section, which may also hold the Company).
+            for group in arch.xpath("//group[@name='org_structure']"):
+                invisible = group.get('invisible')
+                group.set('invisible', f'is_public or ({invisible})' if invisible else 'is_public')
+        return arch, view
+
+    @api.constrains('user_id', 'partner_id', 'is_public')
+    def _check_completed_by(self):
+        for checklist in self:
+            if not (checklist.partner_id if checklist.is_public else checklist.user_id):
+                raise ValidationError(self.env._('Checklist %s needs a Completed By.', checklist.name))
+
+    def _completed_by_name(self):
+        """Who completed the checklist, for reports."""
+        self.ensure_one()
+        return (self.partner_id if self.is_public else self.user_id).display_name or ''
 
     @api.model_create_multi
     def create(self, vals_list):

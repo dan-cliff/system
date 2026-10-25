@@ -7,12 +7,15 @@
         <field name="arch" type="xml">
             <list string="Checklists" decoration-danger="is_overdue">
                 <field name="is_overdue" column_invisible="1"/>
+                <field name="id" optional="show"/>
                 <field name="name"/>
                 <field name="checklist_date" options="{'numeric': True}"/>
                 <field name="date_due" options="{'numeric': True}"/>
                 <field name="template_id"/>
                 <field name="group_ids" widget="many2many_tags" optional="hide"/>
                 <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="partner_id" optional="show"/>
+                <field name="is_public" optional="hide"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
@@ -44,7 +47,8 @@
                                    domain="[('can_create_checklist', '=', True)]"
                                    options="{'no_create': True}"/>
                             <field name="group_ids" widget="many2many_tags" invisible="not group_ids"/>
-                            <field name="company_id" groups="base.group_multi_company"
+                            <field name="is_public" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company" invisible="is_public"
                                    readonly="state == 'done'" options="{'no_create': True}"/>
                         </group>
                         <group name="checklist_details">
@@ -54,8 +58,21 @@
                             <field name="date_due" options="{'numeric': True}"
                                    readonly="state == 'done'"
                                    decoration-danger="is_overdue"/>
-                            <field name="user_id" widget="many2one_avatar_user"
-                                   readonly="state == 'done'"/>
+                            <field name="user_id" widget="many2one_avatar_user" invisible="is_public"
+                                   required="not is_public" readonly="state == 'done'"/>
+                            <field name="partner_id" string="Completed By" invisible="not is_public"
+                                   required="is_public" readonly="state == 'done'"/>
+                        </group>
+                    </group>
+                    <!-- Public submissions: the details the person gave on the public form. -->
+                    <group string="Submitted By" name="public_submission" invisible="not is_public">
+                        <group>
+                            <field name="public_first_name" readonly="1"/>
+                            <field name="public_last_name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="public_email" widget="email" readonly="1"/>
+                            <field name="public_phone" widget="phone" readonly="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -154,17 +171,22 @@
                 <field name="template_id"/>
                 <field name="group_ids"/>
                 <field name="user_id"/>
+                <field name="partner_id"/>
+                <field name="public_email"/>
                 <filter name="my_checklists" string="My Checklists" domain="[('user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="draft" string="In Progress" domain="[('state', '=', 'draft')]"/>
                 <filter name="done" string="Completed" domain="[('state', '=', 'done')]"/>
                 <filter name="overdue" string="Overdue" domain="[('is_overdue', '=', True)]"/>
                 <separator/>
+                <filter name="public" string="Public Submissions" domain="[('is_public', '=', True)]"/>
+                <separator/>
                 <filter name="checklist_date" string="Date" date="checklist_date"/>
                 <filter name="date_due" string="Due Date" date="date_due"/>
                 <group>
                     <filter name="group_template" string="Template" context="{'group_by': 'template_id'}"/>
                     <filter name="group_user" string="Completed By" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_partner" string="Completed By (Contact)" context="{'group_by': 'partner_id'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>

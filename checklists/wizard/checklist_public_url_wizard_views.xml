@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="checklist_public_url_wizard_view_form" model="ir.ui.view">
+        <field name="name">checklist.public.url.wizard.form</field>
+        <field name="model">checklist.public.url.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Public URL Builder">
+                <field name="template_id" invisible="1"/>
+                <p class="text-muted">
+                    Pick what the link fills in: its URL is rebuilt as you go. Build as many links as
+                    you need; each one can be used for any number of submissions.
+                </p>
+                <group string="Contact Details">
+                    <group>
+                        <field name="first_name"/>
+                        <field name="last_name"/>
+                    </group>
+                    <group>
+                        <field name="email" widget="email"/>
+                        <field name="phone" widget="phone"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="lock_contact" widget="boolean_toggle"/>
+                </group>
+                <separator string="Answers"/>
+                <field name="line_ids">
+                    <list>
+                        <field name="question_id"/>
+                        <field name="question_type" optional="hide"/>
+                        <field name="value_display"/>
+                        <field name="locked" widget="boolean_toggle"/>
+                    </list>
+                    <form string="Answer">
+                        <group>
+                            <field name="question_id" options="{'no_create': True, 'no_open': True}"
+                                   domain="[('template_id', '=', parent.template_id),
+                                            ('question_type', 'not in', ('section_title', 'section_break', 'instructions', 'image', 'file'))]"/>
+                            <field name="question_type" invisible="1"/>
+                            <field name="relation_model_id" invisible="1"/>
+                            <field name="relation_domain" invisible="1"/>
+                            <field name="value_text" string="Answer"
+                                   invisible="question_type not in ('text', 'phone', 'email', 'website')"/>
+                            <field name="value_text_area" string="Answer" invisible="question_type != 'text_area'"/>
+                            <field name="value_number" string="Answer" invisible="question_type != 'number'"/>
+                            <field name="value_integer" string="Answer" invisible="question_type != 'integer'"/>
+                            <field name="value_date" string="Answer" options="{'numeric': True}"
+                                   invisible="question_type != 'date'"/>
+                            <field name="value_datetime" string="Answer" options="{'numeric': True}"
+                                   invisible="question_type != 'datetime'"/>
+                            <field name="value_option_id" string="Answer" options="{'no_create': True, 'no_open': True}"
+                                   domain="[('question_id', '=', question_id)]"
+                                   invisible="question_type not in ('buttons', 'select', 'radio', 'slider')"/>
+                            <field name="value_option_ids" string="Answers" widget="many2many_tags"
+                                   options="{'no_create': True}" domain="[('question_id', '=', question_id)]"
+                                   invisible="question_type not in ('multi_select', 'multi_checkbox')"/>
+                            <field name="value_boolean" string="Answer" widget="boolean_toggle"
+                                   invisible="question_type != 'boolean'"/>
+                            <field name="value_latitude" invisible="question_type != 'geolocation'"/>
+                            <field name="value_longitude" invisible="question_type != 'geolocation'"/>
+                            <field name="value_reference" string="Answer" widget="checklist_many2one_reference"
+                                   invisible="question_type != 'many2one'"/>
+                            <field name="value_reference_ids" string="Answers" widget="checklist_many2many_reference"
+                                   invisible="question_type != 'many2many'"/>
+                            <field name="locked" widget="boolean_toggle"/>
+                        </group>
+                    </form>
+                </field>
+                <group string="Public URL">
+                    <field name="url" widget="CopyClipboardChar" readonly="1" nolabel="1" colspan="2"/>
+                    <field name="qr_code" widget="image" readonly="1" nolabel="1" colspan="2"
+                           options="{'size': [200, 200]}" invisible="not url"/>
+                </group>
+                <footer>
+                    <button name="action_open_url" type="object" string="Open Link" class="btn-primary"
+                            invisible="not url"/>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

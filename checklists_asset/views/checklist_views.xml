@@ -11,12 +11,13 @@
                 <field name="asset_required" invisible="1"/>
                 <field name="asset_domain" invisible="1"/>
                 <!-- The label is the template's Asset Selector Label, or "Asset". -->
-                <div class="o_td_label" invisible="not asset_enabled">
+                <!-- Public submissions have no asset. -->
+                <div class="o_td_label" invisible="not asset_enabled or is_public">
                     <label for="asset_id" string="Asset" invisible="asset_label"/>
                     <field name="asset_label" class="o_form_label" invisible="not asset_label"/>
                 </div>
-                <field name="asset_id" nolabel="1" invisible="not asset_enabled"
-                       required="asset_enabled and asset_required" readonly="state == 'done'"
+                <field name="asset_id" nolabel="1" invisible="not asset_enabled or is_public"
+                       required="asset_enabled and asset_required and not is_public" readonly="state == 'done'"
                        domain="asset_domain" options="{'no_create': True}"/>
             </xpath>
         </field>
