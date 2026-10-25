@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- CRM app icon (CLAUDE.md > Icon style, illustrated): a browser window
+       showing a sales funnel (the pipeline), with a signed contract and a
+       tick badge overlapping its lower right corner (deals closed by
+       e-signature). -->
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F9A3A3"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#2A3F8F" flood-opacity="0.22"/>
+    </filter>
+    <filter id="shadowSmall" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Browser window -->
+  <g filter="url(#shadow)">
+    <rect x="96" y="150" width="740" height="640" rx="64" fill="url(#panel)"/>
+    <path d="M160 150h612a64 64 0 0 1 64 64v58H96v-58a64 64 0 0 1 64-64z" fill="url(#header)"/>
+    <circle cx="180" cy="211" r="22" fill="#FF5A6E"/>
+    <circle cx="246" cy="211" r="22" fill="#FFC93C"/>
+    <circle cx="312" cy="211" r="22" fill="#14C9A5"/>
+  </g>
+
+  <!-- "Text" bars beside the funnel -->
+  <rect x="168" y="336" width="250" height="34" rx="17" fill="#A9ABDC"/>
+  <rect x="168" y="392" width="170" height="34" rx="17" fill="#A9ABDC" opacity="0.7"/>
+
+  <!-- Sales funnel: four stages narrowing towards the close -->
+  <rect x="168" y="468" width="560" height="62" rx="31" fill="url(#blue)"/>
+  <rect x="218" y="550" width="460" height="62" rx="31" fill="url(#header)"/>
+  <rect x="268" y="632" width="360" height="62" rx="31" fill="url(#coral)"/>
+  <rect x="318" y="714" width="260" height="40" rx="20" fill="url(#yellow)"/>
+  <rect x="190" y="476" width="300" height="20" rx="10" fill="url(#shine)"/>
+  <rect x="240" y="558" width="240" height="20" rx="10" fill="url(#shine)"/>
+  <rect x="290" y="640" width="180" height="20" rx="10" fill="url(#shine)"/>
+
+  <!-- Signed contract -->
+  <g filter="url(#shadowSmall)" transform="rotate(8 760 690)">
+    <rect x="610" y="470" width="300" height="400" rx="40" fill="url(#paper)"/>
+    <rect x="654" y="522" width="200" height="26" rx="13" fill="#A9ABDC"/>
+    <rect x="654" y="572" width="210" height="20" rx="10" fill="#A9ABDC" opacity="0.6"/>
+    <rect x="654" y="610" width="180" height="20" rx="10" fill="#A9ABDC" opacity="0.6"/>
+    <rect x="654" y="648" width="200" height="20" rx="10" fill="#A9ABDC" opacity="0.6"/>
+    <!-- signature on its line -->
+    <path d="M658 760c22-40 40-58 52-46 12 12-14 48 2 52 16 4 30-44 46-40 14 4 4 34 18 36 12 2 22-18 40-24"
+          fill="none" stroke="#2A3F8F" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="654" y="792" width="210" height="10" rx="5" fill="#A9ABDC"/>
+  </g>
+
+  <!-- Tick badge -->
+  <g filter="url(#shadowSmall)">
+    <circle cx="862" cy="826" r="98" fill="url(#teal)"/>
+    <ellipse cx="840" cy="780" rx="58" ry="30" fill="url(#shine)"/>
+    <path d="M816 826l32 32 62-66" fill="none" stroke="#FFFFFF" stroke-width="30"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

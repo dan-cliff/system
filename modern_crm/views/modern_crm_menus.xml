@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_modern_crm_root"
+              name="CRM"
+              web_icon="modern_crm,static/description/icon.png"
+              action="modern_crm_opportunity_action"
+              groups="group_modern_crm_user"
+              sequence="6"/>
+
+    <menuitem id="menu_modern_crm_leads" name="Leads" parent="menu_modern_crm_root" sequence="10"/>
+    <menuitem id="menu_modern_crm_lead_my" name="My Leads" parent="menu_modern_crm_leads"
+              action="modern_crm_lead_action_my" sequence="10"/>
+    <menuitem id="menu_modern_crm_lead_all" name="All Leads" parent="menu_modern_crm_leads"
+              action="modern_crm_lead_action" sequence="20"/>
+
+    <menuitem id="menu_modern_crm_opportunities" name="Opportunities" parent="menu_modern_crm_root" sequence="20"/>
+    <menuitem id="menu_modern_crm_pipeline" name="Pipeline" parent="menu_modern_crm_opportunities"
+              action="modern_crm_opportunity_action" sequence="10"/>
+    <menuitem id="menu_modern_crm_opportunity_my" name="My Opportunities" parent="menu_modern_crm_opportunities"
+              action="modern_crm_opportunity_action_my" sequence="20"/>
+
+    <menuitem id="menu_modern_crm_sales" name="Sales" parent="menu_modern_crm_root" sequence="30"/>
+    <menuitem id="menu_modern_crm_quotes" name="Quotes" parent="menu_modern_crm_sales"
+              action="modern_crm_quote_action" groups="sales_team.group_sale_salesman" sequence="10"/>
+    <menuitem id="menu_modern_crm_contracts" name="Contracts" parent="menu_modern_crm_sales"
+              action="modern_crm_contract_action" sequence="20"/>
+
+    <menuitem id="menu_modern_crm_customers" name="Customers" parent="menu_modern_crm_root" sequence="40"/>
+    <menuitem id="menu_modern_crm_accounts" name="Accounts" parent="menu_modern_crm_customers"
+              action="modern_crm_account_action" sequence="10"/>
+    <menuitem id="menu_modern_crm_contacts" name="Contacts" parent="menu_modern_crm_customers"
+              action="modern_crm_contact_action" sequence="20"/>
+
+    <menuitem id="menu_modern_crm_reporting" name="Reporting" parent="menu_modern_crm_root" sequence="80"/>
+    <menuitem id="menu_modern_crm_pipeline_analysis" name="Pipeline" parent="menu_modern_crm_reporting"
+              action="modern_crm_opportunity_action_analysis" sequence="10"/>
+    <menuitem id="menu_modern_crm_lead_analysis" name="Leads" parent="menu_modern_crm_reporting"
+              action="modern_crm_lead_action_analysis" sequence="20"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_modern_crm_reports" name="Reports" parent="menu_modern_crm_root" sequence="85"/>
+
+    <menuitem id="menu_modern_crm_config" name="Configuration" parent="menu_modern_crm_root"
+              groups="group_modern_crm_manager" sequence="90"/>
+    <menuitem id="menu_modern_crm_settings" name="Settings" parent="menu_modern_crm_config"
+              action="modern_crm_config_settings_action" groups="base.group_system" sequence="1"/>
+    <menuitem id="menu_modern_crm_stage" name="Stages" parent="menu_modern_crm_config"
+              action="modern_crm_stage_action" sequence="10"/>
+    <menuitem id="menu_modern_crm_contract_template" name="Contract Templates" parent="menu_modern_crm_config"
+              action="modern_crm_contract_template_action" sequence="20"/>
+    <menuitem id="menu_modern_crm_config_leads" name="Leads" parent="menu_modern_crm_config" sequence="30"/>
+    <menuitem id="menu_modern_crm_lead_source" name="Lead Sources" parent="menu_modern_crm_config_leads"
+              action="modern_crm_lead_source_action" sequence="10"/>
+    <menuitem id="menu_modern_crm_lead_rating" name="Lead Ratings" parent="menu_modern_crm_config_leads"
+              action="modern_crm_lead_rating_action" sequence="20"/>
+    <menuitem id="menu_modern_crm_industry" name="Industries" parent="menu_modern_crm_config_leads"
+              action="modern_crm_industry_action" sequence="30"/>
+    <menuitem id="menu_modern_crm_disqualify_reason" name="Disqualify Reasons" parent="menu_modern_crm_config_leads"
+              action="modern_crm_disqualify_reason_action" sequence="40"/>
+    <menuitem id="menu_modern_crm_config_opportunities" name="Opportunities" parent="menu_modern_crm_config" sequence="40"/>
+    <menuitem id="menu_modern_crm_opportunity_type" name="Opportunity Types" parent="menu_modern_crm_config_opportunities"
+              action="modern_crm_opportunity_type_action" sequence="10"/>
+    <menuitem id="menu_modern_crm_forecast_category" name="Forecast Categories" parent="menu_modern_crm_config_opportunities"
+              action="modern_crm_forecast_category_action" sequence="20"/>
+    <menuitem id="menu_modern_crm_lost_reason" name="Lost Reasons" parent="menu_modern_crm_config_opportunities"
+              action="modern_crm_lost_reason_action" sequence="30"/>
+    <menuitem id="menu_modern_crm_contact_role_type" name="Contact Roles" parent="menu_modern_crm_config_opportunities"
+              action="modern_crm_contact_role_type_action" sequence="40"/>
+</odoo>

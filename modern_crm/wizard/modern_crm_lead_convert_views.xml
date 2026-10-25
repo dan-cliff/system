@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="modern_crm_lead_convert_view_form" model="ir.ui.view">
+        <field name="name">modern.crm.lead.convert.form</field>
+        <field name="model">modern.crm.lead.convert</field>
+        <field name="arch" type="xml">
+            <form string="Convert Lead">
+                <field name="lead_id" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                <group>
+                    <group string="Account">
+                        <field name="account_action" widget="radio" nolabel="1" colspan="2"/>
+                        <field name="account_name" invisible="account_action != 'create'"
+                               required="account_action == 'create'"/>
+                        <field name="account_id" invisible="account_action != 'existing'"
+                               required="account_action == 'existing'"/>
+                    </group>
+                    <group string="Contact">
+                        <field name="contact_action" widget="radio" nolabel="1" colspan="2"/>
+                        <field name="contact_id" invisible="contact_action != 'existing'"
+                               required="contact_action == 'existing'"/>
+                    </group>
+                </group>
+                <group>
+                    <group string="Opportunity">
+                        <field name="create_opportunity"/>
+                        <field name="opportunity_name" invisible="not create_opportunity"
+                               required="create_opportunity"/>
+                        <field name="close_date" options="{'numeric': True}" invisible="not create_opportunity"
+                               required="create_opportunity"/>
+                        <field name="amount" invisible="not create_opportunity"/>
+                    </group>
+                    <group string="Owner">
+                        <field name="user_id" widget="many2one_avatar_user"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_convert" type="object" string="Convert" class="btn-primary" data-hotkey="q"/>
+                    <button string="Discard" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

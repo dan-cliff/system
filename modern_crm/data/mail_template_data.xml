@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- To each signer when it is their turn to sign ("object" is the signer). -->
+        <record id="mail_template_contract_signature_request" model="mail.template">
+            <field name="name">CRM: Contract Signature Request</field>
+            <field name="model_id" ref="modern_crm.model_modern_crm_contract_signer"/>
+            <field name="subject">Please sign: {{ object.contract_id.title }} ({{ object.contract_id.name }})</field>
+            <field name="email_from">{{ (object.contract_id.user_id.email_formatted or object.contract_id.company_id.email_formatted or user.email_formatted) }}</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="description">Sent to each contract signer when it is their turn to sign</field>
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+        Hello <t t-out="object.partner_id.name or ''">Brandon Freeman</t>,
+        <br/><br/>
+        <t t-out="object.contract_id.user_id.name or object.contract_id.company_id.name or ''">Mitchell Admin</t>
+        has sent you <strong t-out="object.contract_id.title or ''">Sales Agreement</strong>
+        (<t t-out="object.contract_id.name or ''">CON/00001</t>) to sign<t t-if="object.role"> as
+        <t t-out="object.role or ''">Customer</t></t>.
+        <br/><br/>
+        Review the contract and sign it online:
+    </p>
+    <div style="margin: 16px 0px 16px 0px;">
+        <a t-att-href="object.sign_url"
+           style="background-color: #5B3DB8; padding: 10px 18px; text-decoration: none; color: #fff; border-radius: 6px; font-size: 13px;">
+            Review and Sign
+        </a>
+    </div>
+    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+        This link is personal to you: please do not forward it.
+        <t t-if="not is_html_empty(object.contract_id.user_id.signature)">
+            <br/><br/>
+            <div>--<br/><t t-out="object.contract_id.user_id.signature or ''">Mitchell Admin</t></div>
+        </t>
+    </p>
+</div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- Posted on the contract (to its followers, the signers among them) with
+             the signed PDF once everyone has signed. -->
+        <record id="mail_template_contract_signed" model="mail.template">
+            <field name="name">CRM: Contract Signed</field>
+            <field name="model_id" ref="modern_crm.model_modern_crm_contract"/>
+            <field name="subject">Signed: {{ object.title }} ({{ object.name }})</field>
+            <field name="email_from">{{ (object.user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+            <field name="description">Sent to the signers with the signed contract once everyone has signed</field>
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+        Hello,
+        <br/><br/>
+        <strong t-out="object.title or ''">Sales Agreement</strong> (<t t-out="object.name or ''">CON/00001</t>)
+        has been signed by everyone:
+    </p>
+    <ul style="font-size: 13px;">
+        <li t-foreach="object.signer_ids" t-as="signer">
+            <t t-out="signer.signed_by or signer.partner_id.name or ''">Brandon Freeman</t>,
+            <t t-out="signer._format_signed_on()">01/01/2026 10:00</t>
+        </li>
+    </ul>
+    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+        The signed contract is attached for your records.
+    </p>
+</div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+    </data>
+</odoo>
