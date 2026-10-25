@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="checklist_view_form_talent" model="ir.ui.view">
+        <field name="name">checklist.checklist.form.talent</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklists.checklist_view_form"/>
+        <field name="arch" type="xml">
+            <group name="checklist_details" position="after">
+                <group name="talent" string="Talent" invisible="not talent_applicant_id">
+                    <field name="talent_applicant_id" readonly="1"/>
+                    <field name="talent_job_id" readonly="1"/>
+                    <field name="talent_submitted_date" readonly="1" invisible="not talent_submitted_date"
+                           options="{'numeric': True}"/>
+                    <field name="talent_url" widget="CopyClipboardChar" readonly="1"
+                           invisible="state != 'draft'"/>
+                </group>
+            </group>
+        </field>
+    </record>
+
+    <record id="checklist_view_list_talent" model="ir.ui.view">
+        <field name="name">checklist.checklist.list.talent</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklists.checklist_view_list"/>
+        <field name="arch" type="xml">
+            <field name="template_id" position="after">
+                <field name="talent_applicant_id" optional="hide"/>
+                <field name="talent_job_id" optional="hide"/>
+                <field name="talent_submitted_date" optional="hide" options="{'numeric': True}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="checklist_view_search_talent" model="ir.ui.view">
+        <field name="name">checklist.checklist.search.talent</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklists.checklist_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//searchpanel" position="before">
+                <field name="talent_applicant_id"/>
+                <field name="talent_job_id"/>
+                <filter name="talent_questionnaires" string="Talent Questionnaires"
+                        domain="[('talent_applicant_id', '!=', False)]"/>
+                <filter name="group_by_talent_job" string="Job Position"
+                        context="{'group_by': 'talent_job_id'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

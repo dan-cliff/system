@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_job_view_form_seek" model="ir.ui.view">
+        <field name="name">hr.job.form.seek</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr.view_hr_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_seek_post" type="object" string="Post to SEEK" class="btn-secondary"
+                        invisible="not id or seek_state == 'posted'"
+                        groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_seek_post" type="object" string="Update SEEK Ad" class="btn-secondary"
+                        invisible="seek_state != 'posted'"
+                        groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_seek_close" type="object" string="Close SEEK Ad" class="btn-secondary"
+                        invisible="seek_state != 'posted'"
+                        confirm="Close the ad on SEEK? It stops taking applications."
+                        groups="hr_recruitment.group_hr_recruitment_user"/>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_seek_applications" type="object" class="oe_stat_button" icon="fa-search"
+                        invisible="not seek_application_count"
+                        groups="hr_recruitment.group_hr_recruitment_user">
+                    <field name="seek_application_count" widget="statinfo" string="From SEEK"/>
+                </button>
+            </div>
+            <xpath expr="//page[@name='job_description_page']" position="after">
+                <page string="SEEK" name="talent_seek_page" groups="hr_recruitment.group_hr_recruitment_user">
+                    <group>
+                        <group string="Ad">
+                            <field name="seek_state" readonly="1" widget="badge"
+                                   decoration-success="seek_state == 'posted'" decoration-muted="seek_state == 'closed'"/>
+                            <field name="seek_profile_id" invisible="not seek_profile_id"/>
+                            <field name="seek_posted_date" invisible="not seek_posted_date" options="{'numeric': True}"/>
+                            <field name="seek_category_id" options="{'no_create': True}"
+                                   placeholder="Load categories in Settings first"/>
+                            <label for="seek_location_id"/>
+                            <div class="o_row">
+                                <field name="seek_location_id" options="{'no_create': True}"/>
+                                <button name="action_seek_find_location" type="object" string="Find on SEEK"
+                                        class="btn-link" icon="fa-search" invisible="not id"/>
+                            </div>
+                            <field name="seek_work_type" placeholder="From the Employment Type"/>
+                            <field name="seek_summary" placeholder="One line shown in SEEK's search results"/>
+                        </group>
+                        <group string="Pay">
+                            <field name="seek_pay_basis"/>
+                            <field name="seek_pay_interval"/>
+                            <field name="seek_currency_id" options="{'no_create': True}"/>
+                            <field name="seek_pay_min"/>
+                            <field name="seek_pay_max"/>
+                            <field name="seek_pay_description" placeholder="e.g. $80k – $95k + super"/>
+                        </group>
+                    </group>
+                    <group string="Ad Product">
+                        <div colspan="2">
+                            <button name="action_seek_fetch_products" type="object" class="btn-secondary"
+                                    icon="fa-refresh" string="Get Ad Products from SEEK" invisible="not id"/>
+                            <div class="text-muted small mt-1">
+                                SEEK's ad products and prices depend on the category, location and pay,
+                                so get them again after changing those.
+                            </div>
+                        </div>
+                        <field name="seek_ad_product_id" widget="radio" invisible="not seek_ad_product_ids"
+                               options="{'no_create': True}"/>
+                        <field name="seek_ad_product_ids" invisible="1"/>
+                    </group>
+                    <div class="text-muted small">
+                        The ad text is the Job Summary; SEEK lists the Recruiter as the contact.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_job_view_search_seek" model="ir.ui.view">
+        <field name="name">hr.job.search.seek</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr_recruitment.view_job_filter_recruitment"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='my_favorite_jobs']" position="after">
+                <filter name="seek_posted" string="On SEEK" domain="[('seek_state', '=', 'posted')]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

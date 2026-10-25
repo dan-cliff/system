@@ -1,0 +1,192 @@
+// Talent: a softer, more modern look for Recruitment. Colours follow the
+// house icon palette (docs/icon_style).
+
+$talent-avatar-colours: (
+    0: (#FF5A6E, #F9A3A3),
+    1: (#FF9F1C, #FFC93C),
+    2: (#0A6CF0, #3BB8FF),
+    3: (#14A3A3, #14C9A5),
+    4: (#5B3DB8, #8E5CF0),
+    5: (#8E2F7A, #B65CCB),
+    6: (#2A3F8F, #0A6CF0),
+    7: (#14A3A3, #3BB8FF),
+);
+$talent-radius: 0.875rem;
+$talent-shadow: 0 1px 2px rgba(42, 63, 143, 0.06), 0 4px 14px rgba(42, 63, 143, 0.08);
+$talent-shadow-hover: 0 2px 4px rgba(42, 63, 143, 0.08), 0 10px 24px rgba(42, 63, 143, 0.14);
+
+.o_talent_avatar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, #5B3DB8, #14A3A3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 6px rgba(42, 63, 143, 0.2);
+
+    @each $key, $pair in $talent-avatar-colours {
+        &[data-color="#{$key}"] {
+            background: linear-gradient(135deg, nth($pair, 1), nth($pair, 2));
+        }
+    }
+
+    // On the form the avatar is a read-only Char field.
+    span {
+        color: inherit;
+    }
+}
+
+.o_talent_avatar_lg {
+    width: 3.5rem !important;
+    min-width: 3.5rem;
+    max-width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.35rem;
+}
+
+// ── Applicant cards ────────────────────────────────────────────────────
+.o_talent_kanban {
+    .o_kanban_group {
+        background-color: transparent;
+    }
+
+    .o_kanban_header_title .o_column_title {
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    .o_kanban_record {
+        border: 1px solid rgba(169, 171, 220, 0.35);
+        border-radius: $talent-radius;
+        box-shadow: $talent-shadow;
+        margin-bottom: 0.625rem;
+        transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+        &:hover {
+            box-shadow: $talent-shadow-hover;
+            transform: translateY(-1px);
+        }
+
+        > div:first-child, .o_kanban_record_details {
+            border-radius: $talent-radius;
+        }
+
+        .o_talent_card_head {
+            [name="partner_name"] {
+                line-height: 1.2;
+            }
+
+            [name="job_id"] {
+                color: var(--bs-secondary-color, #6c757d);
+                font-size: 0.85rem;
+            }
+        }
+
+        .o_talent_card_meta {
+            > span {
+                max-width: 100%;
+            }
+        }
+
+        .o_field_many2many_tags .badge {
+            border-radius: 999px;
+            padding-inline: 0.55rem;
+        }
+
+        footer {
+            border-top: 1px dashed rgba(169, 171, 220, 0.5);
+            padding-top: 0.4rem;
+            margin-top: 0.4rem;
+        }
+    }
+
+    // Progress bar above each stage: rounder and thinner.
+    .o_column_progress {
+        border-radius: 999px;
+        overflow: hidden;
+        height: 0.4rem;
+    }
+}
+
+// ── Job Position cards ─────────────────────────────────────────────────
+.o_talent_job_kanban .o_kanban_renderer .o_kanban_record {
+    border: 1px solid rgba(169, 171, 220, 0.35);
+    border-radius: $talent-radius;
+    box-shadow: $talent-shadow;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    position: relative;
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+    // A thin gradient accent down the left edge.
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: linear-gradient(180deg, #8E5CF0, #14A3A3);
+    }
+
+    &:hover {
+        box-shadow: $talent-shadow-hover;
+        transform: translateY(-1px);
+    }
+
+    .number {
+        font-weight: 700;
+        background: linear-gradient(135deg, #5B3DB8, #0A6CF0);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .btn {
+        border-radius: 999px;
+    }
+}
+
+// ── Applicant and Job forms ────────────────────────────────────────────
+.o_talent_applicant_form, .o_talent_job_form {
+    .o_form_sheet_bg > .o_form_sheet, .o_form_sheet {
+        border-radius: $talent-radius;
+        box-shadow: $talent-shadow;
+    }
+
+    .o_form_statusbar .o_statusbar_status .o_arrow_button {
+        font-weight: 500;
+    }
+
+    .oe_button_box .oe_stat_button {
+        border-radius: 0.6rem;
+    }
+
+    .o_notebook .nav-tabs .nav-link {
+        border-top-left-radius: 0.6rem;
+        border-top-right-radius: 0.6rem;
+    }
+
+    .o_field_many2many_tags .badge {
+        border-radius: 999px;
+    }
+}
+
+.o_talent_applicant_form .o_talent_title h1 {
+    justify-content: flex-start !important;
+    gap: 0.85rem;
+
+    > .o_field_widget:not(.o_talent_avatar) {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+// ── Lists ──────────────────────────────────────────────────────────────
+.o_talent_list .o_field_many2many_tags .badge {
+    border-radius: 999px;
+}

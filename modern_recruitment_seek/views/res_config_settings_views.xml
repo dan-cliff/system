@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_seek" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.talent.seek</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="modern_recruitment.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='talent_seek_setting']" position="inside">
+                <div class="content-group mt-2" invisible="not module_modern_recruitment_seek">
+                    <div class="text-muted small mb-2">
+                        The credentials SEEK gives integration partners (developer.seek.com).
+                    </div>
+                    <div class="row">
+                        <label for="seek_client_id" class="col-lg-4 o_light_label"/>
+                        <field name="seek_client_id" class="col-lg-8"/>
+                    </div>
+                    <div class="row">
+                        <label for="seek_client_secret" class="col-lg-4 o_light_label"/>
+                        <field name="seek_client_secret" class="col-lg-8" password="True"/>
+                    </div>
+                    <div class="row">
+                        <label for="seek_hirer_id" class="col-lg-4 o_light_label"/>
+                        <field name="seek_hirer_id" class="col-lg-8"/>
+                    </div>
+                    <div class="row mt-2">
+                        <label for="seek_webhook_url" class="col-lg-4 o_light_label"/>
+                        <field name="seek_webhook_url" class="col-lg-8" widget="CopyClipboardChar" readonly="1"/>
+                    </div>
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        <button name="action_seek_test" type="object" class="btn-link ps-0" icon="fa-plug"
+                                string="Test Connection"/>
+                        <button name="action_seek_sync_categories" type="object" class="btn-link" icon="fa-refresh"
+                                string="Load SEEK Categories"/>
+                        <button name="action_seek_register_webhook" type="object" class="btn-link" icon="fa-bell"
+                                string="Receive SEEK Applications"/>
+                    </div>
+                    <div class="text-success small" invisible="not seek_webhook_subscription_id">
+                        <i class="fa fa-check me-1"/>SEEK sends new applications to Talent.
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

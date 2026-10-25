@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="0.55" stop-color="#5B3DB8"/><stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/><stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FBB8B8"/><stop offset="1" stop-color="#F9A3A3"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/><stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/><stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A55B0"/><stop offset="1" stop-color="#2A3F8F"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E3E4F5"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+    <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#2A3F8F" flood-opacity="0.28"/>
+    </filter>
+    <clipPath id="lensClip"><circle cx="700" cy="660" r="118"/></clipPath>
+  </defs>
+  <ellipse cx="512" cy="928" rx="380" ry="32" fill="url(#shadow)"/>
+
+  <!-- Profile card -->
+  <g filter="url(#soft)">
+    <rect x="150" y="120" width="560" height="740" rx="76" fill="url(#rim)"/>
+    <rect x="194" y="164" width="472" height="652" rx="44" fill="url(#panel)"/>
+  </g>
+  <rect x="220" y="140" width="260" height="12" rx="6" fill="#FFFFFF" opacity="0.28"/>
+
+  <!-- Person: head and rounded body on a soft disc -->
+  <circle cx="430" cy="330" r="112" fill="#F2F2FA"/>
+  <circle cx="430" cy="330" r="112" fill="url(#coral)" opacity="0.14"/>
+  <circle cx="430" cy="300" r="54" fill="url(#coral)"/>
+  <path d="M342 412 a88 70 0 0 1 176 0 v6 a14 14 0 0 1 -14 14 h-148 a14 14 0 0 1 -14 -14 z" fill="url(#coral)"/>
+  <ellipse cx="412" cy="276" rx="22" ry="12" fill="#FFFFFF" opacity="0.4"/>
+
+  <!-- Text bars -->
+  <rect x="270" y="500" width="320" height="32" rx="16" fill="#A9ABDC"/>
+  <rect x="270" y="556" width="220" height="26" rx="13" fill="#C9CAEA"/>
+  <rect x="270" y="626" width="72" height="72" rx="20" fill="url(#teal)"/>
+  <path d="M288 662 l14 14 l26 -28" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="362" y="636" width="130" height="24" rx="12" fill="#A9ABDC"/>
+  <rect x="362" y="672" width="90" height="20" rx="10" fill="#C9CAEA"/>
+  <rect x="270" y="726" width="72" height="72" rx="20" fill="url(#blue)" opacity="0.9"/>
+  <path d="M288 762 l14 14 l26 -28" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="362" y="736" width="110" height="24" rx="12" fill="#A9ABDC"/>
+
+  <!-- Accent: magnifying glass finding a candidate -->
+  <g filter="url(#lift)">
+    <path d="M790 752 l118 118" stroke="url(#navy)" stroke-width="64" stroke-linecap="round"/>
+    <circle cx="700" cy="660" r="150" fill="url(#yellow)"/>
+    <circle cx="700" cy="660" r="118" fill="url(#lens)"/>
+  </g>
+  <g clip-path="url(#lensClip)">
+    <circle cx="700" cy="628" r="40" fill="url(#pink)"/>
+    <path d="M632 742 a68 60 0 0 1 136 0 v40 h-136 z" fill="url(#pink)"/>
+  </g>
+  <path d="M600 600 a112 112 0 0 1 62 -52" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" opacity="0.75"/>
+  <path d="M818 560 a150 150 0 0 1 22 40" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+</svg>

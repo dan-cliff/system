@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_talent_seek_config" name="SEEK"
+              parent="hr_recruitment.menu_hr_recruitment_configuration" sequence="55"
+              groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_talent_seek_category" name="Categories"
+              parent="menu_talent_seek_config" action="action_talent_seek_category" sequence="10"/>
+    <menuitem id="menu_talent_seek_location" name="Locations"
+              parent="menu_talent_seek_config" action="action_talent_seek_location" sequence="20"/>
+</odoo>

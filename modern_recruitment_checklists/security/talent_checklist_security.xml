@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Workflow permission: send screening questionnaires and see the answers. -->
+        <record id="privilege_talent_questionnaire" model="res.groups.privilege">
+            <field name="name">Talent: Questionnaires</field>
+            <field name="category_id" ref="base.module_category_human_resources"/>
+            <field name="sequence">12</field>
+        </record>
+        <record id="group_talent_questionnaire" model="res.groups">
+            <field name="name">Allowed</field>
+            <field name="privilege_id" ref="privilege_talent_questionnaire"/>
+            <field name="comment">Send screening questionnaires (Checklists) to applicants and see their answers.</field>
+            <field name="implied_ids" eval="[(4, ref('hr_recruitment.group_hr_recruitment_user'))]"/>
+        </record>
+    </data>
+
+    <!-- The Talent Administrator has every Talent permission. -->
+    <record id="hr_recruitment.group_hr_recruitment_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_talent_questionnaire'))]"/>
+    </record>
+</odoo>
