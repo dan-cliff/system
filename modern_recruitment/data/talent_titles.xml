@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recruitment is called Talent wherever it is a title. Recruitment's
+         menus and actions are reloaded when it upgrades, and this module
+         (which depends on it) is upgraded with it, so the names come back. -->
+
+    <!-- ── Menus ──────────────────────────────────────────────────────── -->
+    <record id="hr_recruitment.hr_applicant_report_menu" model="ir.ui.menu">
+        <field name="name">Talent Analysis</field>
+    </record>
+    <!-- Employees › Configuration › Recruitment -->
+    <record id="hr.menu_config_recruitment" model="ir.ui.menu">
+        <field name="name">Talent</field>
+    </record>
+
+    <!-- ── Actions ────────────────────────────────────────────────────── -->
+    <record id="hr_recruitment.hr_applicant_action_analysis" model="ir.actions.act_window">
+        <field name="name">Talent Analysis</field>
+    </record>
+    <record id="hr_recruitment.action_hr_recruitment_report_filtered_department" model="ir.actions.act_window">
+        <field name="name">Talent Analysis</field>
+    </record>
+    <record id="hr_recruitment.action_hr_recruitment_report_filtered_job" model="ir.actions.act_window">
+        <field name="name">Talent Analysis</field>
+    </record>
+    <record id="hr_recruitment.hr_job_stage_act" model="ir.actions.act_window">
+        <field name="name">Talent / Applicants Stages</field>
+    </record>
+    <record id="hr_recruitment.mail_activity_plan_action_config_hr_applicant" model="ir.actions.act_window">
+        <field name="name">Talent Plans</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Talent Activity Plan
+            </p>
+            <p>
+                Activity plans are used to assign a list of activities in just a few clicks
+                (e.g. "Language Test", "Prepare Offer", ...)
+            </p>
+        </field>
+    </record>
+
+    <!-- ── No-update records: written on every install and upgrade ───── -->
+    <function model="mail.template" name="write"
+              eval="[[ref('hr_recruitment.email_template_data_applicant_refuse')], {'name': 'Talent: Refuse'}]"/>
+    <function model="mail.template" name="write"
+              eval="[[ref('hr_recruitment.email_template_data_applicant_interest')], {'name': 'Talent: Interest'}]"/>
+    <function model="mail.template" name="write"
+              eval="[[ref('hr_recruitment.email_template_data_applicant_congratulations')], {'name': 'Talent: Application Acknowledgement'}]"/>
+    <function model="mail.template" name="write"
+              eval="[[ref('hr_recruitment.email_template_data_applicant_not_interested')], {'name': 'Talent: Not interested anymore'}]"/>
+
+    <!-- The app in the Apps list, with the Talent icon, and its category.
+         Update Apps List restores Recruitment's name, summary and icon;
+         upgrading this module puts them back. -->
+    <function model="ir.module.module" name="write"
+              eval="[[ref('base.module_hr_recruitment')], {
+                  'shortdesc': 'Talent',
+                  'summary': 'Track your talent pipeline',
+                  'icon': '/modern_recruitment/static/description/icon.png',
+              }]"/>
+    <function model="ir.module.category" name="write"
+              eval="[[ref('base.module_category_human_resources_recruitment')], {'name': 'Talent'}]"/>
+</odoo>

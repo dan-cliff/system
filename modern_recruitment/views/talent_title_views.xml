@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recruitment is called Talent in view titles and labels too. -->
+    <record id="talent_applicant_view_form_title" model="ir.ui.view">
+        <field name="name">hr.applicant.form.talent.title</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Jobs - Talent Form</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="talent_applicant_view_pivot_title" model="ir.ui.view">
+        <field name="name">hr.applicant.pivot.talent.title</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_pivot"/>
+        <field name="arch" type="xml">
+            <xpath expr="//pivot" position="attributes">
+                <attribute name="string">Talent Analysis</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="talent_applicant_view_graph_title" model="ir.ui.view">
+        <field name="name">hr.applicant.graph.talent.title</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_graph"/>
+        <field name="arch" type="xml">
+            <xpath expr="//graph" position="attributes">
+                <attribute name="string">Talent Analysis</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="talent_applicant_view_search_title" model="ir.ui.view">
+        <field name="name">hr.applicant.search.talent.title</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="attributes">
+                <attribute name="string">Talent Analysis</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Stages: "Folded in Recruitment Pipe" -->
+    <record id="talent_stage_view_kanban_title" model="ir.ui.view">
+        <field name="name">hr.recruitment.stage.kanban.talent.title</field>
+        <field name="model">hr.recruitment.stage</field>
+        <field name="inherit_id" ref="hr_recruitment.view_hr_recruitment_stage_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='card']/div[field[@name='fold']]" position="replace">
+                <div class="d-flex">
+                    Folded in Talent Pipe:
+                    <field name="fold" class="ms-1" widget="boolean"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Employees › Departments: the Recruitment report link on each card. -->
+    <record id="talent_department_view_kanban_title" model="ir.ui.view">
+        <field name="name">hr.department.kanban.talent.title</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_department_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_kanban_manage_reports')]//a[@groups='hr_recruitment.group_hr_recruitment_interviewer']" position="replace">
+                <a class="dropdown-item" name="%(hr_recruitment.action_hr_recruitment_report_filtered_department)d"
+                    type="action" groups="hr_recruitment.group_hr_recruitment_interviewer">
+                    Talent
+                </a>
+            </xpath>
+        </field>
+    </record>
+</odoo>
