@@ -24,6 +24,14 @@
                 <group>
                     <field name="lock_contact" widget="boolean_toggle"/>
                 </group>
+                <!-- Fields the public form leaves out: saved on the checklist, never shown. -->
+                <group string="Checklist" name="checklist_fields">
+                    <p class="text-muted" colspan="2">
+                        Not shown on the public form: saved on every checklist submitted with this link.
+                    </p>
+                    <field name="user_id" options="{'no_create': True}"/>
+                    <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                </group>
                 <separator string="Answers"/>
                 <field name="line_ids">
                     <list>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists',
-    'version': '19.0.1.8.1',
+    'version': '19.0.1.9.0',
     'category': 'Productivity',
     'summary': 'General-purpose checklists built from templates, grouped into Checklist Groups',
     'description': """
@@ -24,7 +24,10 @@
         - Public URL Builder: links that fill in chosen contact details and
           answers from their query string, optionally locked (read-only). Links
           are signed, can be built for any combination of values and used for
-          any number of submissions; "New Link" on the template retires them all
+          any number of submissions; "New Link" on the template retires them all.
+          They can also set the fields the public form leaves out (Completed By,
+          Company, and with the add-ons the Asset and Organisation), which are
+          saved on the checklists submitted with them
 
         With Organisation Structure installed, checklists get the Division / Business Unit /
         Location / Department fields automatically (see org_structure).
