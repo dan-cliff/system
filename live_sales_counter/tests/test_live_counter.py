@@ -91,10 +91,9 @@ class TestLiveCounter(LiveCounterCommon):
         self.assertEqual([c['name'] for c in data['channels']], ['Shop Team'])
 
     def test_untaxed_amounts(self):
-        tax_group = self.env['account.tax.group'].create({'name': 'VAT', 'country_id': self.gb.id})
+        tax_group = self.env['account.tax.group'].create({'name': 'VAT'})
         tax = self.env['account.tax'].create({
             'name': 'VAT 20', 'amount': 20.0, 'type_tax_use': 'sale', 'tax_group_id': tax_group.id,
-            'country_id': self.gb.id,
         })
         order = self._sell(qty=1)
         order.order_line.tax_ids = tax

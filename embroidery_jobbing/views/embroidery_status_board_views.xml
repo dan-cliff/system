@@ -11,7 +11,7 @@
                 <field name="layout"/>
                 <field name="theme"/>
                 <field name="machine_ids" widget="many2many_tags"/>
-                <field name="display_count" string="Display Screens"/>
+                <field name="display_count" string="Wall Displays"/>
             </list>
         </field>
     </record>
@@ -27,7 +27,7 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_displays" type="object" class="oe_stat_button" icon="fa-television">
-                            <field name="display_count" widget="statinfo" string="Display Screens"/>
+                            <field name="display_count" widget="statinfo" string="Wall Displays"/>
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>

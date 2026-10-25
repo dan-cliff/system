@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Embroidery Jobbing',
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.2.1',
     'category': 'Manufacturing/Embroidery',
     'summary': 'Embroidery work orders, a .pes design library and machine management with live stitch-out progress',
     'description': """
@@ -19,7 +19,7 @@
           machines that collects the jobs from Odoo, delivers the files and
           reports progress back
         - Status boards: full-screen machine status pages for a TV on the
-          wall, shown by a Display Screen Node, with their machines,
+          wall, shown by an Embroidery Wall Display Node, with their machines,
           content and layout set in Odoo
         - Both Node programs ship with the module and update over the air
     """,

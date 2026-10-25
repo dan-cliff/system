@@ -1,6 +1,6 @@
 {
     'name': 'Live Sales Counter',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.1.0',
     'category': 'Sales/Sales',
     'summary': 'Live, animated sales counter and world map of where buyers are, '
                'across every sales channel, as a private or public web page',

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Machine status page for display screens: a Display Screen Node
+"""Machine status page for wall displays: an Embroidery Wall Display Node
 (a Raspberry Pi plugged into a TV).
 
 Chromium on the Node opens the Node agent's local address, which forwards
@@ -22,7 +22,7 @@ from odoo.addons.iot_interfaces.controllers.main import authenticate, error_resp
 
 from ..models.iot_node import ROLE_DISPLAY
 
-PAGE_VERSION = '4'
+PAGE_VERSION = '3'
 
 
 def _page(data_url, title):
@@ -42,11 +42,6 @@ class EmbroideryDisplayController(http.Controller):
         display, error = authenticate(roles=[ROLE_DISPLAY])
         if error:
             return error
-        return self._display_page(display)
-
-    def _display_page(self, display):
-        """The page the screen shows. A hook so other apps can show their own
-        page (requests are signed once, so never authenticate again here)."""
         board = display.embroidery_board_id
         return _page('data.json', board.title or board.name)
 
@@ -56,10 +51,6 @@ class EmbroideryDisplayController(http.Controller):
         display, error = authenticate(roles=[ROLE_DISPLAY])
         if error:
             return error
-        return self._display_data(display, w, h)
-
-    def _display_data(self, display, w=None, h=None):
-        """What the status page shows. A hook like _display_page."""
         size = '%sx%s' % (w, h) if (w or '').isdigit() and (h or '').isdigit() else None
         display._iot_heartbeat(request.httprequest.remote_addr)
         if size and size != display.screen_size:
