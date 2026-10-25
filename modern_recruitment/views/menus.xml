@@ -7,6 +7,11 @@
         <field name="name">Talent</field>
         <field name="web_icon">modern_recruitment,static/description/icon.png</field>
     </record>
+    <!-- The Talent icon in the Apps list too. A function, as the module
+         record is no-update data; Update Apps List restores Recruitment's
+         icon and upgrading this module puts it back. -->
+    <function model="ir.module.module" name="write"
+              eval="[[ref('base.module_hr_recruitment')], {'icon': '/modern_recruitment/static/description/icon.png'}]"/>
     <record id="hr_recruitment.res_groups_privilege_recruitment" model="res.groups.privilege">
         <field name="name">Talent</field>
     </record>

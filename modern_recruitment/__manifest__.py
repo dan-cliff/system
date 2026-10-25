@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Talent',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Human Resources/Recruitment',
     'summary': 'A modern look for Recruitment, renamed Talent, with optional LinkedIn, SEEK and Jora job boards',
     'description': """
