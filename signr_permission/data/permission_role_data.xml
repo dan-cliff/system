@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_signr_admin" model="permission.role">
+            <field name="name">Sign'r – Administrator</field>
+            <field name="description">Everything in Sign'r: create, edit and delete any template or sign request, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('signr.privilege_signr'), 'group_id': ref('signr.group_signr_admin')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_create_only'), 'group_id': ref('signr.group_signr_template_create_only')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_edit_own'), 'group_id': ref('signr.group_signr_template_edit_own')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_edit_team'), 'group_id': ref('signr.group_signr_template_edit_team')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_edit_all'), 'group_id': ref('signr.group_signr_template_edit_all')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_view_all'), 'group_id': ref('signr.group_signr_template_view_all')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_delete_own'), 'group_id': ref('signr.group_signr_template_delete_own')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_delete_all'), 'group_id': ref('signr.group_signr_template_delete_all')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_create_only'), 'group_id': ref('signr.group_signr_request_create_only')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_edit_own'), 'group_id': ref('signr.group_signr_request_edit_own')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_edit_team'), 'group_id': ref('signr.group_signr_request_edit_team')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_edit_all'), 'group_id': ref('signr.group_signr_request_edit_all')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_view_all'), 'group_id': ref('signr.group_signr_request_view_all')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_delete_own'), 'group_id': ref('signr.group_signr_request_delete_own')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_delete_all'), 'group_id': ref('signr.group_signr_request_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_signr_manager" model="permission.role">
+            <field name="name">Sign'r – Manager</field>
+            <field name="description">Create, view and edit their own and their team's templates and sign requests. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_edit_team'), 'group_id': ref('signr.group_signr_template_edit_team')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_edit_team'), 'group_id': ref('signr.group_signr_request_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_signr_employee" model="permission.role">
+            <field name="name">Sign'r – Employee</field>
+            <field name="description">Create, view and edit their own templates and sign requests. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_template_edit_own'), 'group_id': ref('signr.group_signr_template_edit_own')}),
+                (0, 0, {'privilege_id': ref('signr.privilege_signr_request_edit_own'), 'group_id': ref('signr.group_signr_request_edit_own')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

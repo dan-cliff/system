@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_signr_root"
+              name="Sign'r"
+              sequence="86"
+              web_icon="signr,static/description/icon.png"
+              groups="signr.group_signr_user"/>
+
+    <menuitem id="menu_signr_requests"
+              name="Sign Requests"
+              parent="menu_signr_root"
+              action="action_signr_request"
+              sequence="10"/>
+
+    <menuitem id="menu_signr_templates"
+              name="Templates"
+              parent="menu_signr_root"
+              action="action_signr_template"
+              sequence="20"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_signr_reports" name="Reports" parent="menu_signr_root" sequence="90"/>
+
+    <menuitem id="menu_signr_config"
+              name="Configuration"
+              parent="menu_signr_root"
+              sequence="100"
+              groups="signr.group_signr_admin"/>
+
+    <menuitem id="menu_signr_settings"
+              name="Settings"
+              parent="menu_signr_config"
+              action="action_signr_config_settings"
+              sequence="0"
+              groups="base.group_system"/>
+
+    <menuitem id="menu_signr_document_types"
+              name="Document Types"
+              parent="menu_signr_config"
+              action="action_signr_document_type"
+              sequence="10"/>
+</odoo>
