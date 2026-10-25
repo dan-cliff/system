@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 from urllib.parse import urlencode
 
-from odoo import models
+from odoo import fields, models
 from odoo.tools import html2plaintext
 
 
 class HrJob(models.Model):
     _inherit = 'hr.job'
+
+    interviewer_ids = fields.Many2many(
+        help="The Interviewers set on the job position can see all Applicants in it. They have access to the "
+             "information, the attachments, the meeting management and they can refuse him. You don't need to "
+             "have Talent rights to be set as an interviewer.",
+    )
 
     # ── Helpers for the job board apps (LinkedIn, SEEK, Jora) ─────────────
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Talent',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.1.0',
     'category': 'Human Resources/Recruitment',
     'summary': 'A modern look for Recruitment, renamed Talent, with optional LinkedIn, SEEK and Jora job boards',
     'description': """
@@ -34,7 +34,9 @@
         'views/config_list_views.xml',
         'views/mail_canned_response_views.xml',
         'views/res_config_settings_views.xml',
+        'views/talent_title_views.xml',
         'views/menus.xml',
+        'data/talent_titles.xml',
     ],
     'assets': {
         'web.assets_backend': [
