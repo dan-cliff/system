@@ -180,32 +180,32 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Public Submission" name="public_submission">
-                            <group>
-                                <group>
-                                    <field name="public_enabled" widget="boolean_toggle"/>
-                                    <field name="public_company_id" groups="base.group_multi_company"
-                                           invisible="not public_enabled" required="public_enabled"
-                                           options="{'no_create': True}"/>
-                                </group>
-                            </group>
-                            <div invisible="not public_enabled">
-                                <p class="text-muted">
+                        <!-- Optional features of the template's checklists (add-ons add theirs, e.g. Asset). -->
+                        <page string="Features" name="features">
+                            <group string="Public Submission" name="feature_public">
+                                <field name="public_enabled" widget="boolean_toggle"/>
+                                <field name="public_company_id" groups="base.group_multi_company"
+                                       invisible="not public_enabled" required="public_enabled"
+                                       options="{'no_create': True}"/>
+                                <p class="text-muted" colspan="2" invisible="not public_enabled">
                                     Anyone with this link can fill in the checklist without logging in. Instead of
                                     the Completed By, Asset, Company and Organisation fields they give their First
                                     Name, Last Name and Email or Phone Number; the checklist is saved as Completed,
                                     with the contact that has their email (or a new contact) as its Completed By.
                                 </p>
-                                <group>
-                                    <field name="public_url" widget="CopyClipboardChar" invisible="not public_url"/>
-                                    <span invisible="public_url" colspan="2" class="text-muted">Save the template to get its link.</span>
-                                    <field name="public_thank_you" placeholder="Thanks - your checklist has been submitted."/>
-                                </group>
-                                <button name="action_regenerate_public_token" type="object" string="New Link"
-                                        icon="fa-refresh" class="btn-secondary" invisible="not public_url"
-                                        groups="checklists.group_checklist_admin,checklists.group_checklist_template_author"
-                                        confirm="The current link, and every link built from it, will stop working. Continue?"/>
-                            </div>
+                                <field name="public_url" widget="CopyClipboardChar"
+                                       invisible="not public_enabled or not public_url"/>
+                                <span invisible="not public_enabled or public_url" colspan="2" class="text-muted">
+                                    Save the template to get its link.</span>
+                                <field name="public_thank_you" invisible="not public_enabled"
+                                       placeholder="Thanks - your checklist has been submitted."/>
+                                <div colspan="2" invisible="not public_url">
+                                    <button name="action_regenerate_public_token" type="object" string="New Link"
+                                            icon="fa-refresh" class="btn-secondary"
+                                            groups="checklists.group_checklist_admin,checklists.group_checklist_template_author"
+                                            confirm="The current link, and every link built from it, will stop working. Continue?"/>
+                                </div>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>

@@ -6,16 +6,15 @@
         <field name="model">checklist.template</field>
         <field name="inherit_id" ref="checklists.checklist_template_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//notebook" position="inside">
-                <page string="Features" name="features">
-                    <group string="Asset" name="feature_asset">
-                        <field name="asset_enabled" widget="boolean_toggle"/>
-                        <field name="asset_label" invisible="not asset_enabled" placeholder="Asset"/>
-                        <field name="asset_required" invisible="not asset_enabled"/>
-                        <field name="asset_domain" invisible="not asset_enabled" widget="domain"
-                               options="{'model': 'asset.asset', 'in_dialog': True}"/>
-                    </group>
-                </page>
+            <!-- The Asset feature heads the template's Features tab. -->
+            <xpath expr="//page[@name='features']/group[@name='feature_public']" position="before">
+                <group string="Asset" name="feature_asset">
+                    <field name="asset_enabled" widget="boolean_toggle"/>
+                    <field name="asset_label" invisible="not asset_enabled" placeholder="Asset"/>
+                    <field name="asset_required" invisible="not asset_enabled"/>
+                    <field name="asset_domain" invisible="not asset_enabled" widget="domain"
+                           options="{'model': 'asset.asset', 'in_dialog': True}"/>
+                </group>
             </xpath>
         </field>
     </record>
