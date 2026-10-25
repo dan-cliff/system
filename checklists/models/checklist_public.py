@@ -12,8 +12,11 @@ Builder wizard): `first_name`, `last_name`, `email`, `phone` and
 `q<question id>` for each question. The builder signs its links (`sig`, an
 HMAC over the token and every other parameter), and only a signed link may
 lock fields (`lock`, a comma-separated list of keys, shown read-only and
-enforced on submit) or answer Many2one / Many2Many questions (so a visitor
-can't look up records by editing the link).
+enforced on submit), answer Many2one / Many2Many questions (so a visitor
+can't look up records by editing the link) or set the checklist fields the
+public form leaves out: `user` (Completed By), `company`, and with the
+add-ons `asset` and the Organisation levels (see _public_link_record_fields).
+Those are never shown on the form; they are saved on the checklist.
 """
 import base64
 import re
@@ -170,10 +173,14 @@ class ChecklistTemplate(models.Model):
         signature = args.get(SIGNATURE_KEY) or ''
         trusted = bool(signature) and consteq(signature, self._public_signature(params))
         questions = {question_key(q.id): q for q in self._public_questions()}
+        record_keys = self._public_link_record_fields()
         values = {}
         for key, value in params:
             if key in CONTACT_KEYS or key == TZ_KEY:
                 values[key] = value
+            elif key in record_keys:
+                if trusted:
+                    values[key] = value
             elif key in questions and questions[key].question_type not in NOT_PREFILLABLE_TYPES:
                 if questions[key].question_type in RELATION_TYPES and not trusted:
                     continue
@@ -182,6 +189,37 @@ class ChecklistTemplate(models.Model):
         if trusted:
             locked = {key.strip() for key in (args.get(LOCK_KEY) or '').split(',')} & set(values)
         return values, locked, trusted
+
+    # ── Checklist fields set by the link ─────────────────────────────────
+
+    @api.model
+    def _public_link_record_fields(self):
+        """{query key: checklist field} a signed link can set: fields the
+        public form leaves out (add-ons add the asset and Organisation)."""
+        return {'user': 'user_id', 'company': 'company_id'}
+
+    def _public_link_record(self, field_name, record):
+        """Whether a link may set the checklist's `field_name` to `record`
+        (an existing record of its model). Extended by add-ons."""
+        self.ensure_one()
+        if field_name == 'user_id':
+            return record.active and not record.share
+        return True
+
+    def _public_link_vals(self, values):
+        """Checklist values for the fields a signed link sets (values from
+        _public_read_link); ids that are gone or not allowed are ignored."""
+        self.ensure_one()
+        Checklist = self.env['checklist.checklist'].sudo()
+        vals = {}
+        for key, field_name in self._public_link_record_fields().items():
+            raw = (values.get(key) or '').strip()
+            if not raw.isdigit() or field_name not in Checklist._fields:
+                continue
+            record = self.env[Checklist._fields[field_name].comodel_name].sudo().browse(int(raw)).exists()
+            if record and self.sudo()._public_link_record(field_name, record):
+                vals[field_name] = record.id
+        return vals
 
     # ── Form ─────────────────────────────────────────────────────────────
 
@@ -225,11 +263,12 @@ class ChecklistTemplate(models.Model):
 
     # ── Submission ───────────────────────────────────────────────────────
 
-    def _public_submit(self, contact, answers):
+    def _public_submit(self, contact, answers, link_vals=None):
         """Create the completed checklist of a public submission.
 
         contact: {first_name, last_name, email, phone} (already checked);
-        answers: {question id: line values}. Runs as superuser.
+        answers: {question id: line values}; link_vals: checklist values a
+        signed link sets (_public_link_vals). Runs as superuser.
         """
         self.ensure_one()
         template = self.sudo()
@@ -246,6 +285,7 @@ class ChecklistTemplate(models.Model):
             'public_last_name': contact['last_name'],
             'public_email': contact['email'] or False,
             'public_phone': contact['phone'] or False,
+            **(link_vals or {}),
         })
         for line in checklist.line_ids:
             vals = answers.get(line.question_id.id)

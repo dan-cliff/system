@@ -61,6 +61,7 @@ class Checklist(models.Model):
     public_last_name = fields.Char(string='Last Name')
     public_email = fields.Char(string='Email')
     public_phone = fields.Char(string='Phone Number')
+    template_public_company_id = fields.Many2one(related='template_id.public_company_id')
     # Technical workflow state, so a fixed selection.
     state = fields.Selection(
         [('draft', 'In Progress'), ('done', 'Completed')],
@@ -104,11 +105,17 @@ class Checklist(models.Model):
     def _get_view(self, view_id=None, view_type='form', **options):
         arch, view = super()._get_view(view_id, view_type, **options)
         if view_type == 'form':
-            # Public submissions have no Organisation (org_structure's
-            # automatic section, which may also hold the Company).
+            # Public submissions only show Organisation (org_structure's
+            # automatic section, which may also hold the Company) when their
+            # link set it.
             for group in arch.xpath("//group[@name='org_structure']"):
+                levels = [node.get('name') for node in group.xpath("./field[starts-with(@name, 'org_') and "
+                                                                   "substring(@name, string-length(@name) - 2) = '_id']")]
+                set_by_link = ' or '.join(levels + (
+                    ['company_id != template_public_company_id'] if group.xpath("./field[@name='company_id']") else []))
+                hidden = f'is_public and not ({set_by_link})' if set_by_link else 'is_public'
                 invisible = group.get('invisible')
-                group.set('invisible', f'is_public or ({invisible})' if invisible else 'is_public')
+                group.set('invisible', f'({hidden}) or ({invisible})' if invisible else hidden)
         return arch, view
 
     @api.constrains('user_id', 'partner_id', 'is_public')
@@ -120,7 +127,7 @@ class Checklist(models.Model):
     def _completed_by_name(self):
         """Who completed the checklist, for reports."""
         self.ensure_one()
-        return (self.partner_id if self.is_public else self.user_id).display_name or ''
+        return (self.user_id or self.partner_id).display_name or ''
 
     @api.model_create_multi
     def create(self, vals_list):

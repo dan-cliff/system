@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="checklist_public_url_wizard_view_form" model="ir.ui.view">
+        <field name="name">checklist.public.url.wizard.form.inherit.asset</field>
+        <field name="model">checklist.public.url.wizard</field>
+        <field name="inherit_id" ref="checklists.checklist_public_url_wizard_view_form"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="before">
+                <field name="asset_enabled" invisible="1"/>
+                <field name="asset_domain" invisible="1"/>
+                <!-- The label is the template's Asset Selector Label, or "Asset". -->
+                <div class="o_td_label" invisible="not asset_enabled">
+                    <label for="asset_id" string="Asset" invisible="asset_label"/>
+                    <field name="asset_label" class="o_form_label" invisible="not asset_label"/>
+                </div>
+                <field name="asset_id" nolabel="1" invisible="not asset_enabled"
+                       domain="asset_domain" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

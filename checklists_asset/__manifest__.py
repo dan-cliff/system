@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists - Assets',
-    'version': '19.0.1.0.2',
+    'version': '19.0.1.1.0',
     'category': 'Productivity',
     'summary': 'Pick the asset a checklist is for, from Asset Management',
     'description': """
@@ -16,6 +16,9 @@
           assets can be picked
         - Asset Selector Label: renames the asset field on that template's
           checklists (e.g. "Vehicle")
+
+        The Public URL Builder can set the asset of the checklists submitted
+        with a link (within the template's Asset Filter).
     """,
     'author': 'Custom',
     'depends': ['checklists', 'asset_management'],
@@ -23,6 +26,7 @@
         'security/ir.model.access.csv',
         'views/checklist_template_views.xml',
         'views/checklist_views.xml',
+        'views/checklist_public_url_wizard_views.xml',
     ],
     'auto_install': True,
     'installable': True,

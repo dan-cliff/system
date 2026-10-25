@@ -45,3 +45,18 @@ class ChecklistTemplate(models.Model):
                 'asset_label': asset.get('label') or False,
             })
         return vals
+
+    # ── Public submission (see checklists/models/checklist_public.py) ────
+
+    @api.model
+    def _public_link_record_fields(self):
+        return dict(super()._public_link_record_fields(), asset='asset_id')
+
+    def _public_link_record(self, field_name, record):
+        if field_name == 'asset_id':
+            # Only on templates with the Asset Selector, within its filter.
+            if not self.asset_enabled:
+                return False
+            domain = self.env['checklist.question']._public_eval_domain(self.asset_domain)
+            return bool(record.filtered_domain(domain))
+        return super()._public_link_record(field_name, record)

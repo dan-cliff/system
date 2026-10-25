@@ -48,7 +48,10 @@
                                    options="{'no_create': True}"/>
                             <field name="group_ids" widget="many2many_tags" invisible="not group_ids"/>
                             <field name="is_public" invisible="1"/>
-                            <field name="company_id" groups="base.group_multi_company" invisible="is_public"
+                            <field name="template_public_company_id" invisible="1"/>
+                            <!-- Public submissions: only when their link set another company. -->
+                            <field name="company_id" groups="base.group_multi_company"
+                                   invisible="is_public and company_id == template_public_company_id"
                                    readonly="state == 'done'" options="{'no_create': True}"/>
                         </group>
                         <group name="checklist_details">
@@ -58,9 +61,15 @@
                             <field name="date_due" options="{'numeric': True}"
                                    readonly="state == 'done'"
                                    decoration-danger="is_overdue"/>
-                            <field name="user_id" widget="many2one_avatar_user" invisible="is_public"
+                            <!-- Public submissions: the contact, or the user their link set
+                                 (the contact then shows as Contact). -->
+                            <field name="user_id" widget="many2one_avatar_user" invisible="is_public and not user_id"
                                    required="not is_public" readonly="state == 'done'"/>
-                            <field name="partner_id" string="Completed By" invisible="not is_public"
+                            <div class="o_td_label" invisible="not is_public">
+                                <label for="partner_id" string="Completed By" invisible="user_id"/>
+                                <label for="partner_id" string="Contact" invisible="not user_id"/>
+                            </div>
+                            <field name="partner_id" nolabel="1" invisible="not is_public"
                                    required="is_public" readonly="state == 'done'"/>
                         </group>
                     </group>

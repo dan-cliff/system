@@ -92,7 +92,7 @@ class ChecklistPublicController(http.Controller):
             return self._render_form(template, {**link_values, **posted}, locked, errors)
         if contact['phone']:
             contact['phone'] = template._public_format_phone(contact['phone'])
-        checklist = template._public_submit(contact, answers)
+        checklist = template._public_submit(contact, answers, template._public_link_vals(link_values))
         return request.render('checklists.public_checklist_done', {'template': template, 'checklist': checklist})
 
     # ── Rendering ────────────────────────────────────────────────────────

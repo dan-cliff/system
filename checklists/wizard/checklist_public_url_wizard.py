@@ -28,16 +28,33 @@ class ChecklistPublicUrlWizard(models.TransientModel):
         string='Lock Contact Details',
         help='The contact details filled in here are shown read-only on the form.',
     )
+    # Checklist fields the public form leaves out, saved on the checklist
+    # (fields named as on checklist.checklist; add-ons add the asset and
+    # Organisation, see checklist.template._public_link_record_fields).
+    user_id = fields.Many2one(
+        'res.users', string='Completed By', domain="[('share', '=', False)]",
+        help='Saved as the Completed By user; the person filling it in is still kept as the contact.',
+    )
+    company_id = fields.Many2one(
+        'res.company', string='Company',
+        help="Saved as the checklist's company, instead of the template's Submissions Company.",
+    )
     line_ids = fields.One2many('checklist.public.url.wizard.line', 'wizard_id', string='Answers')
     url = fields.Char(string='Public URL', compute='_compute_url')
     qr_code = fields.Binary(string='QR Code', compute='_compute_url')
 
-    @api.depends('template_id', 'first_name', 'last_name', 'email', 'phone', 'lock_contact',
-                 'line_ids.question_id', 'line_ids.locked', 'line_ids.value_text', 'line_ids.value_text_area',
-                 'line_ids.value_number', 'line_ids.value_integer', 'line_ids.value_date',
-                 'line_ids.value_datetime', 'line_ids.value_option_id', 'line_ids.value_option_ids',
-                 'line_ids.value_boolean', 'line_ids.value_latitude', 'line_ids.value_longitude',
-                 'line_ids.value_reference', 'line_ids.value_reference_ids')
+    def _url_depends(self):
+        return [
+            'template_id', 'first_name', 'last_name', 'email', 'phone', 'lock_contact',
+            'line_ids.question_id', 'line_ids.locked', 'line_ids.value_text', 'line_ids.value_text_area',
+            'line_ids.value_number', 'line_ids.value_integer', 'line_ids.value_date',
+            'line_ids.value_datetime', 'line_ids.value_option_id', 'line_ids.value_option_ids',
+            'line_ids.value_boolean', 'line_ids.value_latitude', 'line_ids.value_longitude',
+            'line_ids.value_reference', 'line_ids.value_reference_ids',
+        ] + [name for name in self.env['checklist.template']._public_link_record_fields().values()
+             if name in self._fields]
+
+    @api.depends(lambda self: self._url_depends())
     def _compute_url(self):
         Report = self.env['ir.actions.report']
         for wizard in self:
@@ -62,6 +79,9 @@ class ChecklistPublicUrlWizard(models.TransientModel):
                 params.append((key, value))
                 if self.lock_contact:
                     locked.append(key)
+        for key, field_name in self.template_id._public_link_record_fields().items():
+            if field_name in self._fields and self[field_name]:
+                params.append((key, str(self[field_name].id)))
         seen = set()
         for line in self.line_ids.sorted(lambda l: (l.question_id.sequence, l.question_id.id)):
             if not line.question_id or line.question_id.id in seen:
