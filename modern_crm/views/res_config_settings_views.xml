@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.modern_crm</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="91"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="CRM" id="modern_crm" string="CRM" name="modern_crm"
+                     groups="modern_crm.group_modern_crm_manager">
+                    <block title="Leads" id="modern_crm_leads">
+                        <setting id="modern_crm_web_to_lead" string="Web-to-Lead Form"
+                                 help="Publish a contact form at /crm/web-to-lead: each submission becomes a lead (source: Web).">
+                            <field name="modern_crm_web_to_lead"/>
+                            <div class="content-group" invisible="not modern_crm_web_to_lead">
+                                <div class="row mt8">
+                                    <label for="modern_crm_web_lead_user_id" class="col-lg-4 o_light_label"/>
+                                    <field name="modern_crm_web_lead_user_id" class="col-lg-8"/>
+                                </div>
+                                <div class="row">
+                                    <label for="modern_crm_web_lead_team_id" class="col-lg-4 o_light_label"/>
+                                    <field name="modern_crm_web_lead_team_id" class="col-lg-8"/>
+                                </div>
+                                <div class="mt8">
+                                    <a href="/crm/web-to-lead" target="_blank"><i class="oi oi-arrow-right"/> Open the form</a>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Opportunities" id="modern_crm_opportunities">
+                        <setting id="modern_crm_won_on_order" string="Close Won on Sale"
+                                 help="Mark an opportunity Closed Won when one of its quotes is confirmed as a sales order.">
+                            <field name="modern_crm_won_on_order"/>
+                        </setting>
+                    </block>
+                    <block title="Contracts" id="modern_crm_contracts">
+                        <setting id="modern_crm_contract_template" string="Default Contract Template"
+                                 help="The template new contracts start from.">
+                            <field name="modern_crm_contract_template_id" options="{'no_create': True}"/>
+                        </setting>
+                        <setting id="modern_crm_activate_on_signature" string="Activate Signed Contracts"
+                                 help="Activate a contract as soon as every signer has signed it.">
+                            <field name="modern_crm_activate_on_signature"/>
+                        </setting>
+                        <setting id="modern_crm_confirm_on_signature" string="Confirm the Quote on Signature"
+                                 help="Turn the contract's quote into a sales order as soon as every signer has signed it (this also starts any subscriptions).">
+                            <field name="modern_crm_confirm_on_signature"/>
+                        </setting>
+                        <setting id="modern_crm_invoice_on_signature" string="Invoice on Signature"
+                                 help="After confirming the quote of a signed contract, draft its invoice."
+                                 invisible="not modern_crm_confirm_on_signature">
+                            <field name="modern_crm_invoice_on_signature"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="modern_crm_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'modern_crm', 'bin_size': False}</field>
+    </record>
+</odoo>

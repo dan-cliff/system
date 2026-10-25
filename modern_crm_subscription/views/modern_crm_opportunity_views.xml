@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="modern_crm_opportunity_view_form_subscription" model="ir.ui.view">
+        <field name="name">modern.crm.opportunity.form.subscription</field>
+        <field name="model">modern.crm.opportunity</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_opportunity_view_form"/>
+        <field name="arch" type="xml">
+            <button name="action_view_contracts" position="before">
+                <button name="action_view_subscriptions" type="object" class="oe_stat_button"
+                        icon="fa-refresh" invisible="not subscription_count"
+                        groups="sales_team.group_sale_salesman">
+                    <field name="subscription_count" widget="statinfo" string="Subscriptions"/>
+                </button>
+            </button>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='price_subtotal']" position="after">
+                <field name="subscribable" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

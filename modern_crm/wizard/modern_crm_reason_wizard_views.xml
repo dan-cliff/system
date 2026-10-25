@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="modern_crm_reason_wizard_view_form_disqualify" model="ir.ui.view">
+        <field name="name">modern.crm.reason.wizard.form.disqualify</field>
+        <field name="model">modern.crm.reason.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Disqualify Lead">
+                <field name="mode" invisible="1"/>
+                <field name="lead_ids" invisible="1"/>
+                <group>
+                    <field name="disqualify_reason_id" required="1" options="{'no_create': True}"/>
+                    <field name="note" placeholder="What happened?"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Disqualify" class="btn-primary" data-hotkey="q"/>
+                    <button string="Discard" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="modern_crm_reason_wizard_view_form_lost" model="ir.ui.view">
+        <field name="name">modern.crm.reason.wizard.form.lost</field>
+        <field name="model">modern.crm.reason.wizard</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Close as Lost">
+                <field name="mode" invisible="1"/>
+                <field name="opportunity_ids" invisible="1"/>
+                <group>
+                    <field name="lost_reason_id" required="1" options="{'no_create': True}"/>
+                    <field name="note" placeholder="What could we have done differently?"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Close as Lost" class="btn-primary" data-hotkey="q"/>
+                    <button string="Discard" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

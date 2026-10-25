@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting options; admins add, rename and archive them under CRM > Configuration. -->
+    <data noupdate="1">
+        <record id="lead_source_web" model="modern.crm.lead.source">
+            <field name="name">Web</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="lead_source_phone_inquiry" model="modern.crm.lead.source">
+            <field name="name">Phone Inquiry</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="lead_source_email" model="modern.crm.lead.source">
+            <field name="name">Email</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="lead_source_partner_referral" model="modern.crm.lead.source">
+            <field name="name">Partner Referral</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="lead_source_customer_referral" model="modern.crm.lead.source">
+            <field name="name">Customer Referral</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="lead_source_trade_show" model="modern.crm.lead.source">
+            <field name="name">Trade Show</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="lead_source_advertisement" model="modern.crm.lead.source">
+            <field name="name">Advertisement</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="lead_source_purchased_list" model="modern.crm.lead.source">
+            <field name="name">Purchased List</field>
+            <field name="sequence">80</field>
+        </record>
+        <record id="lead_source_social_media" model="modern.crm.lead.source">
+            <field name="name">Social Media</field>
+            <field name="sequence">90</field>
+        </record>
+        <record id="lead_source_other" model="modern.crm.lead.source">
+            <field name="name">Other</field>
+            <field name="sequence">100</field>
+        </record>
+        <record id="industry_agriculture" model="modern.crm.industry">
+            <field name="name">Agriculture</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="industry_construction" model="modern.crm.industry">
+            <field name="name">Construction</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="industry_education" model="modern.crm.industry">
+            <field name="name">Education</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="industry_finance" model="modern.crm.industry">
+            <field name="name">Finance</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="industry_government" model="modern.crm.industry">
+            <field name="name">Government</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="industry_healthcare" model="modern.crm.industry">
+            <field name="name">Healthcare</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="industry_hospitality" model="modern.crm.industry">
+            <field name="name">Hospitality</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="industry_manufacturing" model="modern.crm.industry">
+            <field name="name">Manufacturing</field>
+            <field name="sequence">80</field>
+        </record>
+        <record id="industry_not_for_profit" model="modern.crm.industry">
+            <field name="name">Not For Profit</field>
+            <field name="sequence">90</field>
+        </record>
+        <record id="industry_retail" model="modern.crm.industry">
+            <field name="name">Retail</field>
+            <field name="sequence">100</field>
+        </record>
+        <record id="industry_technology" model="modern.crm.industry">
+            <field name="name">Technology</field>
+            <field name="sequence">110</field>
+        </record>
+        <record id="industry_transport_and_logistics" model="modern.crm.industry">
+            <field name="name">Transport and Logistics</field>
+            <field name="sequence">120</field>
+        </record>
+        <record id="industry_other" model="modern.crm.industry">
+            <field name="name">Other</field>
+            <field name="sequence">130</field>
+        </record>
+        <record id="lead_rating_hot" model="modern.crm.lead.rating">
+            <field name="name">Hot</field>
+            <field name="sequence">10</field>
+            <field name="color">1</field>
+        </record>
+        <record id="lead_rating_warm" model="modern.crm.lead.rating">
+            <field name="name">Warm</field>
+            <field name="sequence">20</field>
+            <field name="color">2</field>
+        </record>
+        <record id="lead_rating_cold" model="modern.crm.lead.rating">
+            <field name="name">Cold</field>
+            <field name="sequence">30</field>
+            <field name="color">4</field>
+        </record>
+        <record id="disqualify_reason_no_budget" model="modern.crm.disqualify.reason">
+            <field name="name">No Budget</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="disqualify_reason_no_need" model="modern.crm.disqualify.reason">
+            <field name="name">No Need</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="disqualify_reason_not_the_decision_maker" model="modern.crm.disqualify.reason">
+            <field name="name">Not the Decision Maker</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="disqualify_reason_unresponsive" model="modern.crm.disqualify.reason">
+            <field name="name">Unresponsive</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="disqualify_reason_duplicate" model="modern.crm.disqualify.reason">
+            <field name="name">Duplicate</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="disqualify_reason_chose_a_competitor" model="modern.crm.disqualify.reason">
+            <field name="name">Chose a Competitor</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="opportunity_type_new_business" model="modern.crm.opportunity.type">
+            <field name="name">New Business</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="opportunity_type_existing_business_upgrade" model="modern.crm.opportunity.type">
+            <field name="name">Existing Business - Upgrade</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="opportunity_type_existing_business_renewal" model="modern.crm.opportunity.type">
+            <field name="name">Existing Business - Renewal</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="forecast_category_pipeline" model="modern.crm.forecast.category">
+            <field name="name">Pipeline</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="forecast_category_best_case" model="modern.crm.forecast.category">
+            <field name="name">Best Case</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="forecast_category_commit" model="modern.crm.forecast.category">
+            <field name="name">Commit</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="forecast_category_closed" model="modern.crm.forecast.category">
+            <field name="name">Closed</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="forecast_category_omitted" model="modern.crm.forecast.category">
+            <field name="name">Omitted</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="lost_reason_price" model="modern.crm.lost.reason">
+            <field name="name">Price</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="lost_reason_lost_to_competitor" model="modern.crm.lost.reason">
+            <field name="name">Lost to Competitor</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="lost_reason_no_decision" model="modern.crm.lost.reason">
+            <field name="name">No Decision</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="lost_reason_timing" model="modern.crm.lost.reason">
+            <field name="name">Timing</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="lost_reason_missing_features" model="modern.crm.lost.reason">
+            <field name="name">Missing Features</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="lost_reason_went_quiet" model="modern.crm.lost.reason">
+            <field name="name">Went Quiet</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="contact_role_type_decision_maker" model="modern.crm.contact.role.type">
+            <field name="name">Decision Maker</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="contact_role_type_economic_buyer" model="modern.crm.contact.role.type">
+            <field name="name">Economic Buyer</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="contact_role_type_technical_buyer" model="modern.crm.contact.role.type">
+            <field name="name">Technical Buyer</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="contact_role_type_evaluator" model="modern.crm.contact.role.type">
+            <field name="name">Evaluator</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="contact_role_type_influencer" model="modern.crm.contact.role.type">
+            <field name="name">Influencer</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="contact_role_type_business_user" model="modern.crm.contact.role.type">
+            <field name="name">Business User</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="contact_role_type_executive_sponsor" model="modern.crm.contact.role.type">
+            <field name="name">Executive Sponsor</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="contact_role_type_other" model="modern.crm.contact.role.type">
+            <field name="name">Other</field>
+            <field name="sequence">80</field>
+        </record>
+    </data>
+</odoo>
