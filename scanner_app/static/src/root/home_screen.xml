@@ -3,9 +3,10 @@
     <t t-name="scanner_app.HomeScreen">
         <div class="o_scanner_home">
             <t t-foreach="tiles" t-as="tile" t-key="tile.screen">
-                <button class="o_scanner_tile" t-on-click="() => this.props.onNavigate(tile.screen)">
-                    <i t-attf-class="fa {{tile.icon}} o_scanner_tile_icon"/>
+                <button t-attf-class="o_scanner_tile o_scanner_tile_{{tile.tone}}" t-on-click="() => this.props.onNavigate(tile.screen)">
+                    <span class="o_scanner_tile_icon"><i t-attf-class="fa {{tile.icon}}"/></span>
                     <span class="o_scanner_tile_label" t-esc="tile.label"/>
+                    <i class="fa fa-chevron-right o_scanner_tile_arrow"/>
                 </button>
             </t>
         </div>
