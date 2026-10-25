@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="talent_canned_response_view_form_checklists" model="ir.ui.view">
+        <field name="name">mail.canned.response.form.talent.checklists</field>
+        <field name="model">mail.canned.response</field>
+        <field name="inherit_id" ref="modern_recruitment.talent_canned_response_view_form"/>
+        <field name="arch" type="xml">
+            <field name="group_ids" position="after">
+                <field name="checklist_template_ids" widget="many2many_tags" options="{'no_create': True}"
+                       groups="modern_recruitment_checklists.group_talent_questionnaire"
+                       placeholder="Questionnaires to send with it"/>
+            </field>
+            <xpath expr="//sheet" position="inside">
+                <div class="text-muted small" groups="modern_recruitment_checklists.group_talent_questionnaire">
+                    Pick this response in an applicant's Send Questionnaire to send its questionnaires with it.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="talent_canned_response_view_list_checklists" model="ir.ui.view">
+        <field name="name">mail.canned.response.list.talent.checklists</field>
+        <field name="model">mail.canned.response</field>
+        <field name="inherit_id" ref="modern_recruitment.talent_canned_response_view_list"/>
+        <field name="arch" type="xml">
+            <field name="group_ids" position="after">
+                <field name="checklist_template_ids" widget="many2many_tags" optional="show"
+                       groups="modern_recruitment_checklists.group_talent_questionnaire"/>
+            </field>
+        </field>
+    </record>
+</odoo>

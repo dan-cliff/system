@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="talent_canned_response_view_list" model="ir.ui.view">
+        <field name="name">mail.canned.response.list.talent</field>
+        <field name="model">mail.canned.response</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list string="Canned Responses">
+                <field name="id" optional="show"/>
+                <field name="source"/>
+                <field name="substitution"/>
+                <field name="group_ids" widget="many2many_tags" optional="show"/>
+                <field name="create_uid" widget="many2one_avatar_user" string="Created By" optional="hide"/>
+                <field name="last_used" optional="show" options="{'numeric': True}"/>
+                <field name="talent_ok" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="talent_canned_response_view_form" model="ir.ui.view">
+        <field name="name">mail.canned.response.form.talent</field>
+        <field name="model">mail.canned.response</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <form string="Canned Response">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="source" string="Shortcut"/>
+                        <h1><field name="source" placeholder="e.g. screening"/></h1>
+                    </div>
+                    <group name="main">
+                        <group>
+                            <field name="group_ids" widget="many2many_tags" placeholder="Only me"/>
+                            <field name="talent_ok" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="last_used" readonly="1" invisible="not last_used" options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <field name="substitution" placeholder="The message this shortcut inserts..."/>
+                    <div class="text-muted small mt-2">
+                        Type <code>::</code> followed by the shortcut in a message to insert this response.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="talent_canned_response_view_search" model="ir.ui.view">
+        <field name="name">mail.canned.response.search.talent</field>
+        <field name="model">mail.canned.response</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <search string="Canned Responses">
+                <field name="source"/>
+                <field name="substitution"/>
+                <filter name="shared" string="Shared" domain="[('is_shared', '=', True)]"/>
+                <filter name="mine" string="My Responses" domain="[('create_uid', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_talent_canned_response" model="ir.actions.act_window">
+        <field name="name">Canned Responses</field>
+        <field name="res_model">mail.canned.response</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('talent_ok', '=', True)]</field>
+        <field name="context">{'default_talent_ok': True}</field>
+        <field name="search_view_id" ref="talent_canned_response_view_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('talent_canned_response_view_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('talent_canned_response_view_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a canned response for Talent</p>
+            <p>Canned responses are messages you insert into the chatter by typing <code>::</code> and their shortcut.</p>
+        </field>
+    </record>
+</odoo>

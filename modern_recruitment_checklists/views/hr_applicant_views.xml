@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_applicant_view_form_talent_checklists" model="ir.ui.view">
+        <field name="name">hr.applicant.form.talent.checklists</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_talent_questionnaires" type="object" class="oe_stat_button"
+                        icon="fa-check-square-o" invisible="not talent_checklist_count"
+                        groups="modern_recruitment_checklists.group_talent_questionnaire">
+                    <field name="talent_checklist_count" widget="statinfo" string="Questionnaires"/>
+                </button>
+            </div>
+            <page name="application_details" position="after">
+                <page string="Questionnaires" name="talent_questionnaires"
+                      invisible="not talent_checklist_ids"
+                      groups="modern_recruitment_checklists.group_talent_questionnaire">
+                    <field name="talent_checklist_ids" readonly="1">
+                        <list create="0" delete="0" decoration-success="state == 'done'"
+                              decoration-danger="is_overdue">
+                            <field name="id" optional="show"/>
+                            <field name="name"/>
+                            <field name="template_id"/>
+                            <field name="checklist_date" string="Sent" options="{'numeric': True}"/>
+                            <field name="date_due" options="{'numeric': True}"/>
+                            <field name="talent_submitted_date" options="{'numeric': True}"/>
+                            <field name="talent_job_id" optional="show"/>
+                            <field name="is_overdue" column_invisible="True"/>
+                            <field name="state" widget="badge" decoration-success="state == 'done'"
+                                   decoration-info="state == 'draft'"/>
+                        </list>
+                    </field>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

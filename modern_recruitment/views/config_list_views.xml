@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Every Talent list starts with the record ID. -->
+    <record id="talent_degree_view_list" model="ir.ui.view">
+        <field name="name">hr.recruitment.degree.list.talent</field>
+        <field name="model">hr.recruitment.degree</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_recruitment_degree_tree"/>
+        <field name="arch" type="xml">
+            <field name="sequence" position="after">
+                <field name="id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="talent_refuse_reason_view_list" model="ir.ui.view">
+        <field name="name">hr.applicant.refuse.reason.list.talent</field>
+        <field name="model">hr.applicant.refuse.reason</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_refuse_reason_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="sequence" position="after">
+                <field name="id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="talent_category_view_list" model="ir.ui.view">
+        <field name="name">hr.applicant.category.list.talent</field>
+        <field name="model">hr.applicant.category</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_category_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="talent_stage_view_list" model="ir.ui.view">
+        <field name="name">hr.recruitment.stage.list.talent</field>
+        <field name="model">hr.recruitment.stage</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_recruitment_stage_tree"/>
+        <field name="arch" type="xml">
+            <field name="sequence" position="after">
+                <field name="id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="talent_source_view_list" model="ir.ui.view">
+        <field name="name">hr.recruitment.source.list.talent</field>
+        <field name="model">hr.recruitment.source</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_recruitment_source_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="talent_contract_type_view_list" model="ir.ui.view">
+        <field name="name">hr.contract.type.list.talent</field>
+        <field name="model">hr.contract.type</field>
+        <field name="inherit_id" ref="hr.hr_contract_type_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="sequence" position="after">
+                <field name="id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="talent_pool_view_list" model="ir.ui.view">
+        <field name="name">hr.talent.pool.list.talent</field>
+        <field name="model">hr.talent.pool</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_talent_pool_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <field name="company_id" position="attributes">
+                <attribute name="groups">base.group_multi_company</attribute>
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

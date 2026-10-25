@@ -1,0 +1,200 @@
+// The online screening questionnaire (house palette, docs/icon_style).
+.o_talent_q_page {
+    min-height: 100vh;
+    padding: 2.5rem 1rem 4rem;
+    background:
+        radial-gradient(circle at 10% 0%, rgba(142, 92, 240, 0.14), transparent 45%),
+        radial-gradient(circle at 90% 10%, rgba(20, 163, 163, 0.12), transparent 40%),
+        #F2F2FA;
+}
+
+.o_talent_q_card {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #FFFFFF;
+    border-radius: 1.25rem;
+    box-shadow: 0 2px 6px rgba(42, 63, 143, 0.06), 0 18px 40px rgba(42, 63, 143, 0.1);
+
+    @media (max-width: 575.98px) {
+        padding: 1.25rem 1rem;
+        border-radius: 1rem;
+    }
+}
+
+.o_talent_q_header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(169, 171, 220, 0.4);
+}
+
+.o_talent_q_logo {
+    max-height: 3rem;
+    max-width: 12rem;
+    margin-bottom: 1rem;
+}
+
+.o_talent_q_title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2A3F8F;
+    margin-bottom: 0.25rem;
+}
+
+.o_talent_q_subtitle, .o_talent_q_due {
+    color: #6c6f9a;
+    margin-bottom: 0.5rem;
+}
+
+.o_talent_q_intro {
+    white-space: pre-line;
+    margin: 0.75rem 0 0;
+}
+
+.o_talent_q_line {
+    margin-bottom: 1.4rem;
+
+    .form-control, .form-select {
+        border-radius: 0.65rem;
+        border-color: rgba(169, 171, 220, 0.7);
+
+        &:focus {
+            border-color: #8E5CF0;
+            box-shadow: 0 0 0 0.2rem rgba(142, 92, 240, 0.18);
+        }
+    }
+}
+
+.o_talent_q_label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: #1f2937;
+}
+
+.o_talent_q_help {
+    color: #6c6f9a;
+    font-size: 0.9rem;
+    margin: -0.15rem 0 0.5rem;
+    white-space: pre-line;
+}
+
+.o_talent_q_section {
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.65rem;
+    border-left: 4px solid;
+    margin: 1.5rem 0 0.5rem;
+}
+
+.o_talent_q_break_title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2A3F8F;
+}
+
+.o_talent_q_instructions {
+    padding: 0.75rem 1rem;
+    border-radius: 0.65rem;
+    border: 1px solid;
+}
+
+.o_talent_q_choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    &.o_talent_q_pills {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+.o_talent_q_choice {
+    --talent-choice: #5B3DB8;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    margin: 0;
+
+    input {
+        accent-color: var(--talent-choice);
+    }
+
+    .o_talent_q_pills & {
+        input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        span {
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--talent-choice);
+            color: var(--talent-choice);
+            font-weight: 500;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        input:checked + span {
+            background-color: var(--talent-choice);
+            color: #FFFFFF;
+        }
+
+        input:focus-visible + span {
+            box-shadow: 0 0 0 0.2rem rgba(142, 92, 240, 0.25);
+        }
+    }
+}
+
+.o_talent_q_actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(169, 171, 220, 0.4);
+
+    .btn {
+        border-radius: 999px;
+        padding: 0.55rem 1.4rem;
+        font-weight: 600;
+    }
+
+    .o_talent_q_save {
+        border: 1.5px solid #A9ABDC;
+        color: #2A3F8F;
+        background: #FFFFFF;
+
+        &:hover {
+            background: #F2F2FA;
+        }
+    }
+
+    .btn-primary {
+        border: 0;
+        background: linear-gradient(135deg, #8E5CF0, #5B3DB8);
+    }
+}
+
+.o_talent_q_done {
+    text-align: center;
+    padding: 1.5rem 0 0.5rem;
+}
+
+.o_talent_q_done_tick {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #FFFFFF;
+    background: linear-gradient(135deg, #14C9A5, #14A3A3);
+}
