@@ -16,8 +16,8 @@ class ScannerAppController(http.Controller):
             'scope': '/odoo',
             'display': 'standalone',
             'orientation': 'any',
-            'background_color': '#37474F',
-            'theme_color': '#37474F',
+            'background_color': '#F2F2FA',
+            'theme_color': '#5B2E9E',
             'icons': [
                 {'src': '/scanner_app/static/description/icon_192.png', 'sizes': '192x192', 'type': 'image/png'},
                 {'src': '/scanner_app/static/description/icon_512.png', 'sizes': '512x512', 'type': 'image/png'},
