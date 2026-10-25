@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="signr.MergeFields">
+        <div class="o_signr_merge_fields">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <nav aria-label="Path" class="flex-grow-1">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#" t-on-click.prevent="() => this.goTo(0)" t-if="state.path.length">Record</a>
+                            <span t-else="">Record</span>
+                        </li>
+                        <t t-foreach="state.path" t-as="step" t-key="step_index">
+                            <li class="breadcrumb-item" t-att-class="{ active: step_last }">
+                                <a t-if="!step_last" href="#" t-on-click.prevent="() => this.goTo(step_index + 1)" t-out="step.label"/>
+                                <span t-else="" t-out="step.label"/>
+                            </li>
+                        </t>
+                    </ol>
+                </nav>
+                <input type="search" class="form-control o_signr_merge_search" placeholder="Search fields…"
+                       t-model="state.search"/>
+            </div>
+            <div t-if="state.data.in_loop" class="alert alert-info py-2 small mb-2" role="status">
+                These fields belong to a list of records. In a table row they repeat the row once per record;
+                anywhere else, every record's value is listed, separated by commas.
+            </div>
+
+            <table class="table table-sm table-hover align-middle mb-3">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Merge Code</th>
+                        <th class="text-end"/>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="specials" t-as="section" t-key="section.title">
+                        <tr class="table-light">
+                            <td colspan="4" class="fw-bold" t-out="section.title"/>
+                        </tr>
+                        <tr t-foreach="section.items" t-as="item" t-key="item.code">
+                            <td>
+                                <a t-if="item.expandable" href="#" t-on-click.prevent="() => this.open(item)">
+                                    <t t-out="item.label"/> <i class="fa fa-chevron-right small ms-1"/>
+                                </a>
+                                <span t-else="" t-out="item.label"/>
+                            </td>
+                            <td class="text-muted small" t-out="typeLabel(item.type)"/>
+                            <td><code t-out="'{{ ' + item.code + ' }}'"/></td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-link" t-on-click="() => this.copy(item.code)" title="Copy">
+                                    <i class="fa fa-clipboard"/>
+                                </button>
+                            </td>
+                        </tr>
+                    </t>
+                    <tr t-if="specials.length" class="table-light">
+                        <td colspan="4" class="fw-bold">
+                            <t t-out="state.data.model_label"/> fields
+                        </td>
+                    </tr>
+                    <tr t-foreach="fields" t-as="field" t-key="field.code">
+                        <td t-att-title="field.help">
+                            <a t-if="field.expandable" href="#" t-on-click.prevent="() => this.open(field)">
+                                <t t-out="field.label"/> <i class="fa fa-chevron-right small ms-1"/>
+                            </a>
+                            <span t-else="" t-out="field.label"/>
+                            <span t-if="field.repeats" class="badge text-bg-info ms-1">repeats</span>
+                        </td>
+                        <td class="text-muted small" t-out="typeLabel(field.type)"/>
+                        <td><code t-out="'{{ ' + field.code + ' }}'"/></td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-link" t-on-click="() => this.copy(field.code)" title="Copy">
+                                <i class="fa fa-clipboard"/>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr t-if="!fields.length and !state.loading">
+                        <td colspan="4" class="text-muted">No fields match.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A worked example: an employment contract for an employee, signed by
+         the employee and then their manager. Admins can change or archive it. -->
+    <data noupdate="1">
+        <record id="template_sample_employment_contract" model="signr.template">
+            <field name="name">Employment Contract (Sample)</field>
+            <field name="sequence">100</field>
+            <field name="document_type_id" ref="document_type_employment_contract"/>
+            <field name="app_id" ref="base.module_hr"/>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="document" type="base64" file="signr/data/sample_employment_contract.docx"/>
+            <field name="document_filename">Employment Contract (Sample).docx</field>
+            <field name="validity_days">14</field>
+            <field name="description">An example to copy: it fills in the employee's name, job, department, manager and work details, and has a signature block for the employee and their manager. Download the Word document to see how the merge codes are written.</field>
+        </record>
+        <record id="template_sample_employment_contract_role_employee" model="signr.template.role">
+            <field name="template_id" ref="template_sample_employment_contract"/>
+            <field name="sequence">10</field>
+            <field name="name">Employee</field>
+            <field name="signer_source">record</field>
+        </record>
+        <record id="template_sample_employment_contract_role_manager" model="signr.template.role">
+            <field name="template_id" ref="template_sample_employment_contract"/>
+            <field name="sequence">20</field>
+            <field name="name">Manager</field>
+            <field name="signer_source">field</field>
+            <field name="partner_field_id" ref="hr.field_hr_employee__parent_id"/>
+        </record>
+    </data>
+</odoo>

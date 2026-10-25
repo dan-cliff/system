@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every permission below is its
+         own privilege with one "Allowed" group, whose record rules give it its
+         meaning. All of them imply the technical Sign'r user group, which holds
+         the ACLs and a deny rule per operation, so users can only do what a
+         permission opens. Template signers and merge codes follow their
+         template, request signers follow their request. Everyone who can raise
+         sign requests can read the templates to pick one. -->
+    <data noupdate="1">
+        <record id="module_category_signr" model="ir.module.category">
+            <field name="name">Sign'r</field>
+            <field name="description">Send documents made from Word templates for digital signature.</field>
+            <field name="sequence">55</field>
+        </record>
+    </data>
+
+    <record id="group_signr_user" model="res.groups">
+        <field name="name">Sign'r: User</field>
+        <field name="comment">Technical: given by every Sign'r permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="privilege_signr_template_create_only" model="res.groups.privilege">
+        <field name="name">Sign Templates: Create Only</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">220</field>
+        <field name="description">Create Sign'r templates, and view the ones they created (no editing after saving).</field>
+    </record>
+    <record id="group_signr_template_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_template_create_only"/>
+        <field name="comment">Create Sign'r templates, and view the ones they created (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_template_edit_own" model="res.groups.privilege">
+        <field name="name">Sign Templates: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">230</field>
+        <field name="description">Create Sign'r templates, and view and edit their own.</field>
+    </record>
+    <record id="group_signr_template_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_template_edit_own"/>
+        <field name="comment">Create Sign'r templates, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_template_edit_team" model="res.groups.privilege">
+        <field name="name">Sign Templates: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">240</field>
+        <field name="description">Create Sign'r templates, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_signr_template_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_template_edit_team"/>
+        <field name="comment">Create Sign'r templates, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_template_edit_all" model="res.groups.privilege">
+        <field name="name">Sign Templates: Create and Edit All</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">250</field>
+        <field name="description">Create, view and edit all Sign'r templates.</field>
+    </record>
+    <record id="group_signr_template_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_template_edit_all"/>
+        <field name="comment">Create, view and edit all Sign'r templates.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_template_view_all" model="res.groups.privilege">
+        <field name="name">Sign Templates: View All</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">260</field>
+        <field name="description">View all Sign'r templates.</field>
+    </record>
+    <record id="group_signr_template_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_template_view_all"/>
+        <field name="comment">View all Sign'r templates.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_template_delete_own" model="res.groups.privilege">
+        <field name="name">Sign Templates: Delete Own</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">270</field>
+        <field name="description">Delete their own Sign'r templates.</field>
+    </record>
+    <record id="group_signr_template_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_template_delete_own"/>
+        <field name="comment">Delete their own Sign'r templates.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_template_delete_all" model="res.groups.privilege">
+        <field name="name">Sign Templates: Delete All</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">280</field>
+        <field name="description">Delete any Sign'r templates.</field>
+    </record>
+    <record id="group_signr_template_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_template_delete_all"/>
+        <field name="comment">Delete any Sign'r templates.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_request_create_only" model="res.groups.privilege">
+        <field name="name">Sign Requests: Create Only</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">120</field>
+        <field name="description">Create sign requests, and view the ones they created (no editing after saving).</field>
+    </record>
+    <record id="group_signr_request_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_request_create_only"/>
+        <field name="comment">Create sign requests, and view the ones they created (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_request_edit_own" model="res.groups.privilege">
+        <field name="name">Sign Requests: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">130</field>
+        <field name="description">Create sign requests, and view and edit their own.</field>
+    </record>
+    <record id="group_signr_request_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_request_edit_own"/>
+        <field name="comment">Create sign requests, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_request_edit_team" model="res.groups.privilege">
+        <field name="name">Sign Requests: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">140</field>
+        <field name="description">Create sign requests, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_signr_request_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_request_edit_team"/>
+        <field name="comment">Create sign requests, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_request_edit_all" model="res.groups.privilege">
+        <field name="name">Sign Requests: Create and Edit All</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">150</field>
+        <field name="description">Create, view and edit all sign requests.</field>
+    </record>
+    <record id="group_signr_request_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_request_edit_all"/>
+        <field name="comment">Create, view and edit all sign requests.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_request_view_all" model="res.groups.privilege">
+        <field name="name">Sign Requests: View All</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">160</field>
+        <field name="description">View all sign requests.</field>
+    </record>
+    <record id="group_signr_request_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_request_view_all"/>
+        <field name="comment">View all sign requests.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_request_delete_own" model="res.groups.privilege">
+        <field name="name">Sign Requests: Delete Own</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">170</field>
+        <field name="description">Delete their own sign requests.</field>
+    </record>
+    <record id="group_signr_request_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_request_delete_own"/>
+        <field name="comment">Delete their own sign requests.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr_request_delete_all" model="res.groups.privilege">
+        <field name="name">Sign Requests: Delete All</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">180</field>
+        <field name="description">Delete any sign requests.</field>
+    </record>
+    <record id="group_signr_request_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_signr_request_delete_all"/>
+        <field name="comment">Delete any sign requests.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_user'))]"/>
+    </record>
+    <record id="privilege_signr" model="res.groups.privilege">
+        <field name="name">Sign'r</field>
+        <field name="category_id" ref="module_category_signr"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Sign'r app.</field>
+    </record>
+    <record id="group_signr_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_signr"/>
+        <field name="comment">Every Sign'r permission, including deleting any template or request, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_signr_template_create_only')), (4, ref('group_signr_template_edit_own')), (4, ref('group_signr_template_edit_team')), (4, ref('group_signr_template_edit_all')), (4, ref('group_signr_template_view_all')), (4, ref('group_signr_template_delete_own')), (4, ref('group_signr_template_delete_all')), (4, ref('group_signr_request_create_only')), (4, ref('group_signr_request_edit_own')), (4, ref('group_signr_request_edit_team')), (4, ref('group_signr_request_edit_all')), (4, ref('group_signr_request_view_all')), (4, ref('group_signr_request_delete_own')), (4, ref('group_signr_request_delete_all'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing -->
+    <record id="rule_signr_template_deny" model="ir.rule">
+        <field name="name">Sign Templates: only through a permission</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_signr_template_role_deny" model="ir.rule">
+        <field name="name">Template Signers: only through a permission</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_signr_template_field_deny" model="ir.rule">
+        <field name="name">Template Merge Codes: only through a permission</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_signr_request_deny" model="ir.rule">
+        <field name="name">Sign Requests: only through a permission</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_signr_request_signer_deny" model="ir.rule">
+        <field name="name">Signers: only through a permission</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <!-- Sign Templates: Create Only -->
+    <record id="rule_signr_template_create_only" model="ir.rule">
+        <field name="name">Sign Templates: Create Only</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_create_only" model="ir.rule">
+        <field name="name">Template Signers: Create Only</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_create_only'))]"/>
+        <field name="domain_force">[('template_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_create_only" model="ir.rule">
+        <field name="name">Template Merge Codes: Create Only</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_create_only'))]"/>
+        <field name="domain_force">[('template_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Templates: Create and Edit Own -->
+    <record id="rule_signr_template_edit_own" model="ir.rule">
+        <field name="name">Sign Templates: Create and Edit Own</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_edit_own" model="ir.rule">
+        <field name="name">Template Signers: Create and Edit Own</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_own'))]"/>
+        <field name="domain_force">[('template_id.create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_edit_own" model="ir.rule">
+        <field name="name">Template Merge Codes: Create and Edit Own</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_own'))]"/>
+        <field name="domain_force">[('template_id.create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Templates: Create and Edit My Team -->
+    <record id="rule_signr_template_edit_team" model="ir.rule">
+        <field name="name">Sign Templates: Create and Edit My Team</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_edit_team" model="ir.rule">
+        <field name="name">Template Signers: Create and Edit My Team</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_team'))]"/>
+        <field name="domain_force">['|', ('template_id.create_uid', '=', user.id), ('template_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_edit_team" model="ir.rule">
+        <field name="name">Template Merge Codes: Create and Edit My Team</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_team'))]"/>
+        <field name="domain_force">['|', ('template_id.create_uid', '=', user.id), ('template_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Templates: Create and Edit All -->
+    <record id="rule_signr_template_edit_all" model="ir.rule">
+        <field name="name">Sign Templates: Create and Edit All</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_edit_all" model="ir.rule">
+        <field name="name">Template Signers: Create and Edit All</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_edit_all" model="ir.rule">
+        <field name="name">Template Merge Codes: Create and Edit All</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Templates: View All -->
+    <record id="rule_signr_template_view_all" model="ir.rule">
+        <field name="name">Sign Templates: View All</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_view_all" model="ir.rule">
+        <field name="name">Template Signers: View All</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_view_all" model="ir.rule">
+        <field name="name">Template Merge Codes: View All</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Templates: Delete Own -->
+    <record id="rule_signr_template_delete_own" model="ir.rule">
+        <field name="name">Sign Templates: Delete Own</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_delete_own" model="ir.rule">
+        <field name="name">Template Signers: Delete Own</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_delete_own'))]"/>
+        <field name="domain_force">[('template_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_delete_own" model="ir.rule">
+        <field name="name">Template Merge Codes: Delete Own</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_delete_own'))]"/>
+        <field name="domain_force">[('template_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Sign Templates: Delete All -->
+    <record id="rule_signr_template_delete_all" model="ir.rule">
+        <field name="name">Sign Templates: Delete All</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_delete_all" model="ir.rule">
+        <field name="name">Template Signers: Delete All</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_delete_all" model="ir.rule">
+        <field name="name">Template Merge Codes: Delete All</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_template_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Sign Requests: Create Only -->
+    <record id="rule_signr_request_create_only" model="ir.rule">
+        <field name="name">Sign Requests: Create Only</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_request_signer_create_only" model="ir.rule">
+        <field name="name">Signers: Create Only</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_create_only'))]"/>
+        <field name="domain_force">['|', ('request_id.create_uid', '=', user.id), ('request_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Requests: Create and Edit Own -->
+    <record id="rule_signr_request_edit_own" model="ir.rule">
+        <field name="name">Sign Requests: Create and Edit Own</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_request_signer_edit_own" model="ir.rule">
+        <field name="name">Signers: Create and Edit Own</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_edit_own'))]"/>
+        <field name="domain_force">['|', ('request_id.create_uid', '=', user.id), ('request_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Requests: Create and Edit My Team -->
+    <record id="rule_signr_request_edit_team" model="ir.rule">
+        <field name="name">Sign Requests: Create and Edit My Team</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_request_signer_edit_team" model="ir.rule">
+        <field name="name">Signers: Create and Edit My Team</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('request_id.create_uid', '=', user.id), ('request_id.user_id', '=', user.id), ('request_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Requests: Create and Edit All -->
+    <record id="rule_signr_request_edit_all" model="ir.rule">
+        <field name="name">Sign Requests: Create and Edit All</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_request_signer_edit_all" model="ir.rule">
+        <field name="name">Signers: Create and Edit All</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Requests: View All -->
+    <record id="rule_signr_request_view_all" model="ir.rule">
+        <field name="name">Sign Requests: View All</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_request_signer_view_all" model="ir.rule">
+        <field name="name">Signers: View All</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sign Requests: Delete Own -->
+    <record id="rule_signr_request_delete_own" model="ir.rule">
+        <field name="name">Sign Requests: Delete Own</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_signr_request_signer_delete_own" model="ir.rule">
+        <field name="name">Signers: Delete Own</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_delete_own'))]"/>
+        <field name="domain_force">['|', ('request_id.create_uid', '=', user.id), ('request_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Sign Requests: Delete All -->
+    <record id="rule_signr_request_delete_all" model="ir.rule">
+        <field name="name">Sign Requests: Delete All</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_signr_request_signer_delete_all" model="ir.rule">
+        <field name="name">Signers: Delete All</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Raising sign requests: read the templates to pick one -->
+    <record id="rule_signr_template_request_read" model="ir.rule">
+        <field name="name">Sign Templates: read, to raise sign requests</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_create_only')), (4, ref('group_signr_request_edit_own')), (4, ref('group_signr_request_edit_team')), (4, ref('group_signr_request_edit_all')), (4, ref('group_signr_request_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_role_request_read" model="ir.rule">
+        <field name="name">Template Signers: read, to raise sign requests</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_create_only')), (4, ref('group_signr_request_edit_own')), (4, ref('group_signr_request_edit_team')), (4, ref('group_signr_request_edit_all')), (4, ref('group_signr_request_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_signr_template_field_request_read" model="ir.rule">
+        <field name="name">Template Merge Codes: read, to raise sign requests</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="groups" eval="[(4, ref('group_signr_request_create_only')), (4, ref('group_signr_request_edit_own')), (4, ref('group_signr_request_edit_team')), (4, ref('group_signr_request_edit_all')), (4, ref('group_signr_request_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Multi-company -->
+    <record id="rule_signr_template_company" model="ir.rule">
+        <field name="name">Sign Templates: multi-company</field>
+        <field name="model_id" ref="model_signr_template"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_signr_template_role_company" model="ir.rule">
+        <field name="name">Template Signers: multi-company</field>
+        <field name="model_id" ref="model_signr_template_role"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_signr_template_field_company" model="ir.rule">
+        <field name="name">Template Merge Codes: multi-company</field>
+        <field name="model_id" ref="model_signr_template_field"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_signr_request_company" model="ir.rule">
+        <field name="name">Sign Requests: multi-company</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_signr_request_signer_company" model="ir.rule">
+        <field name="name">Signers: multi-company</field>
+        <field name="model_id" ref="model_signr_request_signer"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>
