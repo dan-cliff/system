@@ -17,7 +17,7 @@ THEME_SELECTION = [
 
 
 class EmbroideryStatusBoard(models.Model):
-    """What a wall display shows about the machines, and how it is laid out."""
+    """What a display screen shows about the machines, and how it is laid out."""
     _name = 'embroidery.status.board'
     _description = 'Embroidery Status Board'
     _order = 'name'
@@ -29,7 +29,7 @@ class EmbroideryStatusBoard(models.Model):
         'embroidery.machine', string='Machines',
         help='Machines on the board, in this order. Leave empty to show every active machine.',
     )
-    display_ids = fields.One2many('iot.node', 'embroidery_board_id', string='Wall Displays')
+    display_ids = fields.One2many('iot.node', 'embroidery_board_id', string='Display Screens')
     display_count = fields.Integer(compute='_compute_display_count')
 
     # ── Layout ────────────────────────────────────────────────────────────

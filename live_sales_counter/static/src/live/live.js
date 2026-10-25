@@ -200,6 +200,8 @@
     let queueTimer = null;
     let shown = { total: 0, count: 0 };
     let latest = null;
+    // Display Screen Nodes: the screen's reload counter, to reload when asked.
+    let reloadCounter = null;
     const demo = { total: 0, count: 0, sales: [] };
 
     function applyLayout() {
@@ -354,6 +356,14 @@
     }
 
     function applyData(data) {
+        if (data.switch_page || (reloadCounter !== null && data.reload !== reloadCounter)) {
+            // The screen now shows something else, or was asked to reload.
+            window.location.reload();
+            return;
+        }
+        if (data.reload !== undefined) {
+            reloadCounter = data.reload;
+        }
         latest = data;
         serverOffset = data.server_time ? Date.now() - new Date(data.server_time).getTime() : 0;
         $('ls-period').textContent = data.period || '';

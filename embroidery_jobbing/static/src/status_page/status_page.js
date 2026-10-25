@@ -1,4 +1,4 @@
-/* Machine status page for wall displays. Plain JavaScript so it runs well
+/* Machine status page for display screens. Plain JavaScript so it runs well
  * on a Node (Raspberry Pi). Fetches the board's data every few seconds and draws
  * it in the board's layout: a grid of machine cards, a list, or one
  * machine at a time. */
@@ -295,6 +295,11 @@
                 credentials: "same-origin",
             });
             const data = await response.json().catch(() => ({}));
+            if (data.switch_page) {
+                // The screen was set to show something else (e.g. a Live Sales Counter).
+                window.location.reload();
+                return;
+            }
             if (!response.ok || data.status !== "ok") {
                 const message = data.message || `Odoo answered ${response.status}.`;
                 if (state.data && response.status >= 500) {

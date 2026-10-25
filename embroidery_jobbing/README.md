@@ -12,7 +12,7 @@ live progress monitor for each stitch out.
 | **Designs** | Brother `.pes` files. Stitch count, colours (Brother thread palette), size, trims and a stitch preview are read from the file on upload. |
 | **Machines** | Each machine (model, needles, speed, hoops, connection) with its live status. The kanban view is the machine floor at a glance. Add more machines as the business grows. |
 | **Configuration** | Status Boards, Machine Models (Brother PR1060W included), Hoops & Frames, Placements and Stabilisers. |
-| **IoT Interfaces › Nodes** | The Raspberry Pis (Nodes) Embroidery uses: *Embroidery Bridges* beside the machines and *Embroidery Wall Displays* on TVs. |
+| **IoT Interfaces › Nodes** | The Raspberry Pis (Nodes) Embroidery uses: *Embroidery Bridges* beside the machines and *Display Screens* on TVs. |
 
 The **Progress** tab on a job, machine or stitch out shows the progress bar,
 stitch and colour reached, time stitching, time remaining, ETA and recent
@@ -54,11 +54,11 @@ workshop network), set up in the **IoT Interfaces** app:
 * **Embroidery Bridge** (beside the machines): collects the designs sent
   from Odoo, delivers them to its machines and reports the stitch-out
   progress back. Choose it as the **Bridge Node** on each machine.
-* **Embroidery Wall Display** (plugged into a TV, with Raspberry Pi OS with
+* **Display Screen** (plugged into a TV, with Raspberry Pi OS with
   desktop): shows its **Status Board** full screen.
 
 To add one, go to **IoT Interfaces › Nodes › Embroidery Bridges** (or
-**Embroidery Wall Displays**), create the Node and click **Pair Node**,
+**Display Screens**), create the Node and click **Pair Node**,
 then run the command it shows on the Pi. The same command builds every
 Node. After that the Node keeps its own rolling key and takes program
 updates over the air. See the IoT Interfaces README for security, updates
@@ -90,7 +90,8 @@ screen shows:
 
 **Preview** opens the board in the browser.
 
-An **Embroidery Wall Display** Node shows one board. Change its board, or
+A **Display Screen** Node shows one board (or, with Live Sales Counter
+installed, a live sales counter). Change its board, or
 anything on the board, and the screen updates within a few seconds.
 **Reload Screen** on the Node makes it reload the page. Chromium on the
 Node opens the Node agent's local address, which signs its requests to
@@ -114,7 +115,7 @@ Embroidery Bridge:
   `message`, `error_code`, and
   `events: [{"type": "info" | "error" | "color_change" | ..., "message", "code", "stitch"}]`.
 
-Embroidery Wall Display:
+Display Screen:
 
 * `GET /embroidery/node/v1/display/page` returns the status page.
 * `GET /embroidery/node/v1/display/data.json` returns what the page shows.

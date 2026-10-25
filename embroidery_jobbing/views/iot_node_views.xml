@@ -50,20 +50,20 @@
     </record>
 
     <record id="action_embroidery_display_nodes" model="ir.actions.act_window">
-        <field name="name">Embroidery Wall Displays</field>
+        <field name="name">Display Screens</field>
         <field name="res_model">iot.node</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('role', '=', 'embroidery_display')]</field>
         <field name="context">{'default_role': 'embroidery_display'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Add the Node plugged into a TV</p>
-            <p>A wall display Node is a Raspberry Pi (with Raspberry Pi OS with desktop) plugged into a TV.
+            <p>A display screen Node is a Raspberry Pi (with Raspberry Pi OS with desktop) plugged into a TV.
                It shows its status board full screen.</p>
         </field>
     </record>
 
     <menuitem id="menu_iot_embroidery_bridges" name="Embroidery Bridges" parent="iot_interfaces.menu_iot_nodes"
               action="action_embroidery_bridge_nodes" sequence="20"/>
-    <menuitem id="menu_iot_embroidery_displays" name="Embroidery Wall Displays" parent="iot_interfaces.menu_iot_nodes"
+    <menuitem id="menu_iot_embroidery_displays" name="Display Screens" parent="iot_interfaces.menu_iot_nodes"
               action="action_embroidery_display_nodes" sequence="21"/>
 </odoo>

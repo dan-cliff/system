@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Display Screen Nodes: choose between an Embroidery status board and a Live Sales Counter. -->
+    <record id="view_iot_node_form_live_counter" model="ir.ui.view">
+        <field name="name">iot.node.form.live.counter</field>
+        <field name="model">iot.node</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_iot_node_form_embroidery"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='embroidery_board_id']" position="before">
+                <field name="display_content" widget="radio" invisible="role != 'embroidery_display'"/>
+            </xpath>
+            <xpath expr="//field[@name='embroidery_board_id']" position="attributes">
+                <attribute name="invisible">role != 'embroidery_display' or display_content != 'embroidery_board'</attribute>
+                <attribute name="required">role == 'embroidery_display' and display_content == 'embroidery_board'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='embroidery_board_id']" position="after">
+                <field name="live_counter_id" options="{'no_create': True}"
+                       invisible="role != 'embroidery_display' or display_content != 'live_counter'"
+                       required="role == 'embroidery_display' and display_content == 'live_counter'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

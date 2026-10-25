@@ -4,7 +4,7 @@ import hashlib
 import json
 from unittest.mock import patch
 
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import HttpCase, TransactionCase, tagged
 
 from ..models.iot_program import files_digest
@@ -235,11 +235,15 @@ class TestUpdateApi(HttpCase):
         self.assertEqual(call('GET', main['url']).content, b'print(1)')
         self.assertEqual(call('GET', main['url'], with_signer=None).status_code, 401)
         # Another role's Node can't download it.
-        other = self.env['iot.program'].search([('role', '!=', 'custom')], limit=1)
-        if other:
-            other_node = self.env['iot.node'].create({'name': 'Other', 'role': other.role})
+        for other in self.env['iot.program'].search([('role', '!=', 'custom')]):
+            try:
+                with self.env.cr.savepoint():
+                    other_node = self.env['iot.node'].create({'name': 'Other', 'role': other.role})
+            except ValidationError:
+                continue  # this role's Nodes need more settings (e.g. what a screen shows)
             other_signer = pair(other_node, mac='b8:27:eb:00:00:02')
             self.assertEqual(call('GET', main['url'], with_signer=other_signer).status_code, 404)
+            break
 
         call('POST', '/iot/v1/hello', {'program': {'digest': version.digest}})
         self.assertEqual(node.installed_version_id, version)

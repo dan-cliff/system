@@ -8,16 +8,16 @@ ROLE_DISPLAY = 'embroidery_display'
 
 class IotNode(models.Model):
     """Embroidery's two Node roles: the bridge beside the machines and the
-    wall display. Their settings live on the Node, in IoT Interfaces."""
+    display screen. Their settings live on the Node, in IoT Interfaces."""
     _inherit = 'iot.node'
 
     role = fields.Selection(
-        selection_add=[(ROLE_BRIDGE, 'Embroidery Bridge'), (ROLE_DISPLAY, 'Embroidery Wall Display')],
+        selection_add=[(ROLE_BRIDGE, 'Embroidery Bridge'), (ROLE_DISPLAY, 'Display Screen')],
         ondelete={ROLE_BRIDGE: 'set default', ROLE_DISPLAY: 'set default'},
     )
     # ── Embroidery Bridge ─────────────────────────────────────────────────
     embroidery_machine_ids = fields.One2many('embroidery.machine', 'bridge_id', string='Embroidery Machines')
-    # ── Embroidery Wall Display ───────────────────────────────────────────
+    # ── Display Screen ────────────────────────────────────────────────────
     embroidery_board_id = fields.Many2one(
         'embroidery.status.board', string='Status Board', ondelete='restrict', tracking=True,
         help='What the screen shows. Change it here and the screen switches within a few seconds.',
@@ -54,8 +54,8 @@ class IotProgram(models.Model):
             'folder': 'embroidery_jobbing/node_programs/embroidery_bridge',
         }
         programs[ROLE_DISPLAY] = {
-            'name': 'Embroidery Wall Display',
-            'description': "Shows an embroidery status board full screen on the Node's TV.",
+            'name': 'Display Screen',
+            'description': "Shows a status board or dashboard full screen on the Node's TV.",
             'folder': 'embroidery_jobbing/node_programs/embroidery_display',
         }
         return programs
