@@ -96,8 +96,6 @@
                     <button name="action_new_quote" type="object" string="New Quote"
                             invisible="is_closed or not quotation_count"
                             groups="modern_crm.group_modern_crm_quote_create"/>
-                    <button name="action_new_contract" type="object" string="New Contract"
-                            invisible="is_lost"/>
                     <button name="action_confirm_sale" type="object" string="Confirm Sale"
                             class="btn-primary" invisible="is_lost or not quotation_count"
                             groups="modern_crm.group_modern_crm_sale_order"
@@ -129,10 +127,6 @@
                                 icon="fa-file-text-o" invisible="not invoice_count"
                                 groups="account.group_account_invoice">
                             <field name="invoice_count" widget="statinfo" string="Invoices"/>
-                        </button>
-                        <button name="action_view_contracts" type="object" class="oe_stat_button"
-                                icon="fa-files-o" invisible="not contract_count">
-                            <field name="contract_count" widget="statinfo" string="Contracts"/>
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Won" bg_color="text-bg-success" invisible="not is_won"/>
@@ -315,7 +309,7 @@
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first opportunity</p>
             <p>Opportunities are deals you are working on: move them through the stages, add the products,
-                send a quote and a contract, and close them won.</p>
+                send a quote, confirm the sale and close them won.</p>
         </field>
     </record>
 

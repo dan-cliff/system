@@ -60,7 +60,7 @@
             <field name="is_won" eval="False"/>
             <field name="is_lost" eval="False"/>
             <field name="fold" eval="False"/>
-            <field name="guidance">&lt;p&gt;Agree the terms, then create the contract and send it for signature.&lt;/p&gt;</field>
+            <field name="guidance">&lt;p&gt;Agree the terms and get the go-ahead, then confirm the sale.&lt;/p&gt;</field>
         </record>
         <record id="stage_won" model="modern.crm.stage">
             <field name="name">Closed Won</field>
@@ -70,7 +70,7 @@
             <field name="is_won" eval="True"/>
             <field name="is_lost" eval="False"/>
             <field name="fold" eval="True"/>
-            <field name="guidance">&lt;p&gt;Signed and sold: confirm the sale and invoice it.&lt;/p&gt;</field>
+            <field name="guidance">&lt;p&gt;Sold: confirm the sale and invoice it.&lt;/p&gt;</field>
         </record>
         <record id="stage_lost" model="modern.crm.stage">
             <field name="name">Closed Lost</field>

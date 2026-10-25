@@ -5,7 +5,7 @@
         <field name="model">modern.crm.opportunity</field>
         <field name="inherit_id" ref="modern_crm.modern_crm_opportunity_view_form"/>
         <field name="arch" type="xml">
-            <button name="action_view_contracts" position="before">
+            <button name="action_view_invoices" position="after">
                 <button name="action_view_subscriptions" type="object" class="oe_stat_button"
                         icon="fa-refresh" invisible="not subscription_count"
                         groups="sales_team.group_sale_salesman">

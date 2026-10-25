@@ -5,16 +5,15 @@
          give it its meaning. All of them imply the technical CRM user group, which
          holds the ACLs and a deny rule per operation, so users can only do what a
          permission opens. Opportunity products and contact roles follow their
-         opportunity, contract signers their contract (editing the parent includes
-         removing them). "Own" = created by them or
-         owned by them (Lead / Opportunity / Contract Owner). Workflow actions
-         (quotes, sales orders, invoices, sending and activating contracts) each
-         have their own privilege, checked in code. Stages, contract templates and
-         the Configuration lists: read for every CRM user, full for Administrators. -->
+         opportunity (editing the opportunity includes removing them). "Own" =
+         created by them or owned by them (Lead / Opportunity Owner). Workflow
+         actions (quotes, sales orders, invoices) each have their own privilege,
+         checked in code. Stages and the Configuration lists: read for every CRM
+         user, full for Administrators. -->
     <data noupdate="1">
         <record id="module_category_modern_crm" model="ir.module.category">
             <field name="name">CRM</field>
-            <field name="description">Leads, opportunities, quotes and e-signed contracts.</field>
+            <field name="description">Leads, opportunities, quotes and sales.</field>
             <field name="sequence">6</field>
         </record>
     </data>
@@ -29,7 +28,7 @@
     <record id="group_modern_crm_user" model="res.groups">
         <field name="name">CRM: User</field>
         <field name="privilege_id" eval="False"/>
-        <field name="comment">Technical: given by every CRM permission. Opens the app; what users can do with leads, opportunities and contracts comes from their permissions. Gives Contact Creation, as salespeople create accounts and contacts (e.g. converting leads).</field>
+        <field name="comment">Technical: given by every CRM permission. Opens the app; what users can do with leads and opportunities comes from their permissions. Gives Contact Creation, as salespeople create accounts and contacts (e.g. converting leads).</field>
         <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('base.group_partner_manager'))]"/>
     </record>
 
@@ -215,101 +214,10 @@
         <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
     </record>
 
-    <record id="privilege_modern_crm_contract_create_only" model="res.groups.privilege">
-        <field name="name">Contracts: Create Only</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">160</field>
-        <field name="description">Create contracts, and view their own (no editing after saving).</field>
-    </record>
-    <record id="group_modern_crm_contract_create_only" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_create_only"/>
-        <field name="comment">Create contracts, and view their own (no editing after saving).</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
-    <record id="privilege_modern_crm_contract_edit_own" model="res.groups.privilege">
-        <field name="name">Contracts: Create and Edit Own</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">170</field>
-        <field name="description">Create contracts, and view and edit their own (created by them or owned by them).</field>
-    </record>
-    <record id="group_modern_crm_contract_edit_own" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_edit_own"/>
-        <field name="comment">Create contracts, and view and edit their own (created by them or owned by them).</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
-    <record id="privilege_modern_crm_contract_edit_team" model="res.groups.privilege">
-        <field name="name">Contracts: Create and Edit My Team</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">180</field>
-        <field name="description">Create contracts, and view and edit their own and their team&apos;s.</field>
-    </record>
-    <record id="group_modern_crm_contract_edit_team" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_edit_team"/>
-        <field name="comment">Create contracts, and view and edit their own and their team&apos;s.</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
-    <record id="privilege_modern_crm_contract_edit_all" model="res.groups.privilege">
-        <field name="name">Contracts: Create and Edit All</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">190</field>
-        <field name="description">Create, view and edit all contracts.</field>
-    </record>
-    <record id="group_modern_crm_contract_edit_all" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_edit_all"/>
-        <field name="comment">Create, view and edit all contracts.</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
-    <record id="privilege_modern_crm_contract_view_all" model="res.groups.privilege">
-        <field name="name">Contracts: View All</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">200</field>
-        <field name="description">View all contracts.</field>
-    </record>
-    <record id="group_modern_crm_contract_view_all" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_view_all"/>
-        <field name="comment">View all contracts.</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
-    <record id="privilege_modern_crm_contract_delete_own" model="res.groups.privilege">
-        <field name="name">Contracts: Delete Own</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">210</field>
-        <field name="description">Delete their own contracts (created by them or owned by them).</field>
-    </record>
-    <record id="group_modern_crm_contract_delete_own" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_delete_own"/>
-        <field name="comment">Delete their own contracts (created by them or owned by them).</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
-    <record id="privilege_modern_crm_contract_delete_all" model="res.groups.privilege">
-        <field name="name">Contracts: Delete All</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">220</field>
-        <field name="description">Delete any of the contracts.</field>
-    </record>
-    <record id="group_modern_crm_contract_delete_all" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_delete_all"/>
-        <field name="comment">Delete any of the contracts.</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
     <record id="privilege_modern_crm_quote_create" model="res.groups.privilege">
         <field name="name">Opportunities: Create Quotes</field>
         <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">230</field>
+        <field name="sequence">160</field>
         <field name="description">Create Sales quotations from opportunities (also gives the Sales app, for their own documents).</field>
     </record>
     <record id="group_modern_crm_quote_create" model="res.groups">
@@ -322,7 +230,7 @@
     <record id="privilege_modern_crm_sale_order" model="res.groups.privilege">
         <field name="name">Opportunities: Confirm Sales Orders</field>
         <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">240</field>
+        <field name="sequence">170</field>
         <field name="description">Turn an opportunity&apos;s quote into a sales order (this also creates any subscriptions).</field>
     </record>
     <record id="group_modern_crm_sale_order" model="res.groups">
@@ -335,7 +243,7 @@
     <record id="privilege_modern_crm_invoice" model="res.groups.privilege">
         <field name="name">Opportunities: Create Invoices</field>
         <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">250</field>
+        <field name="sequence">180</field>
         <field name="description">Draft invoices for what an opportunity&apos;s sales orders have ready to invoice.</field>
     </record>
     <record id="group_modern_crm_invoice" model="res.groups">
@@ -345,38 +253,12 @@
         <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
     </record>
 
-    <record id="privilege_modern_crm_contract_send" model="res.groups.privilege">
-        <field name="name">Contracts: Send for Signature</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">260</field>
-        <field name="description">Send contracts to the customer (and countersigner) for digital signature, and cancel requests.</field>
-    </record>
-    <record id="group_modern_crm_contract_send" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_send"/>
-        <field name="comment">Send contracts to the customer (and countersigner) for digital signature, and cancel requests.</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
-    <record id="privilege_modern_crm_contract_activate" model="res.groups.privilege">
-        <field name="name">Contracts: Activate</field>
-        <field name="category_id" ref="module_category_modern_crm"/>
-        <field name="sequence">270</field>
-        <field name="description">Activate contracts, signed or not.</field>
-    </record>
-    <record id="group_modern_crm_contract_activate" model="res.groups">
-        <field name="name">Allowed</field>
-        <field name="privilege_id" ref="privilege_modern_crm_contract_activate"/>
-        <field name="comment">Activate contracts, signed or not.</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_user'))]"/>
-    </record>
-
     <record id="group_modern_crm_manager" model="res.groups">
         <field name="name">Administrator</field>
         <field name="sequence">20</field>
         <field name="privilege_id" ref="res_groups_privilege_modern_crm"/>
-        <field name="comment">Every CRM permission, including deleting any lead, opportunity or contract and every workflow action, plus Configuration (stages, contract templates and the option lists).</field>
-        <field name="implied_ids" eval="[(4, ref('group_modern_crm_lead_create_only')), (4, ref('group_modern_crm_lead_edit_own')), (4, ref('group_modern_crm_lead_edit_team')), (4, ref('group_modern_crm_lead_edit_all')), (4, ref('group_modern_crm_lead_view_all')), (4, ref('group_modern_crm_lead_delete_own')), (4, ref('group_modern_crm_lead_delete_all')), (4, ref('group_modern_crm_opportunity_create_only')), (4, ref('group_modern_crm_opportunity_edit_own')), (4, ref('group_modern_crm_opportunity_edit_team')), (4, ref('group_modern_crm_opportunity_edit_all')), (4, ref('group_modern_crm_opportunity_view_all')), (4, ref('group_modern_crm_opportunity_delete_own')), (4, ref('group_modern_crm_opportunity_delete_all')), (4, ref('group_modern_crm_contract_create_only')), (4, ref('group_modern_crm_contract_edit_own')), (4, ref('group_modern_crm_contract_edit_team')), (4, ref('group_modern_crm_contract_edit_all')), (4, ref('group_modern_crm_contract_view_all')), (4, ref('group_modern_crm_contract_delete_own')), (4, ref('group_modern_crm_contract_delete_all')), (4, ref('group_modern_crm_quote_create')), (4, ref('group_modern_crm_sale_order')), (4, ref('group_modern_crm_invoice')), (4, ref('group_modern_crm_contract_send')), (4, ref('group_modern_crm_contract_activate'))]"/>
+        <field name="comment">Every CRM permission, including deleting any lead or opportunity and every workflow action, plus Configuration (stages and the option lists).</field>
+        <field name="implied_ids" eval="[(4, ref('group_modern_crm_lead_create_only')), (4, ref('group_modern_crm_lead_edit_own')), (4, ref('group_modern_crm_lead_edit_team')), (4, ref('group_modern_crm_lead_edit_all')), (4, ref('group_modern_crm_lead_view_all')), (4, ref('group_modern_crm_lead_delete_own')), (4, ref('group_modern_crm_lead_delete_all')), (4, ref('group_modern_crm_opportunity_create_only')), (4, ref('group_modern_crm_opportunity_edit_own')), (4, ref('group_modern_crm_opportunity_edit_team')), (4, ref('group_modern_crm_opportunity_edit_all')), (4, ref('group_modern_crm_opportunity_view_all')), (4, ref('group_modern_crm_opportunity_delete_own')), (4, ref('group_modern_crm_opportunity_delete_all')), (4, ref('group_modern_crm_quote_create')), (4, ref('group_modern_crm_sale_order')), (4, ref('group_modern_crm_invoice'))]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
@@ -640,136 +522,6 @@
         <field name="perm_create" eval="False"/>
     </record>
 
-    <!-- Contracts: without a permission, nothing -->
-    <record id="rule_modern_crm_contract_deny" model="ir.rule">
-        <field name="name">Contracts: only through a permission</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_user'))]"/>
-        <field name="domain_force">[(0, '=', 1)]</field>
-    </record>
-    <record id="rule_modern_crm_contract_signer_deny" model="ir.rule">
-        <field name="name">Contract Signers: only through a permission</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_user'))]"/>
-        <field name="domain_force">[(0, '=', 1)]</field>
-    </record>
-    <!-- Contracts: Create Only -->
-    <record id="rule_modern_crm_contract_create_only" model="ir.rule">
-        <field name="name">Contracts: Create Only</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_create_only'))]"/>
-        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-    <record id="rule_modern_crm_contract_signer_create_only" model="ir.rule">
-        <field name="name">Contract Signers: Create Only</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_create_only'))]"/>
-        <field name="domain_force">['|', ('contract_id.create_uid', '=', user.id), ('contract_id.user_id', '=', user.id)]</field>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-    <!-- Contracts: Create and Edit Own -->
-    <record id="rule_modern_crm_contract_edit_own" model="ir.rule">
-        <field name="name">Contracts: Create and Edit Own</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_edit_own'))]"/>
-        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-    <record id="rule_modern_crm_contract_signer_edit_own" model="ir.rule">
-        <field name="name">Contract Signers: Create and Edit Own</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_edit_own'))]"/>
-        <field name="domain_force">['|', ('contract_id.create_uid', '=', user.id), ('contract_id.user_id', '=', user.id)]</field>
-    </record>
-    <!-- Contracts: Create and Edit My Team -->
-    <record id="rule_modern_crm_contract_edit_team" model="ir.rule">
-        <field name="name">Contracts: Create and Edit My Team</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_edit_team'))]"/>
-        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-    <record id="rule_modern_crm_contract_signer_edit_team" model="ir.rule">
-        <field name="name">Contract Signers: Create and Edit My Team</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_edit_team'))]"/>
-        <field name="domain_force">['|', '|', '|', ('contract_id.create_uid', '=', user.id), ('contract_id.user_id', '=', user.id), ('contract_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('contract_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
-    </record>
-    <!-- Contracts: Create and Edit All -->
-    <record id="rule_modern_crm_contract_edit_all" model="ir.rule">
-        <field name="name">Contracts: Create and Edit All</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_edit_all'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-    <record id="rule_modern_crm_contract_signer_edit_all" model="ir.rule">
-        <field name="name">Contract Signers: Create and Edit All</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_edit_all'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-    </record>
-    <!-- Contracts: View All -->
-    <record id="rule_modern_crm_contract_view_all" model="ir.rule">
-        <field name="name">Contracts: View All</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_view_all'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-    <record id="rule_modern_crm_contract_signer_view_all" model="ir.rule">
-        <field name="name">Contract Signers: View All</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_view_all'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-    <!-- Contracts: Delete Own -->
-    <record id="rule_modern_crm_contract_delete_own" model="ir.rule">
-        <field name="name">Contracts: Delete Own</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_delete_own'))]"/>
-        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
-        <field name="perm_read" eval="False"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-    </record>
-    <record id="rule_modern_crm_contract_signer_delete_own" model="ir.rule">
-        <field name="name">Contract Signers: Delete Own</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_delete_own'))]"/>
-        <field name="domain_force">['|', ('contract_id.create_uid', '=', user.id), ('contract_id.user_id', '=', user.id)]</field>
-        <field name="perm_read" eval="False"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-    </record>
-    <!-- Contracts: Delete All -->
-    <record id="rule_modern_crm_contract_delete_all" model="ir.rule">
-        <field name="name">Contracts: Delete All</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_delete_all'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_read" eval="False"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-    </record>
-    <record id="rule_modern_crm_contract_signer_delete_all" model="ir.rule">
-        <field name="name">Contract Signers: Delete All</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="groups" eval="[(4, ref('group_modern_crm_contract_delete_all'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_read" eval="False"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-    </record>
-
     <!-- Multi-company -->
     <record id="rule_modern_crm_lead_company" model="ir.rule">
         <field name="name">CRM Lead: multi-company</field>
@@ -781,24 +533,9 @@
         <field name="model_id" ref="model_modern_crm_opportunity"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
-    <record id="rule_modern_crm_contract_company" model="ir.rule">
-        <field name="name">CRM Contract: multi-company</field>
-        <field name="model_id" ref="model_modern_crm_contract"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-    </record>
     <record id="rule_modern_crm_opportunity_line_company" model="ir.rule">
         <field name="name">CRM Opportunity Product: multi-company</field>
         <field name="model_id" ref="model_modern_crm_opportunity_line"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-    </record>
-    <record id="rule_modern_crm_contract_signer_company" model="ir.rule">
-        <field name="name">CRM Contract Signer: multi-company</field>
-        <field name="model_id" ref="model_modern_crm_contract_signer"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-    </record>
-    <record id="rule_modern_crm_contract_template_company" model="ir.rule">
-        <field name="name">CRM Contract Template: multi-company</field>
-        <field name="model_id" ref="model_modern_crm_contract_template"/>
-        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
     </record>
 </odoo>
