@@ -184,6 +184,19 @@ class AdvancedProjectUpdate(models.Model):
         self.sudo().block_ids.write({'snapshot_html': False})
         return True
 
+    def _document_rows(self):
+        """The blocks in rows of up to 12 columns, as they sit side by side."""
+        self.ensure_one()
+        rows, columns = [], 12
+        for block in self.block_ids:
+            width = block.width or 12
+            if columns + width > 12:
+                rows.append(self.env['advanced.project.update.block'])
+                columns = 0
+            rows[-1] |= block
+            columns += width
+        return rows
+
     def _render_document(self):
         self.ensure_one()
         return self.env['ir.qweb']._render('advanced_projects.update_document', {
@@ -235,6 +248,10 @@ class AdvancedProjectUpdateBlock(models.Model):
     snapshot_html = fields.Html(
         'Published Tasks', readonly=True, copy=False, sanitize_style=True,
         help='The task list as it was when the update was published.')
+    # Width out of 12 columns: blocks sit side by side until a row is full.
+    width = fields.Integer(default=12, help='How many of the 12 columns of the update the block spans.')
+
+    _width_range = models.Constraint('CHECK (width BETWEEN 1 AND 12)', 'A block spans 1 to 12 columns.')
 
     def _filter_project(self):
         return self.update_id.project_id
@@ -258,6 +275,7 @@ class AdvancedProjectUpdateBlock(models.Model):
             'block_type': self.block_type,
             'title': self.title or '',
             'body': self.body or '',
+            'width': self.width or 12,
         }
         if self.block_type == 'tasks':
             values.update(self._filter_values())

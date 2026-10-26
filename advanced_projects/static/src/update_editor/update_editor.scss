@@ -60,6 +60,34 @@
         background: #8E5CF0;
     }
 
+    // blocks sit side by side by their width (out of 12 columns), 12px apart
+    // (GAP in update_editor.js)
+    .o_adv_update_document_editor {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        column-gap: 12px;
+
+        > .o_adv_drop_marker {
+            flex: 0 0 100%;
+        }
+    }
+
+    .o_adv_block {
+        position: relative;
+        min-width: 0;
+        max-width: 100%;
+
+        &.o_adv_block_resizing {
+            outline: 2px dashed #8E5CF0;
+            user-select: none;
+        }
+    }
+
+    .o_adv_block_resize {
+        @include o-adv-resize-grip;
+    }
+
     .o_adv_update_palette {
         width: 260px;
         flex: 0 0 260px;

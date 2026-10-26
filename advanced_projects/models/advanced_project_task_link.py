@@ -1,4 +1,9 @@
+from collections import deque
+from datetime import timedelta
+
 from odoo import _, api, fields, models
+
+from .advanced_project_task_filter import format_date
 
 # How a child task follows its parent. The Gantt chart draws and checks each
 # kind differently, so it stays a fixed selection (CLAUDE.md > Choice fields:
@@ -30,6 +35,106 @@ class AdvancedProjectTaskLink(models.Model):
     company_id = fields.Many2one(related='parent_id.company_id', store=True, index=True)
 
     _pair_uniq = models.Constraint('unique (parent_id, child_id)', 'These tasks are already linked.')
+
+    def _required_shift(self, parent_dates=None, child_dates=None):
+        """Days the child must move later to follow its parent, by the link's
+        kind (0 when it already does or a task has no dates):
+
+        * End to Start: the child starts the day after the parent ends;
+        * Start to Start: the child starts when the parent starts;
+        * End to End: the child ends when the parent ends;
+        * Start to End: the child ends when the parent starts.
+
+        ``parent_dates`` / ``child_dates`` are (first day, last day) to use
+        instead of the tasks' own dates (e.g. while planning a reschedule)."""
+        self.ensure_one()
+        p_first, p_last = parent_dates or self.parent_id._gantt_span()
+        c_first, c_last = child_dates or self.child_id._gantt_span()
+        if not (p_first and c_first):
+            return 0
+        required, actual = {
+            'finish_start': (p_last + timedelta(days=1), c_first),
+            'start_start': (p_first, c_first),
+            'finish_finish': (p_last, c_last),
+            'start_finish': (p_first, c_last),
+        }[self.link_type]
+        return max(0, (required - actual).days)
+
+    def _gantt_reschedule_plan(self):
+        """{task: (new first day, new last day)} moving this link's child later
+        to follow its parent, then each task linked after a moved one as far
+        as its own link needs. Nothing ever moves earlier."""
+        self.ensure_one()
+        shift = self._required_shift()
+        if not shift:
+            return {}
+        Task = self.env['advanced.project.task']
+        plan = {}
+
+        def span(task):
+            return plan.get(task) or task._gantt_span()
+
+        def move(task, days):
+            first, last = span(task)
+            plan[task] = (first + timedelta(days=days), last + timedelta(days=days))
+
+        move(self.child_id, shift)
+        queue = deque([self.child_id])
+        while queue:
+            task = queue.popleft()
+            # sudo: plan through every link, the writes are checked as the user
+            for link in task.sudo().child_link_ids:
+                child = Task.browse(link.child_id.id)
+                days = link._required_shift(span(task), span(child))
+                if days:
+                    move(child, days)
+                    queue.append(child)
+        return plan
+
+    def _gantt_reschedule_proposal(self):
+        """What the Gantt chart asks before rescheduling, or False when the
+        child already follows its parent."""
+        self.ensure_one()
+        plan = self._gantt_reschedule_plan()
+        if not plan:
+            return False
+        parent, child = self.parent_id, self.child_id
+        rules = {
+            'finish_start': _('start the day after “%(parent)s” ends (%(date)s)'),
+            'start_start': _('start when “%(parent)s” starts (%(date)s)'),
+            'finish_finish': _('end when “%(parent)s” ends (%(date)s)'),
+            'start_finish': _('end when “%(parent)s” starts (%(date)s)'),
+        }
+        p_first, p_last = parent._gantt_span()
+        date = {
+            'finish_start': p_last + timedelta(days=1) if p_last else False,
+            'start_start': p_first,
+            'finish_finish': p_last,
+            'start_finish': p_first,
+        }[self.link_type]
+
+        def dates(first, last):
+            return format_date(first) if first == last else f'{format_date(first)} – {format_date(last)}'
+
+        moves = [{
+            'id': task.id,
+            'name': task.name,
+            'from': dates(*task._gantt_span()),
+            'to': dates(first, last),
+        } for task, (first, last) in plan.items()]
+        return {
+            'parent_id': parent.id,
+            'child_id': child.id,
+            'link_type': self.link_type,
+            'message': _(
+                '“%(child)s” is scheduled before its parent “%(parent)s”. The %(type)s link needs it to '
+                '%(rule)s.',
+                child=child.name, parent=parent.name,
+                type=dict(self._fields['link_type']._description_selection(self.env))[self.link_type],
+                rule=rules[self.link_type] % {'parent': parent.name, 'date': format_date(date)},
+            ),
+            'moves': moves,
+        }
 
 
 class AdvancedProjectTask(models.Model):
@@ -92,12 +197,45 @@ class AdvancedProjectTask(models.Model):
     def gantt_link_tasks(self, parent_id, child_id, link_type=DEFAULT_LINK_TYPE):
         """Link two tasks from the Gantt chart, the first becoming the parent,
         with the link's kind (dragged from the parent's start or end to the
-        child's start or end)."""
+        child's start or end). Returns the reschedule the Gantt chart offers
+        when the child is scheduled too early for the link (see
+        ``_gantt_reschedule_proposal``), or False."""
         if link_type not in dict(LINK_TYPES):
             raise ValueError(_('Unknown link type: %s', link_type))
         parent = self.browse(parent_id)
         parent.write({'child_ids': [(4, child_id)]})
-        link = self.env['advanced.project.task.link'].sudo().search(
-            [('parent_id', '=', parent_id), ('child_id', '=', child_id)], limit=1)
+        link = self._gantt_link(parent_id, child_id)
         link.link_type = link_type
+        return link._gantt_reschedule_proposal()
+
+    @api.model
+    def gantt_reschedule_link(self, parent_id, child_id):
+        """Move the child of a link (and the tasks linked after it, as far as
+        needed) later so that it follows its parent. Tasks keep their
+        length."""
+        link = self._gantt_link(parent_id, child_id)
+        for task, (first, last) in link._gantt_reschedule_plan().items():
+            task = self.browse(task.id)  # written as the user (the plan is read as superuser)
+            vals = {}
+            if task.date_start:
+                vals['date_start'] = first
+            if task.date_end:
+                vals['date_end'] = last
+            task.write(vals)
         return True
+
+    @api.model
+    def _gantt_link(self, parent_id, child_id):
+        parent = self.browse(parent_id)
+        parent.check_access('read')
+        # sudo: link records follow the tasks' Parent / Child Tasks, checked above
+        return self.env['advanced.project.task.link'].sudo().search(
+            [('parent_id', '=', parent_id), ('child_id', '=', child_id)], limit=1)
+
+    def _gantt_span(self):
+        """(first day, last day) of the task on the Gantt chart; a task with
+        one date (e.g. a milestone) spans that day."""
+        self.ensure_one()
+        first = self.date_start or self.date_end
+        return first, (self.date_end or self.date_start)
+

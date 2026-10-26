@@ -1,4 +1,30 @@
 // The project form's published update and other small backend touches.
+
+// The resize grip in the bottom right corner of Overview widgets and Project
+// Update blocks: drag it to make the widget wider (or taller on the Overview).
+@mixin o-adv-resize-grip {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 18px;
+    height: 18px;
+    z-index: 3;
+    cursor: nwse-resize;
+    border-radius: 4px;
+    background-color: rgba(142, 92, 240, 0.08);
+    background-image:
+        linear-gradient(135deg, transparent 45%, #8E5CF0 45%, #8E5CF0 55%, transparent 55%),
+        linear-gradient(135deg, transparent 70%, #8E5CF0 70%, #8E5CF0 80%, transparent 80%);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    touch-action: none;
+    opacity: 0.8;
+
+    &:hover {
+        opacity: 1;
+        background-color: rgba(142, 92, 240, 0.18);
+    }
+}
 .o_form_view .o_field_widget.o_adv_update_document {
     display: block;
     border-top: 1px solid $border-color;

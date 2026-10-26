@@ -26,6 +26,11 @@
     .o_adv_overview_grid {
         min-height: 300px;
 
+        // the card always fills its place on the grid
+        .grid-stack-item-content > .o_adv_widget {
+            width: 100%;
+        }
+
         // let the cards' shadows show; each card scrolls its own content
         > .grid-stack-item > .grid-stack-item-content {
             overflow: visible;
@@ -56,6 +61,15 @@
 
         .o_adv_widget_header {
             cursor: move;
+        }
+
+        // gridstack's corner handle, moved from the gap between widgets onto
+        // the widget's own bottom right corner (8px = the grid's margin)
+        .o_adv_overview_grid > .grid-stack-item > .ui-resizable-se {
+            @include o-adv-resize-grip;
+            right: 10px;
+            bottom: 10px;
+            transform: none;
         }
     }
 

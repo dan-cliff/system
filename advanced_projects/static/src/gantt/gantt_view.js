@@ -541,9 +541,10 @@ export class GanttController extends Component {
                 return;
             }
             const type = linkTypeFor(side, target.side);
+            let proposal = false;
             try {
                 if (this.archInfo.linkTypes) {
-                    await this.orm.call(this.props.resModel, "gantt_link_tasks", [task.id, target.id, type], {
+                    proposal = await this.orm.call(this.props.resModel, "gantt_link_tasks", [task.id, target.id, type], {
                         context: this.props.context,
                     });
                 } else {
@@ -555,9 +556,45 @@ export class GanttController extends Component {
             } finally {
                 await this.reload();
             }
+            if (proposal) {
+                this.offerReschedule(proposal);
+            }
         };
         window.addEventListener("pointermove", onMove);
         window.addEventListener("pointerup", onUp);
+    }
+
+    /**
+     * The child of a new link is scheduled too early for it: warn, and offer to
+     * move it (and the tasks linked after it) later by the link's rule.
+     */
+    offerReschedule(proposal) {
+        const moves = proposal.moves.map((move) => `• ${move.name}: ${move.from} → ${move.to}`).join("\n");
+        const body = [
+            proposal.message,
+            proposal.moves.length > 1
+                ? _t("Move these tasks later to follow the link? They keep their length.")
+                : _t("Move the task later to follow the link? It keeps its length."),
+            moves,
+        ].join("\n\n");
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Task Scheduled Before Its Parent"),
+            body,
+            confirmLabel: proposal.moves.length > 1 ? _t("Move Tasks") : _t("Move Task"),
+            cancelLabel: _t("Keep Dates"),
+            confirm: async () => {
+                await this.orm.call(this.props.resModel, "gantt_reschedule_link",
+                    [proposal.parent_id, proposal.child_id], { context: this.props.context });
+                this.notification.add(
+                    proposal.moves.length > 1
+                        ? _t("%s tasks rescheduled.", proposal.moves.length)
+                        : _t("Task rescheduled."),
+                    { type: "success" }
+                );
+                await this.reload();
+            },
+            cancel: () => {},
+        });
     }
 
     /** "o_adv_gantt_drop_start" / "_end" on the bar a link is being dragged onto. */
