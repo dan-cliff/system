@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Zoo Manager users work on Zoo Manager's actions (what they may do
+         with them comes from the ACL, as for the app's own records). -->
+    <record id="rule_advanced_action_zoo" model="ir.rule">
+        <field name="name">Actions: Zoo Manager users, Zoo Manager actions</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('zoo_manager.group_zoo_keeper'))]"/>
+        <field name="domain_force">[('source_app', '=', 'zoo')]</field>
+    </record>
+</odoo>

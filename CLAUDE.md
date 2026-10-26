@@ -210,6 +210,55 @@ Size and format:
   an explicit action with the overlay, or run them in the background so they
   never block the user without explanation.
 
+## Actions (Actions app)
+
+Every action, task or follow-up an app raises (corrective actions, actions
+on risks, …) is stored in the **Actions** app's common model,
+`advanced.action` (module `advanced_actions`), never in an actions model of
+the app's own. Incidents, Risk Management, Injury Management, Zoo Manager and
+Checklists already do (`advanced_actions_incident`, `advanced_actions_risk`,
+`advanced_actions_injury`, `advanced_actions_zoo`; Checklists is built into
+`advanced_actions`).
+
+An action has a Title (`name`), Description, Assigned To (`user_ids`,
+Many2many: any one of them can complete it), Due At (`date_deadline`,
+Datetime), Status (`state`: open / in_progress / done / cancelled, a
+statusbar), Created By / Created At, a Required Checklist
+(`checklist_template_id`; completing the checklist completes the action) and
+chatter. "Duplicate for Users" gives several users an action each.
+
+When an app needs actions and Actions is installed, add a bridge module
+`advanced_actions_<app>` (`depends: [<app>, 'advanced_actions']`,
+`auto_install: True`; copy `advanced_actions_zoo`, or
+`advanced_actions_incident` when moving an existing model's records):
+
+- On `advanced.action`: a Many2one to the app's record (e.g.
+  `incident_id`, `ondelete='cascade'`), the app in `source_app`
+  (`selection_add=[('<app>', '<App>')], ondelete={'<app>': 'set default'}`)
+  and the link in `_action_sources()` (`super() + [('<field>', '<app>')]`),
+  so the action's App, Company and Organisation follow that record. Add
+  app-specific fields there too (e.g. Incidents' Control Type).
+- On the app's record: `action_ids = fields.One2many('advanced.action',
+  '<field>')` and an Actions stat button or tab.
+- The app's own **Actions** menu opens `advanced.action` filtered to the app
+  by default, with the filter removable to show every action: add
+  `<filter name="app_<app>" domain="[('source_app', '=', '<app>')]"/>` to
+  the Actions search view (after `app_checklists`) and give the menu's
+  window action `context="{'search_default_app_<app>': 1,
+  'search_default_open': 1, 'default_source_app': '<app>'}"` and, if useful,
+  a `mode="primary"` list view with the app's columns.
+- Access: give the app's groups the ACL on `advanced.action` they had on
+  their records, plus `ir.rule`s limited to the app's actions that follow the
+  parent record's rules (e.g. `[('incident_id', '!=', False), …]`, or
+  `[('source_app', '=', '<app>')]` when the parent has none). The Actions app
+  denies everything else.
+- Never send action emails from the app. Actions sends its Notification
+  Templates, or Workflow Automation does when it is installed.
+- Without Actions installed, an app either has no actions or keeps a simple
+  model of its own. The bridge moves those records into Actions on install
+  (`advanced.action._transfer_records` in a `post_init_hook`) and back in an
+  `uninstall_hook`.
+
 ## Choice fields
 
 - Don't use `fields.Selection` for a list of choices. Use a `Many2one` (single

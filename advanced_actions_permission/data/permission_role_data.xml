@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_action_admin" model="permission.role">
+            <field name="name">Actions – Administrator</field>
+            <field name="description">Everything in Actions: create, edit and delete any action, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_advanced_actions'), 'group_id': ref('advanced_actions.group_action_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_create_only'), 'group_id': ref('advanced_actions.group_action_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_edit_own'), 'group_id': ref('advanced_actions.group_action_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_edit_team'), 'group_id': ref('advanced_actions.group_action_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_edit_all'), 'group_id': ref('advanced_actions.group_action_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_view_all'), 'group_id': ref('advanced_actions.group_action_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_delete_own'), 'group_id': ref('advanced_actions.group_action_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_delete_all'), 'group_id': ref('advanced_actions.group_action_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_action_manager" model="permission.role">
+            <field name="name">Actions – Manager</field>
+            <field name="description">Create, view and edit their own and their team's actions. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_edit_team'), 'group_id': ref('advanced_actions.group_action_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_action_employee" model="permission.role">
+            <field name="name">Actions – Employee</field>
+            <field name="description">Create, view and edit their own actions (created by or assigned to them). No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_actions.privilege_action_edit_own'), 'group_id': ref('advanced_actions.group_action_edit_own')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

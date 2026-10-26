@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_advanced_actions_root" name="Actions" sequence="74"
+              web_icon="advanced_actions,static/description/icon.png"
+              groups="advanced_actions.group_action_user"/>
+
+    <menuitem id="menu_advanced_action_my" name="My Actions" parent="menu_advanced_actions_root"
+              action="action_advanced_action_my" sequence="10"/>
+    <menuitem id="menu_advanced_action_all" name="All Actions" parent="menu_advanced_actions_root"
+              action="action_advanced_action" sequence="20"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_advanced_actions_reports" name="Reports" parent="menu_advanced_actions_root" sequence="90"/>
+
+    <menuitem id="menu_advanced_actions_config" name="Configuration" parent="menu_advanced_actions_root"
+              sequence="100" groups="advanced_actions.group_action_admin"/>
+    <menuitem id="menu_advanced_action_tag" name="Tags" parent="menu_advanced_actions_config"
+              action="action_advanced_action_tag" sequence="10"/>
+    <!-- Hidden while Workflow Automation is installed (ir_ui_menu.py). -->
+    <menuitem id="menu_advanced_action_notification" name="Notification Templates"
+              parent="menu_advanced_actions_config" action="action_advanced_action_notification" sequence="20"/>
+
+    <!-- Checklists app: its Actions, between Checklists and Reports. -->
+    <menuitem id="menu_checklist_advanced_actions" name="Actions" parent="checklists.menu_checklist_root"
+              action="action_advanced_action_checklists" sequence="20"/>
+</odoo>

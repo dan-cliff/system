@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting Notification Templates; admins can change them. -->
+    <data noupdate="1">
+        <record id="notification_assigned" model="advanced.action.notification">
+            <field name="name">Action assigned to you</field>
+            <field name="sequence">10</field>
+            <field name="event">assigned</field>
+            <field name="notify_assignees" eval="True"/>
+            <field name="notify_creator" eval="False"/>
+            <field name="subject">Action assigned to you: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 14px;">
+    <p>Hello,</p>
+    <p>This action has been assigned to you:</p>
+    <p><strong t-out="object.name"/></p>
+    <ul>
+        <li t-if="object.date_deadline">Due At: <t t-out="format_datetime(object.date_deadline, tz=(object.user_ids[:1].tz or object.create_uid.tz or 'UTC'), dt_format='dd/MM/yyyy HH:mm')"/></li>
+        <li t-if="object.user_ids">Assigned To: <t t-out="', '.join(object.user_ids.mapped('name'))"/></li>
+        <li t-if="object.checklist_template_id">Required Checklist: <t t-out="object.checklist_template_id.display_name"/></li>
+        <li t-if="object.source_display">Raised From: <t t-out="object.source_display"/></li>
+    </ul>
+    <div t-if="not is_html_empty(object.description)" t-out="object.description"/>
+    <p><a t-attf-href="{{ object.get_base_url() }}/odoo/advanced.action/{{ object.id }}"
+          style="background-color: #5B3DB8; padding: 8px 16px; color: #FFFFFF; text-decoration: none; border-radius: 5px;">View Action</a></p>
+</div>
+            </field>
+        </record>
+        <record id="notification_overdue" model="advanced.action.notification">
+            <field name="name">Action overdue</field>
+            <field name="sequence">20</field>
+            <field name="event">overdue</field>
+            <field name="notify_assignees" eval="True"/>
+            <field name="notify_creator" eval="True"/>
+            <field name="subject">Overdue action: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 14px;">
+    <p>Hello,</p>
+    <p>This action is overdue:</p>
+    <p><strong t-out="object.name"/></p>
+    <ul>
+        <li t-if="object.date_deadline">Due At: <t t-out="format_datetime(object.date_deadline, tz=(object.user_ids[:1].tz or object.create_uid.tz or 'UTC'), dt_format='dd/MM/yyyy HH:mm')"/></li>
+        <li t-if="object.user_ids">Assigned To: <t t-out="', '.join(object.user_ids.mapped('name'))"/></li>
+        <li t-if="object.checklist_template_id">Required Checklist: <t t-out="object.checklist_template_id.display_name"/></li>
+        <li t-if="object.source_display">Raised From: <t t-out="object.source_display"/></li>
+    </ul>
+    <div t-if="not is_html_empty(object.description)" t-out="object.description"/>
+    <p><a t-attf-href="{{ object.get_base_url() }}/odoo/advanced.action/{{ object.id }}"
+          style="background-color: #5B3DB8; padding: 8px 16px; color: #FFFFFF; text-decoration: none; border-radius: 5px;">View Action</a></p>
+</div>
+            </field>
+        </record>
+        <record id="notification_done" model="advanced.action.notification">
+            <field name="name">Action done</field>
+            <field name="sequence">30</field>
+            <field name="event">done</field>
+            <field name="notify_assignees" eval="False"/>
+            <field name="notify_creator" eval="True"/>
+            <field name="subject">Action done: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 14px;">
+    <p>Hello,</p>
+    <p>This action has been marked as done:</p>
+    <p><strong t-out="object.name"/></p>
+    <ul>
+        <li t-if="object.date_deadline">Due At: <t t-out="format_datetime(object.date_deadline, tz=(object.user_ids[:1].tz or object.create_uid.tz or 'UTC'), dt_format='dd/MM/yyyy HH:mm')"/></li>
+        <li t-if="object.user_ids">Assigned To: <t t-out="', '.join(object.user_ids.mapped('name'))"/></li>
+        <li t-if="object.checklist_template_id">Required Checklist: <t t-out="object.checklist_template_id.display_name"/></li>
+        <li t-if="object.source_display">Raised From: <t t-out="object.source_display"/></li>
+    </ul>
+    <div t-if="not is_html_empty(object.description)" t-out="object.description"/>
+    <p><a t-attf-href="{{ object.get_base_url() }}/odoo/advanced.action/{{ object.id }}"
+          style="background-color: #5B3DB8; padding: 8px 16px; color: #FFFFFF; text-decoration: none; border-radius: 5px;">View Action</a></p>
+</div>
+            </field>
+        </record>
+    </data>
+</odoo>
