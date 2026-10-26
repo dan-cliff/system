@@ -28,6 +28,11 @@ Rocketlane-style project management.
   unchanged) or a Customer (a portal user who sees only the projects they
   are a Customer on). Missing customer permissions are flagged to the
   inviter, who can update them to the Project Customer permission set.
+* Notification Templates (Configuration): emails when tasks are assigned,
+  due soon, overdue or done, when updates are published or projects change
+  stage. Hidden and not sent while Workflow Automation is installed, which
+  sends project notifications as workflows instead.
+* Project Types (Configuration) mark projects as internal or external.
 * Chatter on projects, tasks and updates for everyone with access to the
   project (customers through the portal). Comments can be marked Private,
   so only employees see them.
@@ -48,6 +53,7 @@ Rocketlane-style project management.
         'data/advanced_project_option_data.xml',
         'data/mail_template_data.xml',
         'data/advanced_project_template_data.xml',
+        'data/advanced_project_notification_data.xml',
         'views/advanced_project_option_views.xml',
         'views/advanced_project_task_views.xml',
         'views/advanced_project_phase_views.xml',
@@ -56,6 +62,7 @@ Rocketlane-style project management.
         'views/advanced_project_overview_widget_views.xml',
         'views/advanced_project_collaborator_views.xml',
         'views/advanced_project_views.xml',
+        'views/advanced_project_notification_views.xml',
         'views/advanced_project_portal_templates.xml',
         'wizard/advanced_project_invite_views.xml',
         'wizard/advanced_project_from_template_views.xml',

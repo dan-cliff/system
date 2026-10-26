@@ -241,5 +241,25 @@
             <div t-if="data.note" t-out="asHtml(data.note)"/>
             <div t-else="" class="text-muted fst-italic small">Empty note: use Customize › Configure to write it.</div>
         </t>
+        <!-- Generic looks for widget types added by other modules -->
+        <t t-elif="data.render === 'stat'">
+            <div class="d-flex align-items-baseline gap-2">
+                <span class="display-6 fw-bold o_adv_stat_value" t-esc="data.value"/>
+                <span class="text-muted" t-esc="data.unit"/>
+            </div>
+            <div t-if="data.caption" class="small text-muted mt-1" t-esc="data.caption"/>
+            <div t-foreach="data.details or []" t-as="detail" t-key="detail_index" class="d-flex small mt-1">
+                <span t-esc="detail.label"/><span class="ms-auto fw-bold" t-esc="detail.value"/>
+            </div>
+        </t>
+        <t t-elif="data.render === 'bars'">
+            <div t-if="!data.rows.length" class="text-muted fst-italic small" t-esc="data.empty or 'Nothing yet.'"/>
+            <div t-foreach="data.rows" t-as="row" t-key="row_index" class="mb-2">
+                <div class="d-flex small"><span t-esc="row.label"/><span class="ms-auto fw-bold" t-esc="row.value"/></div>
+                <div class="o_adv_bar_track">
+                    <div class="o_adv_bar_fill o_adv_bar_workload" t-attf-style="width: {{ row.percent }}%"/>
+                </div>
+            </div>
+        </t>
     </t>
 </templates>

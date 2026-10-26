@@ -70,16 +70,26 @@ class AdvancedProjectOverviewWidget(models.Model):
     def _palette(self):
         labels = dict(self._fields['widget_type']._description_selection(self.env))
         filters = dict(self._fields['task_filter']._description_selection(self.env))
+        info = self._widget_palette_info()
         palette = []
-        for widget_type, __ in WIDGET_TYPES:
-            icon, description = WIDGET_PALETTE[widget_type]
-            palette.append({'type': widget_type, 'label': labels[widget_type], 'icon': icon,
+        for widget_type, label in labels.items():
+            icon, description = info.get(widget_type, ('fa-square', ''))
+            palette.append({'type': widget_type, 'label': label, 'icon': icon,
                             'description': description, 'task_filter': False})
         # quick picks for the common task lists
         for task_filter in ('outstanding', 'upcoming', 'completed', 'blocked', 'overdue', 'milestones'):
             palette.append({'type': 'task_list', 'label': _('%s Tasks', filters[task_filter]),
                             'icon': 'fa-tasks', 'description': '', 'task_filter': task_filter})
         return palette
+
+    @api.model
+    def _widget_palette_info(self):
+        """{widget type: (icon, description)} for the Customize palette. Modules
+        adding widget types (``selection_add`` on ``widget_type`` and a
+        ``_data_<type>`` method) add theirs here. Their data can use a generic
+        look by returning ``{'render': 'stat', ...}`` or ``{'render': 'bars', ...}``
+        (see the Overview's OverviewWidgetBody template)."""
+        return dict(WIDGET_PALETTE)
 
     def _copy_layout_values(self, project, phase_map):
         """Values to recreate this widget on ``project`` (templates, copies)."""

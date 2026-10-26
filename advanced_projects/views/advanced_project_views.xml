@@ -16,6 +16,7 @@
                 <field name="id" optional="show"/>
                 <field name="name"/>
                 <field name="partner_id" optional="show"/>
+                <field name="project_type_id" optional="show"/>
                 <field name="user_id" widget="many2one_avatar_user" optional="show"/>
                 <field name="date_start" options="{'numeric': True}" optional="show"/>
                 <field name="date_end" options="{'numeric': True}" optional="show"/>
@@ -114,7 +115,8 @@
                     </div>
                     <group>
                         <group>
-                            <field name="partner_id" invisible="is_template"/>
+                            <field name="project_type_id" options="{'no_create': True}"/>
+                            <field name="partner_id" invisible="is_template or is_internal"/>
                             <field name="user_id" widget="many2one_avatar_user"/>
                             <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
                             <field name="template_id" invisible="not template_id"/>
@@ -175,6 +177,7 @@
                     <field name="active" invisible="1"/>
                     <field name="is_template" invisible="1"/>
                     <field name="access_issue_count" invisible="1"/>
+                    <field name="is_internal" invisible="1"/>
                 </sheet>
                 <chatter/>
             </form>
@@ -193,6 +196,9 @@
                 <filter string="My Projects" name="my_projects" domain="[('user_id', '=', uid)]"/>
                 <filter string="Following" name="following" domain="[('message_is_follower', '=', True)]"/>
                 <separator/>
+                <filter string="Internal" name="internal" domain="[('is_internal', '=', True)]"/>
+                <filter string="External" name="external" domain="[('is_internal', '=', False)]"/>
+                <separator/>
                 <filter string="Open" name="open" domain="[('is_closed', '=', False)]"/>
                 <filter string="Closed" name="closed" domain="[('is_closed', '=', True)]"/>
                 <separator/>
@@ -202,6 +208,7 @@
                     <filter string="Status" name="group_status" context="{'group_by': 'status_id'}"/>
                     <filter string="Project Manager" name="group_user" context="{'group_by': 'user_id'}"/>
                     <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Project Type" name="group_type" context="{'group_by': 'project_type_id'}"/>
                     <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>
                 </group>

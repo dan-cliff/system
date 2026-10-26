@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_timesheet_line_view_list" model="ir.ui.view">
+        <field name="name">advanced.timesheet.line.list.advanced.project</field>
+        <field name="model">advanced.timesheet.line</field>
+        <field name="inherit_id" ref="advanced_timesheet.advanced_timesheet_line_view_list"/>
+        <field name="arch" type="xml">
+            <field name="work_type_id" position="before">
+                <field name="advanced_project_id" optional="show" options="{'no_create': True}"/>
+                <field name="advanced_task_id" optional="show" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_timesheet_line_view_form" model="ir.ui.view">
+        <field name="name">advanced.timesheet.line.form.advanced.project</field>
+        <field name="model">advanced.timesheet.line</field>
+        <field name="inherit_id" ref="advanced_timesheet.advanced_timesheet_line_view_form"/>
+        <field name="arch" type="xml">
+            <field name="work_type_id" position="before">
+                <field name="advanced_project_id" options="{'no_create': True}"/>
+                <field name="advanced_task_id" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- A project's (or task's) hours: the timesheet entries booked to it. -->
+    <record id="advanced_timesheet_line_view_list_project" model="ir.ui.view">
+        <field name="name">advanced.timesheet.line.list.project.hours</field>
+        <field name="model">advanced.timesheet.line</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list string="Hours" create="0" edit="0" delete="0">
+                <field name="id" optional="show"/>
+                <field name="date" options="{'numeric': True}"/>
+                <field name="user_id" widget="many2one_avatar_user" string="Person"/>
+                <field name="advanced_project_id" optional="hide"/>
+                <field name="advanced_task_id" optional="show"/>
+                <field name="work_type_id" optional="show"/>
+                <field name="name"/>
+                <field name="unit_amount" widget="float_time" sum="Total"/>
+                <field name="state" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_timesheet_line_view_search_project" model="ir.ui.view">
+        <field name="name">advanced.timesheet.line.search.project.hours</field>
+        <field name="model">advanced.timesheet.line</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="user_id" string="Person"/>
+                <field name="advanced_project_id"/>
+                <field name="advanced_task_id"/>
+                <filter name="on_tasks" string="On Tasks" domain="[('advanced_task_id', '!=', False)]"/>
+                <filter name="on_project" string="On the Project Itself" domain="[('advanced_task_id', '=', False)]"/>
+                <separator/>
+                <filter name="date" string="Date" date="date"/>
+                <group>
+                    <filter name="group_person" string="Person" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_task" string="Project Task" context="{'group_by': 'advanced_task_id'}"/>
+                    <filter name="group_project" string="Project" context="{'group_by': 'advanced_project_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date:week'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_advanced_timesheet_line_project" model="ir.actions.act_window">
+        <field name="name">Hours</field>
+        <field name="res_model">advanced.timesheet.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="advanced_timesheet_line_view_list_project"/>
+        <field name="search_view_id" ref="advanced_timesheet_line_view_search_project"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hours booked yet</p>
+            <p>Book hours to this project or its tasks on a timesheet (Project and Project Task columns).</p>
+        </field>
+    </record>
+</odoo>

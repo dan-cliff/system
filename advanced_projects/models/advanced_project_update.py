@@ -174,6 +174,7 @@ class AdvancedProjectUpdate(models.Model):
             if update.status_id:
                 update_sudo.project_id.status_id = update.status_id
             update._post_to_project()
+            self.env['advanced.project.notification']._send_event('update_published', update)
         return True
 
     def action_reset_draft(self):

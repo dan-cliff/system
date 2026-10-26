@@ -28,6 +28,13 @@ class AdvancedProject(models.Model):
     _mail_post_access = 'read'  # customers comment through the portal
     _org_form_company = True
 
+    @api.model
+    def _default_project_type(self):
+        Type = self.env['advanced.project.type']
+        if 'default_is_internal' in self.env.context:
+            return Type.search([('is_internal', '=', bool(self.env.context['default_is_internal']))], limit=1)
+        return Type.search([('is_internal', '=', False)], limit=1) or Type.search([], limit=1)
+
     def _default_stage_id(self):
         return self.env['advanced.project.stage'].search([], limit=1)
 
@@ -50,6 +57,12 @@ class AdvancedProject(models.Model):
         default=lambda self: self.env.user,
         domain="[('share', '=', False), ('company_ids', 'in', company_id)]")
     partner_id = fields.Many2one('res.partner', string='Customer', tracking=True, index=True)
+    project_type_id = fields.Many2one(
+        'advanced.project.type', string='Project Type', tracking=True, index=True, ondelete='restrict',
+        default=lambda self: self._default_project_type(),
+        help='Internal projects are run for the company itself; external projects for a customer.')
+    is_internal = fields.Boolean(
+        related='project_type_id.is_internal', string='Internal Project', store=True, index=True)
     stage_id = fields.Many2one(
         'advanced.project.stage', string='Stage', tracking=True, index=True, ondelete='restrict',
         default=_default_stage_id, group_expand='_read_group_stage_ids', copy=False)
@@ -142,10 +155,14 @@ class AdvancedProject(models.Model):
         return projects
 
     def write(self, vals):
+        stages_before = {project: project.stage_id for project in self} if 'stage_id' in vals else {}
         res = super().write(vals)
         if vals.get('user_id'):
             for project in self:
                 project._add_manager_to_team()
+        if stages_before:
+            self.env['advanced.project.notification']._send_event(
+                'project_stage', self.filtered(lambda p: p.stage_id != stages_before[p]))
         return res
 
     def copy(self, default=None):
@@ -368,6 +385,8 @@ class AdvancedProject(models.Model):
             'customer': self.partner_id.display_name or '',
             'manager': self.user_id.name or '',
             'stage': self.stage_id.name or '',
+            'project_type': self.project_type_id.name or '',
+            'is_internal': self.is_internal,
             'status': self.status_id.name or '',
             'status_color': self.status_id.color or '',
             'date_start': format_date(self.date_start),
@@ -419,6 +438,8 @@ class AdvancedProject(models.Model):
         vals.setdefault('name', template.name)
         vals.setdefault('description', template.description)
         vals.setdefault('tag_ids', [(6, 0, template.tag_ids.ids)])
+        if template.project_type_id:
+            vals.setdefault('project_type_id', template.project_type_id.id)
         vals['template_id'] = template.id
         start = fields.Date.to_date(vals.get('date_start')) or fields.Date.context_today(self)
         vals['date_start'] = start

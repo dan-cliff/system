@@ -24,12 +24,18 @@
               groups="group_advanced_project_manager" sequence="90"/>
     <menuitem id="menu_advanced_projects_templates" name="Project Templates" parent="menu_advanced_projects_config"
               action="advanced_project_template_action" sequence="10"/>
+    <menuitem id="menu_advanced_projects_type" name="Project Types" parent="menu_advanced_projects_config"
+              action="advanced_project_type_action" sequence="15"/>
     <menuitem id="menu_advanced_projects_stage" name="Project Stages" parent="menu_advanced_projects_config"
               action="advanced_project_stage_action" sequence="20"/>
     <menuitem id="menu_advanced_projects_status" name="Project Statuses" parent="menu_advanced_projects_config"
               action="advanced_project_status_action" sequence="30"/>
     <menuitem id="menu_advanced_projects_task_stage" name="Task Stages" parent="menu_advanced_projects_config"
               action="advanced_project_task_stage_action" sequence="40"/>
+    <!-- Hidden while Workflow Automation is installed (see ir.ui.menu in
+         advanced_project_notification.py). -->
+    <menuitem id="menu_advanced_projects_notification" name="Notification Templates"
+              parent="menu_advanced_projects_config" action="advanced_project_notification_action" sequence="60"/>
     <menuitem id="menu_advanced_projects_tag" name="Tags" parent="menu_advanced_projects_config"
               action="advanced_project_tag_action" sequence="50"/>
 </odoo>

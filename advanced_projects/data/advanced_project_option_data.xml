@@ -60,6 +60,17 @@
             <field name="fold" eval="True"/>
         </record>
 
+        <record id="project_type_external" model="advanced.project.type">
+            <field name="name">External (Customer)</field>
+            <field name="sequence">10</field>
+            <field name="is_internal" eval="False"/>
+        </record>
+        <record id="project_type_internal" model="advanced.project.type">
+            <field name="name">Internal</field>
+            <field name="sequence">20</field>
+            <field name="is_internal" eval="True"/>
+        </record>
+
         <record id="project_status_on_track" model="advanced.project.status">
             <field name="name">On Track</field>
             <field name="sequence">10</field>

@@ -44,6 +44,9 @@ class AdvancedProjectTask(models.Model):
         'Visible to Customers', default=True,
         help="Customers on the project's team see this task in the portal.")
     is_overdue = fields.Boolean('Overdue', compute='_compute_is_overdue', search='_search_is_overdue')
+    # Notifications already sent (see advanced.project.notification).
+    due_soon_notified = fields.Boolean(copy=False)
+    overdue_notified = fields.Boolean(copy=False)
     description = fields.Html()
     tag_ids = fields.Many2many('advanced.project.tag', string='Tags')
     parent_ids = fields.Many2many(
@@ -138,12 +141,24 @@ class AdvancedProjectTask(models.Model):
     def create(self, vals_list):
         tasks = super().create(vals_list)
         tasks.filtered('user_ids')._add_assignees_to_team()
+        Notification = self.env['advanced.project.notification']
+        Notification._send_event('task_assigned', tasks.filtered('user_ids'))
+        Notification._send_event('task_done', tasks.filtered(lambda t: t.stage_category == 'done'))
         return tasks
 
     def write(self, vals):
+        if 'date_end' in vals:
+            vals = dict(vals, due_soon_notified=False, overdue_notified=False)
+        assigned_before = {task: task.user_ids for task in self} if 'user_ids' in vals else {}
+        done_before = self.filtered(lambda t: t.stage_category == 'done') if 'stage_id' in vals else self
         res = super().write(vals)
-        if vals.get('user_ids'):
+        Notification = self.env['advanced.project.notification']
+        if assigned_before:
             self._add_assignees_to_team()
+            Notification._send_event('task_assigned', self, partners_by_record={
+                task: (task.user_ids - assigned_before[task]).partner_id for task in self})
+        if 'stage_id' in vals:
+            Notification._send_event('task_done', self.filtered(lambda t: t.stage_category == 'done') - done_before)
         return res
 
     def _add_assignees_to_team(self):

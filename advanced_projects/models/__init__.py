@@ -7,4 +7,5 @@ from . import advanced_project_task
 from . import advanced_project_collaborator
 from . import advanced_project_overview_widget
 from . import advanced_project_update
+from . import advanced_project_notification
 from . import ir_ui_view

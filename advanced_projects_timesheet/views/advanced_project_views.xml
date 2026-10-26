@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hours smart buttons: the total for everyone who can open the project; the
+         entries themselves open for people with timesheet access. -->
+    <record id="advanced_project_view_form_timesheet" model="ir.ui.view">
+        <field name="name">advanced.project.form.timesheet</field>
+        <field name="model">advanced.project</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_team']" position="after">
+                <button name="action_open_timesheet_entries" type="object" class="oe_stat_button" icon="fa-clock-o"
+                        invisible="is_template" groups="base.group_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value"><field name="timesheet_hours" widget="float_time"/></span>
+                        <span class="o_stat_text">Hours</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_form_timesheet" model="ir.ui.view">
+        <field name="name">advanced.project.task.form.timesheet</field>
+        <field name="model">advanced.project.task</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_task_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_project']" position="after">
+                <button name="action_open_timesheet_entries" type="object" class="oe_stat_button" icon="fa-clock-o"
+                        groups="base.group_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value"><field name="timesheet_hours" widget="float_time"/></span>
+                        <span class="o_stat_text">Hours</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_list_timesheet" model="ir.ui.view">
+        <field name="name">advanced.project.task.list.timesheet</field>
+        <field name="model">advanced.project.task</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_task_view_list"/>
+        <field name="arch" type="xml">
+            <field name="duration" position="after">
+                <field name="timesheet_hours" widget="float_time" optional="hide"/>
+            </field>
+        </field>
+    </record>
+</odoo>

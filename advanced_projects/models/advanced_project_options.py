@@ -61,6 +61,21 @@ class AdvancedProjectStatus(models.Model):
     _name_uniq = models.Constraint('unique (name)', 'A project status with this name already exists.')
 
 
+class AdvancedProjectType(models.Model):
+    _name = 'advanced.project.type'
+    _description = 'Project Type'
+    _order = 'sequence, id'
+
+    name = fields.Char(required=True, translate=True)
+    sequence = fields.Integer(default=10)
+    active = fields.Boolean(default=True)
+    is_internal = fields.Boolean(
+        'Internal', help='Internal projects are run for the company itself (e.g. a video production); '
+                         'external projects are run for a customer.')
+
+    _name_uniq = models.Constraint('unique (name)', 'A project type with this name already exists.')
+
+
 class AdvancedProjectTag(models.Model):
     _name = 'advanced.project.tag'
     _description = 'Project Tag'
