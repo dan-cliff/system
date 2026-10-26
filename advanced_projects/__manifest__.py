@@ -1,6 +1,6 @@
 {
     'name': 'Project',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Services/Project',
     'summary': 'Plan projects from templates, track tasks by phase and keep customers in the loop',
     'description': """

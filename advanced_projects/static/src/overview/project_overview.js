@@ -215,13 +215,19 @@ export class ProjectOverview extends Component {
         this.grid.on("dropped", (ev, previousNode, newNode) => this.onPaletteDropped(newNode));
     }
 
-    /** Turn widget elements OWL rendered since the last patch into grid items. */
+    /**
+     * Turn widget elements OWL rendered since the last patch into grid items,
+     * and drop anything else gridstack left in the grid (e.g. a palette clone).
+     */
     syncGridItems() {
         if (!this.grid) {
             return;
         }
         for (const el of this.gridRef.el.querySelectorAll(":scope > .grid-stack-item")) {
-            if (!el.gridstackNode) {
+            if (!el.dataset.widgetId) {
+                this.grid.removeWidget(el, false, false);
+                el.remove();
+            } else if (!el.gridstackNode) {
                 this.grid.makeWidget(el);
             }
         }
@@ -275,6 +281,11 @@ export class ProjectOverview extends Component {
         await this.orm.call("advanced.project", "overview_save_layout", [[this.projectId], items]);
     }
 
+    /** The size gridstack gives a palette item while it is dragged over the grid. */
+    paletteSize(item) {
+        return JSON.stringify({ w: item.w, h: item.h });
+    }
+
     onPaletteClick(item) {
         return this.addWidget(item);
     }
@@ -282,9 +293,12 @@ export class ProjectOverview extends Component {
     async onPaletteDropped(node) {
         const index = parseInt(node.el?.dataset.paletteIndex);
         const item = this.state.data.widget_types[index];
-        const layout = { x: node.x, y: node.y, w: node.w, h: node.h };
+        // Only the place comes from the drop: gridstack may size the clone from
+        // the palette tile (about 2 columns), so the widget keeps its own size.
+        const layout = { x: node.x, y: node.y };
         // swap gridstack's clone for a widget rendered by OWL
         this.grid.removeWidget(node.el, true, false);
+        node.el?.remove();
         if (item) {
             await this.addWidget(item, layout);
         }

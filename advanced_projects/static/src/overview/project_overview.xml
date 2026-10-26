@@ -73,6 +73,7 @@
                                 <div t-foreach="state.data.widget_types" t-as="item" t-key="item_index"
                                      class="o_adv_palette_item grid-stack-item"
                                      t-att-data-palette-index="item_index" t-att-gs-w="item.w" t-att-gs-h="item.h"
+                                     t-att-data-gs-widget="paletteSize(item)"
                                      t-att-title="item.description" t-on-click="() => this.onPaletteClick(item)">
                                     <div class="grid-stack-item-content o_adv_palette_tile d-flex align-items-start gap-2 p-2">
                                         <i t-attf-class="fa {{ item.icon }} fa-fw mt-1 o_adv_palette_icon"/>
