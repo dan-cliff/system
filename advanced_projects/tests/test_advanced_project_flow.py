@@ -261,6 +261,58 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
         self.assertEqual(new_a.child_link_ids.link_type, 'finish_finish')
         self.assertEqual(new_a.child_link_ids.child_id.project_id, copy)
 
+    def test_link_reschedule_rules(self):
+        """A child scheduled before its parent is moved later by the link's
+        rule, keeping its length."""
+        project = self._project()
+        Task = self.env['advanced.project.task']
+        expected = {
+            # child starts the day after the parent ends
+            'finish_start': (date(2026, 3, 11), date(2026, 3, 13)),
+            # both start together
+            'start_start': (date(2026, 3, 5), date(2026, 3, 7)),
+            # both end together
+            'finish_finish': (date(2026, 3, 8), date(2026, 3, 10)),
+            # the child ends when the parent starts
+            'start_finish': (date(2026, 3, 3), date(2026, 3, 5)),
+        }
+        for link_type, (start, end) in expected.items():
+            parent = self._task(project, name='Parent', date_start=date(2026, 3, 5), date_end=date(2026, 3, 10))
+            child = self._task(project, name='Child', date_start=date(2026, 3, 1), date_end=date(2026, 3, 3))
+            proposal = Task.gantt_link_tasks(parent.id, child.id, link_type)
+            self.assertTrue(proposal, link_type)
+            self.assertIn('“Child” is scheduled before its parent “Parent”', proposal['message'])
+            self.assertEqual(proposal['moves'][0]['from'], '01/03/2026 – 03/03/2026')
+            Task.gantt_reschedule_link(parent.id, child.id)
+            self.assertEqual((child.date_start, child.date_end), (start, end), link_type)
+            # now it follows: nothing more to offer
+            self.assertFalse(child.parent_ids.child_link_ids.filtered(
+                lambda l: l.child_id == child)._gantt_reschedule_proposal())
+        # a child already after its parent is left alone
+        parent = self._task(project, date_start=date(2026, 3, 5), date_end=date(2026, 3, 10))
+        later = self._task(project, date_start=date(2026, 3, 20), date_end=date(2026, 3, 21))
+        self.assertFalse(Task.gantt_link_tasks(parent.id, later.id, 'finish_start'))
+        # tasks without dates are never rescheduled
+        self.assertFalse(Task.gantt_link_tasks(parent.id, self._task(project).id, 'finish_start'))
+
+    def test_link_reschedule_pushes_later_tasks(self):
+        project = self._project()
+        Task = self.env['advanced.project.task']
+        design = self._task(project, name='Design', date_start=date(2026, 3, 1), date_end=date(2026, 3, 10))
+        build = self._task(project, name='Build', date_start=date(2026, 3, 2), date_end=date(2026, 3, 4))
+        test = self._task(project, name='Test', date_start=date(2026, 3, 5), date_end=date(2026, 3, 6))
+        launch = self._task(project, name='Launch', date_end=date(2026, 3, 30), is_milestone=True)
+        build.child_ids = [(4, test.id), (4, launch.id)]  # End to Start
+        proposal = Task.gantt_link_tasks(design.id, build.id, 'finish_start')
+        # Build moves to 11–13/03, so Test follows from 14/03; Launch is late enough already
+        self.assertEqual([m['name'] for m in proposal['moves']], ['Build', 'Test'])
+        self.assertEqual(proposal['moves'][1]['to'], '14/03/2026 – 15/03/2026')
+        Task.gantt_reschedule_link(design.id, build.id)
+        self.assertEqual((build.date_start, build.date_end), (date(2026, 3, 11), date(2026, 3, 13)))
+        self.assertEqual((test.date_start, test.date_end), (date(2026, 3, 14), date(2026, 3, 15)))
+        self.assertEqual(launch.date_end, date(2026, 3, 30))
+        self.assertFalse(launch.date_start)
+
     def test_existing_links_get_link_records(self):
         project = self._project()
         a, b = (self._task(project, name=name) for name in 'AB')
