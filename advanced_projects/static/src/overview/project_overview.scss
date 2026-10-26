@@ -84,8 +84,9 @@
         border-radius: 12px;
     }
 
-    .o_adv_palette_item {
-        // a plain list in the palette; gridstack sizes the clone when dropped
+    .o_adv_overview_palette .o_adv_palette_item {
+        // a plain list in the palette (only there: a clone dropped on the grid
+        // must not stay full width); the widget keeps its own size on drop
         position: relative !important;
         width: 100% !important;
         height: auto !important;
