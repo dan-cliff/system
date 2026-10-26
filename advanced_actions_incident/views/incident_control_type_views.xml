@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_incident_control_type_list" model="ir.ui.view">
+        <field name="name">incident.control.type.list</field>
+        <field name="model">incident.control.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_incident_control_type_form" model="ir.ui.view">
+        <field name="name">incident.control.type.form</field>
+        <field name="model">incident.control.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active" widget="boolean_toggle"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_incident_control_type" model="ir.actions.act_window">
+        <field name="name">Control Types</field>
+        <field name="res_model">incident.control.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <menuitem id="menu_incident_control_types" name="Control Types"
+              parent="incident_management.menu_incident_config"
+              action="action_incident_control_type" sequence="25"
+              groups="incident_management.group_incident_admin"/>
+</odoo>

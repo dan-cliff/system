@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_risk_assessment_document_advanced_actions"
+              inherit_id="risk_management.report_risk_assessment_document">
+        <xpath expr="//tr[@t-foreach='line.action_ids']/td[3]" position="replace">
+            <td><span t-esc="', '.join(action.user_ids.mapped('name'))"/></td>
+        </xpath>
+        <xpath expr="//tr[@t-foreach='line.action_ids']/td[4]" position="replace">
+            <td><span t-if="action.date_deadline" t-field="action.date_deadline"
+                      t-options='{"widget": "datetime", "format": "dd/MM/yyyy HH:mm"}'/></td>
+        </xpath>
+    </template>
+</odoo>
