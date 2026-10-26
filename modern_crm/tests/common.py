@@ -22,8 +22,7 @@ class ModernCrmCommon(AccountTestInvoicingCommon):
         cls.salesperson = new_test_user(
             cls.env, 'crm_rep', email='rep@example.com',
             groups='modern_crm.group_modern_crm_lead_edit_own,modern_crm.group_modern_crm_opportunity_edit_own,'
-                   'modern_crm.group_modern_crm_contract_edit_own,modern_crm.group_modern_crm_quote_create,'
-                   'modern_crm.group_modern_crm_contract_send')
+                   'modern_crm.group_modern_crm_quote_create')
 
     def _opportunity(self, user=None, **vals):
         Opportunity = self.env['modern.crm.opportunity']

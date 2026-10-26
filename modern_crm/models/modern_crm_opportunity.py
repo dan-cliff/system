@@ -79,8 +79,7 @@ class ModernCrmOpportunity(models.Model):
     primary_quote_id = fields.Many2one(
         'sale.order', string='Primary Quote', copy=False, tracking=True,
         domain="[('modern_opportunity_id', '=', id)]",
-        help='The quote this opportunity is working towards: contracts use it, and Confirm Sale '
-             'turns it into a sales order.')
+        help='The quote this opportunity is working towards: Confirm Sale turns it into a sales order.')
     primary_quote_state = fields.Selection(related='primary_quote_id.state', string='Primary Quote Status')
     quotation_count = fields.Integer(compute='_compute_sale_data')
     sale_order_count = fields.Integer(compute='_compute_sale_data')
@@ -88,8 +87,6 @@ class ModernCrmOpportunity(models.Model):
     sale_amount_total = fields.Monetary(
         'Sold', compute='_compute_sale_data', currency_field='currency_id')
     can_invoice = fields.Boolean(compute='_compute_sale_data')
-    contract_ids = fields.One2many('modern.crm.contract', 'opportunity_id', string='Contracts')
-    contract_count = fields.Integer(compute='_compute_contract_count')
 
     @api.depends('is_won', 'is_lost')
     def _compute_is_closed(self):
@@ -137,11 +134,6 @@ class ModernCrmOpportunity(models.Model):
                 o.currency_id._convert(o.amount_untaxed, opportunity.currency_id, o.company_id, o.date_order)
                 for o in confirmed)
             opportunity.can_invoice = any(o.invoice_status == 'to invoice' for o in confirmed)
-
-    @api.depends('contract_ids')
-    def _compute_contract_count(self):
-        for opportunity in self:
-            opportunity.contract_count = len(opportunity.contract_ids)
 
     @api.model
     def _read_group_stage_ids(self, stages, domain):
@@ -321,30 +313,6 @@ class ModernCrmOpportunity(models.Model):
     def action_view_invoices(self):
         self.ensure_one()
         return self._action_open_invoices(self.sudo().order_ids.filtered(lambda o: o.state == 'sale').invoice_ids)
-
-    # ------------------------------------------------------------------
-    # Contracts
-    # ------------------------------------------------------------------
-    def action_new_contract(self):
-        self.ensure_one()
-        if not self.partner_id:
-            raise UserError(self.env._('Set the Account on "%s" before creating a contract.', self.name))
-        return {
-            'name': self.env._('New Contract'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'modern.crm.contract',
-            'view_mode': 'form',
-            'context': {'default_opportunity_id': self.id},
-        }
-
-    def action_view_contracts(self):
-        self.ensure_one()
-        action = self.env['ir.actions.act_window']._for_xml_id('modern_crm.modern_crm_contract_action')
-        action.update(domain=[('opportunity_id', '=', self.id)],
-                      context={'default_opportunity_id': self.id})
-        if self.contract_count == 1:
-            action.update(views=[(False, 'form')], view_mode='form', res_id=self.contract_ids.id)
-        return action
 
 
 class ModernCrmContactRole(models.Model):

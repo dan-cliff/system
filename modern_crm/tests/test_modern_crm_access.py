@@ -88,6 +88,5 @@ class TestModernCrmAccess(ModernCrmCommon):
             opportunity.with_user(self.own).action_new_quote()
         with self.assertRaises(AccessError):
             opportunity.with_user(self.own).action_confirm_sale()
-        contract = self.env['modern.crm.contract'].create({'opportunity_id': opportunity.id})
         with self.assertRaises(AccessError):
-            contract.with_user(self.own).action_send_for_signature()
+            opportunity.with_user(self.own).action_create_invoice()

@@ -3,9 +3,6 @@ from . import modern_crm_stage
 from . import modern_crm_lead
 from . import modern_crm_opportunity
 from . import modern_crm_opportunity_line
-from . import modern_crm_contract_template
-from . import modern_crm_contract
-from . import modern_crm_contract_signer
 from . import res_company
 from . import res_config_settings
 from . import res_partner

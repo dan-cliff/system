@@ -1,14 +1,14 @@
 {
     'name': 'CRM - Subscriptions',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Sales/CRM',
     'summary': 'Subscriptions (subscription_oca) on CRM opportunities',
     'description': """
         Installs automatically when both CRM (modern_crm) and Subscription
         management (subscription_oca) are installed.
 
-        Confirming an opportunity's quote (by hand, or when its contract is
-        fully signed) creates a subscription for each subscribable product, as
+        Confirming an opportunity's quote (Confirm Sale, or confirming the
+        quote in Sales) creates a subscription for each subscribable product, as
         subscription_oca does for every sales order. This module shows those
         subscriptions on the opportunity (a Subscriptions button) and marks
         recurring products on its product lines.

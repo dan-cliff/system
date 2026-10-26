@@ -132,28 +132,3 @@ class TestModernCrmFlow(ModernCrmCommon):
         opportunity = self._opportunity(partner_id=False, contact_id=False)
         with self.assertRaises(UserError):
             opportunity.action_new_quote()
-
-    def test_contract_from_template(self):
-        opportunity = self._opportunity()
-        opportunity.action_new_quote()
-        contract = self.env['modern.crm.contract'].create({
-            'opportunity_id': opportunity.id, 'start_date': '2026-07-01', 'term_months': 12,
-            'template_id': self.env.ref('modern_crm.contract_template_services').id,
-        })
-        self.assertTrue(contract.name.startswith('CON/'))
-        self.assertEqual(contract.title, opportunity.name)
-        self.assertEqual(contract.partner_id, self.account)
-        self.assertEqual(contract.quote_id, opportunity.primary_quote_id)
-        self.assertEqual(str(contract.end_date), '2027-06-30')
-        self.assertIn('Acme Farms', contract.body)
-        self.assertIn('01/07/2026', contract.body, 'dates in the contract are dd/mm/yyyy')
-        self.assertIn(opportunity.primary_quote_id.name, contract.body)
-        self.assertEqual(opportunity.contract_count, 1)
-
-    def test_contract_expiry(self):
-        contract = self.env['modern.crm.contract'].create({
-            'partner_id': self.account.id, 'title': 'Old deal', 'start_date': '2020-01-01', 'term_months': 12,
-        })
-        contract.action_activate()
-        self.env['modern.crm.contract']._cron_expire_contracts()
-        self.assertEqual(contract.state, 'expired')

@@ -3,7 +3,7 @@
     <data noupdate="1">
         <record id="role_modern_crm_admin" model="permission.role">
             <field name="name">CRM – Administrator</field>
-            <field name="description">Everything in the CRM: create, edit and delete any lead, opportunity or contract, every workflow action (quotes, sales orders, invoices, sending and activating contracts) and Configuration.</field>
+            <field name="description">Everything in the CRM: create, edit and delete any lead or opportunity, every workflow action (quotes, sales orders, invoices) and Configuration.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('modern_crm.res_groups_privilege_modern_crm'), 'group_id': ref('modern_crm.group_modern_crm_manager')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_lead_create_only'), 'group_id': ref('modern_crm.group_modern_crm_lead_create_only')}),
@@ -20,57 +20,42 @@
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_view_all'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_view_all')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_delete_own'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_delete_own')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_delete_all'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_delete_all')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_create_only'), 'group_id': ref('modern_crm.group_modern_crm_contract_create_only')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_contract_edit_own')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_edit_team'), 'group_id': ref('modern_crm.group_modern_crm_contract_edit_team')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_edit_all'), 'group_id': ref('modern_crm.group_modern_crm_contract_edit_all')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_view_all'), 'group_id': ref('modern_crm.group_modern_crm_contract_view_all')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_delete_own'), 'group_id': ref('modern_crm.group_modern_crm_contract_delete_own')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_delete_all'), 'group_id': ref('modern_crm.group_modern_crm_contract_delete_all')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_quote_create'), 'group_id': ref('modern_crm.group_modern_crm_quote_create')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_sale_order'), 'group_id': ref('modern_crm.group_modern_crm_sale_order')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_invoice'), 'group_id': ref('modern_crm.group_modern_crm_invoice')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_send'), 'group_id': ref('modern_crm.group_modern_crm_contract_send')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_activate'), 'group_id': ref('modern_crm.group_modern_crm_contract_activate')})
+                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_invoice'), 'group_id': ref('modern_crm.group_modern_crm_invoice')})
             ]"/>
         </record>
         <record id="role_modern_crm_manager" model="permission.role">
             <field name="name">CRM – Manager</field>
-            <field name="description">Create, view and edit their own and their team's leads, opportunities and contracts. No deleting.</field>
+            <field name="description">Create, view and edit their own and their team's leads and opportunities. No deleting.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_lead_edit_team'), 'group_id': ref('modern_crm.group_modern_crm_lead_edit_team')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_edit_team'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_edit_team')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_edit_team'), 'group_id': ref('modern_crm.group_modern_crm_contract_edit_team')})
+                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_edit_team'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_edit_team')})
             ]"/>
         </record>
         <record id="role_modern_crm_employee" model="permission.role">
             <field name="name">CRM – Employee</field>
-            <field name="description">Create, view and edit their own leads, opportunities and contracts (created by them or owned by them). No deleting.</field>
+            <field name="description">Create, view and edit their own leads and opportunities (created by them or owned by them). No deleting.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_lead_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_lead_edit_own')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_edit_own')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_contract_edit_own')})
+                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_edit_own')})
             ]"/>
         </record>
         <record id="role_modern_crm_sales_rep" model="permission.role">
             <field name="name">CRM – Sales Representative</field>
-            <field name="description">Work their own leads, opportunities and contracts, create quotes from opportunities and send contracts for signature. No deleting.</field>
+            <field name="description">Work their own leads and opportunities and create quotes from opportunities. No deleting.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_lead_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_lead_edit_own')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_edit_own')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_edit_own'), 'group_id': ref('modern_crm.group_modern_crm_contract_edit_own')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_quote_create'), 'group_id': ref('modern_crm.group_modern_crm_quote_create')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_send'), 'group_id': ref('modern_crm.group_modern_crm_contract_send')})
+                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_quote_create'), 'group_id': ref('modern_crm.group_modern_crm_quote_create')})
             ]"/>
         </record>
         <record id="role_modern_crm_sales_ops" model="permission.role">
             <field name="name">CRM – Sales Operations</field>
-            <field name="description">View every lead, create and edit every opportunity and contract, activate contracts, confirm sales orders and create invoices. No deleting.</field>
+            <field name="description">View every lead, create and edit every opportunity, confirm sales orders and create invoices. No deleting.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_lead_view_all'), 'group_id': ref('modern_crm.group_modern_crm_lead_view_all')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_opportunity_edit_all'), 'group_id': ref('modern_crm.group_modern_crm_opportunity_edit_all')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_edit_all'), 'group_id': ref('modern_crm.group_modern_crm_contract_edit_all')}),
-                (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_contract_activate'), 'group_id': ref('modern_crm.group_modern_crm_contract_activate')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_sale_order'), 'group_id': ref('modern_crm.group_modern_crm_sale_order')}),
                 (0, 0, {'privilege_id': ref('modern_crm.privilege_modern_crm_invoice'), 'group_id': ref('modern_crm.group_modern_crm_invoice')})
             ]"/>

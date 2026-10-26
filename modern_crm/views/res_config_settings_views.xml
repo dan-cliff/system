@@ -34,25 +34,6 @@
                             <field name="modern_crm_won_on_order"/>
                         </setting>
                     </block>
-                    <block title="Contracts" id="modern_crm_contracts">
-                        <setting id="modern_crm_contract_template" string="Default Contract Template"
-                                 help="The template new contracts start from.">
-                            <field name="modern_crm_contract_template_id" options="{'no_create': True}"/>
-                        </setting>
-                        <setting id="modern_crm_activate_on_signature" string="Activate Signed Contracts"
-                                 help="Activate a contract as soon as every signer has signed it.">
-                            <field name="modern_crm_activate_on_signature"/>
-                        </setting>
-                        <setting id="modern_crm_confirm_on_signature" string="Confirm the Quote on Signature"
-                                 help="Turn the contract's quote into a sales order as soon as every signer has signed it (this also starts any subscriptions).">
-                            <field name="modern_crm_confirm_on_signature"/>
-                        </setting>
-                        <setting id="modern_crm_invoice_on_signature" string="Invoice on Signature"
-                                 help="After confirming the quote of a signed contract, draft its invoice."
-                                 invisible="not modern_crm_confirm_on_signature">
-                            <field name="modern_crm_invoice_on_signature"/>
-                        </setting>
-                    </block>
                 </app>
             </xpath>
         </field>
