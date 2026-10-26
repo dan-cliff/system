@@ -1,6 +1,6 @@
 {
     'name': 'Project',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services/Project',
     'summary': 'Plan projects from templates, track tasks by phase and keep customers in the loop',
     'description': """
@@ -15,7 +15,9 @@ Rocketlane-style project management.
   its Team.
 * Project plans: tasks are grouped under Phases and linked to each other in
   a many-to-many parent/child hierarchy (shown as arrows on the Gantt
-  chart). Plans are designed from scratch or created from a Project
+  chart). Each link is End to Start, Start to Start, End to End or Start to
+  End, set by dragging from a bar's start or end onto another bar's start or
+  end. Plans are designed from scratch or created from a Project
   Template; any project can be saved as a template.
 * Overview: add, remove, resize and drag widgets around (progress, task
   summary, phase progress, filtered task lists, tasks by stage, workload,
@@ -33,6 +35,10 @@ Rocketlane-style project management.
   stage. Hidden and not sent while Workflow Automation is installed, which
   sends project notifications as workflows instead.
 * Project Types (Configuration) mark projects as internal or external.
+* Budget: each project's Budget tab allocates hours and money in budget lines
+  (by Budget Category and phase) and records what was spent, compared with
+  the hours planned on tasks (and worked, with Advanced Timesheets) and shown
+  by the Overview's Budget widget. Employees only.
 * Chatter on projects, tasks and updates for everyone with access to the
   project (customers through the portal). Comments can be marked Private,
   so only employees see them.

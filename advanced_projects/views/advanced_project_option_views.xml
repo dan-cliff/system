@@ -274,4 +274,55 @@
             <p>Types sort projects into internal ones (run for the company itself) and external ones (run for a customer).</p>
         </field>
     </record>
+
+    <record id="advanced_project_budget_category_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.budget.category.list</field>
+        <field name="model">advanced.project.budget.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_budget_category_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.budget.category.form</field>
+        <field name="model">advanced.project.budget.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_budget_category_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.budget.category.search</field>
+        <field name="model">advanced.project.budget.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_budget_category_action" model="ir.actions.act_window">
+        <field name="name">Budget Categories</field>
+        <field name="res_model">advanced.project.budget.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a budget category</p>
+            <p>Categories say what a project's budget lines are for, e.g. Labour, Materials or Travel.</p>
+        </field>
+    </record>
 </odoo>

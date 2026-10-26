@@ -8,7 +8,7 @@ GANTT_VIEW = 'project_gantt'
 GANTT_ATTRIBUTES = {
     '__validate__',  # ir.ui.view implementation detail
     'class', 'js_class', 'string', 'create', 'edit', 'delete',
-    'date_start', 'date_stop', 'group_by', 'link_field', 'milestone_field', 'state_field',
+    'date_start', 'date_stop', 'group_by', 'link_field', 'link_types', 'milestone_field', 'state_field',
     'assignee_field', 'default_scale',
 }
 

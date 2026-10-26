@@ -158,9 +158,10 @@ class AdvancedProjectCollaborator(models.Model):
         self.invalidate_recordset(['user_id', 'access_state', 'access_message', 'can_fix_access'])
         return True
 
-    @api.model
     def action_invite_from_context(self):
-        """The Team list's Invite button: invite to the project the list is for."""
+        """The Team list's Invite button (shown even with no rows selected, so
+        called on the selected rows or none): invite to the project the list
+        is for."""
         project = self.env['advanced.project'].browse(self.env.context.get('default_project_id')).exists()
         if not project:
             raise UserError(_('Open a project to invite people to it.'))

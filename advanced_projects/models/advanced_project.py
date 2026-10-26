@@ -6,17 +6,18 @@ from odoo.exceptions import AccessError, UserError
 from .advanced_project_options import CLOSED_CATEGORIES
 from .advanced_project_task_filter import format_date
 
-# Widgets a new project's Overview starts with: (widget type, task filter, width).
+# Widgets a new project's Overview starts with, on its 12-column grid:
+# (widget type, task filter, column, row, width, height).
 DEFAULT_OVERVIEW = [
-    ('progress', False, 'medium'),
-    ('task_counts', False, 'medium'),
-    ('phases', False, 'medium'),
-    ('task_list', 'upcoming', 'medium'),
-    ('task_list', 'blocked', 'medium'),
-    ('task_list', 'overdue', 'medium'),
-    ('stage_chart', False, 'small'),
-    ('team', False, 'small'),
-    ('latest_update', False, 'small'),
+    ('progress', False, 0, 0, 6, 3),
+    ('task_counts', False, 6, 0, 6, 3),
+    ('phases', False, 0, 3, 6, 5),
+    ('task_list', 'upcoming', 6, 3, 6, 5),
+    ('task_list', 'blocked', 0, 8, 6, 5),
+    ('task_list', 'overdue', 6, 8, 6, 5),
+    ('stage_chart', False, 0, 13, 4, 4),
+    ('team', False, 4, 13, 4, 4),
+    ('latest_update', False, 8, 13, 4, 4),
 ]
 
 
@@ -190,9 +191,9 @@ class AdvancedProject(models.Model):
         Widget = self.env['advanced.project.overview.widget']
         vals_list = []
         for project in self:
-            for sequence, (widget_type, task_filter, width) in enumerate(DEFAULT_OVERVIEW):
-                vals = {'project_id': project.id, 'widget_type': widget_type, 'width': width,
-                        'sequence': sequence * 10}
+            for sequence, (widget_type, task_filter, x, y, w, h) in enumerate(DEFAULT_OVERVIEW):
+                vals = {'project_id': project.id, 'widget_type': widget_type, 'sequence': sequence * 10,
+                        'grid_x': x, 'grid_y': y, 'grid_w': w, 'grid_h': h}
                 if task_filter:
                     vals['task_filter'] = task_filter
                 vals_list.append(vals)
@@ -239,6 +240,13 @@ class AdvancedProject(models.Model):
             children = [task_map[child.id].id for child in task.child_ids if child.id in task_map]
             if children:
                 task_map[task.id].child_ids = [(6, 0, children)]
+        # each link keeps its kind (End to Start, Start to Start, ...)
+        new_links = {(link.parent_id.id, link.child_id.id): link for link in new_tasks.sudo().child_link_ids}
+        for link in tasks.child_link_ids:
+            parent, child = task_map.get(link.parent_id.id), task_map.get(link.child_id.id)
+            new_link = parent and child and new_links.get((parent.id, child.id))
+            if new_link and new_link.link_type != link.link_type:
+                new_link.link_type = link.link_type
         if source.overview_widget_ids:
             self.overview_widget_ids.unlink()
             self.env['advanced.project.overview.widget'].create([
@@ -395,25 +403,43 @@ class AdvancedProject(models.Model):
             'is_template': self.is_template,
         }
 
-    def overview_add_widget(self, widget_type, task_filter=False, sequence=None):
+    def overview_add_widget(self, widget_type, task_filter=False, x=None, y=None, w=None, h=None):
+        """Add a widget to the Overview: where it was dropped from the palette,
+        or below the others when clicked."""
         self.ensure_one()
-        vals = {'project_id': self.id, 'widget_type': widget_type}
+        Widget = self.env['advanced.project.overview.widget']
+        default_w, default_h = Widget._widget_default_size(widget_type)
+        if y is None:
+            y = max([widget.grid_y + widget.grid_h for widget in self.overview_widget_ids] or [0])
+        vals = {
+            'project_id': self.id,
+            'widget_type': widget_type,
+            'grid_x': max(int(x or 0), 0),
+            'grid_y': max(int(y), 0),
+            'grid_w': min(max(int(w or default_w), 1), 12),
+            'grid_h': max(int(h or default_h), 1),
+        }
         if task_filter:
             vals['task_filter'] = task_filter
-        if sequence is None:
-            sequence = max(self.overview_widget_ids.mapped('sequence') or [0]) + 10
-        vals['sequence'] = sequence
-        if widget_type in ('progress', 'task_counts', 'phases', 'task_list', 'workload'):
-            vals['width'] = 'medium'
-        return self.env['advanced.project.overview.widget'].create(vals).id
+        return Widget.create(vals).id
 
-    def overview_resequence(self, widget_ids):
+    def overview_save_layout(self, items):
+        """Store the widgets' places from the Overview's grid: a list of
+        ``{"id", "x", "y", "w", "h"}``."""
         self.ensure_one()
         widgets = self.overview_widget_ids
-        for sequence, widget_id in enumerate(widget_ids):
-            widget = widgets.filtered(lambda w: w.id == widget_id)
-            if widget and widget.sequence != sequence * 10:
-                widget.sequence = sequence * 10
+        for item in items or []:
+            widget = widgets.filtered(lambda w: w.id == item.get('id'))
+            if not widget:
+                continue
+            vals = {
+                'grid_x': max(int(item.get('x') or 0), 0),
+                'grid_y': max(int(item.get('y') or 0), 0),
+                'grid_w': min(max(int(item.get('w') or 1), 1), 12),
+                'grid_h': max(int(item.get('h') or 1), 1),
+            }
+            if any(widget[name] != value for name, value in vals.items()):
+                widget.write(vals)
         self.invalidate_recordset(['overview_widget_ids'])
         return True
 

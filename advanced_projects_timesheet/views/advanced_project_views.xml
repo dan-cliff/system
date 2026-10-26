@@ -16,6 +16,10 @@
                     </div>
                 </button>
             </xpath>
+            <field name="planned_hours" position="after">
+                <field name="timesheet_hours" widget="float_time" string="Hours Worked" invisible="is_template"
+                       decoration-danger="allocated_hours and timesheet_hours &gt; allocated_hours"/>
+            </field>
         </field>
     </record>
 

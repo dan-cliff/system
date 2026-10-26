@@ -130,6 +130,11 @@ class TestAdvancedProjectAccess(AdvancedProjectCommon):
             draft.with_user(user).read(['name'])
         with self.assertRaises(AccessError):
             mine.with_user(user).write({'name': 'Changed'})
+        # budgets are for employees only
+        with self.assertRaises(AccessError):
+            mine.with_user(user).read(['budget_amount'])
+        with self.assertRaises(AccessError):
+            self.env['advanced.project.budget.line'].with_user(user).search([])
         # the collaborator follows the project, and can comment on it
         self.assertIn(self.customer, mine.message_partner_ids)
         mine.with_user(user).message_post(body='Hello from the customer', message_type='comment',
@@ -182,6 +187,17 @@ class TestAdvancedProjectAccess(AdvancedProjectCommon):
     # ------------------------------------------------------------
     # Invitations
     # ------------------------------------------------------------
+
+    def test_team_list_invite_button(self):
+        """The Team list's header Invite button is called like any list button,
+        with the selected rows' ids (none here)."""
+        from odoo.service.model import call_kw
+        project = self._project(self.admin)
+        Collaborator = self.env['advanced.project.collaborator'].with_user(self.admin)
+        action = call_kw(Collaborator, 'action_invite_from_context', [[]],
+                         {'context': {'default_project_id': project.id}})
+        self.assertEqual(action['res_model'], 'advanced.project.invite')
+        self.assertEqual(action['context']['default_project_id'], project.id)
 
     def test_invite_colleague_keeps_permissions(self):
         project = self._project(self.admin)

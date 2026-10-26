@@ -23,6 +23,13 @@ def format_date(value):
     return value.strftime('%d/%m/%Y') if value else ''
 
 
+def format_hours(hours):
+    """Hours as H:MM, like the timesheet grid."""
+    minutes = round((hours or 0.0) * 60)
+    sign = '-' if minutes < 0 else ''
+    return sign + '%d:%02d' % divmod(abs(minutes), 60)
+
+
 class AdvancedProjectTaskFilterMixin(models.AbstractModel):
     """A filtered list of a project's tasks, shared by the Overview's task
     widgets and the task widgets of Project Updates."""

@@ -15,6 +15,7 @@ WIDGET_TYPES = [
     ('workload', 'Workload'),
     ('team', 'Team'),
     ('latest_update', 'Latest Update'),
+    ('budget', 'Budget'),
     ('note', 'Note'),
 ]
 
@@ -27,23 +28,33 @@ WIDGET_PALETTE = {
     'workload': ('fa-users', 'Open and overdue tasks per assignee.'),
     'team': ('fa-address-book', 'Colleagues and customers on the project.'),
     'latest_update': ('fa-bullhorn', 'The latest published Project Update.'),
+    'budget': ('fa-money', 'Allocated hours and the financial budget, against what is planned, worked and spent.'),
     'note': ('fa-sticky-note', 'Free text, e.g. goals, links or key contacts.'),
 }
 
-# Column span in the Overview's 12-column grid, set per widget.
-WIDTHS = [
-    ('small', 'One Third'),
-    ('medium', 'Half'),
-    ('large', 'Two Thirds'),
-    ('full', 'Full Width'),
-]
+# The Overview is a 12-column grid (like Custom Dashboards); a widget's
+# starting size in columns and rows, by type.
+GRID_COLUMNS = 12
+WIDGET_SIZES = {
+    'progress': (6, 3),
+    'task_counts': (6, 3),
+    'phases': (6, 5),
+    'task_list': (6, 5),
+    'stage_chart': (4, 4),
+    'workload': (4, 4),
+    'team': (4, 4),
+    'latest_update': (4, 4),
+    'budget': (6, 5),
+    'note': (4, 3),
+}
+DEFAULT_SIZE = (4, 4)
 
 
 class AdvancedProjectOverviewWidget(models.Model):
     _name = 'advanced.project.overview.widget'
     _description = 'Project Overview Widget'
     _inherit = ['advanced.project.task.filter.mixin']
-    _order = 'sequence, id'
+    _order = 'grid_y, grid_x, sequence, id'
 
     project_id = fields.Many2one(
         'advanced.project', string='Project', required=True, index=True, ondelete='cascade')
@@ -51,7 +62,11 @@ class AdvancedProjectOverviewWidget(models.Model):
     sequence = fields.Integer(default=10)
     widget_type = fields.Selection(WIDGET_TYPES, string='Widget', required=True, default='task_list')
     name = fields.Char('Title', help='Leave empty to use the default title.')
-    width = fields.Selection(WIDTHS, required=True, default='small')
+    # Place on the Overview's 12-column grid, set by dragging and resizing.
+    grid_x = fields.Integer('Column', default=0)
+    grid_y = fields.Integer('Row', default=0)
+    grid_w = fields.Integer('Width', default=4)
+    grid_h = fields.Integer('Height', default=4)
     note = fields.Html()
     upcoming_days = fields.Integer(
         'Upcoming Within (days)', default=14, help='Task Summary: what counts as upcoming.')
@@ -74,12 +89,14 @@ class AdvancedProjectOverviewWidget(models.Model):
         palette = []
         for widget_type, label in labels.items():
             icon, description = info.get(widget_type, ('fa-square', ''))
+            w, h = self._widget_default_size(widget_type)
             palette.append({'type': widget_type, 'label': label, 'icon': icon,
-                            'description': description, 'task_filter': False})
+                            'description': description, 'task_filter': False, 'w': w, 'h': h})
         # quick picks for the common task lists
         for task_filter in ('outstanding', 'upcoming', 'completed', 'blocked', 'overdue', 'milestones'):
+            w, h = self._widget_default_size('task_list')
             palette.append({'type': 'task_list', 'label': _('%s Tasks', filters[task_filter]),
-                            'icon': 'fa-tasks', 'description': '', 'task_filter': task_filter})
+                            'icon': 'fa-tasks', 'description': '', 'task_filter': task_filter, 'w': w, 'h': h})
         return palette
 
     @api.model
@@ -91,6 +108,12 @@ class AdvancedProjectOverviewWidget(models.Model):
         (see the Overview's OverviewWidgetBody template)."""
         return dict(WIDGET_PALETTE)
 
+    @api.model
+    def _widget_default_size(self, widget_type):
+        """(columns, rows) a new widget of this type starts with. Modules adding
+        widget types can override it."""
+        return WIDGET_SIZES.get(widget_type, DEFAULT_SIZE)
+
     def _copy_layout_values(self, project, phase_map):
         """Values to recreate this widget on ``project`` (templates, copies)."""
         self.ensure_one()
@@ -99,7 +122,10 @@ class AdvancedProjectOverviewWidget(models.Model):
             'sequence': self.sequence,
             'widget_type': self.widget_type,
             'name': self.name,
-            'width': self.width,
+            'grid_x': self.grid_x,
+            'grid_y': self.grid_y,
+            'grid_w': self.grid_w,
+            'grid_h': self.grid_h,
             'note': self.note,
             'upcoming_days': self.upcoming_days,
             'task_filter': self.task_filter,
@@ -120,7 +146,10 @@ class AdvancedProjectOverviewWidget(models.Model):
             'id': self.id,
             'widget_type': self.widget_type,
             'title': self.name or self._default_title(),
-            'width': self.width,
+            'x': self.grid_x,
+            'y': self.grid_y,
+            'w': self.grid_w,
+            'h': self.grid_h,
             'data': getattr(self, f'_data_{self.widget_type}')(),
         }
 
@@ -241,6 +270,12 @@ class AdvancedProjectOverviewWidget(models.Model):
             'status_color': update.status_id.color or '',
             'summary': update.summary or '',
         }}
+
+    def _data_budget(self):
+        if not self.env.user._is_internal():
+            # budgets are for the company's eyes only
+            return {'restricted': True}
+        return self.project_id._budget_overview_values()
 
     def _data_note(self):
         return {'note': self.note or ''}
