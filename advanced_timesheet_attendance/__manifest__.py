@@ -10,8 +10,8 @@
         Settings › Advanced Timesheets › Fill from Attendances: every finished attendance
         (checked in and out) becomes an automatic entry on the employee's timesheet for that
         day, on an "Attendance" row of the grid. Changing or deleting the attendance changes
-        or removes the entry; the entry's hours cannot be changed by hand, but its project,
-        task and description can. Manual entries are still allowed alongside.
+        or removes the entry; the entry's hours cannot be changed by hand, but its work type,
+        project, task and description can. Manual entries are still allowed alongside.
 
         Turning the setting on fills in every existing attendance; a daily scheduled action
         catches any attendance that was missed.

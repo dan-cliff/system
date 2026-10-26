@@ -121,16 +121,18 @@
                                         <th>Risk</th>
                                         <th>Action</th>
                                         <th>Assigned To</th>
+                                        <th>Due Date</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <t t-foreach="o.line_ids" t-as="line">
-                                        <tr t-foreach="line.todo_ids" t-as="task">
+                                        <tr t-foreach="line.action_ids" t-as="action">
                                             <td><span t-esc="line.name"/></td>
-                                            <td><span t-field="task.name"/></td>
-                                            <td><span t-esc="', '.join(task.user_ids.mapped('name'))"/></td>
-                                            <td><span t-field="task.state"/></td>
+                                            <td><span t-field="action.name"/></td>
+                                            <td><span t-esc="action.user_id.name or ''"/></td>
+                                            <td><span t-esc="action.date_deadline and action.date_deadline.strftime('%d/%m/%Y') or ''"/></td>
+                                            <td><span t-field="action.state"/></td>
                                         </tr>
                                     </t>
                                 </tbody>

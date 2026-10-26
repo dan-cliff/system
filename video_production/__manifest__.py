@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Video Production',
-    'version': '19.0.1.0.2',
+    'version': '19.0.1.0.3',
     'summary': 'End-to-end YouTube video production management',
     'description': """
 Video Production Management

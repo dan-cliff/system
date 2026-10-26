@@ -7,6 +7,10 @@
               action="action_risk_assessment" sequence="10"
               groups="risk_management.group_risk_assessment_view"/>
 
+    <menuitem id="menu_risk_actions" name="Actions" parent="menu_risk_root"
+              action="action_risk_assessment_action" sequence="20"
+              groups="risk_management.group_risk_risk_view"/>
+
     <!-- Configuration houses the lookup-list source models, Risk Template design and the
          Risk Matrix design models. Each list is shown to users who can create, update or
          delete its records; everyone else still uses Risk Templates and Controls via the
