@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_project_view_form_dashboard" model="ir.ui.view">
+        <field name="name">advanced.project.form.dashboard</field>
+        <field name="model">advanced.project</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_overview']" position="after">
+                <button name="action_open_dashboards" type="object" class="oe_stat_button" icon="fa-bar-chart"
+                        invisible="is_template or not dashboard_count"
+                        groups="custom_dashboard.group_dashboard_user">
+                    <field name="dashboard_count" widget="statinfo" string="Dashboards"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='description']" position="before">
+                <page string="Dashboards" name="dashboards" invisible="is_template"
+                      groups="custom_dashboard.group_dashboard_user">
+                    <p class="text-muted">Dashboards opened from this project (besides those available in every
+                        project) only show this project's records in widgets with a Project Field.</p>
+                    <field name="dashboard_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Choice lists under Configuration (CLAUDE.md > Choice fields): editable lists,
+         archived options stay on the records that use them. -->
+
+    <record id="advanced_project_task_stage_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.task.stage.list</field>
+        <field name="model">advanced.project.task.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="color" widget="color"/>
+                <field name="fold"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_stage_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.task.stage.form</field>
+        <field name="model">advanced.project.task.stage</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="category"/>
+                        <field name="color" widget="color"/>
+                        <field name="fold"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_stage_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.task.stage.search</field>
+        <field name="model">advanced.project.task.stage</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_stage_action" model="ir.actions.act_window">
+        <field name="name">Task Stages</field>
+        <field name="res_model">advanced.project.task.stage</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a task stage</p>
+            <p>Stages are the columns of the task Kanban. Each has a category (To Do, In Progress, Blocked, Done or Cancelled) that the Overview, Project Updates and Gantt chart use.</p>
+        </field>
+    </record>
+
+    <record id="advanced_project_stage_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.stage.list</field>
+        <field name="model">advanced.project.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="is_closed"/>
+                <field name="fold"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_stage_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.stage.form</field>
+        <field name="model">advanced.project.stage</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="is_closed"/>
+                        <field name="fold"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_stage_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.stage.search</field>
+        <field name="model">advanced.project.stage</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_stage_action" model="ir.actions.act_window">
+        <field name="name">Project Stages</field>
+        <field name="res_model">advanced.project.stage</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a project stage</p>
+            <p>Stages such as Planning, In Progress and Completed track where each project is.</p>
+        </field>
+    </record>
+
+    <record id="advanced_project_status_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.status.list</field>
+        <field name="model">advanced.project.status</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="color" widget="color"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_status_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.status.form</field>
+        <field name="model">advanced.project.status</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="color" widget="color"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_status_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.status.search</field>
+        <field name="model">advanced.project.status</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_status_action" model="ir.actions.act_window">
+        <field name="name">Project Statuses</field>
+        <field name="res_model">advanced.project.status</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a project status</p>
+            <p>Statuses such as On Track, At Risk and Off Track describe a project's health; publishing a Project Update sets it.</p>
+        </field>
+    </record>
+
+    <record id="advanced_project_tag_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.tag.list</field>
+        <field name="model">advanced.project.tag</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="color" widget="color_picker"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_tag_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.tag.form</field>
+        <field name="model">advanced.project.tag</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_tag_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.tag.search</field>
+        <field name="model">advanced.project.tag</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_tag_action" model="ir.actions.act_window">
+        <field name="name">Tags</field>
+        <field name="res_model">advanced.project.tag</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a tag</p>
+            <p>Tags label projects and tasks.</p>
+        </field>
+    </record>
+
+    <record id="advanced_project_type_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.type.list</field>
+        <field name="model">advanced.project.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="is_internal"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_type_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.type.form</field>
+        <field name="model">advanced.project.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="is_internal"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_type_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.type.search</field>
+        <field name="model">advanced.project.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Internal" name="internal" domain="[('is_internal', '=', True)]"/>
+                <filter string="External" name="external" domain="[('is_internal', '=', False)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_type_action" model="ir.actions.act_window">
+        <field name="name">Project Types</field>
+        <field name="res_model">advanced.project.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a project type</p>
+            <p>Types sort projects into internal ones (run for the company itself) and external ones (run for a customer).</p>
+        </field>
+    </record>
+</odoo>

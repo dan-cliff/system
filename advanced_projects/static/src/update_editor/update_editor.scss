@@ -1,0 +1,85 @@
+// Project Update editor, in the house palette (CLAUDE.md > Icon style).
+.o_adv_update_editor {
+    .o_adv_update_editor_empty {
+        border: 1px dashed #A9ABDC;
+        border-radius: 12px;
+        background: #F2F2FA;
+    }
+
+    .o_adv_update_document_editor {
+        min-height: 120px;
+    }
+
+    .o_adv_block {
+        border-radius: 10px;
+        border-color: #F2F2FA;
+        box-shadow: 0 1px 4px rgba(42, 63, 143, 0.08);
+
+        .card-header {
+            background: transparent;
+        }
+    }
+
+    .o_adv_block_grip {
+        cursor: grab;
+    }
+
+    .o_adv_block_icon {
+        color: #5B3DB8;
+    }
+
+    .o_adv_block_title {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .o_adv_text_body {
+        min-height: 2.5em;
+        padding: 4px 6px;
+        border-radius: 6px;
+        outline: none;
+
+        &[contenteditable="true"]:focus {
+            background: #F2F2FA;
+        }
+
+        &[contenteditable="true"]:empty::before {
+            content: attr(data-placeholder);
+            color: $text-muted;
+        }
+    }
+
+    .o_adv_block_config {
+        background: #F2F2FA;
+        border-radius: 8px;
+    }
+
+    .o_adv_drop_marker {
+        height: 4px;
+        border-radius: 2px;
+        background: #8E5CF0;
+    }
+
+    .o_adv_update_palette {
+        width: 240px;
+        flex: 0 0 240px;
+        position: sticky;
+        top: 0;
+        border-radius: 12px;
+    }
+
+    .o_adv_palette_item {
+        border-radius: 8px;
+        cursor: grab;
+        border: 1px solid transparent;
+
+        &:hover {
+            background: #F2F2FA;
+            border-color: #A9ABDC;
+        }
+    }
+
+    .o_adv_palette_icon {
+        color: #5B3DB8;
+    }
+}

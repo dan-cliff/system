@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Projects open as a list. A project's form leads to its Overview, Tasks
+         (Kanban, List, Gantt), Project Updates and Team. -->
+
+    <record id="advanced_project_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.list</field>
+        <field name="model">advanced.project</field>
+        <field name="arch" type="xml">
+            <list sample="1" decoration-muted="is_closed">
+                <header>
+                    <button name="action_new_from_template" type="object" string="New from Template"
+                            display="always" invisible="context.get('default_is_template')"/>
+                </header>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="partner_id" optional="show"/>
+                <field name="project_type_id" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="date_start" options="{'numeric': True}" optional="show"/>
+                <field name="date_end" options="{'numeric': True}" optional="show"/>
+                <field name="open_task_count" string="Open Tasks" optional="show"/>
+                <field name="progress" widget="progressbar" optional="show"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                <field name="template_id" optional="hide"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="status_id" optional="show"/>
+                <field name="stage_id" optional="show"/>
+                <field name="is_closed" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_view_kanban" model="ir.ui.view">
+        <field name="name">advanced.project.kanban</field>
+        <field name="model">advanced.project</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" highlight_color="color" sample="1" class="o_kanban_small_column">
+                <field name="status_color"/>
+                <templates>
+                    <t t-name="menu">
+                        <a role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold fs-5"/>
+                        <field name="partner_id" class="text-muted"/>
+                        <div class="small text-muted" t-if="record.date_end.raw_value">
+                            <i class="fa fa-calendar me-1" title="Dates"/>
+                            <field name="date_start" options="{'numeric': True}"/> –
+                            <field name="date_end" options="{'numeric': True}"/>
+                        </div>
+                        <field name="progress" widget="progressbar"/>
+                        <footer class="pt-1">
+                            <span t-if="record.status_id.raw_value" class="badge rounded-pill text-white"
+                                  t-attf-style="background-color: #{record.status_color.raw_value or '#14C9A5'}">
+                                <field name="status_id"/>
+                            </span>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="advanced_project_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.form</field>
+        <field name="model">advanced.project</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_invite" type="object" string="Invite" class="btn-primary"
+                            invisible="is_template or not id"/>
+                    <button name="action_new_from_template" type="object" string="New Project from this Template"
+                            class="btn-primary" invisible="not is_template or not id"/>
+                    <button name="action_save_as_template" type="object" string="Save as Template"
+                            groups="advanced_projects.group_advanced_project_manager" invisible="is_template or not id"/>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"
+                           invisible="is_template"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_overview" type="object" class="oe_stat_button" icon="fa-tachometer">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="progress" widget="integer"/>%</span>
+                                <span class="o_stat_text">Overview</span>
+                            </div>
+                        </button>
+                        <button name="action_open_tasks" type="object" class="oe_stat_button" icon="fa-tasks">
+                            <field name="task_count" widget="statinfo" string="Tasks"/>
+                        </button>
+                        <button name="action_open_gantt" type="object" class="oe_stat_button" icon="fa-align-left">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Gantt</span>
+                            </div>
+                        </button>
+                        <button name="action_open_updates" type="object" class="oe_stat_button" icon="fa-bullhorn">
+                            <field name="update_count" widget="statinfo" string="Updates"/>
+                        </button>
+                        <button name="action_open_team" type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="collaborator_count" widget="statinfo" string="Team"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Template" bg_color="text-bg-info" invisible="not is_template or not active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Website Launch"/></h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not access_issue_count">
+                        <i class="fa fa-exclamation-triangle me-1" title="Warning"/>
+                        Some customers on the team cannot open the project yet: see the Team tab.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_type_id" options="{'no_create': True}"/>
+                            <field name="partner_id" invisible="is_template or is_internal"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                            <field name="template_id" invisible="not template_id"/>
+                        </group>
+                        <group>
+                            <label for="date_start" string="Dates"/>
+                            <div class="o_row">
+                                <field name="date_start" options="{'numeric': True}" placeholder="Start"/>
+                                <i class="fa fa-long-arrow-right mx-2" title="to"/>
+                                <field name="date_end" options="{'numeric': True}" placeholder="Target end"/>
+                            </div>
+                            <field name="status_id" options="{'no_create': True}" invisible="is_template"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Plan" name="plan">
+                            <p class="text-muted">Phases group the project's tasks. Open the Tasks or Gantt chart to plan
+                                and link the tasks themselves.</p>
+                            <field name="phase_ids" context="{'default_project_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="date_start" options="{'numeric': True}"/>
+                                    <field name="date_end" options="{'numeric': True}"/>
+                                    <field name="task_count"/>
+                                    <field name="progress" widget="progressbar"/>
+                                    <field name="color" widget="color" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Team" name="team" invisible="is_template">
+                            <field name="collaborator_ids" context="{'default_project_id': id}">
+                                <list create="0" delete="1" decoration-warning="access_state != 'ok'">
+                                    <field name="id" optional="show"/>
+                                    <field name="partner_id"/>
+                                    <field name="collaborator_type" widget="badge"
+                                           decoration-info="collaborator_type == 'colleague'"
+                                           decoration-success="collaborator_type == 'customer'"/>
+                                    <field name="email" optional="show"/>
+                                    <field name="access_state" widget="badge" decoration-success="access_state == 'ok'"
+                                           decoration-warning="access_state != 'ok'"/>
+                                    <field name="access_message" optional="show"/>
+                                    <field name="can_fix_access" column_invisible="1"/>
+                                    <button name="action_fix_access" type="object" string="Update Permissions"
+                                            icon="fa-unlock-alt" class="btn-link" invisible="not can_fix_access"
+                                            confirm="Give this customer the Project Customer permission set (a portal login and access to the projects they are a Customer on)?"/>
+                                </list>
+                            </field>
+                            <button name="action_invite" type="object" string="Invite People" class="btn-secondary mt-2"
+                                    icon="fa-user-plus" invisible="not id"/>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Goals, scope and key contacts..."/>
+                        </page>
+                    </notebook>
+                    <field name="active" invisible="1"/>
+                    <field name="is_template" invisible="1"/>
+                    <field name="access_issue_count" invisible="1"/>
+                    <field name="is_internal" invisible="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.search</field>
+        <field name="model">advanced.project</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="tag_ids"/>
+                <filter string="My Projects" name="my_projects" domain="[('user_id', '=', uid)]"/>
+                <filter string="Following" name="following" domain="[('message_is_follower', '=', True)]"/>
+                <separator/>
+                <filter string="Internal" name="internal" domain="[('is_internal', '=', True)]"/>
+                <filter string="External" name="external" domain="[('is_internal', '=', False)]"/>
+                <separator/>
+                <filter string="Open" name="open" domain="[('is_closed', '=', False)]"/>
+                <filter string="Closed" name="closed" domain="[('is_closed', '=', True)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Stage" name="group_stage" context="{'group_by': 'stage_id'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status_id'}"/>
+                    <filter string="Project Manager" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Project Type" name="group_type" context="{'group_by': 'project_type_id'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_action" model="ir.actions.act_window">
+        <field name="name">Projects</field>
+        <field name="res_model">advanced.project</field>
+        <field name="path">advanced-projects</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_template', '=', False)]</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="search_view_id" ref="advanced_project_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first project</p>
+            <p>Start from scratch, or use "New from Template" to copy a template's phases and tasks.</p>
+        </field>
+    </record>
+
+    <record id="advanced_project_template_action" model="ir.actions.act_window">
+        <field name="name">Project Templates</field>
+        <field name="res_model">advanced.project</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_template', '=', True)]</field>
+        <field name="context">{'default_is_template': True, 'default_user_id': False}</field>
+        <field name="search_view_id" ref="advanced_project_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a project template</p>
+            <p>Design a plan once (phases, tasks, links and an Overview layout) and start new projects from it.
+                Any project can also be saved as a template.</p>
+        </field>
+    </record>
+</odoo>

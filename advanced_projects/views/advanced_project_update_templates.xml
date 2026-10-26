@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A published Project Update: its text blocks and frozen task lists. Inline
+         styles so it also reads well in the notification email. -->
+    <template id="update_block_tasks" name="Project Update: task widget">
+        <div class="o_adv_update_tasks" style="margin: 0 0 16px 0;">
+            <p t-if="block.title" style="margin: 0 0 4px 0; font-size: 15px; font-weight: bold;">
+                <t t-out="block.title"/>
+                <span style="color: #6c757d; font-weight: normal; font-size: 12px;">(<t t-out="total"/>)</span>
+            </p>
+            <p style="margin: 0 0 6px 0; color: #6c757d; font-size: 12px;" t-out="block._filter_summary()"/>
+            <p t-if="not rows" style="margin: 0; color: #6c757d; font-style: italic;">No tasks.</p>
+            <table t-if="rows" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #A9ABDC; text-align: left;">
+                        <th style="padding: 4px 6px;">Task</th>
+                        <th t-if="block.show_phase" style="padding: 4px 6px;">Phase</th>
+                        <th t-if="block.show_assignees" style="padding: 4px 6px;">Assignees</th>
+                        <th t-if="block.show_dates" style="padding: 4px 6px;">Dates</th>
+                        <th t-if="block.show_stage" style="padding: 4px 6px;">Stage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="rows" t-as="row" style="border-bottom: 1px solid #F2F2FA;">
+                        <td style="padding: 4px 6px;">
+                            <span t-if="row['is_milestone']" title="Milestone">&#9873; </span><t t-out="row['name']"/>
+                        </td>
+                        <td t-if="block.show_phase" style="padding: 4px 6px;" t-out="row['phase']"/>
+                        <td t-if="block.show_assignees" style="padding: 4px 6px;" t-out="row['assignees']"/>
+                        <td t-if="block.show_dates" t-attf-style="padding: 4px 6px; white-space: nowrap; #{'color: #FF5A6E;' if row['overdue'] else ''}">
+                            <t t-if="row['date_done'] and block.task_filter == 'completed'">Done <t t-out="row['date_done']"/></t>
+                            <t t-else=""><t t-out="row['date_start']"/><t t-if="row['date_start'] and row['date_end']"> – </t><t t-out="row['date_end']"/></t>
+                        </td>
+                        <td t-if="block.show_stage" style="padding: 4px 6px;">
+                            <span t-attf-style="display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; color: #fff; background-color: #{row['stage_color'] or '#3BB8FF'};"
+                                  t-out="row['stage']"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p t-if="total > len(rows)" style="margin: 4px 0 0 0; color: #6c757d; font-size: 12px;">
+                and <t t-out="total - len(rows)"/> more
+            </p>
+        </div>
+    </template>
+
+    <!-- Posted on the project's chatter when an update is published. -->
+    <template id="update_chatter_summary" name="Project Update: chatter summary">
+        <div>
+            <p style="margin: 0 0 6px 0;">
+                <strong>Project Update published: <t t-out="update.name"/></strong>
+                <span t-if="update.status_id" t-attf-style="display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; color: #fff; font-size: 12px; background-color: #{update.status_id.color or '#14C9A5'};"
+                      t-out="update.status_id.name"/>
+            </p>
+            <p t-if="update.summary" style="margin: 0 0 6px 0;" t-out="update.summary"/>
+            <ul t-if="sections" style="margin: 0 0 6px 0; padding-left: 18px;">
+                <li t-foreach="sections" t-as="section"><t t-out="section[0]"/>: <t t-out="section[1]"/></li>
+            </ul>
+            <p style="margin: 0;"><a t-att-href="url">Read the update</a></p>
+        </div>
+    </template>
+
+    <template id="update_document" name="Project Update: document">
+        <div class="o_adv_update_document">
+            <p t-if="update.status_id" style="margin: 0 0 12px 0;">
+                Status:
+                <span t-attf-style="display: inline-block; padding: 2px 10px; border-radius: 10px; color: #fff; font-weight: bold; background-color: #{update.status_id.color or '#14C9A5'};"
+                      t-out="update.status_id.name"/>
+            </p>
+            <t t-foreach="update.block_ids" t-as="block">
+                <div t-if="block.block_type == 'text'" style="margin: 0 0 16px 0;">
+                    <p t-if="block.title" style="margin: 0 0 4px 0; font-size: 15px; font-weight: bold;" t-out="block.title"/>
+                    <div t-out="block.body"/>
+                </div>
+                <t t-elif="block.block_type == 'tasks'" t-out="block.snapshot_html"/>
+            </t>
+        </div>
+    </template>
+</odoo>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_advanced_project_admin" model="permission.role">
+            <field name="name">Project – Administrator</field>
+            <field name="description">Everything in Project: create, edit and delete any project or task, publish Project Updates, manage customer access, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_projects.res_groups_privilege_advanced_projects'), 'group_id': ref('advanced_projects.group_advanced_project_manager')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_create_only'), 'group_id': ref('advanced_projects.group_advanced_project_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_edit_own'), 'group_id': ref('advanced_projects.group_advanced_project_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_edit_team'), 'group_id': ref('advanced_projects.group_advanced_project_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_edit_all'), 'group_id': ref('advanced_projects.group_advanced_project_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_view_all'), 'group_id': ref('advanced_projects.group_advanced_project_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_delete_own'), 'group_id': ref('advanced_projects.group_advanced_project_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_delete_all'), 'group_id': ref('advanced_projects.group_advanced_project_delete_all')}),
+(0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_create_only'), 'group_id': ref('advanced_projects.group_advanced_project_task_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_edit_own'), 'group_id': ref('advanced_projects.group_advanced_project_task_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_edit_team'), 'group_id': ref('advanced_projects.group_advanced_project_task_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_edit_all'), 'group_id': ref('advanced_projects.group_advanced_project_task_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_view_all'), 'group_id': ref('advanced_projects.group_advanced_project_task_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_delete_own'), 'group_id': ref('advanced_projects.group_advanced_project_task_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_delete_all'), 'group_id': ref('advanced_projects.group_advanced_project_task_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_update_publish'), 'group_id': ref('advanced_projects.group_advanced_project_update_publish')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_customer_access'), 'group_id': ref('advanced_projects.group_advanced_project_customer_access')})
+            ]"/>
+        </record>
+        <record id="role_advanced_project_manager" model="permission.role">
+            <field name="name">Project – Manager</field>
+            <field name="description">Create, view and edit their own and their team's projects (with their tasks, phases and updates) and tasks. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_edit_team'), 'group_id': ref('advanced_projects.group_advanced_project_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_edit_team'), 'group_id': ref('advanced_projects.group_advanced_project_task_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_advanced_project_employee" model="permission.role">
+            <field name="name">Project – Employee</field>
+            <field name="description">Create, view and edit their own projects (created by them, managed by them or on their team), with their tasks, phases and updates, and the tasks assigned to them. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_edit_own'), 'group_id': ref('advanced_projects.group_advanced_project_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_task_edit_own'), 'group_id': ref('advanced_projects.group_advanced_project_task_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_advanced_project_publisher" model="permission.role">
+            <field name="name">Project – Update Publisher</field>
+            <field name="description">Publish Project Updates (and set them back to draft) on the projects they can open.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_update_publish'), 'group_id': ref('advanced_projects.group_advanced_project_update_publish')})
+            ]"/>
+        </record>
+        <record id="role_advanced_project_customer_access" model="permission.role">
+            <field name="name">Project – Customer Access Manager</field>
+            <field name="description">Give customers invited to a project the Project Customer permission set (a portal login and access to the projects they are a Customer on).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_projects.privilege_advanced_project_customer_access'), 'group_id': ref('advanced_projects.group_advanced_project_customer_access')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_projects.ProjectOverview">
+        <div class="o_action o_adv_overview_action h-100 d-flex flex-column">
+            <Layout display="display" className="'o_adv_overview h-100 overflow-auto'">
+                <div t-if="!projectId" class="o_view_nocontent">
+                    <div class="o_nocontent_help">
+                        <p class="o_view_nocontent_empty_folder">No project selected</p>
+                        <p>Open a project from the Projects list to see its Overview.</p>
+                    </div>
+                </div>
+                <t t-elif="state.data">
+                    <div class="o_adv_overview_header px-4 pt-4 pb-3">
+                        <div class="d-flex flex-wrap align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h2 class="mb-0" t-esc="project.name"/>
+                                    <span t-if="project.status" class="badge rounded-pill text-white"
+                                          t-attf-style="background-color: {{ project.status_color or '#14C9A5' }}" t-esc="project.status"/>
+                                    <span t-if="project.stage" class="badge rounded-pill text-bg-light" t-esc="project.stage"/>
+                                    <span t-if="project.is_template" class="badge rounded-pill text-bg-info">Template</span>
+                                </div>
+                                <div class="text-muted mt-1 d-flex flex-wrap gap-3">
+                                    <span t-if="project.customer"><i class="fa fa-building-o me-1" title="Customer"/><t t-esc="project.customer"/></span>
+                                    <span t-if="project.manager"><i class="fa fa-user me-1" title="Project Manager"/><t t-esc="project.manager"/></span>
+                                    <span t-if="project.date_start or project.date_end">
+                                        <i class="fa fa-calendar me-1" title="Dates"/>
+                                        <t t-esc="project.date_start"/><t t-if="project.date_end"> – <t t-esc="project.date_end"/></t>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="o_adv_overview_progress text-end">
+                                <div class="fs-3 fw-bold"><t t-esc="project.progress"/>%</div>
+                                <div class="small text-muted">of tasks done</div>
+                            </div>
+                        </div>
+                        <div class="o_adv_overview_nav d-flex flex-wrap gap-2 mt-3">
+                            <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.openTasks('kanban')">
+                                <i class="fa fa-th-large me-1"/>Kanban
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.openTasks('list')">
+                                <i class="fa fa-list me-1"/>List
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.openTasks('project_gantt')">
+                                <i class="fa fa-align-left me-1"/>Gantt
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.openProjectAction('action_open_updates')">
+                                <i class="fa fa-bullhorn me-1"/>Updates
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.openProjectAction('action_open_team')">
+                                <i class="fa fa-users me-1"/>Team
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.openRecord('advanced.project', projectId)">
+                                <i class="fa fa-pencil me-1"/>Details
+                            </button>
+                            <span class="flex-grow-1"/>
+                            <button t-if="state.data.can_edit and !project.is_template" type="button" class="btn btn-secondary btn-sm" t-on-click="invite">
+                                <i class="fa fa-user-plus me-1"/>Invite
+                            </button>
+                            <button t-if="state.data.can_edit" type="button" class="btn btn-sm"
+                                    t-att-class="state.editing ? 'btn-primary' : 'btn-secondary'" t-on-click="toggleEditing">
+                                <i class="fa fa-sliders me-1"/><t t-if="state.editing">Done</t><t t-else="">Customize</t>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex o_adv_overview_body px-4 pb-4 gap-3">
+                        <div class="flex-grow-1 o_min_width_0">
+                            <div class="row g-3 o_adv_overview_grid" t-att-class="{ o_adv_overview_editing: state.editing }"
+                                 t-on-dragover="onGridDragOver" t-on-drop="onDrop">
+                                <div t-if="!widgets.length" class="col-12 text-muted text-center py-5">
+                                    This Overview is empty.
+                                    <t t-if="state.data.can_edit">Use Customize to add widgets.</t>
+                                </div>
+                                <t t-foreach="widgets" t-as="widget" t-key="widget.id">
+                                    <div t-if="state.dragging and state.dropIndex === widget_index" class="col-12 o_adv_drop_marker"/>
+                                    <div t-att-class="widthClasses[widget.width] || widthClasses.small"
+                                         t-att-draggable="state.editing ? 'true' : 'false'"
+                                         t-on-dragstart="(ev) => this.onWidgetDragStart(ev, widget)"
+                                         t-on-dragend="onDragEnd"
+                                         t-on-dragover="(ev) => this.onWidgetDragOver(ev, widget_index)">
+                                        <div class="card h-100 o_adv_widget" t-att-class="'o_adv_widget_' + widget.widget_type">
+                                            <div class="card-header d-flex align-items-center gap-2">
+                                                <i t-if="state.editing" class="fa fa-arrows text-muted o_adv_widget_grip" title="Drag to move"/>
+                                                <span class="fw-bold flex-grow-1 text-truncate" t-esc="widget.title"/>
+                                                <t t-if="state.editing">
+                                                    <button type="button" class="btn btn-link btn-sm p-0 text-muted" title="Change width"
+                                                            t-on-click="() => this.cycleWidth(widget)"><i class="fa fa-arrows-h"/></button>
+                                                    <button type="button" class="btn btn-link btn-sm p-0 text-muted" title="Configure"
+                                                            t-on-click="() => this.configure(widget)"><i class="fa fa-cog"/></button>
+                                                    <button type="button" class="btn btn-link btn-sm p-0 text-muted" title="Remove"
+                                                            t-on-click="() => this.remove(widget)"><i class="fa fa-times"/></button>
+                                                </t>
+                                            </div>
+                                            <div class="card-body">
+                                                <t t-call="advanced_projects.OverviewWidgetBody"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                                <div t-if="state.dragging and state.dropIndex === widgets.length" class="col-12 o_adv_drop_marker"/>
+                            </div>
+                        </div>
+                        <div t-if="state.editing" class="o_adv_overview_palette card">
+                            <div class="card-header fw-bold">Add Widgets</div>
+                            <div class="card-body p-2">
+                                <p class="small text-muted mb-2">Drag a widget into place, or click to add it at the end.</p>
+                                <div t-foreach="state.data.widget_types" t-as="item" t-key="item_index"
+                                     class="o_adv_palette_item d-flex align-items-start gap-2 p-2 mb-1"
+                                     draggable="true" t-att-title="item.description"
+                                     t-on-dragstart="(ev) => this.onPaletteDragStart(ev, item)" t-on-dragend="onDragEnd"
+                                     t-on-click="() => this.addWidget(item)">
+                                    <i t-attf-class="fa {{ item.icon }} fa-fw mt-1 o_adv_palette_icon"/>
+                                    <div>
+                                        <div class="fw-bold small" t-esc="item.label"/>
+                                        <div t-if="item.description" class="small text-muted" t-esc="item.description"/>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-link btn-sm mt-2 p-0" t-on-click="resetLayout">Reset to default layout</button>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </Layout>
+        </div>
+    </t>
+
+    <t t-name="advanced_projects.OverviewWidgetBody">
+        <t t-set="data" t-value="widget.data"/>
+        <!-- Progress -->
+        <t t-if="widget.widget_type === 'progress'">
+            <div class="d-flex align-items-baseline gap-2">
+                <span class="display-6 fw-bold" t-esc="data.progress + '%'"/>
+                <span class="text-muted"><t t-esc="data.done"/> of <t t-esc="data.total"/> tasks done</span>
+            </div>
+            <div class="progress my-2 o_adv_progress" role="progressbar" t-att-aria-valuenow="data.progress" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar o_adv_progress_tasks" t-attf-style="width: {{ data.progress }}%"/>
+            </div>
+            <t t-if="data.time_progress !== null">
+                <div class="d-flex justify-content-between small text-muted mt-3">
+                    <span t-esc="data.date_start"/>
+                    <span t-esc="daysLeftLabel(data.days_left)" t-att-class="{ 'text-danger': data.days_left &lt; 0 }"/>
+                    <span t-esc="data.date_end"/>
+                </div>
+                <div class="progress o_adv_progress o_adv_progress_thin" role="progressbar" t-att-aria-valuenow="data.time_progress" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar o_adv_progress_time" t-attf-style="width: {{ data.time_progress }}%"/>
+                </div>
+                <div class="small text-muted mt-1">Time elapsed: <t t-esc="data.time_progress"/>%</div>
+            </t>
+            <div t-else="" class="small text-muted">Set the start and target end dates to track time.</div>
+        </t>
+        <!-- Task summary -->
+        <t t-elif="widget.widget_type === 'task_counts'">
+            <div class="d-flex flex-wrap gap-2">
+                <button t-foreach="data.counts" t-as="count" t-key="count.filter" type="button"
+                        class="btn o_adv_count_tile flex-fill text-start" t-attf-style="border-color: {{ count.color }}"
+                        t-on-click="() => this.openFilteredTasks(count.filter, count.days)">
+                    <div class="fs-3 fw-bold" t-attf-style="color: {{ count.color }}" t-esc="count.count"/>
+                    <div class="small text-muted" t-esc="count.label"/>
+                </button>
+            </div>
+        </t>
+        <!-- Phases -->
+        <t t-elif="widget.widget_type === 'phases'">
+            <div t-if="!data.phases.length" class="text-muted fst-italic small">No phases yet.</div>
+            <div t-foreach="data.phases" t-as="phase" t-key="phase.id" class="mb-2">
+                <div class="d-flex align-items-center gap-2 small">
+                    <span class="o_adv_phase_dot" t-attf-style="background-color: {{ phase.color }}"/>
+                    <span class="fw-bold text-truncate" t-esc="phase.name"/>
+                    <span class="text-muted text-nowrap"><t t-esc="phase.date_start"/><t t-if="phase.date_end"> – <t t-esc="phase.date_end"/></t></span>
+                    <span class="ms-auto text-nowrap"><t t-esc="phase.done"/>/<t t-esc="phase.total"/></span>
+                </div>
+                <div class="progress o_adv_progress o_adv_progress_thin mt-1" role="progressbar" t-att-aria-valuenow="phase.progress" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" t-attf-style="width: {{ phase.progress }}%; background-color: {{ phase.color }}"/>
+                </div>
+            </div>
+        </t>
+        <!-- Task list -->
+        <t t-elif="widget.widget_type === 'task_list'">
+            <div class="small text-muted mb-1" t-esc="data.summary"/>
+            <TaskList rows="data.rows" total="data.total" taskFilter="data.task_filter"
+                      showAssignees="data.show_assignees" showDates="data.show_dates"
+                      showPhase="data.show_phase" showStage="data.show_stage"
+                      onOpen="(row) => this.openRecord('advanced.project.task', row.id)"/>
+        </t>
+        <!-- Tasks by stage -->
+        <t t-elif="widget.widget_type === 'stage_chart'">
+            <div t-foreach="data.stages" t-as="stage" t-key="stage.id" class="mb-2">
+                <div class="d-flex small"><span t-esc="stage.name"/><span class="ms-auto fw-bold" t-esc="stage.count"/></div>
+                <div class="o_adv_bar_track">
+                    <div class="o_adv_bar_fill" t-attf-style="width: {{ stage.percent }}%; background-color: {{ stage.color }}"/>
+                </div>
+            </div>
+        </t>
+        <!-- Workload -->
+        <t t-elif="widget.widget_type === 'workload'">
+            <div t-if="!data.people.length" class="text-muted fst-italic small">No open tasks.</div>
+            <div t-foreach="data.people" t-as="person" t-key="person.id" class="mb-2">
+                <div class="d-flex small">
+                    <span t-esc="person.name"/>
+                    <span class="ms-auto"><b t-esc="person.open"/> open<t t-if="person.overdue">, <span class="text-danger"><t t-esc="person.overdue"/> overdue</span></t></span>
+                </div>
+                <div class="o_adv_bar_track">
+                    <div class="o_adv_bar_fill o_adv_bar_workload" t-attf-style="width: {{ person.percent }}%"/>
+                </div>
+            </div>
+        </t>
+        <!-- Team -->
+        <t t-elif="widget.widget_type === 'team'">
+            <div class="small text-muted mb-1">Colleagues</div>
+            <div t-if="!data.colleagues.length" class="small fst-italic text-muted mb-2">None yet.</div>
+            <div t-foreach="data.colleagues" t-as="member" t-key="member.id" class="d-flex align-items-center gap-2 mb-1">
+                <img class="rounded-circle o_adv_avatar" t-att-src="'/web/image/res.partner/' + member.partner_id + '/avatar_128'" alt=""/>
+                <span t-esc="member.name"/>
+                <span t-if="member.is_manager" class="badge text-bg-light">Manager</span>
+            </div>
+            <div class="small text-muted mb-1 mt-2">Customers</div>
+            <div t-if="!data.customers.length" class="small fst-italic text-muted">None yet.</div>
+            <div t-foreach="data.customers" t-as="member" t-key="member.id" class="d-flex align-items-center gap-2 mb-1">
+                <img class="rounded-circle o_adv_avatar" t-att-src="'/web/image/res.partner/' + member.partner_id + '/avatar_128'" alt=""/>
+                <span t-esc="member.name"/>
+                <i t-if="member.access_state !== 'ok'" class="fa fa-exclamation-triangle text-warning"
+                   title="Cannot open the project yet: see the Team"/>
+            </div>
+        </t>
+        <!-- Latest update -->
+        <t t-elif="widget.widget_type === 'latest_update'">
+            <div t-if="!data.update" class="text-muted fst-italic small">No published updates yet.</div>
+            <div t-else="" class="o_adv_latest_update" role="button" t-on-click="() => this.openRecord('advanced.project.update', data.update.id)">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold" t-esc="data.update.name"/>
+                    <span t-if="data.update.status" class="badge rounded-pill text-white"
+                          t-attf-style="background-color: {{ data.update.status_color or '#14C9A5' }}" t-esc="data.update.status"/>
+                </div>
+                <div class="small text-muted"><t t-esc="data.update.date"/> · <t t-esc="data.update.author"/></div>
+                <p t-if="data.update.summary" class="mt-2 mb-0" t-esc="data.update.summary"/>
+            </div>
+        </t>
+        <!-- Note -->
+        <t t-elif="widget.widget_type === 'note'">
+            <div t-if="data.note" t-out="asHtml(data.note)"/>
+            <div t-else="" class="text-muted fst-italic small">Empty note: use Customize › Configure to write it.</div>
+        </t>
+        <!-- Generic looks for widget types added by other modules -->
+        <t t-elif="data.render === 'stat'">
+            <div class="d-flex align-items-baseline gap-2">
+                <span class="display-6 fw-bold o_adv_stat_value" t-esc="data.value"/>
+                <span class="text-muted" t-esc="data.unit"/>
+            </div>
+            <div t-if="data.caption" class="small text-muted mt-1" t-esc="data.caption"/>
+            <div t-foreach="data.details or []" t-as="detail" t-key="detail_index" class="d-flex small mt-1">
+                <span t-esc="detail.label"/><span class="ms-auto fw-bold" t-esc="detail.value"/>
+            </div>
+        </t>
+        <t t-elif="data.render === 'bars'">
+            <div t-if="!data.rows.length" class="text-muted fst-italic small" t-esc="data.empty or 'Nothing yet.'"/>
+            <div t-foreach="data.rows" t-as="row" t-key="row_index" class="mb-2">
+                <div class="d-flex small"><span t-esc="row.label"/><span class="ms-auto fw-bold" t-esc="row.value"/></div>
+                <div class="o_adv_bar_track">
+                    <div class="o_adv_bar_fill o_adv_bar_workload" t-attf-style="width: {{ row.percent }}%"/>
+                </div>
+            </div>
+        </t>
+    </t>
+</templates>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_project_from_template_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.from.template.form</field>
+        <field name="model">advanced.project.from.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="template_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="template_task_count" invisible="not template_id"/>
+                        <field name="name"/>
+                        <field name="partner_id"/>
+                    </group>
+                    <group>
+                        <field name="user_id" widget="many2one_avatar_user"/>
+                        <field name="date_start" options="{'numeric': True}"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </group>
+                </group>
+                <p class="text-muted">The template's phases, tasks, task links and Overview layout are copied. Task
+                    dates move with the start date.</p>
+                <footer>
+                    <button name="action_create" type="object" string="Create Project" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

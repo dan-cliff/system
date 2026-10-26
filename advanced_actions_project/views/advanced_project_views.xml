@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Actions smart buttons: employees only (customers never see actions). -->
+    <record id="advanced_project_view_form_actions" model="ir.ui.view">
+        <field name="name">advanced.project.form.actions</field>
+        <field name="model">advanced.project</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_team']" position="after">
+                <button name="action_open_actions" type="object" class="oe_stat_button" icon="fa-bolt"
+                        groups="base.group_user" invisible="is_template">
+                    <field name="action_count" widget="statinfo" string="Actions"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_form_actions" model="ir.ui.view">
+        <field name="name">advanced.project.task.form.actions</field>
+        <field name="model">advanced.project.task</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_task_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_project']" position="after">
+                <button name="action_open_actions" type="object" class="oe_stat_button" icon="fa-bolt"
+                        groups="base.group_user" invisible="is_template">
+                    <field name="action_count" widget="statinfo" string="Actions"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='active']" position="after">
+                <field name="is_template" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

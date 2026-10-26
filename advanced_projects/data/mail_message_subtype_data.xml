@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Published Project Updates are posted on the project; followers (the team,
+         customers included) get them unless the update is kept internal. -->
+    <record id="mt_project_update_published" model="mail.message.subtype">
+        <field name="name">Project Update Published</field>
+        <field name="res_model">advanced.project</field>
+        <field name="default" eval="True"/>
+        <field name="description">Project Update published</field>
+    </record>
+</odoo>
