@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Customer portal: /my/projects. Customers see the projects they are a
+         Customer on, the tasks and published updates shared with them, the team,
+         and the chatter without Private comments. -->
+
+    <template id="portal_breadcrumbs" name="Portal layout: projects" inherit_id="portal.portal_breadcrumbs" priority="46">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name in ('advanced_project', 'advanced_project_task', 'advanced_project_update')"
+                t-attf-class="breadcrumb-item #{'active ' if not project else ''}">
+                <a t-if="project" href="/my/projects">Projects</a>
+                <t t-else="">Projects</t>
+            </li>
+            <li t-if="page_name == 'advanced_project' and project" class="breadcrumb-item active text-break">
+                <t t-out="project.name"/>
+            </li>
+            <li t-if="page_name in ('advanced_project_task', 'advanced_project_update') and project" class="breadcrumb-item text-break">
+                <a t-att-href="project.get_portal_url()" t-out="project.name"/>
+            </li>
+            <li t-if="page_name == 'advanced_project_task' and task" class="breadcrumb-item active text-break">
+                <t t-out="task.name"/>
+            </li>
+            <li t-if="page_name == 'advanced_project_update' and update" class="breadcrumb-item active text-break">
+                <t t-out="update.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_home" name="Projects" customize_show="True" inherit_id="portal.portal_my_home" priority="46">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_service_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_service_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/advanced_projects/static/description/icon.png'"/>
+                <t t-set="title">Projects</t>
+                <t t-set="url" t-value="'/my/projects'"/>
+                <t t-set="text">Follow your projects, their plans and updates</t>
+                <t t-set="placeholder_count" t-value="'advanced_project_count'"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- /my/projects -->
+    <template id="portal_my_projects" name="My Projects">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Projects</t>
+            </t>
+            <t t-if="not projects">
+                <div class="alert alert-info" role="alert">There are no projects to show.</div>
+            </t>
+            <t t-if="projects" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Project</th>
+                        <th class="d-none d-md-table-cell">Dates</th>
+                        <th class="d-none d-md-table-cell">Progress</th>
+                        <th class="text-end">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="projects" t-as="project">
+                        <td><a t-att-href="project.get_portal_url()" t-out="project.name"/></td>
+                        <td class="d-none d-md-table-cell">
+                            <t t-out="format_date(project.date_start)"/>
+                            <t t-if="project.date_end"> – <t t-out="format_date(project.date_end)"/></t>
+                        </td>
+                        <td class="d-none d-md-table-cell" style="min-width: 140px;">
+                            <div class="progress" role="progressbar" style="height: 8px;"
+                                 t-att-aria-valuenow="round(project.progress)" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar o_adv_portal_progress" t-attf-style="width: #{round(project.progress)}%"/>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <span t-if="project.status_id" class="badge rounded-pill text-white"
+                                  t-attf-style="background-color: #{project.status_id.color or '#14C9A5'}"
+                                  t-out="project.status_id.name"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_task_status" name="Project portal: task stage">
+        <span class="badge rounded-pill text-white" t-attf-style="background-color: #{task.stage_id.color or '#3BB8FF'}"
+              t-out="task.stage_id.name"/>
+    </template>
+
+    <!-- /my/projects/<id> -->
+    <template id="portal_my_project" name="My Project" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-set="o_portal_fullwidth_alert" groups="advanced_projects.group_advanced_project_user">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/odoo/action-advanced_projects.advanced_project_action/%s' % project.id"/>
+                </t>
+            </t>
+            <div class="row o_adv_portal_project">
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
+                    <t t-set="entries">
+                        <div class="d-flex flex-column gap-4 mt-3">
+                            <div t-if="project.status_id">
+                                <h6 class="mb-1"><small class="text-muted">Status</small></h6>
+                                <span class="badge rounded-pill text-white"
+                                      t-attf-style="background-color: #{project.status_id.color or '#14C9A5'}"
+                                      t-out="project.status_id.name"/>
+                            </div>
+                            <div>
+                                <h6 class="mb-1"><small class="text-muted">Progress</small></h6>
+                                <div class="progress" role="progressbar" style="height: 10px;"
+                                     t-att-aria-valuenow="round(project.progress)" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar o_adv_portal_progress" t-attf-style="width: #{round(project.progress)}%"/>
+                                </div>
+                                <small class="text-muted"><t t-out="round(project.progress)"/>% of tasks done</small>
+                            </div>
+                            <div t-if="project.date_start or project.date_end">
+                                <h6 class="mb-1"><small class="text-muted">Dates</small></h6>
+                                <t t-out="format_date(project.date_start)"/>
+                                <t t-if="project.date_end"> – <t t-out="format_date(project.date_end)"/></t>
+                            </div>
+                            <div t-if="project.user_id">
+                                <h6 class="mb-1"><small class="text-muted">Project Manager</small></h6>
+                                <t t-call="portal.portal_my_contact">
+                                    <t t-set="_contactAvatar" t-value="image_data_uri(project.user_id.avatar_128)"/>
+                                    <t t-set="_contactName" t-value="project.user_id.name"/>
+                                    <t t-set="_contactLink" t-value="True"/>
+                                </t>
+                            </div>
+                            <div t-if="team">
+                                <h6 class="mb-1"><small class="text-muted">Team</small></h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li t-foreach="team" t-as="member" class="small">
+                                        <t t-out="member.partner_id.name"/>
+                                        <span class="text-muted" t-if="member.collaborator_type == 'customer'">(Customer)</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+                <div id="project_content" class="col-lg-8 col-xxl-9">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="mb-0" t-out="project.name"/>
+                        </div>
+                        <div class="card-body">
+                            <div t-if="not is_html_empty(project.description)" class="mb-3" t-field="project.description"/>
+                            <h5>Project Updates</h5>
+                            <p t-if="not updates" class="text-muted">No updates yet.</p>
+                            <ul class="list-unstyled" t-if="updates">
+                                <li t-foreach="updates[:5]" t-as="update" class="mb-2">
+                                    <a t-att-href="update.get_portal_url()" class="fw-bold" t-out="update.name"/>
+                                    <span class="text-muted small ms-1" t-out="format_date(update.date)"/>
+                                    <span t-if="update.status_id" class="badge rounded-pill text-white ms-1"
+                                          t-attf-style="background-color: #{update.status_id.color or '#14C9A5'}"
+                                          t-out="update.status_id.name"/>
+                                    <div t-if="update.summary" class="small text-muted" t-out="update.summary"/>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header"><h5 class="mb-0">Plan</h5></div>
+                        <div class="card-body">
+                            <t t-foreach="phases" t-as="entry">
+                                <t t-set="phase" t-value="entry['phase']"/>
+                                <div class="mb-3" t-if="entry['tasks']">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="o_adv_portal_phase_dot" t-attf-style="background-color: #{phase.color or '#8E5CF0'}"/>
+                                        <strong t-out="phase.name"/>
+                                        <span class="text-muted small">
+                                            <t t-out="format_date(phase.date_start)"/>
+                                            <t t-if="phase.date_end"> – <t t-out="format_date(phase.date_end)"/></t>
+                                        </span>
+                                        <span class="ms-auto small text-muted"><t t-out="round(phase.progress)"/>%</span>
+                                    </div>
+                                    <t t-call="advanced_projects.portal_task_table">
+                                        <t t-set="tasks" t-value="entry['tasks']"/>
+                                    </t>
+                                </div>
+                            </t>
+                            <div t-if="unphased_tasks" class="mb-3">
+                                <strong class="d-block mb-1">Other Tasks</strong>
+                                <t t-call="advanced_projects.portal_task_table">
+                                    <t t-set="tasks" t-value="unphased_tasks"/>
+                                </t>
+                            </div>
+                            <p t-if="not unphased_tasks and not any(entry['tasks'] for entry in phases)" class="text-muted mb-0">
+                                No tasks shared yet.
+                            </p>
+                        </div>
+                    </div>
+                    <div id="project_chat" data-anchor="true">
+                        <h3>Discussion</h3>
+                        <t t-call="portal.message_thread">
+                            <t t-set="token" t-value="project.access_token"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="portal_task_table" name="Project portal: tasks">
+        <table class="table table-sm mb-0 o_adv_portal_tasks">
+            <colgroup>
+                <col/>
+                <col class="d-none d-md-table-column" style="width: 220px;"/>
+                <col style="width: 110px;"/>
+            </colgroup>
+            <tbody>
+                <tr t-foreach="tasks" t-as="task">
+                    <td>
+                        <i t-if="task.is_milestone" class="fa fa-flag text-warning me-1" title="Milestone"/>
+                        <a t-att-href="task.get_portal_url()" t-out="task.name"/>
+                    </td>
+                    <td class="d-none d-md-table-cell text-muted small text-nowrap">
+                        <t t-out="format_date(task.date_start)"/>
+                        <t t-if="task.date_start and task.date_end"> – </t>
+                        <t t-out="format_date(task.date_end)"/>
+                    </td>
+                    <td class="text-end"><t t-call="advanced_projects.portal_task_status"/></td>
+                </tr>
+            </tbody>
+        </table>
+    </template>
+
+    <!-- /my/projects/<id>/tasks/<id> -->
+    <template id="portal_my_project_task" name="My Project Task" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row">
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
+                    <t t-set="entries">
+                        <div class="d-flex flex-column gap-4 mt-3">
+                            <div>
+                                <h6 class="mb-1"><small class="text-muted">Stage</small></h6>
+                                <t t-call="advanced_projects.portal_task_status"/>
+                            </div>
+                            <div t-if="task.phase_id">
+                                <h6 class="mb-1"><small class="text-muted">Phase</small></h6>
+                                <span t-out="task.phase_id.name"/>
+                            </div>
+                            <div t-if="task.date_start or task.date_end">
+                                <h6 class="mb-1"><small class="text-muted">Dates</small></h6>
+                                <t t-out="format_date(task.date_start)"/>
+                                <t t-if="task.date_start and task.date_end"> – </t>
+                                <t t-out="format_date(task.date_end)"/>
+                            </div>
+                            <div t-if="task.user_ids">
+                                <h6 class="mb-1"><small class="text-muted">Assigned to</small></h6>
+                                <div t-foreach="task.user_ids" t-as="assignee" class="small" t-out="assignee.name"/>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+                <div class="col-lg-8 col-xxl-9">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i t-if="task.is_milestone" class="fa fa-flag text-warning me-1" title="Milestone"/>
+                                <t t-out="task.name"/>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div t-if="not is_html_empty(task.description)" t-field="task.description"/>
+                            <p t-else="" class="text-muted mb-0">No description.</p>
+                        </div>
+                    </div>
+                    <div id="task_chat" data-anchor="true">
+                        <h3>Discussion</h3>
+                        <t t-call="portal.message_thread">
+                            <t t-set="token" t-value="task.access_token"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- /my/projects/<id>/updates/<id> -->
+    <template id="portal_my_project_update" name="My Project Update" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="mb-0" t-out="update.name"/>
+                            <small class="text-muted">
+                                <t t-out="format_date(update.date)"/>
+                                <t t-if="update.user_id"> · <t t-out="update.user_id.name"/></t>
+                            </small>
+                        </div>
+                        <div class="card-body">
+                            <p t-if="update.summary" class="lead" t-out="update.summary"/>
+                            <div t-out="update.body_html"/>
+                        </div>
+                    </div>
+                    <div id="update_chat" data-anchor="true">
+                        <h3>Discussion</h3>
+                        <t t-call="portal.message_thread">
+                            <t t-set="token" t-value="update.access_token"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

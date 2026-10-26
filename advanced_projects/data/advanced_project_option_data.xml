@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting options (CLAUDE.md > Choice fields); adjust them under Configuration. -->
+    <data noupdate="1">
+        <record id="task_stage_todo" model="advanced.project.task.stage">
+            <field name="name">To Do</field>
+            <field name="sequence">10</field>
+            <field name="category">todo</field>
+            <field name="color">#0A6CF0</field>
+        </record>
+        <record id="task_stage_in_progress" model="advanced.project.task.stage">
+            <field name="name">In Progress</field>
+            <field name="sequence">20</field>
+            <field name="category">in_progress</field>
+            <field name="color">#8E5CF0</field>
+        </record>
+        <record id="task_stage_blocked" model="advanced.project.task.stage">
+            <field name="name">Blocked</field>
+            <field name="sequence">30</field>
+            <field name="category">blocked</field>
+            <field name="color">#FF9F1C</field>
+        </record>
+        <record id="task_stage_done" model="advanced.project.task.stage">
+            <field name="name">Done</field>
+            <field name="sequence">40</field>
+            <field name="category">done</field>
+            <field name="color">#14A3A3</field>
+            <field name="fold" eval="True"/>
+        </record>
+        <record id="task_stage_cancelled" model="advanced.project.task.stage">
+            <field name="name">Cancelled</field>
+            <field name="sequence">50</field>
+            <field name="category">cancelled</field>
+            <field name="color">#A9ABDC</field>
+            <field name="fold" eval="True"/>
+        </record>
+
+        <record id="project_stage_planning" model="advanced.project.stage">
+            <field name="name">Planning</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="project_stage_in_progress" model="advanced.project.stage">
+            <field name="name">In Progress</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="project_stage_on_hold" model="advanced.project.stage">
+            <field name="name">On Hold</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="project_stage_completed" model="advanced.project.stage">
+            <field name="name">Completed</field>
+            <field name="sequence">40</field>
+            <field name="is_closed" eval="True"/>
+            <field name="fold" eval="True"/>
+        </record>
+        <record id="project_stage_cancelled" model="advanced.project.stage">
+            <field name="name">Cancelled</field>
+            <field name="sequence">50</field>
+            <field name="is_closed" eval="True"/>
+            <field name="fold" eval="True"/>
+        </record>
+
+        <record id="project_status_on_track" model="advanced.project.status">
+            <field name="name">On Track</field>
+            <field name="sequence">10</field>
+            <field name="color">#14C9A5</field>
+        </record>
+        <record id="project_status_at_risk" model="advanced.project.status">
+            <field name="name">At Risk</field>
+            <field name="sequence">20</field>
+            <field name="color">#FF9F1C</field>
+        </record>
+        <record id="project_status_off_track" model="advanced.project.status">
+            <field name="name">Off Track</field>
+            <field name="sequence">30</field>
+            <field name="color">#FF5A6E</field>
+        </record>
+        <record id="project_status_on_hold" model="advanced.project.status">
+            <field name="name">On Hold</field>
+            <field name="sequence">40</field>
+            <field name="color">#A9ABDC</field>
+        </record>
+    </data>
+</odoo>

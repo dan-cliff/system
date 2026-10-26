@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_projects.GanttView">
+        <div class="o_adv_gantt_view o_action h-100 d-flex flex-column" t-att-class="props.className" t-ref="root">
+            <Layout display="props.display" className="'o_adv_gantt_layout'">
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu/>
+                </t>
+                <t t-set-slot="layout-buttons">
+                    <div class="d-flex gap-2">
+                        <button t-if="canCreate" type="button" class="btn btn-primary o_adv_gantt_new" t-on-click="onCreate">New</button>
+                    </div>
+                </t>
+                <t t-set-slot="layout-actions">
+                    <SearchBar toggler="searchBarToggler"/>
+                </t>
+                <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+                </t>
+                <div class="o_adv_gantt d-flex flex-column h-100">
+                    <div class="o_adv_gantt_toolbar d-flex align-items-center gap-2 px-3 py-2 border-bottom">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Scale">
+                            <t t-foreach="Object.keys(scales)" t-as="scale" t-key="scale">
+                                <button type="button" class="btn btn-secondary" t-att-class="{ active: state.scale === scale }"
+                                        t-on-click="() => this.setScale(scale)" t-esc="scales[scale].label"/>
+                            </t>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary" t-on-click="scrollToToday">Today</button>
+                        <span class="text-muted small ms-auto d-none d-md-inline" t-if="canEdit">
+                            Drag a bar to move it, its ends to change dates; drag its dot onto another task to link them.
+                        </span>
+                    </div>
+                    <div t-if="!state.loading and !state.tasks.length" class="o_view_nocontent">
+                        <div class="o_nocontent_help">
+                            <p class="o_view_nocontent_smiling_face">No tasks to plan yet</p>
+                            <p>Create tasks with start and end dates to see them on the chart.</p>
+                        </div>
+                    </div>
+                    <div t-else="" class="o_adv_gantt_body flex-grow-1 overflow-auto" t-ref="body">
+                        <t t-set="ganttHeader" t-value="headerCells"/>
+                        <t t-set="ganttRows" t-value="rows"/>
+                        <div class="o_adv_gantt_inner" t-attf-style="width: {{ labelWidth + timelineWidth }}px;">
+                            <div class="o_adv_gantt_header d-flex">
+                                <div class="o_adv_gantt_label o_adv_gantt_corner" t-attf-style="width: {{ labelWidth }}px;">
+                                    <span class="fw-bold">Task</span>
+                                </div>
+                                <div class="o_adv_gantt_scale position-relative" t-attf-style="width: {{ timelineWidth }}px;">
+                                    <div class="o_adv_gantt_months position-relative">
+                                        <div t-foreach="ganttHeader.months" t-as="month" t-key="month.key"
+                                             class="o_adv_gantt_month" t-attf-style="left: {{ month.left }}px; width: {{ month.width }}px;">
+                                            <span t-esc="month.label"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_adv_gantt_units position-relative">
+                                        <div t-foreach="ganttHeader.units" t-as="unit" t-key="unit.key" class="o_adv_gantt_unit"
+                                             t-att-class="{ o_adv_gantt_weekend: unit.weekend }" t-att-title="unit.title"
+                                             t-attf-style="left: {{ unit.left }}px; width: {{ unit.width }}px;">
+                                            <span t-esc="unit.label"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_adv_gantt_rows position-relative">
+                                <div class="o_adv_gantt_grid" t-attf-style="left: {{ labelWidth }}px; width: {{ timelineWidth }}px; height: {{ ganttRows.length * rowHeight }}px;">
+                                    <div t-foreach="weekends" t-as="weekend" t-key="weekend.key" class="o_adv_gantt_weekend_band"
+                                         t-attf-style="left: {{ weekend.left }}px; width: {{ weekend.width }}px;"/>
+                                    <div class="o_adv_gantt_today" t-attf-style="left: {{ todayLeft }}px;" title="Today"/>
+                                </div>
+                                <t t-foreach="ganttRows" t-as="row" t-key="row.key">
+                                    <div class="o_adv_gantt_row d-flex" t-att-class="{ o_adv_gantt_group_row: row.type === 'group' }"
+                                         t-attf-style="height: {{ rowHeight }}px;">
+                                        <div class="o_adv_gantt_label d-flex align-items-center gap-1" t-attf-style="width: {{ labelWidth }}px;">
+                                            <t t-if="row.type === 'group'">
+                                                <button type="button" class="btn btn-link btn-sm p-0 text-reset" t-on-click="() => this.toggleGroup(row)"
+                                                        t-att-title="row.collapsed ? 'Expand' : 'Collapse'">
+                                                    <i t-att-class="row.collapsed ? 'fa fa-caret-right' : 'fa fa-caret-down'"/>
+                                                </button>
+                                                <span class="fw-bold text-truncate" t-esc="row.label"/>
+                                                <span class="text-muted small ms-auto"><t t-esc="row.count"/> · <t t-esc="row.progress"/>%</span>
+                                            </t>
+                                            <t t-else="">
+                                                <i t-if="row.task.milestone" class="fa fa-flag text-warning" title="Milestone"/>
+                                                <a href="#" class="text-truncate o_adv_gantt_task_name" t-esc="row.task.name"
+                                                   t-on-click.prevent="() => this.openTask(row.task)"/>
+                                                <span class="text-muted small ms-auto text-nowrap" t-esc="formatRange(row.task)"/>
+                                            </t>
+                                        </div>
+                                        <div class="o_adv_gantt_cells position-relative" t-attf-style="width: {{ timelineWidth }}px;"
+                                             t-att-class="{ o_adv_gantt_unscheduled: row.type === 'task' and !row.bar and canEdit }"
+                                             t-att-title="row.type === 'task' and !row.bar and canEdit ? 'Click a day to schedule this task' : ''"
+                                             t-on-click="(ev) => this.onRowClick(ev, row)">
+                                            <t t-if="row.type === 'group' and row.bar">
+                                                <div class="o_adv_gantt_group_bar" t-attf-style="left: {{ row.bar.left }}px; width: {{ row.bar.width }}px;">
+                                                    <div class="o_adv_gantt_group_progress" t-attf-style="width: {{ row.progress }}%;"/>
+                                                </div>
+                                            </t>
+                                            <t t-elif="row.type === 'task' and row.bar">
+                                                <div t-if="row.task.milestone" class="o_adv_gantt_milestone"
+                                                     t-att-class="'o_adv_gantt_state_' + row.task.category"
+                                                     t-att-data-task-id="row.task.id" t-att-title="row.task.name + ' — ' + formatRange(row.task)"
+                                                     t-attf-style="left: {{ row.bar.left + row.bar.width - rowHeight / 2 }}px;"
+                                                     t-on-pointerdown="(ev) => this.onBarPointerDown(ev, row.task, 'move')">
+                                                    <span class="o_adv_gantt_link_dot" t-if="canEdit and archInfo.linkField"
+                                                          title="Drag onto another task to link it"
+                                                          t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task)"/>
+                                                </div>
+                                                <div t-else="" class="o_adv_gantt_bar" t-att-class="'o_adv_gantt_state_' + row.task.category"
+                                                     t-att-data-task-id="row.task.id" t-att-title="row.task.name + ' — ' + formatRange(row.task)"
+                                                     t-attf-style="left: {{ row.bar.left }}px; width: {{ row.bar.width }}px;"
+                                                     t-on-pointerdown="(ev) => this.onBarPointerDown(ev, row.task, 'move')">
+                                                    <span t-if="canEdit and row.bar.width &gt;= 30" class="o_adv_gantt_handle o_adv_gantt_handle_start"
+                                                          t-on-pointerdown="(ev) => this.onBarPointerDown(ev, row.task, 'start')"/>
+                                                    <span class="o_adv_gantt_bar_label text-truncate" t-esc="row.task.name"/>
+                                                    <span t-if="canEdit and row.bar.width &gt;= 30" class="o_adv_gantt_handle o_adv_gantt_handle_stop"
+                                                          t-on-pointerdown="(ev) => this.onBarPointerDown(ev, row.task, 'stop')"/>
+                                                    <span class="o_adv_gantt_link_dot" t-if="canEdit and archInfo.linkField"
+                                                          title="Drag onto another task to link it"
+                                                          t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task)"/>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+                                <svg class="o_adv_gantt_links" t-attf-style="left: {{ labelWidth }}px;"
+                                     t-att-width="timelineWidth" t-att-height="ganttRows.length * rowHeight">
+                                    <defs>
+                                        <marker id="o_adv_gantt_arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                            <path d="M 0 0 L 10 5 L 0 10 z" class="o_adv_gantt_arrow_head"/>
+                                        </marker>
+                                        <marker id="o_adv_gantt_arrow_late" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                            <path d="M 0 0 L 10 5 L 0 10 z" class="o_adv_gantt_arrow_head_late"/>
+                                        </marker>
+                                    </defs>
+                                    <t t-foreach="linkPaths" t-as="path" t-key="path.key">
+                                        <path t-att-d="path.d" class="o_adv_gantt_link" t-att-class="{ o_adv_gantt_link_late: path.late }"
+                                              t-att-marker-end="path.late ? 'url(#o_adv_gantt_arrow_late)' : 'url(#o_adv_gantt_arrow)'"/>
+                                        <path t-att-d="path.d" class="o_adv_gantt_link_hit" t-on-click="() => this.onLinkClick(path)">
+                                            <title t-if="canEdit">Click to remove this link</title>
+                                        </path>
+                                    </t>
+                                    <line t-if="state.link" class="o_adv_gantt_link_draft"
+                                          t-att-x1="state.link.x1" t-att-y1="state.link.y1" t-att-x2="state.link.x2" t-att-y2="state.link.y2"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Layout>
+        </div>
+    </t>
+</templates>

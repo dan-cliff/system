@@ -1,0 +1,264 @@
+// Gantt chart for project tasks, in the house palette (CLAUDE.md > Icon style).
+$adv-gantt-header: 52px;
+
+.o_adv_gantt_view .o_content {
+    overflow: hidden;
+}
+
+.o_adv_gantt {
+    background: var(--o-view-background-color, $o-view-background-color);
+}
+
+.o_adv_gantt_body {
+    position: relative;
+}
+
+.o_adv_gantt_header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    height: $adv-gantt-header;
+    background: var(--o-view-background-color, $o-view-background-color);
+    border-bottom: 1px solid $border-color;
+}
+
+.o_adv_gantt_label {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    flex: 0 0 auto;
+    padding: 0 10px;
+    background: var(--o-view-background-color, $o-view-background-color);
+    border-right: 1px solid $border-color;
+    overflow: hidden;
+}
+
+.o_adv_gantt_corner {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 6px;
+    z-index: 4;
+}
+
+.o_adv_gantt_months,
+.o_adv_gantt_units {
+    height: 26px;
+}
+
+.o_adv_gantt_month,
+.o_adv_gantt_unit {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 4px;
+    border-left: 1px solid $border-color;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.o_adv_gantt_month {
+    font-weight: 600;
+}
+
+.o_adv_gantt_unit {
+    color: $text-muted;
+    justify-content: center;
+    padding-left: 0;
+
+    &.o_adv_gantt_weekend {
+        background: rgba(169, 171, 220, 0.12);
+    }
+}
+
+.o_adv_gantt_rows {
+    min-height: 100%;
+}
+
+.o_adv_gantt_grid {
+    position: absolute;
+    top: 0;
+    pointer-events: none;
+}
+
+.o_adv_gantt_weekend_band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: rgba(169, 171, 220, 0.10);
+}
+
+.o_adv_gantt_today {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #FF5A6E;
+    opacity: 0.7;
+}
+
+.o_adv_gantt_row {
+    border-bottom: 1px solid rgba(169, 171, 220, 0.25);
+
+    &:hover .o_adv_gantt_label {
+        background: mix(#F2F2FA, #FFFFFF, 60%);
+    }
+}
+
+.o_adv_gantt_group_row .o_adv_gantt_label {
+    background: #F2F2FA;
+}
+
+.o_adv_gantt_cells {
+    flex: 0 0 auto;
+}
+
+.o_adv_gantt_unscheduled {
+    cursor: copy;
+
+    &:hover {
+        background: rgba(59, 184, 255, 0.06);
+    }
+}
+
+.o_adv_gantt_group_bar {
+    position: absolute;
+    top: 13px;
+    height: 10px;
+    border-radius: 5px;
+    background: #A9ABDC;
+    overflow: hidden;
+}
+
+.o_adv_gantt_group_progress {
+    height: 100%;
+    background: linear-gradient(90deg, #8E5CF0, #5B3DB8);
+}
+
+.o_adv_gantt_bar {
+    position: absolute;
+    top: 6px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: #FFFFFF;
+    font-size: 12px;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(42, 63, 143, 0.18);
+    user-select: none;
+    z-index: 1;
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &:hover .o_adv_gantt_handle,
+    &:hover .o_adv_gantt_link_dot {
+        opacity: 1;
+    }
+}
+
+.o_adv_gantt_bar_label {
+    pointer-events: none;
+}
+
+.o_adv_gantt_state_todo { background: linear-gradient(90deg, #3BB8FF, #0A6CF0); }
+.o_adv_gantt_state_in_progress { background: linear-gradient(90deg, #8E5CF0, #5B3DB8); }
+.o_adv_gantt_state_blocked { background: linear-gradient(90deg, #FFC93C, #FF9F1C); }
+.o_adv_gantt_state_done { background: linear-gradient(90deg, #14C9A5, #14A3A3); }
+.o_adv_gantt_state_cancelled { background: #A9ABDC; text-decoration: line-through; }
+
+.o_adv_gantt_handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: ew-resize;
+    opacity: 0;
+    background: rgba(255, 255, 255, 0.35);
+
+    &.o_adv_gantt_handle_start {
+        left: 0;
+        border-radius: 6px 0 0 6px;
+    }
+
+    &.o_adv_gantt_handle_stop {
+        right: 0;
+        border-radius: 0 6px 6px 0;
+    }
+}
+
+.o_adv_gantt_link_dot {
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid #5B3DB8;
+    cursor: crosshair;
+    opacity: 0;
+}
+
+.o_adv_gantt_milestone {
+    position: absolute;
+    top: 8px;
+    width: 18px;
+    height: 18px;
+    transform: rotate(45deg);
+    border-radius: 3px;
+    cursor: grab;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(42, 63, 143, 0.18);
+
+    &:hover .o_adv_gantt_link_dot {
+        opacity: 1;
+    }
+
+    .o_adv_gantt_link_dot {
+        transform: rotate(-45deg);
+        right: -16px;
+    }
+}
+
+.o_adv_gantt_links {
+    position: absolute;
+    top: 0;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 1;
+}
+
+.o_adv_gantt_link {
+    fill: none;
+    stroke: #5B3DB8;
+    stroke-width: 1.5;
+    opacity: 0.75;
+
+    &.o_adv_gantt_link_late {
+        stroke: #FF5A6E;
+    }
+}
+
+.o_adv_gantt_link_hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 10;
+    pointer-events: stroke;
+    cursor: pointer;
+}
+
+.o_adv_gantt_arrow_head { fill: #5B3DB8; }
+.o_adv_gantt_arrow_head_late { fill: #FF5A6E; }
+
+.o_adv_gantt_link_draft {
+    stroke: #8E5CF0;
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+}

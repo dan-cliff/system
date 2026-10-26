@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_projects.TaskList">
+        <div class="o_adv_task_list">
+            <div t-if="!props.rows.length" class="text-muted fst-italic small py-2">No tasks.</div>
+            <table t-else="" class="table table-sm table-hover mb-0 align-middle">
+                <tbody>
+                    <tr t-foreach="props.rows" t-as="row" t-key="row.id" class="o_adv_task_row"
+                        t-on-click="() => props.onOpen and props.onOpen(row)">
+                        <td class="o_adv_task_name">
+                            <i t-if="row.is_milestone" class="fa fa-flag text-warning me-1" title="Milestone"/>
+                            <span t-esc="row.name"/>
+                            <div t-if="props.showPhase and row.phase" class="small text-muted" t-esc="row.phase"/>
+                        </td>
+                        <td t-if="props.showAssignees" class="small text-muted d-none d-md-table-cell" t-esc="row.assignees"/>
+                        <td t-if="props.showDates" class="small text-nowrap text-end"
+                            t-att-class="{ 'text-danger': row.overdue, 'text-muted': !row.overdue }">
+                            <t t-if="props.taskFilter === 'completed' and row.date_done"><i class="fa fa-check me-1" title="Done"/></t>
+                            <t t-esc="dates(row)"/>
+                        </td>
+                        <td t-if="props.showStage" class="text-end">
+                            <span class="badge rounded-pill o_adv_stage_badge"
+                                  t-attf-style="background-color: {{ row.stage_color or '#3BB8FF' }}" t-esc="row.stage"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div t-if="more" class="small text-muted mt-1">and <t t-esc="more"/> more</div>
+        </div>
+    </t>
+</templates>

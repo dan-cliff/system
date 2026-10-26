@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.Composer" t-inherit-mode="extension">
+        <xpath expr="//t[@t-call='mail.Composer.sendButton']" position="after">
+            <button t-if="showAdvPrivateToggle" type="button"
+                    class="btn btn-sm ms-2 o_adv_private_toggle"
+                    t-att-class="advPrivate.on ? 'btn-warning' : 'btn-light'"
+                    t-att-aria-pressed="advPrivate.on ? 'true' : 'false'"
+                    title="Private comments are only seen by employees, never by customers"
+                    t-on-click="toggleAdvPrivate">
+                <i t-att-class="advPrivate.on ? 'fa fa-lock me-1' : 'fa fa-unlock-alt me-1'"/>
+                <t t-if="advPrivate.on">Private</t><t t-else="">Visible to customers</t>
+            </button>
+        </xpath>
+    </t>
+    <t t-inherit="mail.Message" t-inherit-mode="extension">
+        <xpath expr="//span[hasclass('o-mail-Message-author')]" position="after">
+            <span t-if="message.advanced_project_private" class="badge rounded-pill text-bg-warning me-1 o_adv_private_badge"
+                  title="Private: only employees see this comment">
+                <i class="fa fa-lock me-1"/>Private
+            </span>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,136 @@
+// Project Overview dashboard, in the house palette (CLAUDE.md > Icon style).
+.o_adv_overview {
+    background: #F2F2FA;
+
+    .o_adv_overview_header {
+        background: var(--o-view-background-color, $o-view-background-color);
+        border-bottom: 1px solid $border-color;
+        margin-bottom: 1rem;
+    }
+
+    .o_adv_overview_progress .fs-3 {
+        color: #5B3DB8;
+    }
+
+    .o_adv_widget {
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(42, 63, 143, 0.08);
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid #F2F2FA;
+        }
+    }
+
+    .o_adv_overview_editing .o_adv_widget {
+        outline: 1px dashed #A9ABDC;
+        cursor: move;
+    }
+
+    .o_adv_drop_marker {
+        height: 4px;
+        padding: 0;
+        border-radius: 2px;
+        background: #8E5CF0;
+    }
+
+    .o_adv_overview_palette {
+        width: 280px;
+        flex: 0 0 280px;
+        align-self: flex-start;
+        position: sticky;
+        top: 0;
+        border-radius: 12px;
+    }
+
+    .o_adv_palette_item {
+        border-radius: 8px;
+        cursor: grab;
+        border: 1px solid transparent;
+
+        &:hover {
+            background: #F2F2FA;
+            border-color: #A9ABDC;
+        }
+    }
+
+    .o_adv_palette_icon {
+        color: #5B3DB8;
+    }
+
+    .o_adv_count_tile {
+        min-width: 100px;
+        border: 0;
+        border-left: 4px solid;
+        border-radius: 8px;
+        background: #F2F2FA;
+
+        &:hover {
+            background: mix(#F2F2FA, #A9ABDC, 80%);
+        }
+    }
+
+    .o_adv_phase_dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+    }
+
+    .o_adv_bar_track {
+        height: 8px;
+        border-radius: 4px;
+        background: #F2F2FA;
+        overflow: hidden;
+    }
+
+    .o_adv_bar_fill {
+        height: 100%;
+        border-radius: 4px;
+    }
+
+    .o_adv_bar_workload {
+        background: linear-gradient(90deg, #3BB8FF, #0A6CF0);
+    }
+
+    .o_adv_avatar {
+        width: 24px;
+        height: 24px;
+        object-fit: cover;
+    }
+
+    .o_adv_latest_update {
+        cursor: pointer;
+    }
+}
+
+.o_adv_progress {
+    height: 10px;
+    border-radius: 5px;
+    background: #F2F2FA;
+
+    &.o_adv_progress_thin {
+        height: 6px;
+    }
+}
+
+.o_adv_progress_tasks {
+    background: linear-gradient(90deg, #14C9A5, #14A3A3);
+}
+
+.o_adv_progress_time {
+    background: linear-gradient(90deg, #FFC93C, #FF9F1C);
+}
+
+.o_adv_task_list {
+    .o_adv_task_row {
+        cursor: pointer;
+    }
+
+    .o_adv_stage_badge {
+        color: #FFFFFF;
+        font-weight: 500;
+    }
+}

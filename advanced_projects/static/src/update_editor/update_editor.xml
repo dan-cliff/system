@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_projects.UpdateEditor">
+        <div class="o_adv_update_editor mt-3">
+            <div t-if="!state.data" class="o_adv_update_editor_empty text-center p-4">
+                <p class="mb-2">The update starts with <b>Highlights</b>, <b>Completed</b>, <b>Upcoming</b> and
+                    <b>Blocked</b> sections. Save it to start writing and dragging in task widgets.</p>
+                <button type="button" class="btn btn-primary" t-on-click="startEditing">Start Writing</button>
+            </div>
+            <div t-else="" class="d-flex gap-3 align-items-start">
+                <div class="o_adv_update_document_editor flex-grow-1 o_min_width_0"
+                     t-on-dragover="onDocumentDragOver" t-on-drop="onDrop">
+                    <div t-if="!blocks.length" class="text-muted text-center py-4">
+                        Drag text and task widgets here from the right.
+                    </div>
+                    <t t-foreach="blocks" t-as="block" t-key="block.id">
+                        <div t-if="state.dragging and state.dropIndex === block_index" class="o_adv_drop_marker my-1"/>
+                        <div class="o_adv_block card mb-2" t-att-class="'o_adv_block_' + block.block_type"
+                             t-att-draggable="canEdit ? 'true' : 'false'"
+                             t-on-dragstart="(ev) => this.onBlockDragStart(ev, block)" t-on-dragend="onDragEnd"
+                             t-on-dragover="(ev) => this.onBlockDragOver(ev, block_index)">
+                            <div class="card-header d-flex align-items-center gap-2 py-1">
+                                <i t-if="canEdit" class="fa fa-bars text-muted o_adv_block_grip" title="Drag to move"/>
+                                <i t-if="block.block_type === 'tasks'" class="fa fa-tasks o_adv_block_icon" title="Task widget"/>
+                                <i t-else="" class="fa fa-align-left o_adv_block_icon" title="Text"/>
+                                <input type="text" class="form-control form-control-sm border-0 fw-bold o_adv_block_title"
+                                       t-att-value="block.title" t-att-readonly="!canEdit"
+                                       placeholder="Section title" t-on-change="(ev) => this.onTitleChange(block, ev)"/>
+                                <span t-if="block.block_type === 'tasks'" class="badge rounded-pill text-bg-light text-nowrap flex-shrink-0"
+                                      title="Tasks matching the filters" t-esc="block.total"/>
+                                <button t-if="canEdit and block.block_type === 'tasks'" type="button"
+                                        class="btn btn-link btn-sm p-0 text-muted" title="Filters"
+                                        t-att-class="{ 'text-primary': state.configuring === block.id }"
+                                        t-on-click="() => this.toggleConfigure(block)"><i class="fa fa-filter"/></button>
+                                <button t-if="canEdit" type="button" class="btn btn-link btn-sm p-0 text-muted" title="Remove"
+                                        t-on-click="() => this.removeBlock(block)"><i class="fa fa-trash-o"/></button>
+                            </div>
+                            <div class="card-body py-2">
+                                <t t-if="block.block_type === 'text'">
+                                    <div t-if="canEdit" class="btn-group btn-group-sm mb-1 o_adv_text_toolbar" role="toolbar">
+                                        <button type="button" class="btn btn-light" title="Bold" t-on-mousedown.prevent="() => this.format('bold')"><i class="fa fa-bold"/></button>
+                                        <button type="button" class="btn btn-light" title="Italic" t-on-mousedown.prevent="() => this.format('italic')"><i class="fa fa-italic"/></button>
+                                        <button type="button" class="btn btn-light" title="Underline" t-on-mousedown.prevent="() => this.format('underline')"><i class="fa fa-underline"/></button>
+                                        <button type="button" class="btn btn-light" title="Bulleted list" t-on-mousedown.prevent="() => this.format('insertUnorderedList')"><i class="fa fa-list-ul"/></button>
+                                        <button type="button" class="btn btn-light" title="Numbered list" t-on-mousedown.prevent="() => this.format('insertOrderedList')"><i class="fa fa-list-ol"/></button>
+                                    </div>
+                                    <div class="o_adv_text_body" t-att-contenteditable="canEdit ? 'true' : 'false'"
+                                         t-on-blur="(ev) => this.onBodyBlur(block, ev)"
+                                         data-placeholder="Write here..." t-out="asHtml(block.body)"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="small text-muted mb-1" t-esc="block.summary"/>
+                                    <div t-if="state.configuring === block.id" class="o_adv_block_config p-2 mb-2">
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <label class="form-label small mb-0">Show</label>
+                                                <select class="form-select form-select-sm"
+                                                        t-on-change="(ev) => this.setFilter(block, 'task_filter', ev.target.value)">
+                                                    <option t-foreach="state.data.task_filters" t-as="f" t-key="f.value"
+                                                            t-att-value="f.value" t-att-selected="f.value === block.task_filter" t-esc="f.label"/>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4" t-if="dayFilters.includes(block.task_filter)">
+                                                <label class="form-label small mb-0">
+                                                    <t t-if="block.task_filter === 'completed'">In the last (days)</t>
+                                                    <t t-else="">In the next (days)</t>
+                                                </label>
+                                                <input type="number" min="0" class="form-control form-control-sm" t-att-value="block.days"
+                                                       t-on-change="(ev) => this.setNumber(block, 'days', ev)"/>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small mb-0">Show at most</label>
+                                                <input type="number" min="0" class="form-control form-control-sm" t-att-value="block.task_limit"
+                                                       t-on-change="(ev) => this.setNumber(block, 'task_limit', ev)"/>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2" t-if="state.data.phases.length">
+                                            <div class="small text-muted">Phases <span class="fst-italic">(none ticked = all)</span></div>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button t-foreach="state.data.phases" t-as="phase" t-key="phase.id" type="button"
+                                                        class="btn btn-sm" t-att-class="block.phase_ids.includes(phase.id) ? 'btn-primary' : 'btn-light'"
+                                                        t-on-click="() => this.toggleMany(block, 'phase_ids', phase.id)" t-esc="phase.name"/>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2" t-if="state.data.users.length">
+                                            <div class="small text-muted">Assignees <span class="fst-italic">(none ticked = everyone)</span></div>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button t-foreach="state.data.users" t-as="user" t-key="user.id" type="button"
+                                                        class="btn btn-sm" t-att-class="block.user_ids.includes(user.id) ? 'btn-primary' : 'btn-light'"
+                                                        t-on-click="() => this.toggleMany(block, 'user_ids', user.id)" t-esc="user.name"/>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 d-flex flex-wrap gap-3 small">
+                                            <label class="d-flex align-items-center gap-1"><input type="checkbox" t-att-checked="block.show_phase"
+                                                   t-on-change="(ev) => this.setFilter(block, 'show_phase', ev.target.checked)"/>Phase</label>
+                                            <label class="d-flex align-items-center gap-1"><input type="checkbox" t-att-checked="block.show_assignees"
+                                                   t-on-change="(ev) => this.setFilter(block, 'show_assignees', ev.target.checked)"/>Assignees</label>
+                                            <label class="d-flex align-items-center gap-1"><input type="checkbox" t-att-checked="block.show_dates"
+                                                   t-on-change="(ev) => this.setFilter(block, 'show_dates', ev.target.checked)"/>Dates</label>
+                                            <label class="d-flex align-items-center gap-1"><input type="checkbox" t-att-checked="block.show_stage"
+                                                   t-on-change="(ev) => this.setFilter(block, 'show_stage', ev.target.checked)"/>Stage</label>
+                                            <label class="d-flex align-items-center gap-1"><input type="checkbox" t-att-checked="block.customer_visible_only"
+                                                   t-on-change="(ev) => this.setFilter(block, 'customer_visible_only', ev.target.checked)"/>Customer-visible tasks only</label>
+                                        </div>
+                                    </div>
+                                    <TaskList rows="block.rows" total="block.total" taskFilter="block.task_filter"
+                                              showAssignees="block.show_assignees" showDates="block.show_dates"
+                                              showPhase="block.show_phase" showStage="block.show_stage"
+                                              onOpen.bind="openTask"/>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                    <div t-if="state.dragging and state.dropIndex === blocks.length" class="o_adv_drop_marker my-1"/>
+                </div>
+                <div t-if="canEdit" class="o_adv_update_palette card">
+                    <div class="card-header fw-bold py-2">Add to the Update</div>
+                    <div class="card-body p-2">
+                        <p class="small text-muted mb-2">Drag into place, or click to add at the end.</p>
+                        <div t-foreach="state.data.palette" t-as="item" t-key="item_index"
+                             class="o_adv_palette_item d-flex align-items-center gap-2 px-2 py-1 mb-1" draggable="true"
+                             t-on-dragstart="(ev) => this.onPaletteDragStart(ev, item)" t-on-dragend="onDragEnd"
+                             t-on-click="() => this.addBlock(item)">
+                            <i t-attf-class="fa {{ item.icon }} fa-fw o_adv_palette_icon"/>
+                            <span class="small" t-esc="item.label"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

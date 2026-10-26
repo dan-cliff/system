@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A project's tasks: Kanban (by stage), List and Gantt chart. -->
+
+    <record id="advanced_project_task_view_kanban" model="ir.ui.view">
+        <field name="name">advanced.project.task.kanban</field>
+        <field name="model">advanced.project.task</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" highlight_color="color" sample="1"
+                    quick_create_view="advanced_projects.advanced_project_task_view_form_quick_create"
+                    class="o_kanban_small_column">
+                <field name="is_overdue"/>
+                <field name="parent_count"/>
+                <field name="child_count"/>
+                <templates>
+                    <t t-name="menu">
+                        <a role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <div class="d-flex align-items-start gap-1">
+                            <i t-if="record.is_milestone.raw_value" class="fa fa-flag text-warning mt-1" title="Milestone"/>
+                            <field name="name" class="fw-bold"/>
+                        </div>
+                        <field name="phase_id" class="small text-muted"/>
+                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <div class="small" t-att-class="record.is_overdue.raw_value ? 'text-danger' : 'text-muted'"
+                             t-if="record.date_end.raw_value">
+                            <i class="fa fa-calendar me-1" title="Dates"/>
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <span t-if="record.date_start.raw_value"> – </span>
+                            <field name="date_end" options="{'numeric': True}"/>
+                        </div>
+                        <field name="is_milestone" invisible="1"/>
+                        <footer class="pt-1">
+                            <div class="d-flex align-items-center gap-2 small text-muted">
+                                <field name="activity_ids" widget="kanban_activity"/>
+                                <span t-if="record.parent_count.raw_value or record.child_count.raw_value"
+                                      title="Parent / child tasks">
+                                    <i class="fa fa-sitemap me-1"/>
+                                    <t t-out="record.parent_count.raw_value"/>/<t t-out="record.child_count.raw_value"/>
+                                </span>
+                                <i t-if="!record.customer_visible.raw_value" class="fa fa-eye-slash"
+                                   title="Hidden from customers"/>
+                                <field name="customer_visible" invisible="1"/>
+                            </div>
+                            <field name="user_ids" widget="many2many_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_form_quick_create" model="ir.ui.view">
+        <field name="name">advanced.project.task.form.quick_create</field>
+        <field name="model">advanced.project.task</field>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="name" placeholder="e.g. Kick-off meeting"/>
+                    <field name="project_id" invisible="context.get('default_project_id')"/>
+                    <field name="phase_id" options="{'no_create_edit': True}"/>
+                    <field name="user_ids" widget="many2many_avatar_user"/>
+                    <field name="date_end" options="{'numeric': True}"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.task.list</field>
+        <field name="model">advanced.project.task</field>
+        <field name="arch" type="xml">
+            <list multi_edit="1" sample="1" default_order="sequence, date_start, id"
+                  decoration-danger="is_overdue" decoration-muted="stage_category in ('done', 'cancelled')">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="project_id" optional="hide" column_invisible="context.get('default_project_id')"/>
+                <field name="phase_id" optional="show"/>
+                <field name="user_ids" widget="many2many_avatar_user" optional="show"/>
+                <field name="date_start" options="{'numeric': True}" optional="show"/>
+                <field name="date_end" options="{'numeric': True}" optional="show"/>
+                <field name="duration" optional="hide"/>
+                <field name="parent_ids" widget="many2many_tags" optional="hide"/>
+                <field name="child_ids" widget="many2many_tags" optional="hide"/>
+                <field name="is_milestone" optional="show"/>
+                <field name="customer_visible" optional="hide"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                <field name="date_done" options="{'numeric': True}" optional="hide"/>
+                <field name="stage_id" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="is_overdue" column_invisible="1"/>
+                <field name="stage_category" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_gantt" model="ir.ui.view">
+        <field name="name">advanced.project.task.gantt</field>
+        <field name="model">advanced.project.task</field>
+        <field name="arch" type="xml">
+            <project_gantt date_start="date_start" date_stop="date_end" group_by="phase_id"
+                           link_field="child_ids" milestone_field="is_milestone" state_field="stage_category"
+                           assignee_field="user_ids" default_scale="week"/>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.task.form</field>
+        <field name="model">advanced.project.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_project" type="object" class="oe_stat_button" icon="fa-folder-open">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Project</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Milestone" bg_color="text-bg-warning" invisible="not is_milestone or not active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Kick-off meeting"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id" readonly="id"/>
+                            <field name="phase_id" options="{'no_create_edit': True}"
+                                   context="{'default_project_id': project_id}"/>
+                            <field name="user_ids" widget="many2many_avatar_user"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                        </group>
+                        <group>
+                            <label for="date_start" string="Dates"/>
+                            <div class="o_row">
+                                <field name="date_start" options="{'numeric': True}" placeholder="Start"/>
+                                <i class="fa fa-long-arrow-right mx-2" title="to"/>
+                                <field name="date_end" options="{'numeric': True}" placeholder="End"/>
+                            </div>
+                            <field name="planned_hours" widget="float_time"/>
+                            <field name="is_milestone"/>
+                            <field name="customer_visible"/>
+                            <field name="date_done" options="{'numeric': True}" invisible="not date_done"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="What needs doing..."/>
+                        </page>
+                        <page string="Linked Tasks" name="links">
+                            <p class="text-muted">Tasks link to each other many-to-many: a task can sit under several
+                                parents and have several children. The Gantt chart draws each link as an arrow.</p>
+                            <group string="Parent Tasks">
+                                <field name="parent_ids" nolabel="1" colspan="2"
+                                       context="{'default_project_id': project_id}">
+                                    <list>
+                                        <field name="id" optional="show"/>
+                                        <field name="name"/>
+                                        <field name="phase_id"/>
+                                        <field name="date_end" options="{'numeric': True}"/>
+                                        <field name="stage_id"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Child Tasks">
+                                <field name="child_ids" nolabel="1" colspan="2"
+                                       context="{'default_project_id': project_id}">
+                                    <list>
+                                        <field name="id" optional="show"/>
+                                        <field name="name"/>
+                                        <field name="phase_id"/>
+                                        <field name="date_end" options="{'numeric': True}"/>
+                                        <field name="stage_id"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                    <field name="active" invisible="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.task.search</field>
+        <field name="model">advanced.project.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="phase_id"/>
+                <field name="user_ids"/>
+                <field name="stage_id"/>
+                <field name="tag_ids"/>
+                <filter string="My Tasks" name="my_tasks" domain="[('user_ids', 'in', uid)]"/>
+                <filter string="Unassigned" name="unassigned" domain="[('user_ids', '=', False)]"/>
+                <separator/>
+                <filter string="Outstanding" name="outstanding" domain="[('stage_category', 'not in', ('done', 'cancelled'))]"/>
+                <filter string="Blocked" name="blocked" domain="[('stage_category', '=', 'blocked')]"/>
+                <filter string="Overdue" name="overdue" domain="[('is_overdue', '=', True)]"/>
+                <filter string="Completed" name="completed" domain="[('stage_category', '=', 'done')]"/>
+                <separator/>
+                <filter string="Milestones" name="milestones" domain="[('is_milestone', '=', True)]"/>
+                <filter string="Visible to Customers" name="customer_visible" domain="[('customer_visible', '=', True)]"/>
+                <filter string="Hidden from Customers" name="customer_hidden" domain="[('customer_visible', '=', False)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Stage" name="group_stage" context="{'group_by': 'stage_id'}"/>
+                    <filter string="Phase" name="group_phase" context="{'group_by': 'phase_id'}"/>
+                    <filter string="Assignees" name="group_user" context="{'group_by': 'user_ids'}"/>
+                    <filter string="Project" name="group_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="End Date" name="group_date_end" context="{'group_by': 'date_end'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Opened per project from its form and Overview (Tasks, List, Gantt). -->
+    <record id="advanced_project_task_action" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">advanced.project.task</field>
+        <field name="view_mode">kanban,list,project_gantt,form</field>
+        <field name="search_view_id" ref="advanced_project_task_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Plan the project's first task</p>
+            <p>Group tasks under phases, link them to each other and schedule them on the Gantt chart.</p>
+        </field>
+    </record>
+</odoo>
