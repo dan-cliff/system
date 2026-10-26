@@ -3,7 +3,7 @@ from odoo import _, api, fields, models
 
 class AdvancedProjectFromTemplate(models.TransientModel):
     """Start a project from a Project Template: its phases, tasks (with their
-    links) and Overview layout are copied, and every date moves with the new
+    links) and budget are copied, and every date moves with the new
     start date."""
     _name = 'advanced.project.from.template'
     _description = 'New Project from a Template'

@@ -50,7 +50,7 @@ class AdvancedProjectUpdate(models.Model):
     customer_visible = fields.Boolean(
         'Share with Customers', default=True,
         help='Customers on the project see the update in the portal once it is published.')
-    summary = fields.Text(help='A line or two shown on the Overview and in lists.')
+    summary = fields.Text(help='A line or two shown with the update on the project chatter and in the portal.')
     block_ids = fields.One2many('advanced.project.update.block', 'update_id', string='Content', copy=True)
     body_html = fields.Html(
         'Published Content', readonly=True, copy=False, sanitize_style=True,

@@ -6,7 +6,6 @@ from . import advanced_project_phase
 from . import advanced_project_task
 from . import advanced_project_task_link
 from . import advanced_project_collaborator
-from . import advanced_project_overview_widget
 from . import advanced_project_budget
 from . import advanced_project_update
 from . import advanced_project_notification

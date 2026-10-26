@@ -1,7 +1,4 @@
-from odoo import _, api, fields, models
-from odoo.tools.misc import format_amount
-
-from .advanced_project_task_filter import format_hours
+from odoo import api, fields, models
 
 
 class AdvancedProjectBudgetCategory(models.Model):
@@ -110,46 +107,3 @@ class AdvancedProject(models.Model):
             self.currency_id = source.currency_id
             self.env['advanced.project.budget.line'].create([
                 line._copy_budget_values(self, phase_map) for line in source.budget_line_ids])
-
-    def _budget_overview_values(self):
-        """The Budget widget: hours and money, each as allocated / used. Modules
-        adding actuals (e.g. hours worked from timesheets) extend it."""
-        self.ensure_one()
-
-        def money(amount):
-            return format_amount(self.env, amount, self.currency_id)
-
-        def percent(used, total):
-            return min(100, round(100 * used / total)) if total else 0
-
-        return {
-            'hours': {
-                'allocated': format_hours(self.allocated_hours),
-                'planned': format_hours(self.planned_hours),
-                'planned_percent': percent(self.planned_hours, self.allocated_hours),
-                'over_planned': self.planned_hours > self.allocated_hours > 0,
-                # set by advanced_projects_timesheet
-                'worked': None,
-                'worked_percent': 0,
-                'over_worked': False,
-            },
-            'money': {
-                'budget': money(self.budget_amount),
-                'spent': money(self.spent_amount),
-                'remaining': money(self.remaining_budget),
-                'percent': percent(self.spent_amount, self.budget_amount),
-                'over': self.spent_amount > self.budget_amount,
-            },
-            'lines': [{
-                'id': line.id,
-                'name': line.name or line.category_id.name or line.phase_id.name or _('Budget'),
-                'detail': ' · '.join(filter(None, [
-                    line.category_id.name if line.name else '',
-                    line.phase_id.name if line.name or line.category_id else ''])),
-                'hours': format_hours(line.allocated_hours) if line.allocated_hours else '',
-                'amount': money(line.amount),
-                'spent': money(line.spent_amount),
-                'percent': percent(line.spent_amount, line.amount),
-                'over': line.spent_amount > line.amount,
-            } for line in self.budget_line_ids],
-        }

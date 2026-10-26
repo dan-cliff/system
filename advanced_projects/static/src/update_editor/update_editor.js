@@ -8,7 +8,7 @@ import { TaskList } from "../components/task_list";
 
 const BLOCK_MODEL = "advanced.project.update.block";
 const DAY_FILTERS = ["upcoming", "completed"];
-// Blocks are laid out on 12 columns, like the Overview.
+// Blocks are laid out on 12 columns.
 const COLUMNS = 12;
 const MIN_COLUMNS = 3;
 const GAP = 12; // px between blocks, as in update_editor.scss

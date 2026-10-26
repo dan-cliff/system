@@ -9,11 +9,10 @@ from .common import AdvancedProjectCommon
 
 @tagged('post_install', '-at_install')
 class TestAdvancedProjectFlow(AdvancedProjectCommon):
-    """Plans, templates, the Overview, Project Updates and the Gantt view."""
+    """Plans, templates, budgets, Project Updates and the Gantt view."""
 
-    def test_new_project_gets_overview_and_manager_on_team(self):
+    def test_new_project_gets_manager_on_team(self):
         project = self._project(self.admin)
-        self.assertTrue(project.overview_widget_ids)
         self.assertEqual(project.collaborator_ids.partner_id, self.admin.partner_id)
         self.assertEqual(project.collaborator_ids.collaborator_type, 'colleague')
 
@@ -75,7 +74,6 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
         signoff = project.task_ids.filtered(lambda t: t.name == 'Sign off requirements')
         self.assertEqual(signoff.parent_ids.mapped('name'), ['Requirements workshop', 'Collect customer data and documents'])
         self.assertTrue(signoff.parent_ids <= project.task_ids)
-        self.assertEqual(len(project.overview_widget_ids), len(template.overview_widget_ids))
         self.assertTrue(all(t.stage_id == self.stage_todo for t in project.task_ids))
 
     def test_copy_project_copies_plan(self):
@@ -114,57 +112,11 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
         self.assertEqual(project.remaining_budget, 1250)
         self.assertAlmostEqual(project.budget_used, 58.33, places=2)
 
-        widget = self.env['advanced.project.overview.widget'].with_user(self.admin).browse(
-            project.with_user(self.admin).overview_add_widget('budget'))
-        data = widget._overview_values()['data']
-        self.assertEqual(data['hours']['allocated'], '40:00')
-        self.assertEqual(data['hours']['planned'], '50:00')
-        self.assertTrue(data['hours']['over_planned'])
-        self.assertEqual(data['money']['percent'], 58)
-        self.assertFalse(data['money']['over'])
-        self.assertEqual([line['name'] for line in data['lines']], ['Labour', 'Timber'])
-        self.assertEqual(data['lines'][0]['detail'], 'Build')
-        self.assertEqual(data['lines'][1]['detail'], 'Materials')
-        self.assertTrue(data['lines'][1]['over'])
-
         # copies and projects made from it keep the budget, not what was spent
         copy = project.with_user(self.admin).copy()
         self.assertEqual(copy.budget_amount, 3000)
         self.assertEqual(copy.spent_amount, 0)
         self.assertEqual(copy.budget_line_ids[0].phase_id.project_id, copy)
-
-    def test_overview_data(self):
-        project = self._project(self.admin, date_end=fields.Date.today() + timedelta(days=30))
-        project.overview_add_widget('workload')
-        project.overview_add_widget('note')
-        self._task(project, stage_id=self.stage_blocked.id, user_ids=[(6, 0, self.admin.ids)])
-        data = project.with_user(self.admin).get_overview_data()
-        self.assertTrue(data['can_edit'])
-        types = {w['widget_type'] for w in data['widgets']}
-        self.assertTrue({'progress', 'task_counts', 'phases', 'task_list', 'stage_chart', 'team',
-                         'latest_update', 'workload', 'note'} <= types)
-        blocked = next(w for w in data['widgets'] if w['widget_type'] == 'task_list'
-                       and w['data']['task_filter'] == 'blocked')
-        self.assertEqual(len(blocked['data']['rows']), 1)
-        # new widgets go below the others; the grid layout is saved as dragged
-        note = next(w for w in data['widgets'] if w['widget_type'] == 'note')
-        self.assertEqual((note['x'], note['w'], note['h']), (0, 4, 3))
-        self.assertGreaterEqual(note['y'], 17)
-        progress = next(w for w in data['widgets'] if w['widget_type'] == 'progress')
-        project.overview_save_layout([
-            {'id': note['id'], 'x': 0, 'y': 0, 'w': 12, 'h': 2},
-            {'id': progress['id'], 'x': 3, 'y': 2, 'w': 20, 'h': 0},
-        ])
-        self.assertEqual(project.overview_widget_ids[0].id, note['id'])
-        moved = project.overview_widget_ids.filtered(lambda w: w.id == progress['id'])
-        self.assertEqual((moved.grid_x, moved.grid_y, moved.grid_w, moved.grid_h), (3, 2, 12, 1))
-        dropped = project.overview_add_widget('team', False, 8, 1, 4, 6)
-        dropped = self.env['advanced.project.overview.widget'].browse(dropped)
-        self.assertEqual((dropped.grid_x, dropped.grid_y, dropped.grid_w, dropped.grid_h), (8, 1, 4, 6))
-        project.overview_reset()
-        self.assertEqual(len(project.overview_widget_ids), 9)
-        action = project.action_open_tasks_filtered('blocked')
-        self.assertEqual(self.env['advanced.project.task'].search(action['domain']).stage_id, self.stage_blocked)
 
     def test_update_editor_and_publish(self):
         project = self._project(self.admin)

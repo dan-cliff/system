@@ -23,16 +23,9 @@ def format_date(value):
     return value.strftime('%d/%m/%Y') if value else ''
 
 
-def format_hours(hours):
-    """Hours as H:MM, like the timesheet grid."""
-    minutes = round((hours or 0.0) * 60)
-    sign = '-' if minutes < 0 else ''
-    return sign + '%d:%02d' % divmod(abs(minutes), 60)
-
-
 class AdvancedProjectTaskFilterMixin(models.AbstractModel):
-    """A filtered list of a project's tasks, shared by the Overview's task
-    widgets and the task widgets of Project Updates."""
+    """A filtered list of a project's tasks, for the task widgets of Project
+    Updates."""
     _name = 'advanced.project.task.filter.mixin'
     _description = 'Project Task Filter'
 
@@ -147,7 +140,7 @@ class AdvancedProjectTaskFilterMixin(models.AbstractModel):
         return ' · '.join(p for p in parts if p)
 
     def _filter_values(self):
-        """The filter's settings and tasks, for the Overview and the update editor."""
+        """The filter's settings and tasks, for the update editor."""
         self.ensure_one()
         tasks, total = self._get_tasks()
         return {
