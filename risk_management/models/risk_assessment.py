@@ -54,8 +54,8 @@ class RiskAssessment(models.Model):
         'risk.severity', compute='_compute_risk_summary',
         help='Highest Residual Risk severity across this assessment\'s risks.',
     )
-    todo_count = fields.Integer(compute='_compute_todo_summary')
-    todo_open_count = fields.Integer(compute='_compute_todo_summary')
+    action_ids = fields.One2many('risk.assessment.action', 'assessment_id', string='Actions')
+    action_open_count = fields.Integer(compute='_compute_action_open_count')
 
     @api.depends('line_ids.residual_severity_id', 'line_ids.residual_score')
     def _compute_risk_summary(self):
@@ -65,13 +65,11 @@ class RiskAssessment(models.Model):
             top_line = lines.sorted(key=lambda line: line.residual_score or 0, reverse=True)[:1]
             assessment.highest_severity_id = top_line.residual_severity_id if top_line else False
 
-    @api.depends('line_ids.todo_ids', 'line_ids.todo_ids.state')
-    def _compute_todo_summary(self):
+    @api.depends('action_ids.state')
+    def _compute_action_open_count(self):
         for assessment in self:
-            todos = assessment.line_ids.todo_ids
-            assessment.todo_count = len(todos)
-            assessment.todo_open_count = len(
-                todos.filtered(lambda todo: todo.state not in ('1_done', '1_canceled'))
+            assessment.action_open_count = len(
+                assessment.action_ids.filtered(lambda action: action.state == 'open')
             )
 
     def _compute_can_approve(self):
@@ -200,14 +198,15 @@ class RiskAssessment(models.Model):
     def action_set_draft(self):
         self.stage_id = self._get_stage('draft')
 
-    def action_open_todos(self):
+    def action_open_actions(self):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
             'name': 'Actions',
-            'res_model': 'project.task',
+            'res_model': 'risk.assessment.action',
             'view_mode': 'list,form',
-            'domain': [('id', 'in', self.line_ids.todo_ids.ids)],
+            'domain': [('assessment_id', '=', self.id)],
+            'context': {'search_default_open': 1},
         }
 
     def action_export_pdf(self):

@@ -53,11 +53,13 @@
                     <field name="residual_likelihood_id" nolabel="1" widget="risk_matrix_selector"
                            options="{'consequence_field': 'residual_consequence_id'}"/>
                     <separator string="Actions"/>
-                    <field name="todo_ids">
+                    <field name="action_ids">
                         <list editable="bottom">
-                            <field name="id" readonly="1"/>
+                            <field name="id" optional="show" readonly="1"/>
                             <field name="name"/>
-                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="description" optional="hide"/>
+                            <field name="user_id"/>
+                            <field name="date_deadline" options="{'numeric': True}"/>
                             <field name="state"/>
                         </list>
                     </field>

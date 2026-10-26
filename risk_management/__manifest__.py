@@ -1,6 +1,6 @@
 {
     'name': 'Risk Management',
-    'version': '19.0.1.19.2',
+    'version': '19.0.1.20.0',
     'category': 'Operations/Risk Management',
     'summary': 'Risk assessment templates, risk assessments, a controls library and a risk matrix',
     'description': """
@@ -55,11 +55,12 @@ Risk Management
   the background by a scheduled job for controls added by hand - never
   while a record is being saved.
 * Risk Template lines can list Standard Actions; when a Risk Assessment
-  pulls a risk in from a template, those actions become Odoo To-Do tasks
-  (project.task, visible in the To-Do app) on the risk, assigned to the
-  Risk Assessment Owner. Risks can also have ad-hoc Actions added
-  directly. The Risk Assessment's "Actions" smart button shows every
-  To-Do across the assessment's risks and the count still open.
+  pulls a risk in from a template, those actions become Actions on the
+  risk, assigned to the Risk Assessment Owner, each with a Due Date and an
+  Open / Done / Cancelled status. Risks can also have ad-hoc Actions added
+  directly. The Risk Assessment's "Open Actions" smart button shows its
+  open Actions, and the Actions menu lists everyone's (My Actions by
+  default).
 * Risk Assessments and Risk Templates record Activity Details (location,
   Activity Leader, Safety Officer, Starting At / Finishing At), a Minimum
   Equipment / Facilities checklist and Governing Bodies / Associations /
@@ -73,7 +74,7 @@ Risk Management
 """,
     'author': 'Bendigo Scouts',
     'license': 'LGPL-3',
-    'depends': ['base', 'mail', 'project'],
+    'depends': ['base', 'mail'],
     'data': [
         'security/risk_security.xml',
         'security/ir.model.access.csv',
@@ -98,6 +99,7 @@ Risk Management
         'views/risk_template_line_views.xml',
         'views/risk_template_views.xml',
         'views/risk_assessment_line_views.xml',
+        'views/risk_assessment_action_views.xml',
         'views/risk_assessment_approval_wizard_views.xml',
         'views/risk_assessment_views.xml',
         'views/risk_menus.xml',

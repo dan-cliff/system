@@ -247,13 +247,10 @@
                                            decoration-warning="state == 'in_progress'"
                                            decoration-danger="state == 'open'"
                                            decoration-muted="state == 'cancelled'"/>
-                                    <field name="task_id" optional="show" readonly="1"/>
-                                    <button name="action_create_todo" string="Create To-Do"
+                                    <field name="activity_id" column_invisible="1"/>
+                                    <button name="action_create_todo" string="Schedule To-Do"
                                             type="object" icon="fa-check-square"
-                                            invisible="task_id != False"/>
-                                    <button name="action_open_todo" string="Open To-Do"
-                                            type="object" icon="fa-external-link"
-                                            invisible="task_id == False"/>
+                                            invisible="activity_id or state in ('done', 'cancelled')"/>
                                 </list>
                             </field>
                         </page>

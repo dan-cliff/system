@@ -15,11 +15,7 @@ class AdvancedTimesheetLine(models.Model):
         'advanced.timesheet', string='Timesheet', required=True, index=True, ondelete='cascade',
     )
     date = fields.Date(string='Date', required=True, default=fields.Date.context_today, index=True)
-    project_id = fields.Many2one('project.project', string='Project', index=True)
-    task_id = fields.Many2one(
-        'project.task', string='Task', index=True,
-        domain="[('project_id', '=?', project_id)]",
-    )
+    work_type_id = fields.Many2one('advanced.timesheet.work.type', string='Work Type', index=True)
     name = fields.Char(string='Description')
     unit_amount = fields.Float(string='Hours', default=0.0)
     is_auto = fields.Boolean(
@@ -30,16 +26,6 @@ class AdvancedTimesheetLine(models.Model):
     person_name = fields.Char(related='sheet_id.person_name')
     state = fields.Selection(related='sheet_id.state')
     company_id = fields.Many2one(related='sheet_id.company_id', store=True, index=True)
-
-    @api.onchange('task_id')
-    def _onchange_task_id(self):
-        if self.task_id.project_id:
-            self.project_id = self.task_id.project_id
-
-    @api.onchange('project_id')
-    def _onchange_project_id(self):
-        if self.task_id and self.task_id.project_id != self.project_id:
-            self.task_id = False
 
     @api.constrains('date', 'sheet_id')
     def _check_date(self):
@@ -90,12 +76,33 @@ class AdvancedTimesheetLine(models.Model):
         self._check_editable()
         return super().unlink()
 
+    @api.model
+    def _grid_row_fields(self):
+        """Many2one fields whose values make a row of the grid (e.g. Project and Task
+        with advanced_timesheet_project), most significant first."""
+        return ['work_type_id']
+
+    def _grid_row_values(self):
+        self.ensure_one()
+        return {name: self[name].id for name in self._grid_row_fields()}
+
     def _grid_row_key(self):
         """Lines with the same key share a row on the grid."""
         self.ensure_one()
-        return (self.project_id.id or 0, self.task_id.id or 0, int(self.is_auto))
+        return tuple(self[name].id or 0 for name in self._grid_row_fields()) + (int(self.is_auto),)
+
+    def _grid_row_labels(self):
+        """Title and subtitle of the line's grid row."""
+        self.ensure_one()
+        names = []
+        for name in self._grid_row_fields():
+            label = self[name].display_name
+            if label and label not in names:
+                names.append(label)
+        if not names:
+            names = [self._grid_auto_label() if self.is_auto else _('No Work Type')]
+        return names[0], ' · '.join(names[1:])
 
     def _grid_auto_label(self):
-        """Row title of automatic entries without a project."""
+        """Row title of automatic entries without a work type."""
         return _('Automatic')
-
