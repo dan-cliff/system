@@ -258,3 +258,52 @@ class TestAdvancedProjectAccess(AdvancedProjectCommon):
         with self.assertRaises(UserError):
             collaborator.with_user(self.admin).action_fix_access()
         self.assertTrue(self.own._is_internal())
+
+    # ------------------------------------------------------------
+    # Task permissions (Tasks menu)
+    # ------------------------------------------------------------
+
+    def test_task_permissions_without_project_permission(self):
+        assignee = self._user('ap_task_own', 'task_edit_own')
+        project = self._project(user_id=False)
+        mine = self._task(project, name='Mine', user_ids=[(6, 0, assignee.ids)])
+        other = self._task(project, name='Other')
+        Task = self.env['advanced.project.task'].with_user(assignee)
+        # assigned to them, and their own new tasks; not the rest of the project
+        self.assertEqual(Task.search([('project_id', '=', project.id)]), mine)
+        mine.with_user(assignee).write({'name': 'Mine, renamed'})
+        with self.assertRaises(AccessError):
+            other.with_user(assignee).read(['name'])
+        with self.assertRaises(AccessError):
+            mine.with_user(assignee).unlink()
+        # the Tasks list shows their project and phase names
+        values = mine.with_user(assignee).web_read({'project_id': {'fields': {'display_name': {}}}})
+        self.assertEqual(values[0]['project_id']['display_name'], 'Website Launch')
+
+    def test_task_view_all_and_delete_all(self):
+        viewer = self._user('ap_task_viewer', 'task_view_all')
+        deleter = self._user('ap_task_deleter', 'task_view_all', 'task_delete_all')
+        task = self._task(self._project(user_id=False))
+        self.assertEqual(task.with_user(viewer).name, 'Task')
+        with self.assertRaises(AccessError):
+            task.with_user(viewer).write({'name': 'Changed'})
+        task.with_user(deleter).unlink()
+
+    def test_task_edit_my_team(self):
+        lead = self._user('ap_task_lead', 'task_edit_team')
+        member = self._user('ap_task_member', 'task_edit_own')
+        lead_employee = self.env['hr.employee'].create({'name': 'Task Lead', 'user_id': lead.id})
+        self.env['hr.employee'].create({'name': 'Task Member', 'user_id': member.id, 'parent_id': lead_employee.id})
+        project = self._project(user_id=False)
+        team_task = self._task(project, user_ids=[(6, 0, member.ids)])
+        other = self._task(project)
+        Task = self.env['advanced.project.task'].with_user(lead)
+        self.assertEqual(Task.search([('id', 'in', (team_task | other).ids)]), team_task)
+        team_task.with_user(lead).write({'name': 'Lead edit'})
+
+    def test_tasks_menu(self):
+        menu = self.env.ref('advanced_projects.menu_advanced_projects_task_all')
+        self.assertEqual(menu.action, self.env.ref('advanced_projects.advanced_project_task_action_all'))
+        action = self.env['ir.actions.act_window']._for_xml_id('advanced_projects.advanced_project_task_action_my')
+        gantt = [view_id for view_id, mode in action['views'] if mode == 'project_gantt']
+        self.assertEqual(gantt, [self.env.ref('advanced_projects.advanced_project_task_view_gantt_all').id])

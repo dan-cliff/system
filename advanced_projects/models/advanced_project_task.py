@@ -148,8 +148,10 @@ class AdvancedProjectTask(models.Model):
 
     def _add_assignees_to_team(self):
         """Assignees join the project's team as Colleagues."""
-        Collaborator = self.env['advanced.project.collaborator']
-        for project in self.project_id:
+        # sudo: bookkeeping that follows the assignment, also for people who
+        # edit the task through a task permission without project access
+        Collaborator = self.env['advanced.project.collaborator'].sudo()
+        for project in self.sudo().project_id:
             on_team = project.collaborator_ids.partner_id
             partners = self.filtered(lambda t: t.project_id == project).user_ids.partner_id - on_team
             if partners:

@@ -8,7 +8,9 @@ Project
 =======
 Rocketlane-style project management.
 
-* Projects open as a list. Each project has a configurable Overview
+* Projects open as a list; Tasks > My Tasks / All Tasks list tasks across
+  projects (Kanban, List, Gantt grouped by project).
+* Each project has a configurable Overview
   dashboard, its Tasks as a Kanban, List or Gantt chart, Project Updates and
   its Team.
 * Project plans: tasks are grouped under Phases and linked to each other in
@@ -29,9 +31,10 @@ Rocketlane-style project management.
 * Chatter on projects, tasks and updates for everyone with access to the
   project (customers through the portal). Comments can be marked Private,
   so only employees see them.
-* Permissions per CLAUDE.md: a privilege per project permission plus
-  "Project Updates: Publish" and "Projects: Manage Customer Access"; tasks,
-  phases, updates and the team follow their project. Standard roles ship in
+* Permissions per CLAUDE.md: a privilege per project permission and per task
+  permission, plus "Project Updates: Publish" and "Projects: Manage Customer
+  Access"; phases, updates and the team follow their project, and tasks follow
+  their project as well as their own task permissions. Standard roles ship in
   advanced_projects_permission.
 """,
     'author': "Cliff's Country Crafts",

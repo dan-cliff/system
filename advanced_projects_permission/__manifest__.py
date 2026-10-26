@@ -7,11 +7,12 @@
         Installs automatically when both Project (advanced_projects) and
         Permission Management are installed, and adds these roles:
 
-        - Project – Administrator: everything, including deleting any project,
-          publishing Project Updates, managing customer access and Configuration
+        - Project – Administrator: everything, including deleting any project or
+          task, publishing Project Updates, managing customer access and Configuration
         - Project – Manager: create and edit their own and their team's projects
+          and tasks
         - Project – Employee: create and edit their own projects (created by them,
-          managed by them or on their team)
+          managed by them or on their team) and the tasks assigned to them
         - Project – Update Publisher: publish Project Updates
         - Project – Customer Access Manager: give invited customers the Project
           Customer permission set

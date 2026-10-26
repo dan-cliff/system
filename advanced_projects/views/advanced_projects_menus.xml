@@ -10,6 +10,12 @@
     <menuitem id="menu_advanced_projects_projects" name="Projects" parent="menu_advanced_projects_root"
               action="advanced_project_action" sequence="10"/>
 
+    <menuitem id="menu_advanced_projects_tasks" name="Tasks" parent="menu_advanced_projects_root" sequence="20"/>
+    <menuitem id="menu_advanced_projects_task_my" name="My Tasks" parent="menu_advanced_projects_tasks"
+              action="advanced_project_task_action_my" sequence="10"/>
+    <menuitem id="menu_advanced_projects_task_all" name="All Tasks" parent="menu_advanced_projects_tasks"
+              action="advanced_project_task_action_all" sequence="20"/>
+
     <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
          It has no action, so Odoo hides it until a report is placed under it. -->
     <menuitem id="menu_advanced_projects_reports" name="Reports" parent="menu_advanced_projects_root" sequence="85"/>
