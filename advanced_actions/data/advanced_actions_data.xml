@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_advanced_action_deadlines" model="ir.cron">
+        <field name="name">Actions: Due Soon and Overdue notifications</field>
+        <field name="model_id" ref="model_advanced_action"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_notify_deadlines()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- Actions raised from checklists follow each Checklist Group's permissions. -->
+    <function model="checklist.group.access" name="_sync_all"/>
+</odoo>

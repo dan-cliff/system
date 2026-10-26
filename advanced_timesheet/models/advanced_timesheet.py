@@ -338,7 +338,8 @@ class AdvancedTimesheet(models.Model):
         return [self.date_start + timedelta(days=n) for n in range((self.date_end - self.date_start).days + 1)]
 
     def get_grid_data(self):
-        """Rows (project / task, plus automatic rows such as attendances),
+        """Rows (work type, or project / task with advanced_timesheet_project, plus
+        automatic rows such as attendances),
         the period's days grouped into weeks, and the hours per cell."""
         self.ensure_one()
         days = self._grid_days()
@@ -350,18 +351,17 @@ class AdvancedTimesheet(models.Model):
             weeks[-1]['days'].append(fields.Date.to_string(day))
 
         rows = {}
-        for line in self.line_ids.sorted(lambda l: (l.is_auto, l.project_id.display_name or '',
-                                                    l.task_id.display_name or '', l.id)):
+        for line in self.line_ids.sorted(lambda l: (l.is_auto, l._grid_row_labels(), l.id)):
             key = line._grid_row_key()
             row = rows.get(key)
             if row is None:
+                title, subtitle = line._grid_row_labels()
                 row = rows[key] = {
-                    'key': '%s-%s-%s' % key,
-                    'project_id': line.project_id.id,
-                    'task_id': line.task_id.id,
+                    'key': '-'.join(str(part) for part in key),
+                    'values': line._grid_row_values(),
                     'is_auto': line.is_auto,
-                    'project': line.project_id.display_name or (line._grid_auto_label() if line.is_auto else _('No Project')),
-                    'task': line.task_id.display_name or '',
+                    'title': title,
+                    'subtitle': subtitle,
                     'cells': {},
                     'total': 0.0,
                 }
@@ -391,10 +391,12 @@ class AdvancedTimesheet(models.Model):
             raise UserError(_('%s is outside this timesheet\'s period.', day.strftime('%d/%m/%Y')))
         hours = max(float(hours or 0.0), 0.0)
         Line = self.env['advanced.timesheet.line']
+        row_values = {
+            name: (row.get('values') or {}).get(name) or False for name in Line._grid_row_fields()
+        }
         lines = self.line_ids.filtered(
             lambda l: not l.is_auto
-            and l.project_id.id == (row.get('project_id') or False)
-            and l.task_id.id == (row.get('task_id') or False)
+            and all(l[name].id == value for name, value in row_values.items())
         ).sorted('id')
         day_lines = lines.filtered(lambda l: l.date == day)
         if float_is_zero(hours - sum(day_lines.mapped('unit_amount')), precision_digits=2):
@@ -416,10 +418,9 @@ class AdvancedTimesheet(models.Model):
             lines[0].write({'date': day, 'unit_amount': hours})
         else:
             Line.create({
+                **row_values,
                 'sheet_id': self.id,
                 'date': day,
-                'project_id': row.get('project_id') or False,
-                'task_id': row.get('task_id') or False,
                 'name': lines[-1:].name or False,
                 'unit_amount': hours,
             })

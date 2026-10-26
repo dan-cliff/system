@@ -1,7 +1,7 @@
 {
     'name': 'Meeting Management',
-    'version': '19.0.1.0.1',
-    'summary': 'Comprehensive meeting management with agenda, minutes, Teams integration and To-Do',
+    'version': '19.0.1.0.2',
+    'summary': 'Comprehensive meeting management with agenda, minutes, Teams integration and action items',
     'description': """
 Meeting Management
 ==================
@@ -9,7 +9,7 @@ A full-featured meeting management solution for Odoo 19.0:
 
 - Meeting records with invitees, agenda items and minutes
 - Meeting template library with auto-scheduling
-- Action items linked to the Odoo To-Do app
+- Action items with a To-Do activity scheduled for their assignee
 - Microsoft Teams / Outlook calendar integration (Graph API)
 - Custom notification templates with field placeholders and PDF attachments
 - PDF reports: Meeting Agenda and Meeting Minutes
@@ -20,7 +20,6 @@ A full-featured meeting management solution for Odoo 19.0:
     'depends': [
         'base',
         'mail',
-        'project',
     ],
     'data': [
         'security/meeting_security.xml',

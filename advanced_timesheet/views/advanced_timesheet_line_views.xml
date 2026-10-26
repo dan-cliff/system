@@ -7,8 +7,7 @@
             <list string="Timesheet Entries" editable="bottom">
                 <field name="id" optional="show"/>
                 <field name="date" options="{'numeric': True}" readonly="is_auto"/>
-                <field name="project_id" optional="show"/>
-                <field name="task_id" optional="show" context="{'default_project_id': project_id}"/>
+                <field name="work_type_id" optional="show"/>
                 <field name="name"/>
                 <field name="unit_amount" widget="float_time" sum="Total" readonly="is_auto"/>
                 <field name="is_auto" optional="show"/>
@@ -28,8 +27,7 @@
                         <group>
                             <field name="sheet_id" invisible="1"/>
                             <field name="is_auto" invisible="1"/>
-                            <field name="project_id"/>
-                            <field name="task_id" context="{'default_project_id': project_id}"/>
+                            <field name="work_type_id"/>
                             <field name="name"/>
                         </group>
                         <group>

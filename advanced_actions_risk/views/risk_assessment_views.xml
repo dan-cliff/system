@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Actions are assigned to several users: Assigned To is user_ids. -->
+    <record id="view_risk_assessment_line_form_advanced_actions" model="ir.ui.view">
+        <field name="name">risk.assessment.line.form.advanced.actions</field>
+        <field name="model">risk.assessment.line</field>
+        <field name="inherit_id" ref="risk_management.view_risk_assessment_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='action_ids']/list/field[@name='user_id']" position="replace">
+                <field name="user_ids" widget="many2many_avatar_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_risk_assessment_form_advanced_actions" model="ir.ui.view">
+        <field name="name">risk.assessment.form.advanced.actions</field>
+        <field name="model">risk.assessment</field>
+        <field name="inherit_id" ref="risk_management.view_risk_assessment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='line_ids']//field[@name='action_ids']/list/field[@name='user_id']" position="replace">
+                <field name="user_ids" widget="many2many_avatar_user"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

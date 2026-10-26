@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The Hierarchy of Controls; the AI recommendations use these records. -->
+    <data noupdate="1">
+        <record id="control_type_eliminate" model="incident.control.type">
+            <field name="name">Eliminate</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="control_type_substitute" model="incident.control.type">
+            <field name="name">Substitute</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="control_type_engineering" model="incident.control.type">
+            <field name="name">Engineering Control</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="control_type_administrative" model="incident.control.type">
+            <field name="name">Administrative Control</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="control_type_ppe" model="incident.control.type">
+            <field name="name">Personal Protective Equipment</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="control_type_other" model="incident.control.type">
+            <field name="name">Other</field>
+            <field name="sequence">60</field>
+        </record>
+    </data>
+</odoo>

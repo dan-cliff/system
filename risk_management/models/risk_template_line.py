@@ -14,7 +14,7 @@ class RiskTemplateLine(models.Model):
     sequence = fields.Integer(default=10)
     standard_action_ids = fields.One2many(
         'risk.template.action', 'template_line_id', string='Standard Actions',
-        help='Actions that should always be turned into To-Dos when a Risk Assessment pulls '
+        help='Actions that should always be added to the risk when a Risk Assessment pulls '
              'this risk in from the template.',
     )
 

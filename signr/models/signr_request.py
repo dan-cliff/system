@@ -36,7 +36,7 @@ ORG_FIELDS = ('org_division_id', 'org_business_unit_id', 'org_location_id', 'org
 
 class SignrRequest(models.Model):
     _name = 'signr.request'
-    _description = "Sign'r Sign Request"
+    _description = 'Sign Request'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'id desc'
     _rec_names_search = ['name', 'title', 'res_name']
@@ -468,7 +468,8 @@ class SignrRequest(models.Model):
 
 class SignrRequestSigner(models.Model):
     _name = 'signr.request.signer'
-    _description = "Sign'r Signer"
+    # shown in the signing email as "Your Signature Request"
+    _description = 'Signature Request'
     _order = 'request_id, sequence, id'
 
     request_id = fields.Many2one('signr.request', string='Sign Request', required=True, ondelete='cascade',
@@ -494,6 +495,13 @@ class SignrRequestSigner(models.Model):
     signer_ip = fields.Char('Signed From (IP)', readonly=True, copy=False)
     decline_reason = fields.Text('Decline Reason', readonly=True, copy=False)
     sign_url = fields.Char('Signing Link', compute='_compute_sign_url', groups='base.group_system')
+
+    @api.depends('request_id.title', 'request_id.name', 'partner_id', 'role')
+    def _compute_display_name(self):
+        # the document being signed, as shown in the signing email
+        for signer in self:
+            signer.display_name = signer.request_id.title or signer.request_id.name or signer.role \
+                or signer.partner_id.name or ''
 
     @api.depends('partner_id')
     def _compute_is_internal(self):

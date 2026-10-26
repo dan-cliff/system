@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advanced_action_notification_list" model="ir.ui.view">
+        <field name="name">advanced.action.notification.list</field>
+        <field name="model">advanced.action.notification</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="event"/>
+                <field name="source_app" optional="show"/>
+                <field name="subject" optional="show"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_notification_form" model="ir.ui.view">
+        <field name="name">advanced.action.notification.form</field>
+        <field name="model">advanced.action.notification</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="render_model" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Action assigned to you"/></h1>
+                    </div>
+                    <group>
+                        <group string="When">
+                            <field name="event"/>
+                            <field name="days_before" invisible="event != 'due_soon'"/>
+                            <field name="source_app"/>
+                        </group>
+                        <group string="To">
+                            <field name="notify_assignees"/>
+                            <field name="notify_creator"/>
+                            <field name="partner_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Email" name="email">
+                            <group>
+                                <field name="subject" placeholder="e.g. {{ object.name }}"/>
+                            </group>
+                            <field name="body_html" widget="html_mail" class="oe-bordered-editor"
+                                   options="{'codeview': true, 'dynamic_placeholder': true}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_advanced_action_notification" model="ir.actions.act_window">
+        <field name="name">Notification Templates</field>
+        <field name="res_model">advanced.action.notification</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a notification template</p>
+            <p>Emails sent when actions are assigned, due soon, overdue, done or cancelled.
+               When Workflow Automation is installed, set notifications up as workflows instead.</p>
+        </field>
+    </record>
+</odoo>
