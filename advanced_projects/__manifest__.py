@@ -36,6 +36,10 @@ Rocketlane-style project management.
   (by Budget Category and phase) and records what was spent, compared with
   the hours planned on tasks (and worked, with Advanced Timesheets).
   Employees only.
+* Ratings: record how a project (or a task) is going at any point; a task
+  set to "Request a Rating on Completion" requests a rating from its
+  contact when done, given through a portal link (Rating Link). The request
+  itself is sent by Workflow Automation.
 * Chatter on projects, tasks and updates for everyone with access to the
   project (customers through the portal). Comments can be marked Private,
   so only employees see them.
@@ -64,6 +68,7 @@ Rocketlane-style project management.
         'views/advanced_project_update_templates.xml',
         'views/advanced_project_collaborator_views.xml',
         'views/advanced_project_views.xml',
+        'views/advanced_project_rating_views.xml',
         'views/advanced_project_notification_views.xml',
         'views/advanced_project_portal_templates.xml',
         'wizard/advanced_project_invite_views.xml',
