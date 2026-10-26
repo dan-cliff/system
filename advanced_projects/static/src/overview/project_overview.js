@@ -205,6 +205,8 @@ export class ProjectOverview extends Component {
                 acceptWidgets: ".o_adv_palette_item",
                 draggable: { handle: ".o_adv_widget_header", cancel: "button" },
                 resizable: { handles: "se,e,s,w,sw" },
+                // the resize grips always show while customizing (not only on hover)
+                alwaysShowResizeHandle: true,
                 columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
             },
             this.gridRef.el

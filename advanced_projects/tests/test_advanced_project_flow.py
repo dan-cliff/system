@@ -185,6 +185,13 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
         self.assertEqual(update.block_ids[0]._filter_values()['rows'], [])
         update.block_ids.filtered(lambda b: b.block_type == 'text').body = '<p>All good</p>'
         update.editor_resequence(update.block_ids.ids[::-1])
+        # blocks span 12 columns until resized; side by side when narrower
+        self.assertEqual(set(update.block_ids.mapped('width')), {12})
+        update.block_ids[0].width = 6
+        self.assertEqual(update.get_editor_data()['blocks'][0]['width'], 6)
+        with self.assertRaises(Exception), self.cr.savepoint():
+            update.block_ids[1].width = 13
+            update.block_ids[1].flush_recordset()
 
         publisher = self._user('ap_publisher', 'edit_own')
         with self.assertRaises(AccessError):
@@ -193,6 +200,9 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
         self.assertEqual(update.state, 'published')
         self.assertIn('Done task', update.body_html)
         self.assertIn('All good', update.body_html)
+        self.assertEqual([len(row) for row in update._document_rows()], [1] * 5)
+        self.assertIn('width:50.0%', update.body_html)
+        self.assertIn('width:100.0%', update.body_html)
         self.assertEqual(project.status_id, update.status_id)
         posted = project.message_ids.filtered(lambda m: 'Project Update published' in (m.body or ''))
         self.assertTrue(posted)

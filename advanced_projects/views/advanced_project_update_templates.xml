@@ -67,13 +67,22 @@
                 <span t-attf-style="display: inline-block; padding: 2px 10px; border-radius: 10px; color: #fff; font-weight: bold; background-color: #{update.status_id.color or '#14C9A5'};"
                       t-out="update.status_id.name"/>
             </p>
-            <t t-foreach="update.block_ids" t-as="block">
-                <div t-if="block.block_type == 'text'" style="margin: 0 0 16px 0;">
-                    <p t-if="block.title" style="margin: 0 0 4px 0; font-size: 15px; font-weight: bold;" t-out="block.title"/>
-                    <div t-out="block.body"/>
-                </div>
-                <t t-elif="block.block_type == 'tasks'" t-out="block.snapshot_html"/>
-            </t>
+            <!-- blocks sit side by side by their width (out of 12 columns): a row
+                 of blocks is a table, so it also holds in emails -->
+            <table t-foreach="update._document_rows()" t-as="row"
+                   style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+                <tr>
+                    <td t-foreach="row" t-as="block"
+                        t-attf-style="width: #{round((block.width or 12) * 100 / 12, 4)}%; vertical-align: top; padding: 0 #{'0' if block_last else '16px'} 0 0;">
+                        <div t-if="block.block_type == 'text'" style="margin: 0 0 16px 0;">
+                            <p t-if="block.title" style="margin: 0 0 4px 0; font-size: 15px; font-weight: bold;" t-out="block.title"/>
+                            <div t-out="block.body"/>
+                        </div>
+                        <t t-elif="block.block_type == 'tasks'" t-out="block.snapshot_html"/>
+                    </td>
+                    <td t-if="sum(row.mapped('width')) &lt; 12"/>
+                </tr>
+            </table>
         </div>
     </template>
 </odoo>

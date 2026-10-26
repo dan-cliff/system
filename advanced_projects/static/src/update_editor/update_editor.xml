@@ -8,14 +8,15 @@
                 <button type="button" class="btn btn-primary" t-on-click="startEditing">Start Writing</button>
             </div>
             <div t-else="" class="d-flex gap-3 align-items-start">
-                <div class="o_adv_update_document_editor flex-grow-1 o_min_width_0"
+                <div class="o_adv_update_document_editor flex-grow-1 o_min_width_0" t-ref="blocks"
                      t-on-dragover="onDocumentDragOver" t-on-drop="onDrop">
-                    <div t-if="!blocks.length" class="text-muted text-center py-4">
+                    <div t-if="!blocks.length" class="text-muted text-center py-4 w-100">
                         Drag text and task widgets here from the right.
                     </div>
                     <t t-foreach="blocks" t-as="block" t-key="block.id">
                         <div t-if="state.dragging and state.dropIndex === block_index" class="o_adv_drop_marker my-1"/>
-                        <div class="o_adv_block card mb-2" t-att-class="'o_adv_block_' + block.block_type"
+                        <div class="o_adv_block card mb-2" t-att-class="{ ['o_adv_block_' + block.block_type]: true, o_adv_block_resizing: state.resizing === block.id }"
+                             t-att-style="blockStyle(block)" t-att-data-block-id="block.id"
                              t-att-draggable="canEdit ? 'true' : 'false'"
                              t-on-dragstart="(ev) => this.onBlockDragStart(ev, block)" t-on-dragend="onDragEnd"
                              t-on-dragover="(ev) => this.onBlockDragOver(ev, block_index)">
@@ -109,6 +110,9 @@
                                               onOpen.bind="openTask"/>
                                 </t>
                             </div>
+                            <div t-if="canEdit" class="o_adv_block_resize" draggable="false"
+                                 t-att-title="'Drag to resize (' + (block.width || 12) + ' of 12 columns)'"
+                                 t-on-pointerdown="(ev) => this.onResizeStart(ev, block)"/>
                         </div>
                     </t>
                     <div t-if="state.dragging and state.dropIndex === blocks.length" class="o_adv_drop_marker my-1"/>

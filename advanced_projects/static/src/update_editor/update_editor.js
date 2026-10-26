@@ -1,4 +1,4 @@
-import { Component, markup, onWillStart, onWillUpdateProps, useState } from "@odoo/owl";
+import { Component, markup, onWillStart, onWillUnmount, onWillUpdateProps, useRef, useState } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { registry } from "@web/core/registry";
@@ -8,6 +8,10 @@ import { TaskList } from "../components/task_list";
 
 const BLOCK_MODEL = "advanced.project.update.block";
 const DAY_FILTERS = ["upcoming", "completed"];
+// Blocks are laid out on 12 columns, like the Overview.
+const COLUMNS = 12;
+const MIN_COLUMNS = 3;
+const GAP = 12; // px between blocks, as in update_editor.scss
 
 /**
  * The Project Update document editor: text blocks and task widgets
@@ -32,7 +36,10 @@ export class UpdateEditor extends Component {
             dragging: null,
             dropIndex: null,
             busy: false,
+            resizing: null,
         });
+        this.blocksRef = useRef("blocks");
+        onWillUnmount(() => this.stopResize?.());
         onWillStart(() => this.load(this.props));
         onWillUpdateProps((nextProps) => {
             if (nextProps.record.resId !== this.loadedId) {
@@ -43,6 +50,11 @@ export class UpdateEditor extends Component {
 
     get blocks() {
         return this.state.data?.blocks || [];
+    }
+
+    blockStyle(block) {
+        const width = block.width || COLUMNS;
+        return `flex: 0 0 calc((100% + ${GAP}px) * ${width} / ${COLUMNS} - ${GAP}px);`;
     }
 
     get canEdit() {
@@ -214,6 +226,45 @@ export class UpdateEditor extends Component {
         this.state.dragging = { kind: "block", blockId: block.id };
     }
 
+    // ------------------------------------------------------------------
+    // Resizing: drag a block's bottom right corner to change its width
+    // ------------------------------------------------------------------
+
+    onResizeStart(ev, block) {
+        if (!this.canEdit || ev.button !== 0) {
+            return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        const container = this.blocksRef.el;
+        const card = ev.currentTarget.closest(".o_adv_block");
+        if (!container || !card) {
+            return;
+        }
+        const columnWidth = (container.getBoundingClientRect().width + GAP) / COLUMNS;
+        const left = card.getBoundingClientRect().left;
+        const startWidth = block.width || COLUMNS;
+        this.state.resizing = block.id;
+        const onMove = (moveEv) => {
+            const columns = Math.round((moveEv.clientX - left + GAP) / columnWidth);
+            block.width = Math.max(MIN_COLUMNS, Math.min(COLUMNS, columns));
+        };
+        const stop = () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", stop);
+            window.removeEventListener("pointercancel", stop);
+            this.stopResize = null;
+            this.state.resizing = null;
+            if (block.width !== startWidth) {
+                this.orm.write(BLOCK_MODEL, [block.id], { width: block.width });
+            }
+        };
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", stop);
+        window.addEventListener("pointercancel", stop);
+        this.stopResize = stop;
+    }
+
     onDragEnd() {
         this.state.dragging = null;
         this.state.dropIndex = null;
@@ -225,7 +276,12 @@ export class UpdateEditor extends Component {
         }
         ev.preventDefault();
         const rect = ev.currentTarget.getBoundingClientRect();
-        this.state.dropIndex = ev.clientY > rect.top + rect.height / 2 ? index + 1 : index;
+        const block = this.blocks[index];
+        // side-by-side blocks: before or after by the half of the block the pointer is in
+        const after = block && (block.width || COLUMNS) < COLUMNS
+            ? ev.clientX > rect.left + rect.width / 2
+            : ev.clientY > rect.top + rect.height / 2;
+        this.state.dropIndex = after ? index + 1 : index;
     }
 
     onDocumentDragOver(ev) {
