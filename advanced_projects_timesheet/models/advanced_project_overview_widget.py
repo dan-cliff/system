@@ -1,12 +1,7 @@
 from datetime import timedelta
 
 from odoo import _, api, fields, models
-
-
-def format_hours(hours):
-    """Hours as H:MM, like the timesheet grid."""
-    minutes = round((hours or 0.0) * 60)
-    return '%d:%02d' % divmod(minutes, 60)
+from odoo.addons.advanced_projects.models.advanced_project_task_filter import format_hours
 
 
 class AdvancedProjectOverviewWidget(models.Model):
@@ -25,6 +20,11 @@ class AdvancedProjectOverviewWidget(models.Model):
             'hours_by_person': ('fa-user-circle', 'Hours booked to the project, per person.'),
         })
         return info
+
+    @api.model
+    def _widget_default_size(self, widget_type):
+        return {'hours_total': (4, 3), 'hours_by_person': (4, 4)}.get(
+            widget_type) or super()._widget_default_size(widget_type)
 
     def _project_hours_lines(self):
         # sudo: totals for everyone who can open the project (see advanced_project.py)

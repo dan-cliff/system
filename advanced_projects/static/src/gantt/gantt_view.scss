@@ -11,6 +11,7 @@ $adv-gantt-header: 52px;
 
 .o_adv_gantt_body {
     position: relative;
+    user-select: none;  // dragging bars and links must not select text
 }
 
 .o_adv_gantt_header {
@@ -150,7 +151,7 @@ $adv-gantt-header: 52px;
     cursor: grab;
     box-shadow: 0 2px 4px rgba(42, 63, 143, 0.18);
     user-select: none;
-    z-index: 1;
+    z-index: 2;  // above the links, so their dots can be grabbed
 
     &:active {
         cursor: grabbing;
@@ -194,7 +195,6 @@ $adv-gantt-header: 52px;
 
 .o_adv_gantt_link_dot {
     position: absolute;
-    right: -14px;
     top: 50%;
     width: 10px;
     height: 10px;
@@ -204,6 +204,33 @@ $adv-gantt-header: 52px;
     border: 2px solid #5B3DB8;
     cursor: crosshair;
     opacity: 0;
+    z-index: 2;
+
+    &.o_adv_gantt_link_dot_start {
+        left: -14px;
+    }
+
+    &.o_adv_gantt_link_dot_end {
+        right: -14px;
+    }
+}
+
+// The half of the bar a link is being dropped on: its start or its end.
+.o_adv_gantt_drop_start {
+    box-shadow: inset 4px 0 0 #FFFFFF, 0 0 0 2px #8E5CF0;
+}
+
+.o_adv_gantt_drop_end {
+    box-shadow: inset -4px 0 0 #FFFFFF, 0 0 0 2px #8E5CF0;
+}
+
+.o_adv_gantt_link_hint {
+    font-size: 11px;
+    font-weight: 600;
+    fill: #5B3DB8;
+    paint-order: stroke;
+    stroke: #FFFFFF;
+    stroke-width: 3px;
 }
 
 .o_adv_gantt_milestone {
@@ -214,16 +241,24 @@ $adv-gantt-header: 52px;
     transform: rotate(45deg);
     border-radius: 3px;
     cursor: grab;
-    z-index: 1;
+    z-index: 2;
     box-shadow: 0 2px 4px rgba(42, 63, 143, 0.18);
 
     &:hover .o_adv_gantt_link_dot {
         opacity: 1;
     }
 
-    .o_adv_gantt_link_dot {
-        transform: rotate(-45deg);
-        right: -16px;
+    // the diamond is the box turned 45°: its left corner is the box's bottom
+    // left, its right corner the box's top right
+    .o_adv_gantt_link_dot_start {
+        left: -5px;
+        top: 100%;
+    }
+
+    .o_adv_gantt_link_dot_end {
+        right: auto;
+        left: calc(100% - 5px);
+        top: 0;
     }
 }
 

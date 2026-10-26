@@ -1,4 +1,5 @@
-import { Component, markup, onWillStart, useState } from "@odoo/owl";
+import { Component, markup, onMounted, onPatched, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { loadCSS, loadJS } from "@web/core/assets";
 import { _t } from "@web/core/l10n/translation";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { registry } from "@web/core/registry";
@@ -7,20 +8,19 @@ import { Layout } from "@web/search/layout";
 import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 import { TaskList } from "../components/task_list";
 
-const WIDTH_CLASSES = {
-    small: "col-12 col-lg-4",
-    medium: "col-12 col-lg-6",
-    large: "col-12 col-lg-8",
-    full: "col-12",
-};
-const WIDTH_ORDER = ["small", "medium", "large", "full"];
+const GRIDSTACK_JS = "/advanced_projects/static/lib/gridstack/gridstack-all.js";
+const GRIDSTACK_CSS = "/advanced_projects/static/lib/gridstack/gridstack.min.css";
+const COLUMNS = 12;
+const CELL_HEIGHT = 70;
+const SAVE_DELAY = 500;
 
 /**
  * A project's Overview: a header with the project's key facts and links to
- * its Tasks, Gantt chart, Updates and Team, then a grid of widgets. In
- * Customize mode widgets are added from a palette (click or drag), dragged
- * into place, resized, configured and removed; the layout is saved per
- * project.
+ * its Tasks, Gantt chart, Updates and Team, then its widgets on a 12-column
+ * grid (gridstack.js, like Custom Dashboards). In Customize mode widgets are
+ * dragged in from the palette (or clicked to add them at the bottom), moved
+ * by their header, resized from their edges and corner, configured and
+ * removed; the layout is saved per project as it changes.
  */
 export class ProjectOverview extends Component {
     static template = "advanced_projects.ProjectOverview";
@@ -32,17 +32,30 @@ export class ProjectOverview extends Component {
         this.action = useService("action");
         this.dialog = useService("dialog");
         this.notification = useService("notification");
-        this.widthClasses = WIDTH_CLASSES;
+        this.gridRef = useRef("grid");
+        this.paletteRef = useRef("palette");
+        this.grid = null;
+        this.saveTimer = null;
+        this.paletteReady = false;
         this.display = { controlPanel: {} };
         this.projectId =
             this.props.action.params?.project_id || this.props.action.context?.active_id || false;
         this.state = useState({
             data: null,
             editing: false,
-            dragging: null,
-            dropIndex: null,
         });
-        onWillStart(() => this.load());
+        onWillStart(() => Promise.all([loadJS(GRIDSTACK_JS), loadCSS(GRIDSTACK_CSS), this.load()]));
+        onMounted(() => this.initGrid());
+        onPatched(() => {
+            this.initGrid();
+            this.syncGridItems();
+            this.setupPalette();
+        });
+        onWillUnmount(() => {
+            this.flushSave();
+            this.grid?.destroy(false);
+            this.grid = null;
+        });
     }
 
     async load() {
@@ -96,32 +109,28 @@ export class ProjectOverview extends Component {
     // ------------------------------------------------------------------
 
     toggleEditing() {
-        this.state.editing = !this.state.editing;
+        const editing = !this.state.editing;
+        if (!editing) {
+            this.flushSave();
+        }
+        this.state.editing = editing;
+        this.paletteReady = false;
+        this.grid?.setStatic(!editing);
     }
 
-    async addWidget(item, index = null) {
-        const widgetId = await this.orm.call("advanced.project", "overview_add_widget", [
+    async addWidget(item, layout = {}) {
+        const { x = null, y = null, w = item.w, h = item.h } = layout;
+        await this.saveLayout();
+        await this.orm.call("advanced.project", "overview_add_widget", [
             [this.projectId],
             item.type,
             item.task_filter || false,
+            x,
+            y,
+            w,
+            h,
         ]);
         await this.load();
-        if (index !== null) {
-            const ids = this.widgets.map((w) => w.id).filter((id) => id !== widgetId);
-            ids.splice(index, 0, widgetId);
-            await this.saveOrder(ids);
-        }
-    }
-
-    async saveOrder(ids) {
-        await this.orm.call("advanced.project", "overview_resequence", [[this.projectId], ids]);
-        await this.load();
-    }
-
-    async cycleWidth(widget) {
-        const next = WIDTH_ORDER[(WIDTH_ORDER.indexOf(widget.width) + 1) % WIDTH_ORDER.length];
-        await this.orm.write("advanced.project.overview.widget", [widget.id], { width: next });
-        widget.width = next;
     }
 
     configure(widget) {
@@ -137,7 +146,9 @@ export class ProjectOverview extends Component {
         const [values] = await this.orm.call("advanced.project.overview.widget", "get_widget_values", [[widgetId]]);
         const index = this.state.data.widgets.findIndex((w) => w.id === widgetId);
         if (index >= 0 && values) {
-            this.state.data.widgets[index] = values;
+            // keep the place gridstack already has for it
+            const { x, y, w, h } = this.state.data.widgets[index];
+            this.state.data.widgets[index] = { ...values, x, y, w, h };
         }
     }
 
@@ -148,7 +159,12 @@ export class ProjectOverview extends Component {
             confirmLabel: _t("Remove"),
             confirm: async () => {
                 await this.orm.unlink("advanced.project.overview.widget", [widget.id]);
-                await this.load();
+                const el = this.gridRef.el?.querySelector(`.grid-stack-item[data-widget-id="${widget.id}"]`);
+                if (el && this.grid) {
+                    this.grid.removeWidget(el, false);
+                }
+                this.state.data.widgets = this.state.data.widgets.filter((w) => w.id !== widget.id);
+                this.scheduleSave();
             },
             cancel: () => {},
         });
@@ -160,75 +176,116 @@ export class ProjectOverview extends Component {
             body: _t("Replace this Overview's widgets with the default layout?"),
             confirmLabel: _t("Reset"),
             confirm: async () => {
+                clearTimeout(this.saveTimer);
+                this.saveTimer = null;
                 await this.orm.call("advanced.project", "overview_reset", [[this.projectId]]);
+                this.grid?.removeAll(false);
                 await this.load();
             },
             cancel: () => {},
         });
     }
 
-    // Drag and drop: palette items and widgets share the same drop targets.
-    onPaletteDragStart(ev, item) {
-        ev.dataTransfer.effectAllowed = "copy";
-        ev.dataTransfer.setData("text/plain", item.label);
-        this.state.dragging = { kind: "palette", item };
-    }
+    // ------------------------------------------------------------------
+    // Grid (gridstack.js)
+    // ------------------------------------------------------------------
 
-    onWidgetDragStart(ev, widget) {
-        if (!this.state.editing) {
-            ev.preventDefault();
+    initGrid() {
+        if (this.grid || !this.gridRef.el || !window.GridStack) {
             return;
         }
-        ev.dataTransfer.effectAllowed = "move";
-        ev.dataTransfer.setData("text/plain", widget.title);
-        this.state.dragging = { kind: "widget", widgetId: widget.id };
+        this.grid = window.GridStack.init(
+            {
+                column: COLUMNS,
+                cellHeight: CELL_HEIGHT,
+                margin: 8,
+                float: false,
+                staticGrid: !this.state.editing,
+                animate: true,
+                acceptWidgets: ".o_adv_palette_item",
+                draggable: { handle: ".o_adv_widget_header", cancel: "button" },
+                resizable: { handles: "se,e,s,w,sw" },
+                columnOpts: { breakpoints: [{ w: 768, c: 1 }] },
+            },
+            this.gridRef.el
+        );
+        this.grid.on("change added", () => this.scheduleSave());
+        this.grid.on("dropped", (ev, previousNode, newNode) => this.onPaletteDropped(newNode));
     }
 
-    onDragEnd() {
-        this.state.dragging = null;
-        this.state.dropIndex = null;
-    }
-
-    onWidgetDragOver(ev, index) {
-        if (!this.state.dragging) {
+    /** Turn widget elements OWL rendered since the last patch into grid items. */
+    syncGridItems() {
+        if (!this.grid) {
             return;
         }
-        ev.preventDefault();
-        const rect = ev.currentTarget.getBoundingClientRect();
-        const after = ev.clientX > rect.left + rect.width / 2;
-        this.state.dropIndex = after ? index + 1 : index;
-    }
-
-    onGridDragOver(ev) {
-        if (!this.state.dragging) {
-            return;
-        }
-        ev.preventDefault();
-        // between widgets keep the current drop place; below the last one, drop at the end
-        const widgets = ev.currentTarget.querySelectorAll(".o_adv_widget");
-        const last = widgets[widgets.length - 1];
-        if (!last || ev.clientY > last.getBoundingClientRect().bottom) {
-            this.state.dropIndex = this.widgets.length;
+        for (const el of this.gridRef.el.querySelectorAll(":scope > .grid-stack-item")) {
+            if (!el.gridstackNode) {
+                this.grid.makeWidget(el);
+            }
         }
     }
 
-    async onDrop(ev) {
-        ev.preventDefault();
-        const dragging = this.state.dragging;
-        const index = this.state.dropIndex ?? this.widgets.length;
-        this.onDragEnd();
-        if (!dragging) {
+    setupPalette() {
+        const palette = this.paletteRef.el;
+        if (!palette || this.paletteReady || !window.GridStack) {
             return;
         }
-        if (dragging.kind === "palette") {
-            await this.addWidget(dragging.item, index);
+        window.GridStack.setupDragIn([...palette.querySelectorAll(".o_adv_palette_item")], {
+            appendTo: "body",
+            helper: "clone",
+        });
+        this.paletteReady = true;
+    }
+
+    scheduleSave() {
+        if (!this.state.editing || !this.grid || this.grid.getColumn() !== COLUMNS) {
+            // never save the single-column phone layout over the real one
             return;
         }
-        const ids = this.widgets.map((w) => w.id);
-        const from = ids.indexOf(dragging.widgetId);
-        ids.splice(from, 1);
-        ids.splice(from < index ? index - 1 : index, 0, dragging.widgetId);
-        await this.saveOrder(ids);
+        clearTimeout(this.saveTimer);
+        this.saveTimer = setTimeout(() => this.saveLayout(), SAVE_DELAY);
+    }
+
+    flushSave() {
+        if (this.saveTimer) {
+            clearTimeout(this.saveTimer);
+            this.saveLayout();
+        }
+    }
+
+    async saveLayout() {
+        this.saveTimer = null;
+        if (!this.grid || this.grid.getColumn() !== COLUMNS) {
+            return;
+        }
+        const items = this.grid.engine.nodes
+            .filter((node) => node.el?.dataset.widgetId)
+            .map((node) => ({ id: parseInt(node.el.dataset.widgetId), x: node.x, y: node.y, w: node.w, h: node.h }));
+        if (!items.length) {
+            return;
+        }
+        for (const item of items) {
+            const widget = this.widgets.find((w) => w.id === item.id);
+            if (widget) {
+                Object.assign(widget, { x: item.x, y: item.y, w: item.w, h: item.h });
+            }
+        }
+        await this.orm.call("advanced.project", "overview_save_layout", [[this.projectId], items]);
+    }
+
+    onPaletteClick(item) {
+        return this.addWidget(item);
+    }
+
+    async onPaletteDropped(node) {
+        const index = parseInt(node.el?.dataset.paletteIndex);
+        const item = this.state.data.widget_types[index];
+        const layout = { x: node.x, y: node.y, w: node.w, h: node.h };
+        // swap gridstack's clone for a widget rendered by OWL
+        this.grid.removeWidget(node.el, true, false);
+        if (item) {
+            await this.addWidget(item, layout);
+        }
     }
 
     // ------------------------------------------------------------------

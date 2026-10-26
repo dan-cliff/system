@@ -23,31 +23,71 @@
         }
     }
 
-    .o_adv_overview_editing .o_adv_widget {
-        outline: 1px dashed #A9ABDC;
-        cursor: move;
+    .o_adv_overview_grid {
+        min-height: 300px;
+
+        // let the cards' shadows show; each card scrolls its own content
+        > .grid-stack-item > .grid-stack-item-content {
+            overflow: visible;
+        }
     }
 
-    .o_adv_drop_marker {
-        height: 4px;
-        padding: 0;
-        border-radius: 2px;
-        background: #8E5CF0;
+    .o_adv_widget {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .o_adv_widget_body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .o_adv_overview_editing {
+        .o_adv_overview_grid {
+            background-image: linear-gradient(to right, rgba(169, 171, 220, 0.25) 1px, transparent 1px);
+            background-size: calc(100% / 12) 100%;
+            border-radius: 6px;
+        }
+
+        .o_adv_widget {
+            outline: 1px dashed #A9ABDC;
+        }
+
+        .o_adv_widget_header {
+            cursor: move;
+        }
     }
 
     .o_adv_overview_palette {
-        width: 280px;
-        flex: 0 0 280px;
+        width: 260px;
+        flex: 0 0 260px;
         align-self: flex-start;
         position: sticky;
         top: 0;
+        max-height: calc(100vh - 160px);
+        overflow-y: auto;
         border-radius: 12px;
     }
 
     .o_adv_palette_item {
-        border-radius: 8px;
+        // a plain list in the palette; gridstack sizes the clone when dropped
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
         cursor: grab;
+        user-select: none;
+
+        > .grid-stack-item-content {
+            position: relative !important;
+            inset: auto !important;
+        }
+    }
+
+    .o_adv_palette_tile {
+        border-radius: 8px;
         border: 1px solid transparent;
+        margin-bottom: 2px;
 
         &:hover {
             background: #F2F2FA;
@@ -93,6 +133,18 @@
 
     .o_adv_bar_workload {
         background: linear-gradient(90deg, #3BB8FF, #0A6CF0);
+    }
+    .o_adv_bar_hours {
+        background: linear-gradient(90deg, #8E5CF0, #5B3DB8);
+    }
+    .o_adv_bar_money {
+        background: #14A3A3;
+    }
+    .o_adv_bar_over {
+        background: #FF5A6E;
+    }
+    .o_adv_budget_lines {
+        --bs-table-bg: transparent;
     }
 
     .o_adv_avatar {

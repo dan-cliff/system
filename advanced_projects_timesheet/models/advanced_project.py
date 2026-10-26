@@ -1,4 +1,5 @@
 from odoo import _, fields, models
+from odoo.addons.advanced_projects.models.advanced_project_task_filter import format_hours
 
 
 def _hours_by(records, field_name):
@@ -32,6 +33,16 @@ class AdvancedProject(models.Model):
         self.ensure_one()
         return _entries_action(self.env, _('%s – Hours', self.name), [('advanced_project_id', '=', self.id)],
                                {'search_default_group_task': 1})
+
+    def _budget_overview_values(self):
+        values = super()._budget_overview_values()
+        worked, allocated = self.timesheet_hours, self.allocated_hours
+        values['hours'].update({
+            'worked': format_hours(worked),
+            'worked_percent': min(100, round(100 * worked / allocated)) if allocated else 0,
+            'over_worked': worked > allocated > 0,
+        })
+        return values
 
 
 class AdvancedProjectTask(models.Model):

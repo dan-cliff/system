@@ -49,3 +49,13 @@ class TestAdvancedProjectsTimesheet(TransactionCase):
         self.assertEqual(data[total_id]['render'], 'stat')
         self.assertEqual(data[total_id]['value'], '2:00')
         self.assertEqual(data[person_id]['rows'], [{'label': 'Sam Worker', 'value': '2:00', 'percent': 100}])
+
+    def test_budget_hours_worked(self):
+        self.env['advanced.project.budget.line'].create({'project_id': self.project.id, 'allocated_hours': 4})
+        self._line(3.0, advanced_task_id=self.task.id)
+        hours = self.project._budget_overview_values()['hours']
+        self.assertEqual((hours['worked'], hours['worked_percent'], hours['over_worked']), ('3:00', 75, False))
+        self._line(2.0, advanced_project_id=self.project.id)
+        self.project.invalidate_recordset(['timesheet_hours'])
+        hours = self.project._budget_overview_values()['hours']
+        self.assertEqual((hours['worked'], hours['worked_percent'], hours['over_worked']), ('5:00', 100, True))

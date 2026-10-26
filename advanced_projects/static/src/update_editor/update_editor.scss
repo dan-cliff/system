@@ -61,10 +61,13 @@
     }
 
     .o_adv_update_palette {
-        width: 240px;
-        flex: 0 0 240px;
+        width: 260px;
+        flex: 0 0 260px;
+        align-self: flex-start;
         position: sticky;
         top: 0;
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
         border-radius: 12px;
     }
 
@@ -82,4 +85,33 @@
     .o_adv_palette_icon {
         color: #5B3DB8;
     }
+}
+
+// A Project Update form uses the whole width (its chatter sits below, see
+// update_form_layout.js), so the document and the palette sit side by side.
+.o_form_view {
+    .o_form_renderer:has(.o_adv_update_editor),
+    .o_form_sheet_bg:has(.o_adv_update_editor),
+    .o_form_renderer:has(.o_adv_update_document),
+    .o_form_sheet_bg:has(.o_adv_update_document) {
+        max-width: none;
+    }
+    // wide screens lay the form out as a row (sheet | chatter): stack it
+    .o_form_renderer:has(.o_adv_update_editor),
+    .o_form_renderer:has(.o_adv_update_document) {
+        flex-direction: column;
+        height: auto !important;
+        > .o_form_sheet_bg {
+            flex: 0 0 auto;
+            width: 100%;
+        }
+        > .o-mail-ChatterContainer {
+            width: 100%;
+            max-width: none;
+        }
+    }
+}
+.o_xxl_form_view:has(.o_adv_update_editor),
+.o_xxl_form_view:has(.o_adv_update_document) {
+    height: auto !important;
 }

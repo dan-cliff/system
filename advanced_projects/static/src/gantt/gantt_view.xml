@@ -27,7 +27,7 @@
                         </div>
                         <button type="button" class="btn btn-sm btn-secondary" t-on-click="scrollToToday">Today</button>
                         <span class="text-muted small ms-auto d-none d-md-inline" t-if="canEdit">
-                            Drag a bar to move it, its ends to change dates; drag its dot onto another task to link them.
+                            Drag a bar to move it, its ends to change dates; drag its start or end dot onto the start or end of another task to link them.
                         </span>
                     </div>
                     <div t-if="!state.loading and !state.tasks.length" class="o_view_nocontent">
@@ -96,15 +96,20 @@
                                             </t>
                                             <t t-elif="row.type === 'task' and row.bar">
                                                 <div t-if="row.task.milestone" class="o_adv_gantt_milestone"
-                                                     t-att-class="'o_adv_gantt_state_' + row.task.category"
+                                                     t-att-class="'o_adv_gantt_state_' + row.task.category + ' ' + dropClass(row.task)"
                                                      t-att-data-task-id="row.task.id" t-att-title="row.task.name + ' — ' + formatRange(row.task)"
                                                      t-attf-style="left: {{ row.bar.left + row.bar.width - rowHeight / 2 }}px;"
                                                      t-on-pointerdown="(ev) => this.onBarPointerDown(ev, row.task, 'move')">
-                                                    <span class="o_adv_gantt_link_dot" t-if="canEdit and archInfo.linkField"
-                                                          title="Drag onto another task to link it"
-                                                          t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task)"/>
+                                                    <t t-if="canEdit and archInfo.linkField">
+                                                        <span class="o_adv_gantt_link_dot o_adv_gantt_link_dot_start"
+                                                              title="Drag from the start onto another task to link them"
+                                                              t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task, 'start')"/>
+                                                        <span class="o_adv_gantt_link_dot o_adv_gantt_link_dot_end"
+                                                              title="Drag from the end onto another task to link them"
+                                                              t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task, 'end')"/>
+                                                    </t>
                                                 </div>
-                                                <div t-else="" class="o_adv_gantt_bar" t-att-class="'o_adv_gantt_state_' + row.task.category"
+                                                <div t-else="" class="o_adv_gantt_bar" t-att-class="'o_adv_gantt_state_' + row.task.category + ' ' + dropClass(row.task)"
                                                      t-att-data-task-id="row.task.id" t-att-title="row.task.name + ' — ' + formatRange(row.task)"
                                                      t-attf-style="left: {{ row.bar.left }}px; width: {{ row.bar.width }}px;"
                                                      t-on-pointerdown="(ev) => this.onBarPointerDown(ev, row.task, 'move')">
@@ -113,9 +118,14 @@
                                                     <span class="o_adv_gantt_bar_label text-truncate" t-esc="row.task.name"/>
                                                     <span t-if="canEdit and row.bar.width &gt;= 30" class="o_adv_gantt_handle o_adv_gantt_handle_stop"
                                                           t-on-pointerdown="(ev) => this.onBarPointerDown(ev, row.task, 'stop')"/>
-                                                    <span class="o_adv_gantt_link_dot" t-if="canEdit and archInfo.linkField"
-                                                          title="Drag onto another task to link it"
-                                                          t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task)"/>
+                                                    <t t-if="canEdit and archInfo.linkField">
+                                                        <span class="o_adv_gantt_link_dot o_adv_gantt_link_dot_start"
+                                                              title="Drag from the start onto another task to link them"
+                                                              t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task, 'start')"/>
+                                                        <span class="o_adv_gantt_link_dot o_adv_gantt_link_dot_end"
+                                                              title="Drag from the end onto another task to link them"
+                                                              t-on-pointerdown="(ev) => this.onLinkPointerDown(ev, row.task, 'end')"/>
+                                                    </t>
                                                 </div>
                                             </t>
                                         </div>
@@ -135,11 +145,15 @@
                                         <path t-att-d="path.d" class="o_adv_gantt_link" t-att-class="{ o_adv_gantt_link_late: path.late }"
                                               t-att-marker-end="path.late ? 'url(#o_adv_gantt_arrow_late)' : 'url(#o_adv_gantt_arrow)'"/>
                                         <path t-att-d="path.d" class="o_adv_gantt_link_hit" t-on-click="() => this.onLinkClick(path)">
-                                            <title t-if="canEdit">Click to remove this link</title>
+                                            <title><t t-esc="path.title"/><t t-if="canEdit"> (click to remove)</t></title>
                                         </path>
                                     </t>
-                                    <line t-if="state.link" class="o_adv_gantt_link_draft"
-                                          t-att-x1="state.link.x1" t-att-y1="state.link.y1" t-att-x2="state.link.x2" t-att-y2="state.link.y2"/>
+                                    <t t-if="state.link">
+                                        <line class="o_adv_gantt_link_draft"
+                                              t-att-x1="state.link.x1" t-att-y1="state.link.y1" t-att-x2="state.link.x2" t-att-y2="state.link.y2"/>
+                                        <text class="o_adv_gantt_link_hint" t-att-x="state.link.x2 + 12" t-att-y="state.link.y2 - 10"
+                                              t-esc="linkDragHint"/>
+                                    </t>
                                 </svg>
                             </div>
                         </div>

@@ -64,59 +64,59 @@
                         </div>
                     </div>
 
-                    <div class="d-flex o_adv_overview_body px-4 pb-4 gap-3">
-                        <div class="flex-grow-1 o_min_width_0">
-                            <div class="row g-3 o_adv_overview_grid" t-att-class="{ o_adv_overview_editing: state.editing }"
-                                 t-on-dragover="onGridDragOver" t-on-drop="onDrop">
-                                <div t-if="!widgets.length" class="col-12 text-muted text-center py-5">
-                                    This Overview is empty.
-                                    <t t-if="state.data.can_edit">Use Customize to add widgets.</t>
+                    <div class="d-flex o_adv_overview_body px-3 pb-4 gap-3" t-att-class="{ o_adv_overview_editing: state.editing }">
+                        <aside t-if="state.editing" class="o_adv_overview_palette card" t-ref="palette">
+                            <div class="card-header fw-bold">Add Widgets</div>
+                            <div class="card-body p-2">
+                                <p class="small text-muted mb-2">Drag a widget onto the grid, or click to add it at the bottom.
+                                    Drag widgets by their title to move them, and by their edges or corner to resize them.</p>
+                                <div t-foreach="state.data.widget_types" t-as="item" t-key="item_index"
+                                     class="o_adv_palette_item grid-stack-item"
+                                     t-att-data-palette-index="item_index" t-att-gs-w="item.w" t-att-gs-h="item.h"
+                                     t-att-title="item.description" t-on-click="() => this.onPaletteClick(item)">
+                                    <div class="grid-stack-item-content o_adv_palette_tile d-flex align-items-start gap-2 p-2">
+                                        <i t-attf-class="fa {{ item.icon }} fa-fw mt-1 o_adv_palette_icon"/>
+                                        <div class="o_min_width_0">
+                                            <div class="fw-bold small" t-esc="item.label"/>
+                                            <div t-if="item.description" class="small text-muted" t-esc="item.description"/>
+                                        </div>
+                                    </div>
                                 </div>
-                                <t t-foreach="widgets" t-as="widget" t-key="widget.id">
-                                    <div t-if="state.dragging and state.dropIndex === widget_index" class="col-12 o_adv_drop_marker"/>
-                                    <div t-att-class="widthClasses[widget.width] || widthClasses.small"
-                                         t-att-draggable="state.editing ? 'true' : 'false'"
-                                         t-on-dragstart="(ev) => this.onWidgetDragStart(ev, widget)"
-                                         t-on-dragend="onDragEnd"
-                                         t-on-dragover="(ev) => this.onWidgetDragOver(ev, widget_index)">
+                                <button type="button" class="btn btn-link btn-sm mt-2 p-0" t-on-click="resetLayout">Reset to default layout</button>
+                            </div>
+                        </aside>
+                        <div class="flex-grow-1 o_min_width_0">
+                            <div t-if="!widgets.length and !state.editing" class="text-muted text-center py-5">
+                                This Overview is empty.
+                                <t t-if="state.data.can_edit">Use Customize to add widgets.</t>
+                            </div>
+                            <div class="grid-stack o_adv_overview_grid" t-ref="grid">
+                                <div t-foreach="widgets" t-as="widget" t-key="widget.id"
+                                     class="grid-stack-item"
+                                     t-att-data-widget-id="widget.id"
+                                     t-att-gs-id="widget.id"
+                                     t-att-gs-x="widget.x"
+                                     t-att-gs-y="widget.y"
+                                     t-att-gs-w="widget.w"
+                                     t-att-gs-h="widget.h">
+                                    <div class="grid-stack-item-content">
                                         <div class="card h-100 o_adv_widget" t-att-class="'o_adv_widget_' + widget.widget_type">
-                                            <div class="card-header d-flex align-items-center gap-2">
-                                                <i t-if="state.editing" class="fa fa-arrows text-muted o_adv_widget_grip" title="Drag to move"/>
+                                            <div class="card-header d-flex align-items-center gap-2 o_adv_widget_header">
+                                                <i t-if="state.editing" class="fa fa-arrows text-muted" title="Drag to move"/>
                                                 <span class="fw-bold flex-grow-1 text-truncate" t-esc="widget.title"/>
                                                 <t t-if="state.editing">
-                                                    <button type="button" class="btn btn-link btn-sm p-0 text-muted" title="Change width"
-                                                            t-on-click="() => this.cycleWidth(widget)"><i class="fa fa-arrows-h"/></button>
                                                     <button type="button" class="btn btn-link btn-sm p-0 text-muted" title="Configure"
                                                             t-on-click="() => this.configure(widget)"><i class="fa fa-cog"/></button>
                                                     <button type="button" class="btn btn-link btn-sm p-0 text-muted" title="Remove"
                                                             t-on-click="() => this.remove(widget)"><i class="fa fa-times"/></button>
                                                 </t>
                                             </div>
-                                            <div class="card-body">
+                                            <div class="card-body o_adv_widget_body">
                                                 <t t-call="advanced_projects.OverviewWidgetBody"/>
                                             </div>
                                         </div>
                                     </div>
-                                </t>
-                                <div t-if="state.dragging and state.dropIndex === widgets.length" class="col-12 o_adv_drop_marker"/>
-                            </div>
-                        </div>
-                        <div t-if="state.editing" class="o_adv_overview_palette card">
-                            <div class="card-header fw-bold">Add Widgets</div>
-                            <div class="card-body p-2">
-                                <p class="small text-muted mb-2">Drag a widget into place, or click to add it at the end.</p>
-                                <div t-foreach="state.data.widget_types" t-as="item" t-key="item_index"
-                                     class="o_adv_palette_item d-flex align-items-start gap-2 p-2 mb-1"
-                                     draggable="true" t-att-title="item.description"
-                                     t-on-dragstart="(ev) => this.onPaletteDragStart(ev, item)" t-on-dragend="onDragEnd"
-                                     t-on-click="() => this.addWidget(item)">
-                                    <i t-attf-class="fa {{ item.icon }} fa-fw mt-1 o_adv_palette_icon"/>
-                                    <div>
-                                        <div class="fw-bold small" t-esc="item.label"/>
-                                        <div t-if="item.description" class="small text-muted" t-esc="item.description"/>
-                                    </div>
                                 </div>
-                                <button type="button" class="btn btn-link btn-sm mt-2 p-0" t-on-click="resetLayout">Reset to default layout</button>
                             </div>
                         </div>
                     </div>
@@ -235,6 +235,73 @@
                 <div class="small text-muted"><t t-esc="data.update.date"/> · <t t-esc="data.update.author"/></div>
                 <p t-if="data.update.summary" class="mt-2 mb-0" t-esc="data.update.summary"/>
             </div>
+        </t>
+        <!-- Budget -->
+        <t t-elif="widget.widget_type === 'budget'">
+            <div t-if="data.restricted" class="text-muted fst-italic small">Only employees see the budget.</div>
+            <t t-else="">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="small text-muted">Hours</div>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="fs-3 fw-bold" t-esc="data.hours.allocated"/>
+                            <span class="text-muted">allocated</span>
+                        </div>
+                        <t t-if="data.hours.worked !== null">
+                            <div class="d-flex small mt-1">
+                                <span>Worked</span>
+                                <span class="ms-auto fw-bold" t-att-class="{ 'text-danger': data.hours.over_worked }" t-esc="data.hours.worked"/>
+                            </div>
+                            <div class="o_adv_bar_track">
+                                <div class="o_adv_bar_fill" t-att-class="data.hours.over_worked ? 'o_adv_bar_over' : 'o_adv_bar_hours'"
+                                     t-attf-style="width: {{ data.hours.worked_percent }}%"/>
+                            </div>
+                        </t>
+                        <div class="d-flex small mt-1">
+                            <span>Planned on tasks</span>
+                            <span class="ms-auto fw-bold" t-att-class="{ 'text-danger': data.hours.over_planned }" t-esc="data.hours.planned"/>
+                        </div>
+                        <div class="o_adv_bar_track">
+                            <div class="o_adv_bar_fill" t-att-class="data.hours.over_planned ? 'o_adv_bar_over' : 'o_adv_bar_workload'"
+                                 t-attf-style="width: {{ data.hours.planned_percent }}%"/>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="small text-muted">Budget</div>
+                        <div class="fs-3 fw-bold" t-esc="data.money.budget"/>
+                        <div class="d-flex small mt-1">
+                            <span>Spent</span>
+                            <span class="ms-auto fw-bold" t-att-class="{ 'text-danger': data.money.over }" t-esc="data.money.spent"/>
+                        </div>
+                        <div class="o_adv_bar_track">
+                            <div class="o_adv_bar_fill" t-att-class="data.money.over ? 'o_adv_bar_over' : 'o_adv_bar_money'"
+                                 t-attf-style="width: {{ data.money.percent }}%"/>
+                        </div>
+                        <div class="d-flex small mt-1 text-muted">
+                            <span>Remaining</span><span class="ms-auto" t-esc="data.money.remaining"/>
+                        </div>
+                    </div>
+                </div>
+                <div t-if="!data.lines.length" class="text-muted fst-italic small mt-3">
+                    No budget yet: add budget lines on the project's Budget tab.
+                </div>
+                <table t-else="" class="table table-sm small mt-3 mb-0 o_adv_budget_lines">
+                    <thead>
+                        <tr><th>Line</th><th class="text-end">Hours</th><th class="text-end">Budget</th><th class="text-end">Spent</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="data.lines" t-as="line" t-key="line.id">
+                            <td>
+                                <div t-esc="line.name"/>
+                                <div t-if="line.detail" class="text-muted" t-esc="line.detail"/>
+                            </td>
+                            <td class="text-end text-nowrap" t-esc="line.hours"/>
+                            <td class="text-end text-nowrap" t-esc="line.amount"/>
+                            <td class="text-end text-nowrap" t-att-class="{ 'text-danger': line.over }" t-esc="line.spent"/>
+                        </tr>
+                    </tbody>
+                </table>
+            </t>
         </t>
         <!-- Note -->
         <t t-elif="widget.widget_type === 'note'">

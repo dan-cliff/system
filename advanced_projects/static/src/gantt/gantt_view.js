@@ -15,6 +15,21 @@ import { getActiveActions } from "@web/views/utils";
 const { DateTime } = luxon;
 
 const ROW_HEIGHT = 36;
+// Link kinds: from the parent's start or end to the child's start or end.
+const LINK_TYPES = {
+    finish_start: { from: "end", to: "start", label: _t("End to Start") },
+    start_start: { from: "start", to: "start", label: _t("Start to Start") },
+    finish_finish: { from: "end", to: "end", label: _t("End to End") },
+    start_finish: { from: "start", to: "end", label: _t("Start to End") },
+};
+const DEFAULT_LINK_TYPE = "finish_start";
+const MILESTONE_SIZE = 18;
+
+function linkTypeFor(fromSide, toSide) {
+    return Object.keys(LINK_TYPES).find(
+        (type) => LINK_TYPES[type].from === fromSide && LINK_TYPES[type].to === toSide
+    );
+}
 const LABEL_WIDTH = 280;
 const SCALES = {
     day: { label: _t("Days"), pxPerDay: 36 },
@@ -36,6 +51,7 @@ export class GanttArchParser {
             dateStop: attr("date_stop"),
             groupBy: attr("group_by"),
             linkField: attr("link_field"),
+            linkTypes: attr("link_types"),
             milestoneField: attr("milestone_field"),
             stateField: attr("state_field"),
             assigneeField: attr("assignee_field"),
@@ -73,6 +89,7 @@ export class GanttController extends Component {
             collapsed: {},
             drag: null,
             link: null,
+            linkTypes: {},
         });
         onWillStart(() => this.load(this.props));
         onWillUpdateProps((nextProps) => this.load(nextProps));
@@ -116,6 +133,16 @@ export class GanttController extends Component {
             category: a.stateField ? rec[a.stateField] || "todo" : "todo",
             assignees: a.assigneeField ? rec[a.assigneeField] || [] : [],
         }));
+        const linkTypes = {};
+        if (a.linkField && a.linkTypes && records.length) {
+            const links = await this.orm.call(props.resModel, a.linkTypes, [records.map((rec) => rec.id)], {
+                context: props.context,
+            });
+            for (const link of links) {
+                linkTypes[`${link.parent}-${link.child}`] = link.type;
+            }
+        }
+        this.state.linkTypes = linkTypes;
         this.state.loading = false;
     }
 
@@ -294,15 +321,33 @@ export class GanttController extends Component {
         return index * ROW_HEIGHT;
     }
 
-    /** Arrows from each task to the tasks it links to (parent → child). */
+    /** Where links attach to a task: the left (start) and right (end) of its bar or diamond. */
+    linkAnchors(task, bar) {
+        if (task.milestone) {
+            const left = bar.left + bar.width - ROW_HEIGHT / 2;
+            return { start: left - 2, end: left + MILESTONE_SIZE + 2 };
+        }
+        return { start: bar.left, end: bar.left + bar.width };
+    }
+
+    /**
+     * Arrows from each task to the tasks it links to (parent → child), from
+     * the parent's start or end to the child's start or end depending on the
+     * link's kind. Red when the child's dates break the link.
+     */
     get linkPaths() {
         const rows = this.rows;
         const positions = {};
         rows.forEach((row, index) => {
             if (row.type === "task" && row.bar) {
-                positions[row.task.id] = { ...row.bar, y: index * ROW_HEIGHT + ROW_HEIGHT / 2 };
+                positions[row.task.id] = {
+                    ...row.bar,
+                    ...this.linkAnchors(row.task, row.bar),
+                    y: index * ROW_HEIGHT + ROW_HEIGHT / 2,
+                };
             }
         });
+        const names = Object.fromEntries(this.state.tasks.map((t) => [t.id, t.name]));
         const paths = [];
         for (const row of rows) {
             if (row.type !== "task") {
@@ -317,22 +362,37 @@ export class GanttController extends Component {
                 if (!to) {
                     continue;
                 }
-                const x1 = from.left + from.width;
+                const key = `${row.task.id}-${childId}`;
+                const type = this.state.linkTypes[key] || DEFAULT_LINK_TYPE;
+                const { from: fromSide, to: toSide, label } = LINK_TYPES[type];
+                const x1 = from[fromSide];
                 const y1 = from.y;
-                const x2 = to.left;
+                const x2 = to[toSide];
                 const y2 = to.y;
+                // leave the parent away from its bar, arrive at the child from outside its bar
+                const exit = x1 + (fromSide === "end" ? 8 : -8);
+                const approach = x2 + (toSide === "start" ? -8 : 8);
+                const clear = toSide === "start" ? exit <= approach : exit >= approach;
                 let d;
-                if (x2 - x1 >= 16) {
-                    const mid = x1 + 8;
-                    d = `M ${x1} ${y1} H ${mid} V ${y2} H ${x2 - 2}`;
+                if (clear) {
+                    d = `M ${x1} ${y1} H ${exit} V ${y2} H ${x2}`;
                 } else {
-                    const turn = y2 > y1 ? ROW_HEIGHT / 2 : -ROW_HEIGHT / 2;
-                    d = `M ${x1} ${y1} h 8 v ${turn} H ${x2 - 10} V ${y2} H ${x2 - 2}`;
+                    // go round through the gap between the rows
+                    const between = y2 + (y2 > y1 ? -ROW_HEIGHT / 2 : ROW_HEIGHT / 2);
+                    d = `M ${x1} ${y1} H ${exit} V ${between} H ${approach} V ${y2} H ${x2}`;
                 }
+                const late = {
+                    finish_start: to.first <= from.last,
+                    start_start: to.first < from.first,
+                    finish_finish: to.last < from.last,
+                    start_finish: to.last < from.first,
+                }[type];
                 paths.push({
-                    key: `${row.task.id}-${childId}`,
+                    key,
                     d,
-                    late: to.first <= from.last,
+                    late,
+                    type,
+                    title: `${names[row.task.id]} → ${names[childId]}: ${label}`,
                 });
             }
         }
@@ -442,8 +502,13 @@ export class GanttController extends Component {
         await this.write(row.task.id, { [a.dateStart]: date, [a.dateStop]: date });
     }
 
-    /** Drag from a bar's dot onto another bar: the first becomes its parent. */
-    onLinkPointerDown(ev, task) {
+    /**
+     * Drag from a bar's start or end dot onto another bar: the first becomes
+     * its parent. Dropping on the left half of the bar links to its start,
+     * on the right half to its end, which makes the link End to Start, Start
+     * to Start, End to End or Start to End.
+     */
+    onLinkPointerDown(ev, task, side) {
         if (!this.canEdit || !this.archInfo.linkField || ev.button !== 0) {
             return;
         }
@@ -452,33 +517,62 @@ export class GanttController extends Component {
         const body = this.bodyRef.el.querySelector(".o_adv_gantt_rows");
         const rect = body.getBoundingClientRect();
         const point = (e) => ({ x: e.clientX - rect.left - LABEL_WIDTH, y: e.clientY - rect.top });
+        const targetAt = (e) => {
+            const el = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-task-id]");
+            const id = el ? parseInt(el.dataset.taskId) : null;
+            if (!id || id === task.id) {
+                return null;
+            }
+            const box = el.getBoundingClientRect();
+            return { id, side: e.clientX < box.left + box.width / 2 ? "start" : "end" };
+        };
         const origin = point(ev);
-        this.state.link = { fromId: task.id, x1: origin.x, y1: origin.y, x2: origin.x, y2: origin.y };
+        this.state.link = { fromId: task.id, side, x1: origin.x, y1: origin.y, x2: origin.x, y2: origin.y, target: null };
         const onMove = (moveEv) => {
             const p = point(moveEv);
-            this.state.link.x2 = p.x;
-            this.state.link.y2 = p.y;
+            Object.assign(this.state.link, { x2: p.x, y2: p.y, target: targetAt(moveEv) });
         };
         const onUp = async (upEv) => {
             window.removeEventListener("pointermove", onMove);
             window.removeEventListener("pointerup", onUp);
             this.state.link = null;
-            const target = document.elementFromPoint(upEv.clientX, upEv.clientY)?.closest("[data-task-id]");
-            const childId = target ? parseInt(target.dataset.taskId) : null;
-            if (!childId || childId === task.id) {
+            const target = targetAt(upEv);
+            if (!target) {
                 return;
             }
+            const type = linkTypeFor(side, target.side);
             try {
-                await this.orm.write(this.props.resModel, [task.id], {
-                    [this.archInfo.linkField]: [[4, childId]],
-                }, { context: this.props.context });
-                this.notification.add(_t("Tasks linked."), { type: "success" });
+                if (this.archInfo.linkTypes) {
+                    await this.orm.call(this.props.resModel, "gantt_link_tasks", [task.id, target.id, type], {
+                        context: this.props.context,
+                    });
+                } else {
+                    await this.orm.write(this.props.resModel, [task.id], {
+                        [this.archInfo.linkField]: [[4, target.id]],
+                    }, { context: this.props.context });
+                }
+                this.notification.add(_t("Tasks linked: %s.", LINK_TYPES[type].label), { type: "success" });
             } finally {
                 await this.reload();
             }
         };
         window.addEventListener("pointermove", onMove);
         window.addEventListener("pointerup", onUp);
+    }
+
+    /** "o_adv_gantt_drop_start" / "_end" on the bar a link is being dragged onto. */
+    dropClass(task) {
+        const target = this.state.link?.target;
+        return target && target.id === task.id ? `o_adv_gantt_drop_${target.side}` : "";
+    }
+
+    /** What the link being dragged will be, shown next to the pointer. */
+    get linkDragHint() {
+        const link = this.state.link;
+        if (!link?.target) {
+            return link?.side === "start" ? _t("From the start…") : _t("From the end…");
+        }
+        return LINK_TYPES[linkTypeFor(link.side, link.target.side)].label;
     }
 
     onLinkClick(path) {
@@ -489,9 +583,10 @@ export class GanttController extends Component {
         const names = Object.fromEntries(this.state.tasks.map((t) => [t.id, t.name]));
         this.dialog.add(ConfirmationDialog, {
             title: _t("Remove Link"),
-            body: _t("Unlink “%(child)s” from its parent “%(parent)s”?", {
+            body: _t("Unlink “%(child)s” from its parent “%(parent)s” (%(type)s)?", {
                 child: names[childId],
                 parent: names[parentId],
+                type: LINK_TYPES[path.type || DEFAULT_LINK_TYPE].label,
             }),
             confirmLabel: _t("Remove Link"),
             confirm: () => this.write(parentId, { [this.archInfo.linkField]: [[3, childId]] }),

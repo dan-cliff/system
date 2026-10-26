@@ -92,6 +92,47 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
         self.assertEqual(new_b.phase_id.project_id, copy)
         self.assertTrue(b.parent_ids == a)
 
+    def test_budget(self):
+        project = self._project(self.admin)
+        phase = self.env['advanced.project.phase'].create({'project_id': project.id, 'name': 'Build'})
+        self._task(project, planned_hours=30)
+        self._task(project, planned_hours=20)
+        labour = self.env.ref('advanced_projects.budget_category_labour')
+        materials = self.env.ref('advanced_projects.budget_category_materials')
+        Line = self.env['advanced.project.budget.line'].with_user(self.admin)
+        Line.create([
+            {'project_id': project.id, 'category_id': labour.id, 'phase_id': phase.id,
+             'allocated_hours': 40, 'amount': 2000, 'spent_amount': 500},
+            {'project_id': project.id, 'category_id': materials.id, 'name': 'Timber',
+             'amount': 1000, 'spent_amount': 1250},
+        ])
+        self.assertEqual(project.currency_id, self.env.company.currency_id)
+        self.assertEqual(project.allocated_hours, 40)
+        self.assertEqual(project.planned_hours, 50)
+        self.assertEqual(project.budget_amount, 3000)
+        self.assertEqual(project.spent_amount, 1750)
+        self.assertEqual(project.remaining_budget, 1250)
+        self.assertAlmostEqual(project.budget_used, 58.33, places=2)
+
+        widget = self.env['advanced.project.overview.widget'].with_user(self.admin).browse(
+            project.with_user(self.admin).overview_add_widget('budget'))
+        data = widget._overview_values()['data']
+        self.assertEqual(data['hours']['allocated'], '40:00')
+        self.assertEqual(data['hours']['planned'], '50:00')
+        self.assertTrue(data['hours']['over_planned'])
+        self.assertEqual(data['money']['percent'], 58)
+        self.assertFalse(data['money']['over'])
+        self.assertEqual([line['name'] for line in data['lines']], ['Labour', 'Timber'])
+        self.assertEqual(data['lines'][0]['detail'], 'Build')
+        self.assertEqual(data['lines'][1]['detail'], 'Materials')
+        self.assertTrue(data['lines'][1]['over'])
+
+        # copies and projects made from it keep the budget, not what was spent
+        copy = project.with_user(self.admin).copy()
+        self.assertEqual(copy.budget_amount, 3000)
+        self.assertEqual(copy.spent_amount, 0)
+        self.assertEqual(copy.budget_line_ids[0].phase_id.project_id, copy)
+
     def test_overview_data(self):
         project = self._project(self.admin, date_end=fields.Date.today() + timedelta(days=30))
         project.overview_add_widget('workload')
@@ -105,9 +146,21 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
         blocked = next(w for w in data['widgets'] if w['widget_type'] == 'task_list'
                        and w['data']['task_filter'] == 'blocked')
         self.assertEqual(len(blocked['data']['rows']), 1)
-        ids = [w['id'] for w in data['widgets']][::-1]
-        project.overview_resequence(ids)
-        self.assertEqual(project.overview_widget_ids.ids, ids)
+        # new widgets go below the others; the grid layout is saved as dragged
+        note = next(w for w in data['widgets'] if w['widget_type'] == 'note')
+        self.assertEqual((note['x'], note['w'], note['h']), (0, 4, 3))
+        self.assertGreaterEqual(note['y'], 17)
+        progress = next(w for w in data['widgets'] if w['widget_type'] == 'progress')
+        project.overview_save_layout([
+            {'id': note['id'], 'x': 0, 'y': 0, 'w': 12, 'h': 2},
+            {'id': progress['id'], 'x': 3, 'y': 2, 'w': 20, 'h': 0},
+        ])
+        self.assertEqual(project.overview_widget_ids[0].id, note['id'])
+        moved = project.overview_widget_ids.filtered(lambda w: w.id == progress['id'])
+        self.assertEqual((moved.grid_x, moved.grid_y, moved.grid_w, moved.grid_h), (3, 2, 12, 1))
+        dropped = project.overview_add_widget('team', False, 8, 1, 4, 6)
+        dropped = self.env['advanced.project.overview.widget'].browse(dropped)
+        self.assertEqual((dropped.grid_x, dropped.grid_y, dropped.grid_w, dropped.grid_h), (8, 1, 4, 6))
         project.overview_reset()
         self.assertEqual(len(project.overview_widget_ids), 9)
         action = project.action_open_tasks_filtered('blocked')
@@ -171,3 +224,37 @@ class TestAdvancedProjectFlow(AdvancedProjectCommon):
             })
         action = self._project().action_open_gantt()
         self.assertEqual(action['views'][0][1], 'project_gantt')
+
+    def test_link_types(self):
+        project = self._project()
+        a, b, c = (self._task(project, name=name) for name in 'ABC')
+        Task = self.env['advanced.project.task']
+        # linking on the form makes an End to Start link
+        a.child_ids = [(4, b.id)]
+        self.assertEqual(a.child_link_ids.child_id, b)
+        self.assertEqual(a.child_link_ids.link_type, 'finish_start')
+        # linking on the Gantt chart from a start or end to a start or end
+        Task.gantt_link_tasks(a.id, c.id, 'start_start')
+        self.assertEqual(c.parent_ids, a)
+        data = {(d['parent'], d['child']): d['type'] for d in Task.gantt_link_data((a | b | c).ids)}
+        self.assertEqual(data, {(a.id, b.id): 'finish_start', (a.id, c.id): 'start_start'})
+        Task.gantt_link_tasks(a.id, b.id, 'finish_finish')
+        self.assertEqual(a.child_link_ids.filtered(lambda l: l.child_id == b).link_type, 'finish_finish')
+        with self.assertRaises(ValueError):
+            Task.gantt_link_tasks(a.id, b.id, 'sideways')
+        # unlinking from either side removes the link record
+        c.parent_ids = [(3, a.id)]
+        self.assertEqual(a.child_link_ids.child_id, b)
+        # copies and projects from templates keep each link's kind
+        copy = project.copy()
+        new_a = copy.task_ids.filtered(lambda t: t.name == 'A')
+        self.assertEqual(new_a.child_link_ids.link_type, 'finish_finish')
+        self.assertEqual(new_a.child_link_ids.child_id.project_id, copy)
+
+    def test_existing_links_get_link_records(self):
+        project = self._project()
+        a, b = (self._task(project, name=name) for name in 'AB')
+        a.child_ids = [(4, b.id)]
+        a.child_link_ids.unlink()  # as before link types existed
+        self.env['advanced.project.task']._sync_all_links()
+        self.assertEqual(a.child_link_ids.link_type, 'finish_start')
