@@ -1,7 +1,5 @@
 from odoo import api, fields, models
 
-from .advanced_project_options import CLOSED_CATEGORIES
-from .advanced_project_task_filter import format_date
 
 
 class AdvancedProjectPhase(models.Model):
@@ -41,15 +39,3 @@ class AdvancedProjectPhase(models.Model):
             phase.done_count = len(done)
             phase.progress = 100.0 * len(done) / len(tasks) if tasks else 0.0
 
-    def _overview_values(self):
-        return [{
-            'id': phase.id,
-            'name': phase.name,
-            'color': phase.color or '#8E5CF0',
-            'progress': round(phase.progress),
-            'done': phase.done_count,
-            'total': phase.task_count,
-            'open': len(phase.task_ids.filtered(lambda t: t.stage_category not in CLOSED_CATEGORIES)),
-            'date_start': format_date(phase.date_start),
-            'date_end': format_date(phase.date_end),
-        } for phase in self]

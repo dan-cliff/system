@@ -1,8 +1,8 @@
 import { Component } from "@odoo/owl";
 
 /**
- * A compact table of tasks (from a task filter): used by the Overview's task
- * widgets and the task widgets of Project Updates.
+ * A compact table of tasks (from a task filter): used by the task widgets of
+ * Project Updates.
  */
 export class TaskList extends Component {
     static template = "advanced_projects.TaskList";

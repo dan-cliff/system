@@ -3,7 +3,7 @@ from random import randint
 
 from odoo import fields, models
 
-# What a task stage means to the app: the Overview, Project Updates and Gantt
+# What a task stage means to the app: progress, Project Updates and the Gantt
 # chart sort tasks into outstanding / blocked / completed with it, so it stays
 # a fixed selection (CLAUDE.md > Choice fields: technical states).
 STAGE_CATEGORIES = [
@@ -27,7 +27,7 @@ class AdvancedProjectTaskStage(models.Model):
     category = fields.Selection(
         STAGE_CATEGORIES, required=True, default='todo',
         help='What the stage means: tasks in a Blocked stage count as blocked, and tasks in a Done '
-             'or Cancelled stage count as closed in the Overview, Project Updates and Gantt chart.')
+             'or Cancelled stage count as closed in progress, Project Updates and the Gantt chart.')
     fold = fields.Boolean('Folded in Kanban')
     color = fields.Char('Colour', default='#3BB8FF')
 

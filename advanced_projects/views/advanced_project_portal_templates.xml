@@ -309,4 +309,53 @@
             </div>
         </xpath>
     </template>
+
+    <!-- A requested rating, given through its link (see advanced.project.rating). -->
+    <template id="portal_project_rating" name="Project Rating">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="True"/>
+            <div class="row justify-content-center my-4">
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">How did we do?</h4>
+                            <small class="text-muted">
+                                <t t-out="rating.project_id.name"/><t t-if="rating.task_id"> · <t t-out="rating.task_id.name"/></t>
+                            </small>
+                        </div>
+                        <div class="card-body">
+                            <t t-if="rating.state == 'done'">
+                                <p class="lead mb-1">Thank you for your rating.</p>
+                                <p class="o_adv_rating_stars mb-2" t-attf-aria-label="#{rating.score} out of 5 stars">
+                                    <t t-foreach="range(1, 6)" t-as="star">
+                                        <i t-attf-class="fa #{'fa-star' if star &lt;= int(rating.score) else 'fa-star-o'}" role="img" aria-hidden="true"/>
+                                    </t>
+                                </p>
+                                <p t-if="rating.feedback" class="text-muted mb-0" t-out="rating.feedback"/>
+                            </t>
+                            <form t-else="" method="post" t-attf-action="/my/projects/rating/#{rating.id}">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="access_token" t-att-value="access_token"/>
+                                <div t-if="error" class="alert alert-danger" role="alert" t-out="error"/>
+                                <p>Rate <b t-out="rating.task_id.name or rating.project_id.name"/> from 1 to 5 stars.</p>
+                                <div class="o_adv_rating_choice d-flex flex-wrap gap-2 mb-3" role="radiogroup">
+                                    <t t-foreach="scores" t-as="choice">
+                                        <input type="radio" class="btn-check" name="score" required="required"
+                                               t-att-id="'o_adv_rating_%s' % choice[0]" t-att-value="choice[0]"/>
+                                        <label class="btn btn-outline-primary" t-att-for="'o_adv_rating_%s' % choice[0]">
+                                            <t t-foreach="range(int(choice[0]))" t-as="star"><i class="fa fa-star" aria-hidden="true"/></t>
+                                            <span class="ms-1" t-out="choice[1]"/>
+                                        </label>
+                                    </t>
+                                </div>
+                                <label for="o_adv_rating_feedback" class="form-label">Anything you would like to add?</label>
+                                <textarea id="o_adv_rating_feedback" name="feedback" rows="4" class="form-control mb-3"/>
+                                <button type="submit" class="btn btn-primary">Send Rating</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
 </odoo>

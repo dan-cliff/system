@@ -61,7 +61,7 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
-                    <field name="summary" placeholder="A line or two for the Overview: how is the project going?"
+                    <field name="summary" placeholder="A line or two: how is the project going?"
                            readonly="state == 'published'"/>
                     <widget name="advanced_project_update_editor" invisible="state != 'draft'"/>
                     <field name="body_html" invisible="state != 'published'" class="o_adv_update_document"/>
@@ -95,7 +95,7 @@
         </field>
     </record>
 
-    <!-- Opened per project from its form and Overview. -->
+    <!-- Opened per project from its form. -->
     <record id="advanced_project_update_action" model="ir.actions.act_window">
         <field name="name">Project Updates</field>
         <field name="res_model">advanced.project.update</field>

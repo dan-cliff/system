@@ -4,21 +4,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 from .advanced_project_options import CLOSED_CATEGORIES
-from .advanced_project_task_filter import format_date
-
-# Widgets a new project's Overview starts with, on its 12-column grid:
-# (widget type, task filter, column, row, width, height).
-DEFAULT_OVERVIEW = [
-    ('progress', False, 0, 0, 6, 3),
-    ('task_counts', False, 6, 0, 6, 3),
-    ('phases', False, 0, 3, 6, 5),
-    ('task_list', 'upcoming', 6, 3, 6, 5),
-    ('task_list', 'blocked', 0, 8, 6, 5),
-    ('task_list', 'overdue', 6, 8, 6, 5),
-    ('stage_chart', False, 0, 13, 4, 4),
-    ('team', False, 4, 13, 4, 4),
-    ('latest_update', False, 8, 13, 4, 4),
-]
 
 
 class AdvancedProject(models.Model):
@@ -81,8 +66,6 @@ class AdvancedProject(models.Model):
     collaborator_ids = fields.One2many(
         'advanced.project.collaborator', 'project_id', string='Team', copy=False)
     update_ids = fields.One2many('advanced.project.update', 'project_id', string='Project Updates', copy=False)
-    overview_widget_ids = fields.One2many(
-        'advanced.project.overview.widget', 'project_id', string='Overview Widgets', copy=False)
 
     task_count = fields.Integer('Task Count', compute='_compute_task_stats')
     open_task_count = fields.Integer('Open Tasks', compute='_compute_task_stats')
@@ -151,8 +134,6 @@ class AdvancedProject(models.Model):
         projects = super().create(vals_list)
         for project in projects:
             project._add_manager_to_team()
-        if not self.env.context.get('advanced_project_no_default_overview'):
-            projects._create_default_overview()
         return projects
 
     def write(self, vals):
@@ -167,7 +148,7 @@ class AdvancedProject(models.Model):
         return res
 
     def copy(self, default=None):
-        new_projects = super(AdvancedProject, self.with_context(advanced_project_no_default_overview=True)).copy(default)
+        new_projects = super().copy(default)
         for source, project in zip(self, new_projects):
             project._copy_plan_from(source)
         return new_projects
@@ -187,20 +168,8 @@ class AdvancedProject(models.Model):
                 'project_id': self.id, 'partner_id': partner.id, 'collaborator_type': 'colleague',
             })
 
-    def _create_default_overview(self):
-        Widget = self.env['advanced.project.overview.widget']
-        vals_list = []
-        for project in self:
-            for sequence, (widget_type, task_filter, x, y, w, h) in enumerate(DEFAULT_OVERVIEW):
-                vals = {'project_id': project.id, 'widget_type': widget_type, 'sequence': sequence * 10,
-                        'grid_x': x, 'grid_y': y, 'grid_w': w, 'grid_h': h}
-                if task_filter:
-                    vals['task_filter'] = task_filter
-                vals_list.append(vals)
-        return Widget.create(vals_list)
-
     def _copy_plan_from(self, source, day_shift=0):
-        """Copy the phases, tasks (with their links) and Overview layout of
+        """Copy the phases and tasks (with their links) of
         ``source`` into this project, moving every date by ``day_shift`` days.
         The source is read as superuser so anyone allowed to create projects
         can start from a template; the copies are created as the user."""
@@ -247,26 +216,10 @@ class AdvancedProject(models.Model):
             new_link = parent and child and new_links.get((parent.id, child.id))
             if new_link and new_link.link_type != link.link_type:
                 new_link.link_type = link.link_type
-        if source.overview_widget_ids:
-            self.overview_widget_ids.unlink()
-            self.env['advanced.project.overview.widget'].create([
-                widget._copy_layout_values(self, phase_map) for widget in source.overview_widget_ids])
-        elif not self.overview_widget_ids:
-            self._create_default_overview()
 
     # ------------------------------------------------------------
     # Navigation
     # ------------------------------------------------------------
-
-    def action_open_overview(self):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'advanced_project_overview',
-            'name': _('%s – Overview', self.name),
-            'params': {'project_id': self.id},
-            'context': {'active_id': self.id, 'active_model': self._name},
-        }
 
     def action_open_tasks(self, view_type='kanban', domain=None, name=None):
         self.ensure_one()
@@ -290,15 +243,6 @@ class AdvancedProject(models.Model):
 
     def action_open_gantt(self):
         return self.action_open_tasks('project_gantt')
-
-    def action_open_tasks_filtered(self, task_filter, days=14):
-        """Tasks behind a figure on the Overview (outstanding, overdue, ...)."""
-        self.ensure_one()
-        Widget = self.env['advanced.project.overview.widget']
-        domain = Widget._task_filter_domain_for(task_filter, days)
-        label = dict(Widget._fields['task_filter']._description_selection(self.env)).get(task_filter, '')
-        return self.action_open_tasks('list', domain=list(domain), name=_('%(project)s – %(filter)s Tasks',
-                                                                          project=self.name, filter=label))
 
     def action_open_updates(self):
         self.ensure_one()
@@ -356,7 +300,7 @@ class AdvancedProject(models.Model):
         self.ensure_one()
         if not self.env.user.has_group('advanced_projects.group_advanced_project_manager'):
             raise AccessError(_('Only Project Administrators can create project templates.'))
-        template = self.with_context(advanced_project_no_default_overview=True).copy({
+        template = self.copy({
             'name': _('%s (Template)', self.name), 'partner_id': False,
         })
         template.is_template = True
@@ -367,87 +311,6 @@ class AdvancedProject(models.Model):
             'views': [(False, 'form')],
             'name': template.name,
         }
-
-    # ------------------------------------------------------------
-    # Overview dashboard
-    # ------------------------------------------------------------
-
-    def get_overview_data(self):
-        """Everything the Overview client action shows: the project header and
-        each widget with its data, read with the user's own access rights."""
-        self.ensure_one()
-        self.check_access('read')
-        Widget = self.env['advanced.project.overview.widget']
-        return {
-            'project': self._overview_header(),
-            'can_edit': self.has_access('write'),
-            'widgets': [widget._overview_values() for widget in self.overview_widget_ids],
-            'widget_types': Widget._palette(),
-        }
-
-    def _overview_header(self):
-        self.ensure_one()
-        return {
-            'id': self.id,
-            'name': self.name,
-            'customer': self.partner_id.display_name or '',
-            'manager': self.user_id.name or '',
-            'stage': self.stage_id.name or '',
-            'project_type': self.project_type_id.name or '',
-            'is_internal': self.is_internal,
-            'status': self.status_id.name or '',
-            'status_color': self.status_id.color or '',
-            'date_start': format_date(self.date_start),
-            'date_end': format_date(self.date_end),
-            'progress': round(self.progress),
-            'is_template': self.is_template,
-        }
-
-    def overview_add_widget(self, widget_type, task_filter=False, x=None, y=None, w=None, h=None):
-        """Add a widget to the Overview: where it was dropped from the palette,
-        or below the others when clicked."""
-        self.ensure_one()
-        Widget = self.env['advanced.project.overview.widget']
-        default_w, default_h = Widget._widget_default_size(widget_type)
-        if y is None:
-            y = max([widget.grid_y + widget.grid_h for widget in self.overview_widget_ids] or [0])
-        vals = {
-            'project_id': self.id,
-            'widget_type': widget_type,
-            'grid_x': max(int(x or 0), 0),
-            'grid_y': max(int(y), 0),
-            'grid_w': min(max(int(w or default_w), 1), 12),
-            'grid_h': max(int(h or default_h), 1),
-        }
-        if task_filter:
-            vals['task_filter'] = task_filter
-        return Widget.create(vals).id
-
-    def overview_save_layout(self, items):
-        """Store the widgets' places from the Overview's grid: a list of
-        ``{"id", "x", "y", "w", "h"}``."""
-        self.ensure_one()
-        widgets = self.overview_widget_ids
-        for item in items or []:
-            widget = widgets.filtered(lambda w: w.id == item.get('id'))
-            if not widget:
-                continue
-            vals = {
-                'grid_x': max(int(item.get('x') or 0), 0),
-                'grid_y': max(int(item.get('y') or 0), 0),
-                'grid_w': min(max(int(item.get('w') or 1), 1), 12),
-                'grid_h': max(int(item.get('h') or 1), 1),
-            }
-            if any(widget[name] != value for name, value in vals.items()):
-                widget.write(vals)
-        self.invalidate_recordset(['overview_widget_ids'])
-        return True
-
-    def overview_reset(self):
-        self.ensure_one()
-        self.overview_widget_ids.unlink()
-        self._create_default_overview()
-        return True
 
     # ------------------------------------------------------------
     # Templates
@@ -472,6 +335,6 @@ class AdvancedProject(models.Model):
         day_shift = (start - template.date_start).days if template.date_start else 0
         if template.date_end and 'date_end' not in vals:
             vals['date_end'] = template.date_end + timedelta(days=day_shift)
-        project = self.with_context(advanced_project_no_default_overview=True).create(vals)
+        project = self.create(vals)
         project._copy_plan_from(template, day_shift=day_shift)
         return project

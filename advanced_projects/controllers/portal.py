@@ -1,5 +1,5 @@
 from odoo import _, http
-from odoo.exceptions import AccessError, MissingError
+from odoo.exceptions import AccessError, MissingError, UserError
 from odoo.fields import Domain
 from odoo.http import request
 
@@ -118,3 +118,26 @@ class AdvancedProjectCustomerPortal(CustomerPortal):
         }
         values = self._get_page_view_values(update_sudo, access_token, values, False, True, **kw)
         return request.render('advanced_projects.portal_my_project_update', values)
+
+    @http.route('/my/projects/rating/<int:rating_id>', type='http', auth='public', website=True,
+                methods=['GET', 'POST'])
+    def portal_project_rating(self, rating_id, access_token=None, score=None, feedback=None, **kw):
+        """A requested rating, given by whoever has its link (Rating Link)."""
+        try:
+            rating_sudo = self._document_check_access('advanced.project.rating', rating_id, access_token)
+        except (AccessError, MissingError):
+            return request.redirect('/my')
+        error = False
+        if request.httprequest.method == 'POST':
+            try:
+                rating_sudo._submit(score, (feedback or '').strip())
+            except UserError as exc:
+                error = exc.args[0]
+        return request.render('advanced_projects.portal_project_rating', {
+            'page_name': 'advanced_project_rating',
+            'rating': rating_sudo,
+            'access_token': access_token,
+            'error': error,
+            'scores': [('1', _('Poor')), ('2', _('Fair')), ('3', _('Good')), ('4', _('Very Good')),
+                       ('5', _('Excellent'))],
+        })

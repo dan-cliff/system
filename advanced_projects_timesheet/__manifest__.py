@@ -12,8 +12,8 @@
           task gets its own row
         - Projects and tasks show the hours worked on them under an Hours smart
           button (the project's total includes its tasks), opening the entries
-        - Two Overview widgets to add from Customize: "Project Working Hours
-          Total" and "Project Working Hours by Person"
+        - The project's Budget tab compares the hours worked with the hours
+          allocated
     """,
     'author': "Cliff's Country Crafts",
     'depends': ['advanced_projects', 'advanced_timesheet'],

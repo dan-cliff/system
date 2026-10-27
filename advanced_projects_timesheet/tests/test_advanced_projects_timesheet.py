@@ -38,24 +38,10 @@ class TestAdvancedProjectsTimesheet(TransactionCase):
         rows = self.sheet.get_grid_data()['rows']
         self.assertEqual(len(rows), 2)
 
-    def test_overview_widgets(self):
-        self._line(1.5, advanced_task_id=self.task.id)
-        self._line(0.5, advanced_project_id=self.project.id)
-        palette = {item['type'] for item in self.env['advanced.project.overview.widget']._palette()}
-        self.assertTrue({'hours_total', 'hours_by_person'} <= palette)
-        total_id = self.project.overview_add_widget('hours_total')
-        person_id = self.project.overview_add_widget('hours_by_person')
-        data = {w['id']: w['data'] for w in self.project.get_overview_data()['widgets']}
-        self.assertEqual(data[total_id]['render'], 'stat')
-        self.assertEqual(data[total_id]['value'], '2:00')
-        self.assertEqual(data[person_id]['rows'], [{'label': 'Sam Worker', 'value': '2:00', 'percent': 100}])
-
     def test_budget_hours_worked(self):
         self.env['advanced.project.budget.line'].create({'project_id': self.project.id, 'allocated_hours': 4})
         self._line(3.0, advanced_task_id=self.task.id)
-        hours = self.project._budget_overview_values()['hours']
-        self.assertEqual((hours['worked'], hours['worked_percent'], hours['over_worked']), ('3:00', 75, False))
+        self.assertEqual((self.project.allocated_hours, self.project.timesheet_hours), (4, 3))
         self._line(2.0, advanced_project_id=self.project.id)
         self.project.invalidate_recordset(['timesheet_hours'])
-        hours = self.project._budget_overview_values()['hours']
-        self.assertEqual((hours['worked'], hours['worked_percent'], hours['over_worked']), ('5:00', 100, True))
+        self.assertEqual(self.project.timesheet_hours, 5)

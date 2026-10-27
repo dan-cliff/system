@@ -5,7 +5,7 @@
         <field name="model">advanced.project</field>
         <field name="inherit_id" ref="advanced_projects.advanced_project_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_open_overview']" position="after">
+            <xpath expr="//button[@name='action_open_tasks']" position="before">
                 <button name="action_open_dashboards" type="object" class="oe_stat_button" icon="fa-bar-chart"
                         invisible="is_template or not dashboard_count"
                         groups="custom_dashboard.group_dashboard_user">
