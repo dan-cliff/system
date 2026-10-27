@@ -12,6 +12,7 @@ import requests
 from requests.exceptions import RequestException
 
 from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 from odoo.tools import safe_eval
 
 _logger = logging.getLogger(__name__)
@@ -279,7 +280,7 @@ class WfStep(models.Model):
     target_relation_field_id = fields.Many2one(
         'ir.model.fields',
         string='Relation Field',
-        domain="[('model_id', '=', workflow_id.model_id), ('ttype', 'in', ['many2one', 'many2many', 'one2many'])]",
+        domain="[('model_id', '=', workflow_model_id), ('ttype', 'in', ['many2one', 'many2many', 'one2many'])]",
         help='Field on the trigger record pointing to the target record(s).',
     )
     target_model_id = fields.Many2one(
@@ -290,6 +291,16 @@ class WfStep(models.Model):
     target_domain = fields.Char(
         string='Target Domain',
         default='[]',
+    )
+
+    # Field pickers filter on this: a client-side domain can't follow
+    # 'workflow_id.model_id', so the trigger model is exposed directly.
+    workflow_model_id = fields.Many2one(
+        'ir.model',
+        string='Workflow Model',
+        related='workflow_id.model_id',
+        readonly=True,
+        store=False,
     )
 
     # Computed helpers — expose model technical names for the domain widget.
@@ -388,7 +399,7 @@ class WfStep(models.Model):
     activity_user_field_id = fields.Many2one(
         'ir.model.fields',
         string='User Field',
-        domain="[('model_id', '=', workflow_id.model_id), ('ttype', '=', 'many2one'), ('relation', '=', 'res.users')]",
+        domain="[('model_id', '=', workflow_model_id), ('ttype', '=', 'many2one'), ('relation', '=', 'res.users')]",
         help='Field on the trigger record holding the user to assign the activity to.',
     )
 
@@ -457,18 +468,26 @@ class WfStep(models.Model):
     email_body = fields.Html(string='Email Body')
     email_to_type = fields.Selection(
         selection=[
+            ('template', "Template's Recipients"),
             ('field', 'Field on Record'),
             ('specific_users', 'Specific Users'),
         ],
         string='Send To',
-        default='field',
-        help='How the recipient(s) are determined for inline emails.',
+        compute='_compute_email_to_type',
+        store=True,
+        readonly=False,
+        precompute=True,
+        help="How the recipient(s) are determined. Template's Recipients "
+             "uses the To / Cc set on the email template.",
     )
     email_to_field_id = fields.Many2one(
         'ir.model.fields',
         string='To (field)',
-        domain="[('model_id', '=', workflow_id.model_id)]",
-        help='Field on the trigger record that holds the recipient email address.',
+        domain="[('model_id', '=', workflow_model_id), '|', ('ttype', '=', 'char'), "
+               "'&', ('ttype', 'in', ['many2one', 'many2many', 'one2many']), "
+               "('relation', 'in', ['res.users', 'res.partner'])]",
+        help='Field on the trigger record that holds the recipient: an email '
+             'address, or a user or contact (one or several).',
     )
     email_to_user_ids = fields.Many2many(
         'res.users',
@@ -478,6 +497,30 @@ class WfStep(models.Model):
         string='Recipients',
         help='Send the email to these specific users.',
     )
+
+    @api.depends('email_type')
+    def _compute_email_to_type(self):
+        for step in self:
+            if step.email_type == 'template':
+                # Keep a recipient choice that is filled in; otherwise the
+                # template decides who receives it.
+                if not (step.email_to_type == 'specific_users'
+                        or (step.email_to_type == 'field' and step.email_to_field_id)):
+                    step.email_to_type = 'template'
+            elif step.email_to_type in (False, 'template'):
+                step.email_to_type = 'field'
+
+    @api.constrains('step_type', 'email_type', 'email_to_type')
+    def _check_email_to_type(self):
+        for step in self:
+            if (step.step_type == 'send_email' and step.email_type == 'inline'
+                    and step.email_to_type == 'template'):
+                raise ValidationError(_(
+                    "Step '%s': an inline email has no template, so choose "
+                    "who to send it to (Field on Record or Specific Users).",
+                    step.name,
+                ))
+
     # Report attachments for Send Email
     email_attach_report_ids = fields.Many2many(
         'report.builder',
@@ -639,7 +682,7 @@ class WfStep(models.Model):
     sub_workflow_record_field_id = fields.Many2one(
         'ir.model.fields',
         string='Sub-Workflow Record Field',
-        domain="[('model_id', '=', workflow_id.model_id)]",
+        domain="[('model_id', '=', workflow_model_id)]",
     )
 
     # ------------------------------------------------------------------ #
@@ -918,8 +961,7 @@ class WfStep(models.Model):
                 elif stype == 'send_email':
                     target_records = step_sudo._resolve_target_records(record, run_context)
                     step_sudo._exec_send_email(target_records, record, run_context)
-                    if (step_sudo.email_type == 'inline'
-                            and step_sudo.email_to_type == 'specific_users'):
+                    if step_sudo.email_to_type == 'specific_users':
                         n_users = len(step_sudo.email_to_user_ids.filtered('email'))
                         result_summary = 'Email sent to %d specific user(s)' % n_users
                     else:
@@ -1326,6 +1368,9 @@ class WfStep(models.Model):
             self.email_type == 'template'
             or self.email_to_type != 'specific_users'
         )
+        if self.email_type == 'template' and not self.email_template_id:
+            _logger.warning("wf.step '%s' — no email template set; skipping", self.name)
+            return
         if needs_target_records and not target_records:
             return
 
@@ -1371,12 +1416,28 @@ class WfStep(models.Model):
                             self.name, report.name,
                         )
 
-        if self.email_type == 'template' and self.email_template_id:
+        if self.email_type == 'template':
             for trec in target_records:
+                # The template's own To / Cc unless the step picks recipients
+                email_to = False
+                if self.email_to_type != 'template':
+                    email_to = ','.join(self._get_email_recipients(trec))
+                    if not email_to:
+                        _logger.warning(
+                            "wf.step '%s' — no recipient email address for %s #%d; skipping",
+                            self.name, trec._name, trec.id,
+                        )
+                        continue
                 try:
                     mail_id = self.email_template_id.send_mail(trec.id, force_send=False)
+                    mail = self.env['mail.mail'].browse(mail_id)
+                    if email_to:
+                        mail.write({
+                            'email_to': email_to,
+                            'email_cc': False,
+                            'recipient_ids': [(5, 0, 0)],
+                        })
                     if attachment_ids:
-                        mail = self.env['mail.mail'].browse(mail_id)
                         mail.write({'attachment_ids': [(4, aid) for aid in attachment_ids]})
                         # Pin on-the-fly attachments to this mail.message
                         if on_the_fly_attachment_ids:
@@ -1403,14 +1464,13 @@ class WfStep(models.Model):
 
             if self.email_to_type == 'specific_users':
                 # Send one email addressed to all selected users
-                recipients = self.email_to_user_ids.filtered('email')
-                if not recipients:
+                email_to = ','.join(self._get_email_recipients(record))
+                if not email_to:
                     _logger.warning(
                         "wf.step '%s' — no recipient email addresses found on selected users; skipping",
                         self.name,
                     )
                     return
-                email_to = ','.join(recipients.mapped('email'))
                 try:
                     mail_vals = {
                         'subject': subject,
@@ -1436,19 +1496,7 @@ class WfStep(models.Model):
             else:
                 # Resolve recipient from a field on each target record
                 for trec in target_records:
-                    email_to = False
-                    if self.email_to_field_id:
-                        try:
-                            email_to = trec[self.email_to_field_id.name]
-                            if hasattr(email_to, 'email'):
-                                email_to = email_to.email
-                            elif hasattr(email_to, 'mapped'):
-                                email_to = ','.join(email_to.mapped('email'))
-                        except Exception:
-                            _logger.warning(
-                                "wf.step '%s' — could not resolve email_to from field", self.name,
-                            )
-
+                    email_to = ','.join(self._get_email_recipients(trec))
                     if not email_to:
                         _logger.warning(
                             "wf.step '%s' — no recipient email address for %s #%d; skipping",
@@ -1480,6 +1528,31 @@ class WfStep(models.Model):
                             "wf.step '%s' — error sending inline email to '%s'",
                             self.name, email_to,
                         )
+
+    def _get_email_recipients(self, trec):
+        """Email addresses a Send Email step goes to for ``trec``.
+
+        Specific Users: the selected users. Field on Record: the address in a
+        text field, or the users / contacts in a relational field.
+        """
+        self.ensure_one()
+        if self.email_to_type == 'specific_users':
+            return [e for e in self.email_to_user_ids.mapped('email') if e]
+        if self.email_to_type != 'field' or not self.email_to_field_id or not trec:
+            return []
+        try:
+            value = trec[self.email_to_field_id.name]
+        except Exception:
+            _logger.warning(
+                "wf.step '%s' — could not resolve email_to from field '%s'",
+                self.name, self.email_to_field_id.name,
+            )
+            return []
+        if isinstance(value, models.BaseModel):
+            if 'email' not in value._fields:
+                return []
+            return [e for e in value.mapped('email') if e]
+        return [value.strip()] if isinstance(value, str) and value.strip() else []
 
     def _exec_python_code(self, record, run_context):
         """Execute arbitrary Python code and return the value of 'result'."""

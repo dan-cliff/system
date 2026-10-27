@@ -20,6 +20,7 @@
                         <field name="step_type"/>
                         <field name="sequence"/>
                         <!-- Invisible helpers — feed model name to domain widgets below -->
+                        <field name="workflow_model_id" invisible="1"/>
                         <field name="workflow_model_name" invisible="1"/>
                         <field name="target_model_name" invisible="1"/>
                     </group>
@@ -200,16 +201,20 @@
                                invisible="step_type != 'send_email'">
                             <field name="email_type"/>
                             <field name="email_template_id"
-                                   invisible="email_type != 'template'"/>
+                                   invisible="email_type != 'template'"
+                                   required="step_type == 'send_email' and email_type == 'template'"/>
                             <field name="email_subject"
                                    invisible="email_type != 'inline'"/>
-                            <field name="email_to_type"
-                                   invisible="email_type != 'inline'"/>
+                            <field name="email_to_type"/>
                             <field name="email_to_field_id"
-                                   invisible="email_type != 'inline' or email_to_type != 'field'"/>
+                                   options="{'no_create': True, 'no_open': True}"
+                                   invisible="email_to_type != 'field'"
+                                   required="step_type == 'send_email' and email_to_type == 'field'"/>
                             <field name="email_to_user_ids"
                                    widget="many2many_tags"
-                                   invisible="email_type != 'inline' or email_to_type != 'specific_users'"/>
+                                   options="{'no_create': True}"
+                                   invisible="email_to_type != 'specific_users'"
+                                   required="step_type == 'send_email' and email_to_type == 'specific_users'"/>
                             <field name="email_body"
                                    invisible="email_type != 'inline'"
                                    nolabel="1"
