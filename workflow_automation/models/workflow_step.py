@@ -1,5 +1,7 @@
 # Part of Cliff's Country Crafts. See LICENSE file for full copyright and licensing details.
 
+import datetime
+import html
 import json
 import logging
 import re
@@ -8,7 +10,9 @@ import string
 import traceback
 import time as _time
 
+import pytz
 import requests
+from markupsafe import Markup, escape
 from requests.exceptions import RequestException
 
 from odoo import _, api, fields, models
@@ -19,6 +23,14 @@ _logger = logging.getLogger(__name__)
 
 # Regex for {{expression}} template rendering
 _TEMPLATE_RE = re.compile(r'\{\{(.+?)\}\}')
+def _html_unescape(text):
+    return html.unescape(text or '')
+
+
+# <t t-out="expr">default</t> as inserted by the HTML editor's Dynamic Placeholder
+_T_OUT_RE = re.compile(
+    r'<t\b[^>]*?\bt-out="([^"]*)"[^>]*?(?:/>|>(.*?)</t>)', re.DOTALL | re.IGNORECASE,
+)
 
 # Headers redacted in the API call log for the API Call step type
 _API_SENSITIVE_HEADERS = frozenset({
@@ -384,7 +396,8 @@ class WfStep(models.Model):
 
     activity_type_id = fields.Many2one('mail.activity.type', string='Activity Type')
     activity_summary = fields.Char(string='Summary')
-    activity_note = fields.Html(string='Note')
+    # sanitize='email_outgoing' keeps the editor's <t t-out> placeholders
+    activity_note = fields.Html(string='Note', sanitize='email_outgoing')
     activity_deadline_days = fields.Integer(string='Deadline (days)', default=1)
     activity_user_type = fields.Selection(
         selection=[
@@ -415,7 +428,8 @@ class WfStep(models.Model):
         string='Post As',
         default='comment',
     )
-    message_body = fields.Html(string='Message Body')
+    message_subject = fields.Char(string='Subject')
+    message_body = fields.Html(string='Message Body', sanitize='email_outgoing')
 
     # ------------------------------------------------------------------ #
     # Bus notification fields                                              #
@@ -430,6 +444,10 @@ class WfStep(models.Model):
         ],
         string='Notification Level',
         default='info',
+    )
+    notification_title = fields.Char(
+        string='Notification Title',
+        default=lambda self: _('Workflow Notification'),
     )
     notification_message = fields.Char(string='Notification Message')
     notification_target = fields.Selection(
@@ -465,7 +483,7 @@ class WfStep(models.Model):
         string='Email Template',
     )
     email_subject = fields.Char(string='Subject')
-    email_body = fields.Html(string='Email Body')
+    email_body = fields.Html(string='Email Body', sanitize='email_outgoing')
     email_to_type = fields.Selection(
         selection=[
             ('template', "Template's Recipients"),
@@ -1267,8 +1285,8 @@ class WfStep(models.Model):
                     "wf.step '%s' — could not resolve user from field '%s'", self.name, fname,
                 )
 
-        summary = self._render_template(self.activity_summary or '', eval_ctx)
-        note = self._render_template(self.activity_note or '', eval_ctx)
+        summary = self._render_template(self.activity_summary or '', eval_ctx, display=True)
+        note = Markup(self._render_template(self.activity_note or '', eval_ctx, html=True))
 
         for trec in target_records:
             if hasattr(trec, 'activity_schedule'):
@@ -1292,11 +1310,11 @@ class WfStep(models.Model):
         if not target_records:
             return
 
-        from markupsafe import Markup
         eval_ctx = self._get_eval_context(record, run_context)
+        subject = self._render_template(self.message_subject or '', eval_ctx, display=True)
         # _render_template returns a plain str; re-wrap as Markup so Odoo's
         # mail system treats the content as trusted HTML instead of escaping it.
-        body = Markup(self._render_template(self.message_body or '', eval_ctx))
+        body = Markup(self._render_template(self.message_body or '', eval_ctx, html=True))
 
         # Append report names if configured
         if self.include_report_names:
@@ -1313,6 +1331,8 @@ class WfStep(models.Model):
             if hasattr(trec, 'message_post'):
                 try:
                     kwargs = {'body': body}
+                    if subject:
+                        kwargs['subject'] = subject
                     if subtype:
                         kwargs['subtype_id'] = subtype.id
                     trec.message_post(**kwargs)
@@ -1326,7 +1346,8 @@ class WfStep(models.Model):
         """Send a bus (web push) notification to configured users."""
         self.ensure_one()
         eval_ctx = self._get_eval_context(record, run_context)
-        message = self._render_template(self.notification_message or '', eval_ctx)
+        title = self._render_template(self.notification_title or '', eval_ctx, display=True)
+        message = self._render_template(self.notification_message or '', eval_ctx, display=True)
         level = self.notification_level or 'info'
 
         # Append report names if configured
@@ -1345,7 +1366,7 @@ class WfStep(models.Model):
             return
 
         payload = {
-            'title':   _('Workflow Notification'),
+            'title':   title or _('Workflow Notification'),
             'message': message,
             'type':    level,
             'sticky':  False,
@@ -1453,8 +1474,8 @@ class WfStep(models.Model):
                     )
         else:
             # Inline email
-            subject = self._render_template(self.email_subject or '', eval_ctx)
-            body_html = self._render_template(self.email_body or '', eval_ctx)
+            subject = self._render_template(self.email_subject or '', eval_ctx, display=True)
+            body_html = self._render_template(self.email_body or '', eval_ctx, html=True)
 
             # Append report names to body if configured
             if self.include_report_names:
@@ -2015,35 +2036,96 @@ class WfStep(models.Model):
     # Template rendering                                                   #
     # ------------------------------------------------------------------ #
 
-    def _render_template(self, template_str, eval_ctx):
+    def _render_template(self, template_str, eval_ctx, html=False, display=False):
         """Render a string containing ``{{expression}}`` placeholders.
 
         Each ``{{expr}}`` block is replaced by the result of evaluating *expr*
-        in *eval_ctx* via safe_eval.
+        in *eval_ctx* via safe_eval. ``{{expr ||| default}}`` (as inserted by
+        the field selector) falls back to *default* when the value is empty.
 
         Args:
             template_str: The template string.
             eval_ctx: The evaluation context dict.
+            html: The template is HTML (an Html field): also render the
+                editor's ``<t t-out="expr">default</t>`` placeholders and
+                escape the inserted values. Implies *display*.
+            display: Format values for people to read (dates as dd/mm/yyyy,
+                records by name, empty values as nothing) instead of ``str()``.
 
         Returns:
             The rendered string.
         """
-        if not template_str or '{{' not in template_str:
-            return template_str or ''
+        if not template_str:
+            return ''
+        display = display or html
 
-        def replacer(match):
-            expr = match.group(1).strip()
+        def evaluate(expr, default=''):
+            if html:
+                expr = _html_unescape(expr)
             try:
-                value = safe_eval.safe_eval(expr, eval_ctx)
-                return str(value) if value is not None else ''
+                value = safe_eval.safe_eval(expr.strip(), eval_ctx)
             except Exception:
                 _logger.warning(
                     "wf.step '%s' — error rendering template expression '{{%s}}'",
                     self.name if self else '?', expr,
                 )
-                return ''
+                return default
+            if display:
+                value = self._format_placeholder_value(value)
+            elif value is None:
+                value = ''
+            if value == '':
+                return default
+            return str(escape(value)) if html else str(value)
 
+        def replacer(match):
+            expr, sep, default = match.group(1).partition('|||')
+            if html and sep:
+                default = str(escape(_html_unescape(default.strip())))
+            return evaluate(expr, default.strip())
+
+        if html and 't-out' in template_str:
+            template_str = _T_OUT_RE.sub(
+                lambda m: evaluate(m.group(1), m.group(2) or ''), template_str,
+            )
+        if '{{' not in template_str:
+            return template_str
         return _TEMPLATE_RE.sub(replacer, template_str)
+
+    def _format_placeholder_value(self, value):
+        """Text shown for a placeholder's value in a message, email or activity."""
+        if value is None or value is False:
+            return ''
+        if isinstance(value, models.BaseModel):
+            return ', '.join(name for name in value.mapped('display_name') if name)
+        if isinstance(value, datetime.datetime):
+            return self._wf_format_datetime(value)
+        if isinstance(value, datetime.date):
+            return value.strftime('%d/%m/%Y')
+        return value
+
+    def _wf_format_datetime(self, value, tz=False, dt_format=False, lang_code=False):
+        """Format a datetime as dd/mm/yyyy HH:MM in *tz* (default: the user's).
+
+        Exposed to placeholders as ``format_datetime``, matching the signature
+        the HTML editor's Dynamic Placeholder uses for datetime fields.
+        """
+        if not value:
+            return ''
+        value = fields.Datetime.to_datetime(value)
+        try:
+            zone = pytz.timezone(tz or self.env.user.tz or 'UTC')
+        except pytz.UnknownTimeZoneError:
+            zone = pytz.utc
+        if value.tzinfo is None:
+            value = pytz.utc.localize(value)
+        return value.astimezone(zone).strftime('%d/%m/%Y %H:%M')
+
+    def _wf_format_date(self, value, date_format=False, lang_code=False):
+        """Format a date as dd/mm/yyyy (``format_date`` in placeholders)."""
+        if not value:
+            return ''
+        return fields.Date.to_date(value).strftime('%d/%m/%Y')
 
     # ------------------------------------------------------------------ #
     # Eval context                                                         #
@@ -2064,6 +2146,9 @@ class WfStep(models.Model):
             'env': self.env,
             'record': record,   # may be None
             'model': record,    # may be None
+            'object': record,   # used by the field selector's placeholders
+            'format_date': self._wf_format_date,
+            'format_datetime': self._wf_format_datetime,
             'step': self,
             'workflow': run_context.get('workflow') if run_context else None,
             'trigger_type': run_context.get('trigger_type') if run_context else None,

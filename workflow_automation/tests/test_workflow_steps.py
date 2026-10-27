@@ -378,6 +378,57 @@ class TestWorkflowSteps(TransactionCase):
         result = step._render_template("{{undefined_var.something}}", {})
         self.assertEqual(result, "")
 
+    def test_render_template_field_selector_placeholders(self):
+        """Placeholders inserted by the field selector render, with defaults."""
+        step = self.env['wf.step'].create({
+            'workflow_id': self.wf.id,
+            'name': 'Field Selector',
+            'step_type': 'stop_workflow',
+        })
+        self.partner.write({'name': 'A & B', 'function': False})
+        ctx = step._get_eval_context(self.partner, {})
+
+        # Char / Text fields: {{object.path ||| default}}
+        self.assertEqual(
+            step._render_template("Hi {{object.name}}", ctx, display=True), "Hi A & B",
+        )
+        self.assertEqual(
+            step._render_template("{{object.function ||| n/a}}", ctx, display=True), "n/a",
+        )
+        # Html fields: the editor's <t t-out> elements, values escaped
+        body = (
+            '<p><t t-out="object.name"></t> / '
+            '<t t-out="object.function">No job</t></p>'
+        )
+        self.assertEqual(
+            step._render_template(body, ctx, html=True), "<p>A &amp; B / No job</p>",
+        )
+
+    def test_render_template_display_formats(self):
+        """Dates show as dd/mm/yyyy and records by name in messages."""
+        step = self.env['wf.step'].create({
+            'workflow_id': self.wf.id,
+            'name': 'Formats',
+            'step_type': 'stop_workflow',
+        })
+        self.env.user.tz = 'UTC'
+        ctx = {
+            'd': datetime.date(2026, 3, 4),
+            'dt': datetime.datetime(2026, 3, 4, 5, 6, 7),
+            'object': self.partner,
+            'format_datetime': step._wf_format_datetime,
+        }
+        render = step._render_template
+        self.assertEqual(render("{{d}}", ctx, display=True), "04/03/2026")
+        self.assertEqual(render("{{dt}}", ctx, display=True), "04/03/2026 05:06")
+        self.assertEqual(
+            render("{{format_datetime(dt, tz='Australia/Sydney')}}", ctx, display=True),
+            "04/03/2026 16:06",
+        )
+        self.assertEqual(render("{{object}}", ctx, display=True), self.partner.display_name)
+        # Without display formatting (API calls) values keep their str()
+        self.assertEqual(render("{{d}}", ctx), "2026-03-04")
+
     # ------------------------------------------------------------------ #
     # Trigger sub-workflow                                                 #
     # ------------------------------------------------------------------ #
