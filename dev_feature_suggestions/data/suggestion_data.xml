@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_dev_suggestion" model="ir.sequence">
+            <field name="name">Feature Suggestion</field>
+            <field name="code">dev.suggestion</field>
+            <field name="prefix">IDEA-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Statuses -->
+        <record id="status_new" model="dev.suggestion.status">
+            <field name="name">New</field>
+            <field name="sequence">10</field>
+            <field name="color">0</field>
+            <field name="notify_followers" eval="False"/>
+            <field name="website_description">Thanks for the idea! We read every suggestion.</field>
+        </record>
+        <record id="status_review" model="dev.suggestion.status">
+            <field name="name">Under Review</field>
+            <field name="sequence">20</field>
+            <field name="color">4</field>
+            <field name="website_description">We are looking into this suggestion.</field>
+        </record>
+        <record id="status_planned" model="dev.suggestion.status">
+            <field name="name">Planned</field>
+            <field name="sequence">30</field>
+            <field name="color">2</field>
+            <field name="website_description">We plan to build this.</field>
+        </record>
+        <record id="status_progress" model="dev.suggestion.status">
+            <field name="name">In Progress</field>
+            <field name="sequence">40</field>
+            <field name="color">3</field>
+            <field name="website_description">We are building this now.</field>
+        </record>
+        <record id="status_released" model="dev.suggestion.status">
+            <field name="name">Released</field>
+            <field name="sequence">50</field>
+            <field name="color">10</field>
+            <field name="is_closed" eval="True"/>
+            <field name="set_on_release" eval="True"/>
+            <field name="website_description">This is now available.</field>
+        </record>
+        <record id="status_declined" model="dev.suggestion.status">
+            <field name="name">Not Planned</field>
+            <field name="sequence">60</field>
+            <field name="color">1</field>
+            <field name="is_closed" eval="True"/>
+            <field name="fold" eval="True"/>
+            <field name="website_description">We don't plan to build this; see our response for why.</field>
+        </record>
+        <record id="status_merged" model="dev.suggestion.status">
+            <field name="name">Merged</field>
+            <field name="sequence">70</field>
+            <field name="color">0</field>
+            <field name="is_closed" eval="True"/>
+            <field name="fold" eval="True"/>
+            <field name="notify_followers" eval="False"/>
+            <field name="website_description">This duplicates another suggestion; its votes count there.</field>
+        </record>
+
+        <!-- Sources -->
+        <record id="source_website" model="dev.suggestion.source">
+            <field name="name">Website</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="source_internal" model="dev.suggestion.source">
+            <field name="name">Internal</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="source_helpdesk" model="dev.suggestion.source">
+            <field name="name">Helpdesk</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="source_sales" model="dev.suggestion.source">
+            <field name="name">Sales Conversation</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="source_email" model="dev.suggestion.source">
+            <field name="name">Email</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <!-- Importance -->
+        <record id="importance_nice" model="dev.suggestion.importance">
+            <field name="name">Nice to have</field>
+            <field name="sequence">10</field>
+            <field name="weight">1</field>
+        </record>
+        <record id="importance_important" model="dev.suggestion.importance">
+            <field name="name">Important</field>
+            <field name="sequence">20</field>
+            <field name="weight">2</field>
+        </record>
+        <record id="importance_critical" model="dev.suggestion.importance">
+            <field name="name">Critical</field>
+            <field name="sequence">30</field>
+            <field name="weight">3</field>
+        </record>
+
+        <!-- Categories -->
+        <record id="category_general" model="dev.suggestion.category">
+            <field name="name">General</field>
+            <field name="sequence">10</field>
+            <field name="description">Ideas that don't fit another category.</field>
+        </record>
+        <record id="category_usability" model="dev.suggestion.category">
+            <field name="name">Ease of Use</field>
+            <field name="sequence">20</field>
+            <field name="description">Make things simpler, faster or clearer.</field>
+        </record>
+        <record id="category_integrations" model="dev.suggestion.category">
+            <field name="name">Integrations</field>
+            <field name="sequence">30</field>
+            <field name="description">Connect with other apps and services.</field>
+        </record>
+        <record id="category_reporting" model="dev.suggestion.category">
+            <field name="name">Reporting</field>
+            <field name="sequence">40</field>
+            <field name="description">Reports, dashboards and exports.</field>
+        </record>
+    </data>
+
+    <!-- Website menu: the forum -->
+    <record id="menu_feature_requests" model="website.menu">
+        <field name="name">Feature Requests</field>
+        <field name="url">/feature-requests</field>
+        <field name="parent_id" ref="website.main_menu"/>
+        <field name="sequence">60</field>
+    </record>
+</odoo>

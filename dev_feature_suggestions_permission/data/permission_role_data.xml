@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_suggestion_admin" model="permission.role">
+            <field name="name">Feature Suggestions – Administrator</field>
+            <field name="description">Everything in Feature Suggestions: create, edit and delete any suggestion, moderate, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_feature_suggestions'), 'group_id': ref('dev_feature_suggestions.group_suggestion_admin')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_moderate'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_moderate')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_create_only'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_create_only')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_edit_own'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_edit_team'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_edit_all'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_view_all'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_delete_own'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_delete_own')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_delete_all'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_suggestion_manager" model="permission.role">
+            <field name="name">Feature Suggestions – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s suggestions; view and vote on every suggestion. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_edit_team'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_view_all'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_view_all')})
+            ]"/>
+        </record>
+        <record id="role_suggestion_employee" model="permission.role">
+            <field name="name">Feature Suggestions – Employee</field>
+            <field name="description">Create, view and edit their own suggestions; view and vote on every suggestion. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_edit_own'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_view_all'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_view_all')})
+            ]"/>
+        </record>
+        <record id="role_suggestion_moderator" model="permission.role">
+            <field name="name">Feature Suggestions – Moderator</field>
+            <field name="description">Create, view and edit every suggestion and moderate them: status, publishing, official responses, merging duplicates and creating features. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_edit_all'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_feature_suggestions.privilege_dev_suggestion_moderate'), 'group_id': ref('dev_feature_suggestions.group_dev_suggestion_moderate')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

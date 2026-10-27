@@ -1,0 +1,1069 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions). Generated from one spec so every
+         primary model gets the same seven permissions: each is its own privilege with one
+         "Allowed" group whose record rules give it its meaning. All of them imply the
+         technical Development user group, which holds the ACLs and a deny rule, so users
+         can only do what a permission opens. Child records (links, acceptance criteria,
+         pages, page versions) follow their parent. Repositories, branches and the
+         Configuration lists use plain ACLs (see ir.model.access.csv).
+         "Own" = created by them, or naming them in the record's owner field (user_id). -->
+
+    <record id="module_category_development" model="ir.module.category">
+        <field name="name">Development</field>
+        <field name="description">Plan, build and ship software: releases, features, tickets and documentation.</field>
+        <field name="sequence">58</field>
+    </record>
+
+    <record id="privilege_dev_management" model="res.groups.privilege">
+        <field name="name">Development</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Development app.</field>
+    </record>
+
+    <record id="group_dev_user" model="res.groups">
+        <field name="name">Development: User</field>
+        <field name="privilege_id" eval="False"/>
+        <field name="comment">Technical: given by every Development permission. Opens the app; what users can do with releases, features, tickets and documentation comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Workflow: shipping a release (not CRUD) -->
+    <record id="privilege_dev_release_ship" model="res.groups.privilege">
+        <field name="name">Releases: Ship</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">15</field>
+        <field name="description">Move releases into Alpha, Beta and Core Release and close them, merge their branches on GitHub and publish their GitHub release.</field>
+    </record>
+    <record id="group_dev_release_ship" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_ship"/>
+        <field name="comment">Move releases into Alpha, Beta and Core Release and close them, merge their branches on GitHub and publish their GitHub release.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+
+    <!-- ── Releases ── -->
+    <record id="privilege_dev_release_create_only" model="res.groups.privilege">
+        <field name="name">Releases: Create Only</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">20</field>
+        <field name="description">Create releases, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_dev_release_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_create_only"/>
+        <field name="comment">Create releases, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_release_edit_own" model="res.groups.privilege">
+        <field name="name">Releases: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">21</field>
+        <field name="description">Create releases, and view and edit their own (created by them or where they are the Release Manager).</field>
+    </record>
+    <record id="group_dev_release_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_edit_own"/>
+        <field name="comment">Create releases, and view and edit their own (created by them or where they are the Release Manager).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_release_edit_team" model="res.groups.privilege">
+        <field name="name">Releases: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">22</field>
+        <field name="description">Create releases, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_dev_release_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_edit_team"/>
+        <field name="comment">Create releases, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_release_edit_all" model="res.groups.privilege">
+        <field name="name">Releases: Create and Edit All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">23</field>
+        <field name="description">Create, view and edit every release.</field>
+    </record>
+    <record id="group_dev_release_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_edit_all"/>
+        <field name="comment">Create, view and edit every release.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_release_view_all" model="res.groups.privilege">
+        <field name="name">Releases: View All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">24</field>
+        <field name="description">View every release.</field>
+    </record>
+    <record id="group_dev_release_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_view_all"/>
+        <field name="comment">View every release.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_release_delete_own" model="res.groups.privilege">
+        <field name="name">Releases: Delete Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">25</field>
+        <field name="description">Delete their own releases (created by them or where they are the Release Manager).</field>
+    </record>
+    <record id="group_dev_release_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_delete_own"/>
+        <field name="comment">Delete their own releases (created by them or where they are the Release Manager).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_release_delete_all" model="res.groups.privilege">
+        <field name="name">Releases: Delete All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">26</field>
+        <field name="description">Delete any release.</field>
+    </record>
+    <record id="group_dev_release_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_release_delete_all"/>
+        <field name="comment">Delete any release.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+
+    <!-- ── Features ── -->
+    <record id="privilege_dev_feature_create_only" model="res.groups.privilege">
+        <field name="name">Features: Create Only</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">37</field>
+        <field name="description">Create features, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_dev_feature_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_feature_create_only"/>
+        <field name="comment">Create features, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_feature_edit_own" model="res.groups.privilege">
+        <field name="name">Features: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">38</field>
+        <field name="description">Create features, and view and edit their own (created by them or where they are the Product Owner).</field>
+    </record>
+    <record id="group_dev_feature_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_feature_edit_own"/>
+        <field name="comment">Create features, and view and edit their own (created by them or where they are the Product Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_feature_edit_team" model="res.groups.privilege">
+        <field name="name">Features: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">39</field>
+        <field name="description">Create features, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_dev_feature_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_feature_edit_team"/>
+        <field name="comment">Create features, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_feature_edit_all" model="res.groups.privilege">
+        <field name="name">Features: Create and Edit All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">40</field>
+        <field name="description">Create, view and edit every feature.</field>
+    </record>
+    <record id="group_dev_feature_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_feature_edit_all"/>
+        <field name="comment">Create, view and edit every feature.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_feature_view_all" model="res.groups.privilege">
+        <field name="name">Features: View All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">41</field>
+        <field name="description">View every feature.</field>
+    </record>
+    <record id="group_dev_feature_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_feature_view_all"/>
+        <field name="comment">View every feature.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_feature_delete_own" model="res.groups.privilege">
+        <field name="name">Features: Delete Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">42</field>
+        <field name="description">Delete their own features (created by them or where they are the Product Owner).</field>
+    </record>
+    <record id="group_dev_feature_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_feature_delete_own"/>
+        <field name="comment">Delete their own features (created by them or where they are the Product Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_feature_delete_all" model="res.groups.privilege">
+        <field name="name">Features: Delete All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">43</field>
+        <field name="description">Delete any feature.</field>
+    </record>
+    <record id="group_dev_feature_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_feature_delete_all"/>
+        <field name="comment">Delete any feature.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+
+    <!-- ── Tickets ── -->
+    <record id="privilege_dev_ticket_create_only" model="res.groups.privilege">
+        <field name="name">Tickets: Create Only</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">54</field>
+        <field name="description">Create tickets, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_dev_ticket_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_ticket_create_only"/>
+        <field name="comment">Create tickets, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_ticket_edit_own" model="res.groups.privilege">
+        <field name="name">Tickets: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">55</field>
+        <field name="description">Create tickets, and view and edit their own (created by them or assigned to them).</field>
+    </record>
+    <record id="group_dev_ticket_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_ticket_edit_own"/>
+        <field name="comment">Create tickets, and view and edit their own (created by them or assigned to them).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_ticket_edit_team" model="res.groups.privilege">
+        <field name="name">Tickets: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">56</field>
+        <field name="description">Create tickets, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_dev_ticket_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_ticket_edit_team"/>
+        <field name="comment">Create tickets, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_ticket_edit_all" model="res.groups.privilege">
+        <field name="name">Tickets: Create and Edit All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">57</field>
+        <field name="description">Create, view and edit every ticket.</field>
+    </record>
+    <record id="group_dev_ticket_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_ticket_edit_all"/>
+        <field name="comment">Create, view and edit every ticket.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_ticket_view_all" model="res.groups.privilege">
+        <field name="name">Tickets: View All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">58</field>
+        <field name="description">View every ticket.</field>
+    </record>
+    <record id="group_dev_ticket_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_ticket_view_all"/>
+        <field name="comment">View every ticket.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_ticket_delete_own" model="res.groups.privilege">
+        <field name="name">Tickets: Delete Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">59</field>
+        <field name="description">Delete their own tickets (created by them or assigned to them).</field>
+    </record>
+    <record id="group_dev_ticket_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_ticket_delete_own"/>
+        <field name="comment">Delete their own tickets (created by them or assigned to them).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_ticket_delete_all" model="res.groups.privilege">
+        <field name="name">Tickets: Delete All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">60</field>
+        <field name="description">Delete any ticket.</field>
+    </record>
+    <record id="group_dev_ticket_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_ticket_delete_all"/>
+        <field name="comment">Delete any ticket.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+
+    <!-- ── Documentation Spaces ── -->
+    <record id="privilege_dev_space_create_only" model="res.groups.privilege">
+        <field name="name">Documentation Spaces: Create Only</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">71</field>
+        <field name="description">Create documentation spaces and their pages, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_dev_space_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_space_create_only"/>
+        <field name="comment">Create documentation spaces and their pages, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_space_edit_own" model="res.groups.privilege">
+        <field name="name">Documentation Spaces: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">72</field>
+        <field name="description">Create documentation spaces and their pages, and view and edit their own (created by them or where they are the Owner).</field>
+    </record>
+    <record id="group_dev_space_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_space_edit_own"/>
+        <field name="comment">Create documentation spaces and their pages, and view and edit their own (created by them or where they are the Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_space_edit_team" model="res.groups.privilege">
+        <field name="name">Documentation Spaces: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">73</field>
+        <field name="description">Create documentation spaces and their pages, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_dev_space_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_space_edit_team"/>
+        <field name="comment">Create documentation spaces and their pages, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_space_edit_all" model="res.groups.privilege">
+        <field name="name">Documentation Spaces: Create and Edit All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">74</field>
+        <field name="description">Create, view and edit every documentation space and its pages.</field>
+    </record>
+    <record id="group_dev_space_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_space_edit_all"/>
+        <field name="comment">Create, view and edit every documentation space and its pages.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_space_view_all" model="res.groups.privilege">
+        <field name="name">Documentation Spaces: View All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">75</field>
+        <field name="description">View every documentation space and its pages.</field>
+    </record>
+    <record id="group_dev_space_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_space_view_all"/>
+        <field name="comment">View every documentation space and its pages.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_space_delete_own" model="res.groups.privilege">
+        <field name="name">Documentation Spaces: Delete Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">76</field>
+        <field name="description">Delete their own documentation spaces and their pages (created by them or where they are the Owner).</field>
+    </record>
+    <record id="group_dev_space_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_space_delete_own"/>
+        <field name="comment">Delete their own documentation spaces and their pages (created by them or where they are the Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_space_delete_all" model="res.groups.privilege">
+        <field name="name">Documentation Spaces: Delete All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">77</field>
+        <field name="description">Delete any documentation space and its pages.</field>
+    </record>
+    <record id="group_dev_space_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_space_delete_all"/>
+        <field name="comment">Delete any documentation space and its pages.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing (rules of different groups are OR-ed) -->
+    <record id="rule_dev_release_deny" model="ir.rule">
+        <field name="name">Releases: only through a permission</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_feature_deny" model="ir.rule">
+        <field name="name">Features: only through a permission</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_feature_link_deny" model="ir.rule">
+        <field name="name">Feature Research Links: only through a permission</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_acceptance_criterion_deny" model="ir.rule">
+        <field name="name">Acceptance Criteria: only through a permission</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_ticket_deny" model="ir.rule">
+        <field name="name">Tickets: only through a permission</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_ticket_link_deny" model="ir.rule">
+        <field name="name">Ticket Links: only through a permission</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_space_deny" model="ir.rule">
+        <field name="name">Documentation Spaces: only through a permission</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_page_deny" model="ir.rule">
+        <field name="name">Documentation Pages: only through a permission</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_page_version_deny" model="ir.rule">
+        <field name="name">Documentation Page Versions: only through a permission</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <!-- Releases: Create Only -->
+    <record id="rule_dev_release_create_only" model="ir.rule">
+        <field name="name">Releases: Create Only</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_release_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Releases: Create and Edit Own -->
+    <record id="rule_dev_release_edit_own" model="ir.rule">
+        <field name="name">Releases: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_release_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Releases: Create and Edit My Team -->
+    <record id="rule_dev_release_edit_team" model="ir.rule">
+        <field name="name">Releases: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_release_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Releases: Create and Edit All -->
+    <record id="rule_dev_release_edit_all" model="ir.rule">
+        <field name="name">Releases: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_release_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Releases: View All -->
+    <record id="rule_dev_release_view_all" model="ir.rule">
+        <field name="name">Releases: View All</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_release_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Releases: Delete Own -->
+    <record id="rule_dev_release_delete_own" model="ir.rule">
+        <field name="name">Releases: Delete Own</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_release_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Releases: Delete All -->
+    <record id="rule_dev_release_delete_all" model="ir.rule">
+        <field name="name">Releases: Delete All</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="groups" eval="[(4, ref('group_dev_release_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Features: Create Only -->
+    <record id="rule_dev_feature_create_only" model="ir.rule">
+        <field name="name">Features: Create Only</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_feature_link_feature_id_create_only" model="ir.rule">
+        <field name="name">Feature Research Links: Create Only</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_create_only'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_feature_id_create_only" model="ir.rule">
+        <field name="name">Feature Acceptance Criteria: Create Only</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_create_only'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Features: Create and Edit Own -->
+    <record id="rule_dev_feature_edit_own" model="ir.rule">
+        <field name="name">Features: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_feature_link_feature_id_edit_own" model="ir.rule">
+        <field name="name">Feature Research Links: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_own'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_feature_id_edit_own" model="ir.rule">
+        <field name="name">Feature Acceptance Criteria: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_own'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Features: Create and Edit My Team -->
+    <record id="rule_dev_feature_edit_team" model="ir.rule">
+        <field name="name">Features: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_feature_link_feature_id_edit_team" model="ir.rule">
+        <field name="name">Feature Research Links: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_team'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', '|', '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id), ('feature_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('feature_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_feature_id_edit_team" model="ir.rule">
+        <field name="name">Feature Acceptance Criteria: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_team'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', '|', '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id), ('feature_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('feature_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Features: Create and Edit All -->
+    <record id="rule_dev_feature_edit_all" model="ir.rule">
+        <field name="name">Features: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_feature_link_feature_id_edit_all" model="ir.rule">
+        <field name="name">Feature Research Links: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_all'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_feature_id_edit_all" model="ir.rule">
+        <field name="name">Feature Acceptance Criteria: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_edit_all'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Features: View All -->
+    <record id="rule_dev_feature_view_all" model="ir.rule">
+        <field name="name">Features: View All</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_feature_link_feature_id_view_all" model="ir.rule">
+        <field name="name">Feature Research Links: View All</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_view_all'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_feature_id_view_all" model="ir.rule">
+        <field name="name">Feature Acceptance Criteria: View All</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_view_all'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Features: Delete Own -->
+    <record id="rule_dev_feature_delete_own" model="ir.rule">
+        <field name="name">Features: Delete Own</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_feature_link_feature_id_delete_own" model="ir.rule">
+        <field name="name">Feature Research Links: Delete Own</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_delete_own'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_feature_id_delete_own" model="ir.rule">
+        <field name="name">Feature Acceptance Criteria: Delete Own</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_delete_own'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False), '|', ('feature_id.create_uid', '=', user.id), ('feature_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Features: Delete All -->
+    <record id="rule_dev_feature_delete_all" model="ir.rule">
+        <field name="name">Features: Delete All</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_feature_link_feature_id_delete_all" model="ir.rule">
+        <field name="name">Feature Research Links: Delete All</field>
+        <field name="model_id" ref="model_dev_feature_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_delete_all'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_feature_id_delete_all" model="ir.rule">
+        <field name="name">Feature Acceptance Criteria: Delete All</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_feature_delete_all'))]"/>
+        <field name="domain_force">[('feature_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Tickets: Create Only -->
+    <record id="rule_dev_ticket_create_only" model="ir.rule">
+        <field name="name">Tickets: Create Only</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_ticket_link_source_id_create_only" model="ir.rule">
+        <field name="name">Ticket Links: Create Only</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_create_only'))]"/>
+        <field name="domain_force">[('source_id', '!=', False), '|', ('source_id.create_uid', '=', user.id), ('source_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_ticket_id_create_only" model="ir.rule">
+        <field name="name">Ticket Acceptance Criteria: Create Only</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_create_only'))]"/>
+        <field name="domain_force">[('ticket_id', '!=', False), '|', ('ticket_id.create_uid', '=', user.id), ('ticket_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Tickets: Create and Edit Own -->
+    <record id="rule_dev_ticket_edit_own" model="ir.rule">
+        <field name="name">Tickets: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_ticket_link_source_id_edit_own" model="ir.rule">
+        <field name="name">Ticket Links: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_own'))]"/>
+        <field name="domain_force">[('source_id', '!=', False), '|', ('source_id.create_uid', '=', user.id), ('source_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_ticket_id_edit_own" model="ir.rule">
+        <field name="name">Ticket Acceptance Criteria: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_own'))]"/>
+        <field name="domain_force">[('ticket_id', '!=', False), '|', ('ticket_id.create_uid', '=', user.id), ('ticket_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Tickets: Create and Edit My Team -->
+    <record id="rule_dev_ticket_edit_team" model="ir.rule">
+        <field name="name">Tickets: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_ticket_link_source_id_edit_team" model="ir.rule">
+        <field name="name">Ticket Links: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_team'))]"/>
+        <field name="domain_force">[('source_id', '!=', False), '|', '|', '|', ('source_id.create_uid', '=', user.id), ('source_id.user_id', '=', user.id), ('source_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('source_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_ticket_id_edit_team" model="ir.rule">
+        <field name="name">Ticket Acceptance Criteria: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_team'))]"/>
+        <field name="domain_force">[('ticket_id', '!=', False), '|', '|', '|', ('ticket_id.create_uid', '=', user.id), ('ticket_id.user_id', '=', user.id), ('ticket_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('ticket_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Tickets: Create and Edit All -->
+    <record id="rule_dev_ticket_edit_all" model="ir.rule">
+        <field name="name">Tickets: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_ticket_link_source_id_edit_all" model="ir.rule">
+        <field name="name">Ticket Links: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_all'))]"/>
+        <field name="domain_force">[('source_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_ticket_id_edit_all" model="ir.rule">
+        <field name="name">Ticket Acceptance Criteria: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_edit_all'))]"/>
+        <field name="domain_force">[('ticket_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Tickets: View All -->
+    <record id="rule_dev_ticket_view_all" model="ir.rule">
+        <field name="name">Tickets: View All</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_ticket_link_source_id_view_all" model="ir.rule">
+        <field name="name">Ticket Links: View All</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_view_all'))]"/>
+        <field name="domain_force">[('source_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_ticket_id_view_all" model="ir.rule">
+        <field name="name">Ticket Acceptance Criteria: View All</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_view_all'))]"/>
+        <field name="domain_force">[('ticket_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Tickets: Delete Own -->
+    <record id="rule_dev_ticket_delete_own" model="ir.rule">
+        <field name="name">Tickets: Delete Own</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_ticket_link_source_id_delete_own" model="ir.rule">
+        <field name="name">Ticket Links: Delete Own</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_delete_own'))]"/>
+        <field name="domain_force">[('source_id', '!=', False), '|', ('source_id.create_uid', '=', user.id), ('source_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_ticket_id_delete_own" model="ir.rule">
+        <field name="name">Ticket Acceptance Criteria: Delete Own</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_delete_own'))]"/>
+        <field name="domain_force">[('ticket_id', '!=', False), '|', ('ticket_id.create_uid', '=', user.id), ('ticket_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Tickets: Delete All -->
+    <record id="rule_dev_ticket_delete_all" model="ir.rule">
+        <field name="name">Tickets: Delete All</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_ticket_link_source_id_delete_all" model="ir.rule">
+        <field name="name">Ticket Links: Delete All</field>
+        <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_delete_all'))]"/>
+        <field name="domain_force">[('source_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_acceptance_criterion_ticket_id_delete_all" model="ir.rule">
+        <field name="name">Ticket Acceptance Criteria: Delete All</field>
+        <field name="model_id" ref="model_dev_acceptance_criterion"/>
+        <field name="groups" eval="[(4, ref('group_dev_ticket_delete_all'))]"/>
+        <field name="domain_force">[('ticket_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Documentation Spaces: Create Only -->
+    <record id="rule_dev_space_create_only" model="ir.rule">
+        <field name="name">Documentation Spaces: Create Only</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_space_id_create_only" model="ir.rule">
+        <field name="name">Documentation Pages: Create Only</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_create_only'))]"/>
+        <field name="domain_force">[('space_id', '!=', False), '|', ('space_id.create_uid', '=', user.id), ('space_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_version_page_id_create_only" model="ir.rule">
+        <field name="name">Documentation Page Versions: Create Only</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_create_only'))]"/>
+        <field name="domain_force">[('page_id.space_id', '!=', False), '|', ('page_id.space_id.create_uid', '=', user.id), ('page_id.space_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Documentation Spaces: Create and Edit Own -->
+    <record id="rule_dev_space_edit_own" model="ir.rule">
+        <field name="name">Documentation Spaces: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_space_id_edit_own" model="ir.rule">
+        <field name="name">Documentation Pages: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_own'))]"/>
+        <field name="domain_force">[('space_id', '!=', False), '|', ('space_id.create_uid', '=', user.id), ('space_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_version_page_id_edit_own" model="ir.rule">
+        <field name="name">Documentation Page Versions: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_own'))]"/>
+        <field name="domain_force">[('page_id.space_id', '!=', False), '|', ('page_id.space_id.create_uid', '=', user.id), ('page_id.space_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Documentation Spaces: Create and Edit My Team -->
+    <record id="rule_dev_space_edit_team" model="ir.rule">
+        <field name="name">Documentation Spaces: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_space_id_edit_team" model="ir.rule">
+        <field name="name">Documentation Pages: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_team'))]"/>
+        <field name="domain_force">[('space_id', '!=', False), '|', '|', '|', ('space_id.create_uid', '=', user.id), ('space_id.user_id', '=', user.id), ('space_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('space_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_version_page_id_edit_team" model="ir.rule">
+        <field name="name">Documentation Page Versions: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_team'))]"/>
+        <field name="domain_force">[('page_id.space_id', '!=', False), '|', '|', '|', ('page_id.space_id.create_uid', '=', user.id), ('page_id.space_id.user_id', '=', user.id), ('page_id.space_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('page_id.space_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Documentation Spaces: Create and Edit All -->
+    <record id="rule_dev_space_edit_all" model="ir.rule">
+        <field name="name">Documentation Spaces: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_space_id_edit_all" model="ir.rule">
+        <field name="name">Documentation Pages: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_all'))]"/>
+        <field name="domain_force">[('space_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_version_page_id_edit_all" model="ir.rule">
+        <field name="name">Documentation Page Versions: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_edit_all'))]"/>
+        <field name="domain_force">[('page_id.space_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Documentation Spaces: View All -->
+    <record id="rule_dev_space_view_all" model="ir.rule">
+        <field name="name">Documentation Spaces: View All</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_space_id_view_all" model="ir.rule">
+        <field name="name">Documentation Pages: View All</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_view_all'))]"/>
+        <field name="domain_force">[('space_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_page_version_page_id_view_all" model="ir.rule">
+        <field name="name">Documentation Page Versions: View All</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_view_all'))]"/>
+        <field name="domain_force">[('page_id.space_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Documentation Spaces: Delete Own -->
+    <record id="rule_dev_space_delete_own" model="ir.rule">
+        <field name="name">Documentation Spaces: Delete Own</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_page_space_id_delete_own" model="ir.rule">
+        <field name="name">Documentation Pages: Delete Own</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_delete_own'))]"/>
+        <field name="domain_force">[('space_id', '!=', False), '|', ('space_id.create_uid', '=', user.id), ('space_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_page_version_page_id_delete_own" model="ir.rule">
+        <field name="name">Documentation Page Versions: Delete Own</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_delete_own'))]"/>
+        <field name="domain_force">[('page_id.space_id', '!=', False), '|', ('page_id.space_id.create_uid', '=', user.id), ('page_id.space_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Documentation Spaces: Delete All -->
+    <record id="rule_dev_space_delete_all" model="ir.rule">
+        <field name="name">Documentation Spaces: Delete All</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_page_space_id_delete_all" model="ir.rule">
+        <field name="name">Documentation Pages: Delete All</field>
+        <field name="model_id" ref="model_dev_page"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_delete_all'))]"/>
+        <field name="domain_force">[('space_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_page_version_page_id_delete_all" model="ir.rule">
+        <field name="name">Documentation Page Versions: Delete All</field>
+        <field name="model_id" ref="model_dev_page_version"/>
+        <field name="groups" eval="[(4, ref('group_dev_space_delete_all'))]"/>
+        <field name="domain_force">[('page_id.space_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <record id="group_dev_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_dev_management"/>
+        <field name="comment">Every Development permission, including deleting anything and shipping releases, plus Configuration (settings, repositories and their GitHub tokens, branches, ticket types, priorities, stages, link types, tags and page templates).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_release_ship'))] + [(4, ref('group_%s_%s' % (m, p))) for m in ('dev_release', 'dev_feature', 'dev_ticket', 'dev_space') for p in ('create_only', 'edit_own', 'edit_team', 'edit_all', 'view_all', 'delete_own', 'delete_all')]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Multi-company -->
+    <record id="rule_dev_release_company" model="ir.rule">
+        <field name="name">Releases: multi-company</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dev_feature_company" model="ir.rule">
+        <field name="name">Features: multi-company</field>
+        <field name="model_id" ref="model_dev_feature"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dev_ticket_company" model="ir.rule">
+        <field name="name">Tickets: multi-company</field>
+        <field name="model_id" ref="model_dev_ticket"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dev_space_company" model="ir.rule">
+        <field name="name">Documentation Spaces: multi-company</field>
+        <field name="model_id" ref="model_dev_space"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dev_repository_company" model="ir.rule">
+        <field name="name">Repositories: multi-company</field>
+        <field name="model_id" ref="model_dev_repository"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

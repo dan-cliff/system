@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.dev_feature_suggestions</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="94"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Feature Suggestions" id="dev_feature_suggestions" string="Feature Suggestions"
+                     name="dev_feature_suggestions" groups="dev_feature_suggestions.group_suggestion_admin">
+                    <block title="Website Forum" id="dev_suggestion_forum">
+                        <setting id="dev_suggestion_review_first" string="Review New Suggestions First"
+                                 help="New suggestions stay off the website forum until a moderator publishes them. When off, they show straight away.">
+                            <field name="dev_suggestion_review_first"/>
+                        </setting>
+                        <setting id="dev_suggestion_page" string="Forum Page"
+                                 help="Title and introduction of the forum at /feature-requests.">
+                            <div class="content-group mt-2">
+                                <div class="row mt-1">
+                                    <label for="dev_suggestion_page_title" class="col-lg-4 o_light_label"/>
+                                    <field name="dev_suggestion_page_title" class="col-lg-8"/>
+                                </div>
+                                <div class="row mt-1">
+                                    <label for="dev_suggestion_page_intro" class="col-lg-4 o_light_label"/>
+                                    <field name="dev_suggestion_page_intro" widget="text" class="col-lg-8"/>
+                                </div>
+                                <a href="/feature-requests" target="_blank" class="btn btn-link px-0" role="button">
+                                    <i class="fa fa-arrow-right me-1"/>Open the forum
+                                </a>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'dev_feature_suggestions', 'bin_size': False}</field>
+    </record>
+
+    <record id="dev_suggestion_action_website" model="ir.actions.act_url">
+        <field name="name">Website Forum</field>
+        <field name="url">/feature-requests</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

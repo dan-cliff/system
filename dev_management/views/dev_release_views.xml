@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_release_view_list" model="ir.ui.view">
+        <field name="name">dev.release.list</field>
+        <field name="model">dev.release</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('closed', 'cancelled')" decoration-info="state == 'draft'">
+                <field name="id" optional="show"/>
+                <field name="version"/>
+                <field name="name"/>
+                <field name="repository_id"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="date_alpha" options="{'numeric': True}" optional="hide"/>
+                <field name="date_beta" options="{'numeric': True}" optional="hide"/>
+                <field name="date_core" options="{'numeric': True}" optional="show"/>
+                <field name="date_closed" options="{'numeric': True}" optional="hide"/>
+                <field name="ticket_count" optional="show"/>
+                <field name="progress" widget="progressbar" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state in ('core', 'closed')"
+                       decoration-info="state in ('open', 'documentation', 'review', 'complete')"
+                       decoration-warning="state in ('alpha', 'beta')" decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_release_view_kanban" model="ir.ui.view">
+        <field name="name">dev.release.kanban</field>
+        <field name="model">dev.release</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="false" group_delete="false" group_edit="false"
+                    records_draggable="false" sample="1">
+                <field name="color"/>
+                <field name="progress"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="version" class="fw-bold"/>
+                            <field name="repository_id" class="text-muted small"/>
+                        </div>
+                        <field name="name" class="fs-5"/>
+                        <div class="text-muted small">
+                            <field name="date_start" options="{'numeric': True}"/> -
+                            <field name="date_end" options="{'numeric': True}"/>
+                        </div>
+                        <field name="progress" widget="progressbar" class="mt-2"/>
+                        <footer>
+                            <span class="small"><field name="ticket_done_count"/> / <field name="ticket_count"/> tickets</span>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="dev_release_view_calendar" model="ir.ui.view">
+        <field name="name">dev.release.calendar</field>
+        <field name="model">dev.release</field>
+        <field name="arch" type="xml">
+            <calendar date_start="date_start" date_stop="date_core" mode="month" color="repository_id"
+                      quick_create="0" event_open_popup="1">
+                <field name="version"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="date_alpha" options="{'numeric': True}"/>
+                <field name="date_beta" options="{'numeric': True}"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="dev_release_view_form" model="ir.ui.view">
+        <field name="name">dev.release.form</field>
+        <field name="model">dev.release</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_advance" type="object" string="Open" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_advance" type="object" string="Start Documentation" class="btn-primary"
+                            invisible="state != 'open'"/>
+                    <button name="action_advance" type="object" string="Send to Review" class="btn-primary"
+                            invisible="state != 'documentation'"/>
+                    <button name="action_advance" type="object" string="Mark Complete" class="btn-primary"
+                            invisible="state != 'review'"/>
+                    <button name="action_advance" type="object" string="Alpha Release" class="btn-primary"
+                            invisible="state != 'complete' or not can_ship"/>
+                    <button name="action_advance" type="object" string="Beta Release" class="btn-primary"
+                            invisible="state != 'alpha' or not can_ship"/>
+                    <button name="action_advance" type="object" string="Core Release" class="btn-primary"
+                            invisible="state != 'beta' or not can_ship"/>
+                    <button name="action_advance" type="object" string="Close" class="btn-primary"
+                            invisible="state != 'core' or not can_ship"/>
+                    <button name="action_merge_branches" type="object" string="Merge Branches"
+                            invisible="not can_ship or not repository_token_set or state in ('draft', 'closed', 'cancelled')"
+                            confirm="Merge every branch of this release into its release branch on GitHub?"/>
+                    <button name="action_github_publish" type="object" string="Publish on GitHub"
+                            invisible="not can_ship or not repository_token_set or github_published or state != 'core'"
+                            confirm="Publish this release on GitHub? This creates the release tag."/>
+                    <widget name="dev_ai_action" options="{'job': 'release_name', 'label': 'Name with AI', 'icon': 'fa-magic'}"
+                            invisible="not ai_available or state in ('closed', 'cancelled')"/>
+                    <button name="action_back" type="object" string="Back"
+                            invisible="state in ('draft', 'cancelled') or (state in ('alpha', 'beta', 'core', 'closed') and not can_ship)"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('closed', 'cancelled')"
+                            confirm="Cancel this release?"/>
+                    <button name="action_reset_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,open,documentation,review,complete,alpha,beta,core,closed"/>
+                    <field name="can_ship" invisible="1"/>
+                    <field name="ai_available" invisible="1"/>
+                    <field name="repository_token_set" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_tickets" type="object" class="oe_stat_button" icon="fa-ticket">
+                            <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                        </button>
+                        <button name="action_open_features" type="object" class="oe_stat_button" icon="fa-lightbulb-o">
+                            <field name="feature_count" widget="statinfo" string="Features"/>
+                        </button>
+                        <button name="action_open_pages" type="object" class="oe_stat_button" icon="fa-book">
+                            <field name="page_count" widget="statinfo" string="Pages"/>
+                        </button>
+                        <button name="action_open_next_release" type="object" class="oe_stat_button"
+                                icon="fa-forward" invisible="not next_release_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Next Release</span>
+                                <field name="next_release_id" class="o_stat_value" readonly="1"/>
+                            </div>
+                        </button>
+                        <button name="action_open_github_release" type="object" class="oe_stat_button"
+                                icon="fa-github" invisible="not github_release_url">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">GitHub</span>
+                                <span class="o_stat_text" invisible="github_published">Draft</span>
+                                <span class="o_stat_text" invisible="not github_published">Published</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-danger" invisible="state != 'cancelled'"/>
+                    <widget name="web_ribbon" title="Closed" bg_color="text-bg-success" invisible="state != 'closed'"/>
+                    <div class="oe_title">
+                        <div class="text-muted">
+                            <field name="version" class="oe_inline" placeholder="Set automatically on save"/>
+                        </div>
+                        <h1>
+                            <field name="name" placeholder="Named automatically when a naming prompt is set"/>
+                        </h1>
+                        <div class="text-muted small" invisible="ai_name_state != 'pending'">
+                            <i class="fa fa-magic me-1"/>The AI is naming this release; the name and trivia appear shortly.
+                        </div>
+                        <div class="text-warning small" invisible="ai_name_state != 'failed'">
+                            AI naming failed: <field name="ai_name_error" class="oe_inline"/>
+                        </div>
+                        <field name="ai_name_state" invisible="1"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not github_error">
+                        <strong>GitHub: </strong><field name="github_error" class="oe_inline"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="repository_id" options="{'no_create': True}"
+                                   readonly="state not in ('draft', 'open')"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="previous_release_id" invisible="not previous_release_id"/>
+                            <label for="progress"/>
+                            <div class="o_row">
+                                <field name="progress" widget="progressbar"/>
+                                <span class="text-muted small">
+                                    <field name="points_done" class="oe_inline"/> / <field name="points_total" class="oe_inline"/> points
+                                </span>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <field name="date_end" options="{'numeric': True}"/>
+                            <field name="date_alpha" options="{'numeric': True}"/>
+                            <field name="date_beta" options="{'numeric': True}"/>
+                            <field name="date_core" options="{'numeric': True}"/>
+                            <field name="date_closed" options="{'numeric': True}" invisible="not date_closed"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tickets" name="tickets">
+                            <field name="ticket_ids" context="{'default_release_id': id, 'default_repository_id': repository_id}">
+                                <list decoration-muted="is_closed">
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="type_id"/>
+                                    <field name="name"/>
+                                    <field name="feature_id" optional="show"/>
+                                    <field name="priority_id"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="story_points" sum="Story Points"/>
+                                    <field name="stage_id"/>
+                                    <field name="is_closed" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <div class="d-flex gap-2" invisible="state in ('closed', 'cancelled') or not ticket_count">
+                                <button name="action_move_open_tickets" type="object" class="btn-link"
+                                        icon="fa-share" string="Move unfinished tickets to the next release"
+                                        confirm="Move every unfinished ticket of this release to the next release?"/>
+                            </div>
+                        </page>
+                        <page string="Features" name="features">
+                            <field name="feature_ids" context="{'default_release_id': id, 'default_repository_id': repository_id}">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="name"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="progress" widget="progressbar"/>
+                                    <field name="stage_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Branches" name="branches">
+                            <p class="text-muted">
+                                The GitHub branches of this release's tickets and features. "Merge Branches"
+                                merges them all into <field name="release_branch" class="oe_inline fw-bold"/>,
+                                which the GitHub release is built from.
+                            </p>
+                            <field name="branch_ids" readonly="1">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="ticket_ids" widget="many2many_tags"/>
+                                    <field name="feature_ids" widget="many2many_tags" optional="show"/>
+                                    <field name="pr_state" optional="show"/>
+                                    <field name="merge_state" widget="badge" decoration-success="merge_state in ('merged', 'up_to_date')"
+                                           decoration-danger="merge_state in ('conflict', 'missing', 'failed')"/>
+                                    <field name="merge_message"/>
+                                    <field name="html_url" widget="url" text="Open" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Release Notes" name="release_notes">
+                            <div class="d-flex gap-2 mb-2">
+                                <button name="action_generate_release_notes" type="object" class="btn-secondary"
+                                        icon="fa-list" string="Build from Tickets"/>
+                                <widget name="dev_ai_action" options="{'job': 'release_notes', 'label': 'Write with AI', 'icon': 'fa-magic'}"
+                                        invisible="not ai_available"/>
+                                <button name="action_github_update_release" type="object" class="btn-link"
+                                        icon="fa-github" string="Update GitHub Release" invisible="not github_release_id"/>
+                                <button name="action_github_create_release" type="object" class="btn-link"
+                                        icon="fa-github" string="Create Draft on GitHub"
+                                        invisible="github_release_id or not repository_token_set"/>
+                            </div>
+                            <field name="release_notes" placeholder="What is new, improved and fixed in this release."
+                                   options="{'collaborative': true}"/>
+                        </page>
+                        <page string="Goals" name="description">
+                            <field name="description" placeholder="What this release sets out to achieve."
+                                   options="{'collaborative': true}"/>
+                        </page>
+                        <page string="Trivia" name="trivia">
+                            <field name="trivia" placeholder="Key facts about whatever the release is named after."/>
+                        </page>
+                        <page string="GitHub" name="github">
+                            <group>
+                                <group>
+                                    <field name="release_branch"/>
+                                    <field name="release_branch_created" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="github_release_url" widget="url"/>
+                                    <field name="github_release_id" invisible="1"/>
+                                    <field name="github_published"/>
+                                </group>
+                            </group>
+                            <div invisible="state not in ('draft', 'open')">
+                                <button name="action_recompute_version" type="object" class="btn-link" icon="fa-refresh"
+                                        string="Work out the release number again"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_release_view_search" model="ir.ui.view">
+        <field name="name">dev.release.search</field>
+        <field name="model">dev.release</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('version', 'ilike', self)]"/>
+                <field name="repository_id"/>
+                <field name="user_id"/>
+                <filter name="current" string="In Progress" domain="[('state', 'not in', ('closed', 'cancelled'))]"/>
+                <filter name="my" string="My Releases" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_repository" string="Repository" context="{'group_by': 'repository_id'}"/>
+                    <filter name="group_user" string="Release Manager" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_start" string="Start Date" context="{'group_by': 'date_start:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_release_view_graph" model="ir.ui.view">
+        <field name="name">dev.release.graph</field>
+        <field name="model">dev.release</field>
+        <field name="arch" type="xml">
+            <graph string="Releases" type="bar">
+                <field name="date_start" interval="month"/>
+                <field name="repository_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="dev_release_view_pivot" model="ir.ui.view">
+        <field name="name">dev.release.pivot</field>
+        <field name="model">dev.release</field>
+        <field name="arch" type="xml">
+            <pivot string="Releases">
+                <field name="repository_id" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="dev_release_action" model="ir.actions.act_window">
+        <field name="name">Releases</field>
+        <field name="res_model">dev.release</field>
+        <field name="view_mode">kanban,list,calendar,form,pivot,graph</field>
+        <field name="context">{'search_default_current': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Plan your first release</p>
+            <p>Each release is a two-week sprint followed by its Alpha, Beta and Core releases. Its number
+                (YYYY.MM.NNN) and a draft release on GitHub are created for you.</p>
+        </field>
+    </record>
+
+    <record id="dev_release_action_analysis" model="ir.actions.act_window">
+        <field name="name">Releases Analysis</field>
+        <field name="res_model">dev.release</field>
+        <field name="view_mode">graph,pivot,list</field>
+    </record>
+</odoo>

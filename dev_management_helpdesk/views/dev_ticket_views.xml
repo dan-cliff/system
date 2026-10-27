@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_ticket_view_form_helpdesk" model="ir.ui.view">
+        <field name="name">dev.ticket.form.helpdesk</field>
+        <field name="model">dev.ticket</field>
+        <field name="inherit_id" ref="dev_management.dev_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_helpdesk_tickets" type="object" class="oe_stat_button" icon="fa-life-ring"
+                        groups="helpdesk_management.group_helpdesk_user" invisible="not helpdesk_ticket_count">
+                    <field name="helpdesk_ticket_count" widget="statinfo" string="Helpdesk"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='pages']" position="after">
+                <page string="Helpdesk" name="helpdesk" groups="helpdesk_management.group_helpdesk_user">
+                    <field name="helpdesk_ticket_ids" options="{'no_create': True}">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="ticket_ref"/>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="stage_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_search_helpdesk" model="ir.ui.view">
+        <field name="name">dev.ticket.search.helpdesk</field>
+        <field name="model">dev.ticket</field>
+        <field name="inherit_id" ref="dev_management.dev_ticket_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='blocked']" position="after">
+                <filter name="from_helpdesk" string="From Helpdesk" domain="[('helpdesk_ticket_ids', '!=', False)]"
+                        groups="helpdesk_management.group_helpdesk_user"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

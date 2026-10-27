@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_dev_admin" model="permission.role">
+            <field name="name">Development – Administrator</field>
+            <field name="description">Everything in Development: create, edit and delete any release, feature, ticket and documentation, ship releases, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_management'), 'group_id': ref('dev_management.group_dev_admin')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_ship'), 'group_id': ref('dev_management.group_dev_release_ship')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_create_only'), 'group_id': ref('dev_management.group_dev_release_create_only')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_edit_own'), 'group_id': ref('dev_management.group_dev_release_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_edit_team'), 'group_id': ref('dev_management.group_dev_release_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_edit_all'), 'group_id': ref('dev_management.group_dev_release_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_view_all'), 'group_id': ref('dev_management.group_dev_release_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_delete_own'), 'group_id': ref('dev_management.group_dev_release_delete_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_delete_all'), 'group_id': ref('dev_management.group_dev_release_delete_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_create_only'), 'group_id': ref('dev_management.group_dev_feature_create_only')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_edit_own'), 'group_id': ref('dev_management.group_dev_feature_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_edit_team'), 'group_id': ref('dev_management.group_dev_feature_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_edit_all'), 'group_id': ref('dev_management.group_dev_feature_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_view_all'), 'group_id': ref('dev_management.group_dev_feature_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_delete_own'), 'group_id': ref('dev_management.group_dev_feature_delete_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_delete_all'), 'group_id': ref('dev_management.group_dev_feature_delete_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_create_only'), 'group_id': ref('dev_management.group_dev_ticket_create_only')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_edit_own'), 'group_id': ref('dev_management.group_dev_ticket_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_edit_team'), 'group_id': ref('dev_management.group_dev_ticket_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_edit_all'), 'group_id': ref('dev_management.group_dev_ticket_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_view_all'), 'group_id': ref('dev_management.group_dev_ticket_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_delete_own'), 'group_id': ref('dev_management.group_dev_ticket_delete_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_delete_all'), 'group_id': ref('dev_management.group_dev_ticket_delete_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_create_only'), 'group_id': ref('dev_management.group_dev_space_create_only')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_edit_own'), 'group_id': ref('dev_management.group_dev_space_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_edit_team'), 'group_id': ref('dev_management.group_dev_space_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_edit_all'), 'group_id': ref('dev_management.group_dev_space_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_view_all'), 'group_id': ref('dev_management.group_dev_space_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_delete_own'), 'group_id': ref('dev_management.group_dev_space_delete_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_delete_all'), 'group_id': ref('dev_management.group_dev_space_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_dev_manager" model="permission.role">
+            <field name="name">Development – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s releases, features, tickets and documentation; view every release, feature and space. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_edit_team'), 'group_id': ref('dev_management.group_dev_release_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_edit_team'), 'group_id': ref('dev_management.group_dev_feature_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_edit_team'), 'group_id': ref('dev_management.group_dev_ticket_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_edit_team'), 'group_id': ref('dev_management.group_dev_space_edit_team')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_view_all'), 'group_id': ref('dev_management.group_dev_release_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_view_all'), 'group_id': ref('dev_management.group_dev_feature_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_view_all'), 'group_id': ref('dev_management.group_dev_space_view_all')})
+            ]"/>
+        </record>
+        <record id="role_dev_employee" model="permission.role">
+            <field name="name">Development – Employee</field>
+            <field name="description">Create, view and edit their own releases, features, tickets and documentation; view every release, feature and space. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_edit_own'), 'group_id': ref('dev_management.group_dev_release_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_edit_own'), 'group_id': ref('dev_management.group_dev_feature_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_edit_own'), 'group_id': ref('dev_management.group_dev_ticket_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_edit_own'), 'group_id': ref('dev_management.group_dev_space_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_view_all'), 'group_id': ref('dev_management.group_dev_release_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_view_all'), 'group_id': ref('dev_management.group_dev_feature_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_view_all'), 'group_id': ref('dev_management.group_dev_space_view_all')})
+            ]"/>
+        </record>
+        <record id="role_dev_developer" model="permission.role">
+            <field name="name">Development – Developer</field>
+            <field name="description">Create, view and edit every ticket, to work the shared board; view every release, feature and space; create and edit their own documentation. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_edit_all'), 'group_id': ref('dev_management.group_dev_ticket_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_edit_own'), 'group_id': ref('dev_management.group_dev_space_edit_own')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_view_all'), 'group_id': ref('dev_management.group_dev_release_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_view_all'), 'group_id': ref('dev_management.group_dev_feature_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_view_all'), 'group_id': ref('dev_management.group_dev_space_view_all')})
+            ]"/>
+        </record>
+        <record id="role_dev_designer" model="permission.role">
+            <field name="name">Development – Product Designer</field>
+            <field name="description">Create, view and edit every feature; view every release, ticket and space; create and edit their own documentation. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_edit_all'), 'group_id': ref('dev_management.group_dev_feature_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_view_all'), 'group_id': ref('dev_management.group_dev_ticket_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_view_all'), 'group_id': ref('dev_management.group_dev_release_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_view_all'), 'group_id': ref('dev_management.group_dev_space_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_edit_own'), 'group_id': ref('dev_management.group_dev_space_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_dev_release_manager" model="permission.role">
+            <field name="name">Development – Release Manager</field>
+            <field name="description">Create, view and edit every release and ship them (Alpha, Beta and Core Release, merging branches, publishing on GitHub); view every feature, ticket and space. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_edit_all'), 'group_id': ref('dev_management.group_dev_release_edit_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_release_ship'), 'group_id': ref('dev_management.group_dev_release_ship')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_feature_view_all'), 'group_id': ref('dev_management.group_dev_feature_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_ticket_view_all'), 'group_id': ref('dev_management.group_dev_ticket_view_all')}),
+                (0, 0, {'privilege_id': ref('dev_management.privilege_dev_space_view_all'), 'group_id': ref('dev_management.group_dev_space_view_all')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

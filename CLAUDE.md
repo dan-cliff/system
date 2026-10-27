@@ -204,11 +204,41 @@ Size and format:
   page open".
 - Render it as a full-screen `main_components` overlay so it sits above
   dialogs. Modules depending on `risk_management` reuse `aiProgress` from
-  `@risk_management/ai_progress/ai_progress`; others follow the same pattern
+  `@risk_management/ai_progress/ai_progress`, and modules depending on
+  `dev_management` reuse `dev.ai.mixin` with the `dev_ai_action` widget
+  (`@dev_management/ai_progress/ai_progress`); others follow the same pattern
   (the checklists AI generator overlay is another example).
 - This also covers AI calls made as a side effect (e.g. on save): move them to
   an explicit action with the overlay, or run them in the background so they
   never block the user without explanation.
+
+### AI keys
+
+Every AI feature is switched on only when at least one AI key is set, and the
+app must keep working without one.
+
+- Find the key in this order, preferring Claude/Anthropic and falling back
+  to Google Gemini: the Claude key in Settings › General Settings ›
+  Integrations (`claude_ai_settings.api_key`), the Anthropic key of the Odoo
+  AI app (`ai.anthropic_key`), the Gemini key in General Settings
+  (`claude_ai_settings.gemini_api_key`), then the Google key of the Odoo AI
+  app (`ai.google_key`). The first key found picks the provider.
+- Read these system parameters directly. Don't depend on
+  `claude_ai_settings` or the Odoo AI app (`ai`) just to get a key, so the
+  app installs and works when neither is installed.
+- Handle having no AI gracefully, whether no AI app is installed or no key is
+  set:
+  - hide the AI buttons (an `ai_available` compute, with
+    `invisible="not ai_available"` on the widget);
+  - skip background AI jobs silently and fall back to the non-AI behaviour
+    (e.g. a release keeps its number as its name);
+  - show a note where the AI would be configured (e.g. next to the app's AI
+    settings) saying where to add a key;
+  - make any direct call raise a friendly `UserError` that says where to add
+    a key, never a traceback.
+- `dev_management/models/dev_ai.py` implements this (`ai_credentials`,
+  `dev.ai._available()`); reuse it in modules that depend on
+  `dev_management`, and copy it elsewhere.
 
 ## Actions (Actions app)
 

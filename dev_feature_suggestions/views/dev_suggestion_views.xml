@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_suggestion_view_list" model="ir.ui.view">
+        <field name="name">dev.suggestion.list</field>
+        <field name="model">dev.suggestion</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status_closed">
+                <field name="id" optional="show"/>
+                <field name="ref"/>
+                <field name="name"/>
+                <field name="category_id" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="source_id" optional="hide"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="vote_count" sum="Votes"/>
+                <field name="score" optional="show"/>
+                <field name="feature_ids" widget="many2many_tags" optional="hide"/>
+                <field name="is_published" string="On Website" optional="show"/>
+                <field name="create_date" string="Suggested On" options="{'numeric': True}" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="status_id" widget="badge"/>
+                <field name="status_closed" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_view_kanban" model="ir.ui.view">
+        <field name="name">dev.suggestion.kanban</field>
+        <field name="model">dev.suggestion</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status_id" sample="1" quick_create="false">
+                <field name="color"/>
+                <templates>
+                    <t t-name="menu">
+                        <a t-if="widget.editable" role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card" class="flex-row gap-3">
+                        <div class="text-center" style="min-width: 3rem;">
+                            <field name="vote_count" class="fw-bold fs-4 d-block"/>
+                            <span class="small text-muted">votes</span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <field name="name" class="fw-bold"/>
+                            <div class="small text-muted"><field name="category_id"/></div>
+                            <footer>
+                                <field name="ref" class="small text-muted"/>
+                                <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_view_form" model="ir.ui.view">
+        <field name="name">dev.suggestion.form</field>
+        <field name="model">dev.suggestion</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_vote" type="object" string="Vote" icon="fa-caret-up" class="btn-primary"
+                            invisible="voted or status_closed or not id"/>
+                    <button name="action_vote" type="object" string="Remove My Vote" icon="fa-check"
+                            invisible="not voted or not id"/>
+                    <button name="action_create_feature" type="object" string="Create Feature" icon="fa-lightbulb-o"
+                            invisible="not can_moderate or feature_ids or merged_into_id"/>
+                    <widget name="dev_ai_action" options="{'job': 'suggestion_triage', 'label': 'Triage with AI', 'icon': 'fa-magic'}"
+                            invisible="not ai_available or not can_moderate"/>
+                    <field name="ai_available" invisible="1"/>
+                    <field name="can_moderate" invisible="1"/>
+                    <field name="voted" invisible="1"/>
+                    <field name="status_closed" invisible="1"/>
+                    <field name="status_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"
+                           readonly="not can_moderate"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_votes" type="object" class="oe_stat_button" icon="fa-thumbs-up">
+                            <field name="vote_count" widget="statinfo" string="Votes"/>
+                        </button>
+                        <field name="is_published" widget="website_redirect_button" invisible="not id"/>
+                    </div>
+                    <widget name="web_ribbon" title="Merged" bg_color="text-bg-secondary" invisible="not merged_into_id"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <div class="text-muted"><field name="ref" readonly="1"/></div>
+                        <h1><field name="name" placeholder="e.g. Export invoices to Excel"/></h1>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="not merged_into_id">
+                        This suggestion duplicates <field name="merged_into_id" class="oe_inline" readonly="1"/>; its votes count there.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="category_id" options="{'no_create': True}"/>
+                            <field name="source_id" options="{'no_create': True}"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="score"/>
+                            <field name="is_published" string="On Website" readonly="not can_moderate"/>
+                            <field name="create_date" string="Suggested On" options="{'numeric': True}" invisible="not id"/>
+                            <field name="released_in_id" invisible="not released_in_id"/>
+                            <field name="release_ids" widget="many2many_tags" invisible="not release_ids"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="What would the customer like to do, and why?"/>
+                        </page>
+                        <page string="Votes" name="votes">
+                            <field name="vote_ids" context="{'default_source_id': source_id}">
+                                <list editable="bottom">
+                                    <field name="id" optional="show"/>
+                                    <field name="partner_id"/>
+                                    <field name="commercial_partner_id" optional="show"/>
+                                    <field name="importance_id" options="{'no_create': True}"/>
+                                    <field name="note"/>
+                                    <field name="source_id" options="{'no_create': True}" optional="show"/>
+                                    <field name="create_date" string="Voted On" options="{'numeric': True}" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Delivery" name="delivery">
+                            <group>
+                                <field name="feature_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                                <field name="ticket_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            </group>
+                        </page>
+                        <page string="Official Response" name="response">
+                            <div class="text-muted small mb-2">
+                                Shown at the top of the suggestion on the website, and sent to its followers.
+                                <span invisible="not response_user_id">Answered by <field name="response_user_id" class="oe_inline"/>
+                                    on <field name="response_date" class="oe_inline" options="{'numeric': True}"/>.</span>
+                            </div>
+                            <field name="official_response" readonly="not can_moderate"
+                                   placeholder="The product team's answer to this suggestion."/>
+                        </page>
+                        <page string="AI Triage" name="ai" invisible="not ai_summary and not similar_suggestion_ids and not suggested_feature_ids">
+                            <group>
+                                <field name="ai_summary"/>
+                            </group>
+                            <separator string="Possible Duplicates"/>
+                            <field name="similar_suggestion_ids">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="ref"/>
+                                    <field name="name"/>
+                                    <field name="vote_count"/>
+                                    <field name="status_id"/>
+                                </list>
+                            </field>
+                            <div invisible="not can_moderate or not similar_suggestion_ids or merged_into_id">
+                                <button name="action_merge_into" type="object" class="btn-link" icon="fa-compress"
+                                        string="Merge this suggestion into the first possible duplicate"
+                                        confirm="Merge this suggestion into the first possible duplicate? Its votes move there."/>
+                            </div>
+                            <separator string="Related Features"/>
+                            <field name="suggested_feature_ids" widget="many2many_tags"/>
+                            <div invisible="not suggested_feature_ids">
+                                <button name="action_link_suggested_features" type="object" class="btn-link"
+                                        icon="fa-link" string="Link these features"/>
+                            </div>
+                        </page>
+                        <page string="Duplicates" name="merged" invisible="not merged_ids">
+                            <field name="merged_ids" readonly="1">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="ref"/>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter reload_on_follower="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_view_search" model="ir.ui.view">
+        <field name="name">dev.suggestion.search</field>
+        <field name="model">dev.suggestion</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('ref', 'ilike', self)]"/>
+                <field name="description"/>
+                <field name="partner_id"/>
+                <field name="category_id"/>
+                <field name="feature_ids"/>
+                <filter name="mine" string="My Suggestions" domain="[('user_id', '=', uid)]"/>
+                <filter name="unassigned" string="No Owner" domain="[('user_id', '=', False)]"/>
+                <separator/>
+                <filter name="open" string="Open" domain="[('status_id.is_closed', '=', False)]"/>
+                <filter name="unpublished" string="Awaiting Review" domain="[('is_published', '=', False), ('merged_into_id', '=', False)]"/>
+                <filter name="no_feature" string="Not Linked to a Feature" domain="[('feature_ids', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status_id'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                    <filter name="group_source" string="Source" context="{'group_by': 'source_id'}"/>
+                    <filter name="group_user" string="Owner" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_view_pivot" model="ir.ui.view">
+        <field name="name">dev.suggestion.pivot</field>
+        <field name="model">dev.suggestion</field>
+        <field name="arch" type="xml">
+            <pivot string="Suggestions" sample="1">
+                <field name="category_id" type="row"/>
+                <field name="status_id" type="col"/>
+                <field name="vote_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_view_graph" model="ir.ui.view">
+        <field name="name">dev.suggestion.graph</field>
+        <field name="model">dev.suggestion</field>
+        <field name="arch" type="xml">
+            <graph string="Suggestions" type="bar" sample="1">
+                <field name="category_id"/>
+                <field name="score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_action" model="ir.actions.act_window">
+        <field name="name">Suggestions</field>
+        <field name="res_model">dev.suggestion</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Collect your first feature suggestion</p>
+            <p>Customers post ideas on the website at /feature-requests; colleagues add them here or from the
+                Helpdesk. Everyone votes with how important it is and why.</p>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_action_analysis" model="ir.actions.act_window">
+        <field name="name">Suggestions Analysis</field>
+        <field name="res_model">dev.suggestion</field>
+        <field name="view_mode">graph,pivot,list</field>
+    </record>
+
+    <!-- Votes -->
+    <record id="dev_suggestion_vote_view_list" model="ir.ui.view">
+        <field name="name">dev.suggestion.vote.list</field>
+        <field name="model">dev.suggestion.vote</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" optional="show"/>
+                <field name="suggestion_id"/>
+                <field name="partner_id"/>
+                <field name="commercial_partner_id" optional="show"/>
+                <field name="importance_id"/>
+                <field name="note"/>
+                <field name="source_id" optional="show"/>
+                <field name="create_date" string="Voted On" options="{'numeric': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_vote_view_form" model="ir.ui.view">
+        <field name="name">dev.suggestion.vote.form</field>
+        <field name="model">dev.suggestion.vote</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="suggestion_id"/>
+                            <field name="partner_id"/>
+                            <field name="importance_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="source_id" options="{'no_create': True}"/>
+                            <field name="create_date" string="Voted On" options="{'numeric': True}" invisible="not id"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Why it matters to them"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_vote_view_pivot" model="ir.ui.view">
+        <field name="name">dev.suggestion.vote.pivot</field>
+        <field name="model">dev.suggestion.vote</field>
+        <field name="arch" type="xml">
+            <pivot string="Votes">
+                <field name="suggestion_id" type="row"/>
+                <field name="importance_id" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_vote_action_analysis" model="ir.actions.act_window">
+        <field name="name">Votes Analysis</field>
+        <field name="res_model">dev.suggestion.vote</field>
+        <field name="view_mode">pivot,list,form</field>
+    </record>
+
+    <!-- Development: show suggestions on features and tickets -->
+    <record id="dev_feature_view_form_suggestions" model="ir.ui.view">
+        <field name="name">dev.feature.form.suggestions</field>
+        <field name="model">dev.feature</field>
+        <field name="inherit_id" ref="dev_management.dev_feature_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='research']" position="after">
+                <page string="Suggestions" name="suggestions" groups="dev_feature_suggestions.group_suggestion_user">
+                    <div class="text-muted small mb-2">
+                        <field name="suggestion_vote_count" class="oe_inline"/> votes from customers and colleagues.
+                    </div>
+                    <field name="suggestion_ids" options="{'no_create': True}">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="ref"/>
+                            <field name="name"/>
+                            <field name="vote_count"/>
+                            <field name="score"/>
+                            <field name="status_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_form_suggestions" model="ir.ui.view">
+        <field name="name">dev.ticket.form.suggestions</field>
+        <field name="model">dev.ticket</field>
+        <field name="inherit_id" ref="dev_management.dev_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='pages']" position="after">
+                <page string="Suggestions" name="suggestions" groups="dev_feature_suggestions.group_suggestion_user">
+                    <field name="suggestion_ids" options="{'no_create': True}">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="ref"/>
+                            <field name="name"/>
+                            <field name="vote_count"/>
+                            <field name="status_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
