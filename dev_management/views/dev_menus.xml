@@ -17,6 +17,10 @@
     <menuitem id="menu_dev_ticket_all" name="All Tickets" parent="menu_dev_tickets"
               action="dev_ticket_action" sequence="40"/>
 
+    <menuitem id="menu_dev_sprints" name="Sprints" parent="menu_dev_root"
+              action="dev_sprint_action" sequence="14"/>
+    <menuitem id="menu_dev_epics" name="Epics" parent="menu_dev_root"
+              action="dev_epic_action" sequence="16"/>
     <menuitem id="menu_dev_features" name="Features" parent="menu_dev_root"
               action="dev_feature_action" sequence="20"/>
     <menuitem id="menu_dev_releases" name="Releases" parent="menu_dev_root"
@@ -33,6 +37,8 @@
               action="dev_ticket_action_analysis" sequence="10"/>
     <menuitem id="menu_dev_release_analysis" name="Releases" parent="menu_dev_reporting"
               action="dev_release_action_analysis" sequence="20"/>
+    <menuitem id="menu_dev_velocity" name="Velocity" parent="menu_dev_reporting"
+              action="dev_sprint_action_velocity" sequence="30"/>
 
     <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
          It has no action, so Odoo hides it until a report is placed under it. -->
@@ -54,6 +60,8 @@
               action="dev_ticket_stage_action" sequence="40"/>
     <menuitem id="menu_dev_feature_stage" name="Feature Stages" parent="menu_dev_config"
               action="dev_feature_stage_action" sequence="50"/>
+    <menuitem id="menu_dev_epic_stage" name="Epic Stages" parent="menu_dev_config"
+              action="dev_epic_stage_action" sequence="55"/>
     <menuitem id="menu_dev_link_type" name="Link Types" parent="menu_dev_config"
               action="dev_link_type_action" sequence="60"/>
     <menuitem id="menu_dev_tag" name="Tags" parent="menu_dev_config"

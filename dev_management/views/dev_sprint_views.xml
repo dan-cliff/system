@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sprints -->
+    <record id="dev_sprint_view_list" model="ir.ui.view">
+        <field name="name">dev.sprint.list</field>
+        <field name="model">dev.sprint</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'closed'" decoration-info="state == 'active'">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="goal" optional="show"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="release_id" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="ticket_count" optional="show"/>
+                <field name="capacity_points" optional="hide"/>
+                <field name="committed_points" optional="show"/>
+                <field name="completed_points" optional="show"/>
+                <field name="progress" widget="progressbar" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'active'"
+                       decoration-success="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_sprint_view_kanban" model="ir.ui.view">
+        <field name="name">dev.sprint.kanban</field>
+        <field name="model">dev.sprint</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="false" group_delete="false" group_edit="false"
+                    records_draggable="false" sample="1">
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold fs-5"/>
+                        <field name="goal" class="small text-muted"/>
+                        <div class="small text-muted mt-1">
+                            <field name="date_start" options="{'numeric': True}"/> -
+                            <field name="date_end" options="{'numeric': True}"/>
+                        </div>
+                        <field name="progress" widget="progressbar" class="mt-2"/>
+                        <footer>
+                            <span class="small"><field name="ticket_done_count"/> / <field name="ticket_count"/> tickets</span>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="dev_sprint_view_form" model="ir.ui.view">
+        <field name="name">dev.sprint.form</field>
+        <field name="model">dev.sprint</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" type="object" string="Start Sprint" class="btn-primary"
+                            invisible="state != 'planned'"/>
+                    <button name="action_complete" type="object" string="Complete Sprint" class="btn-primary"
+                            invisible="state != 'active'"/>
+                    <button name="action_reset_planned" type="object" string="Back to Planned"
+                            invisible="state != 'active'"
+                            confirm="Put this sprint back to Planned? Its committed scope is cleared."/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_board" type="object" class="oe_stat_button" icon="fa-columns">
+                            <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                        </button>
+                        <button name="action_open_epics" type="object" class="oe_stat_button" icon="fa-flag"
+                                invisible="not epic_ids">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Epics</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Sprint 12"/></h1>
+                        <field name="goal" placeholder="Sprint goal: what does the team commit to achieving?"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_start" options="{'numeric': True}" readonly="state == 'closed'"/>
+                            <field name="date_end" options="{'numeric': True}" readonly="state == 'closed'" required="1"/>
+                            <field name="days_left" invisible="state != 'active'"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="release_id" options="{'no_create': True}"/>
+                            <field name="capacity_points"/>
+                            <label for="progress"/>
+                            <div class="o_row">
+                                <field name="progress" widget="progressbar"/>
+                                <span class="text-muted small">
+                                    <field name="points_done" class="oe_inline"/> / <field name="points_total" class="oe_inline"/> points
+                                </span>
+                            </div>
+                            <field name="epic_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tickets" name="tickets">
+                            <field name="ticket_ids" options="{'no_create': True}" readonly="state == 'closed'">
+                                <list decoration-muted="is_closed">
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="type_id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="epic_id" optional="show"/>
+                                    <field name="priority_id" optional="show"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="sprint_count" string="Sprints" optional="show"/>
+                                    <field name="story_points" sum="Story Points"/>
+                                    <field name="stage_id"/>
+                                    <field name="is_closed" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Burndown" name="burndown" invisible="state == 'planned'">
+                            <field name="burndown" nolabel="1" readonly="1"/>
+                            <p class="text-muted small">
+                                Remaining story points (or tickets, when none are estimated) at the end of each day,
+                                against the guideline from the full scope to zero by the end date.
+                            </p>
+                        </page>
+                        <page string="Sprint Report" name="report" invisible="state == 'planned'">
+                            <group>
+                                <group>
+                                    <field name="date_started" options="{'numeric': True}"/>
+                                    <field name="committed_points"/>
+                                    <field name="completed_points" invisible="state != 'closed'"/>
+                                </group>
+                                <group>
+                                    <field name="date_completed" options="{'numeric': True}" invisible="state != 'closed'"/>
+                                    <field name="next_sprint_id" invisible="not next_sprint_id"/>
+                                </group>
+                            </group>
+                            <separator string="Completed" invisible="state != 'closed'"/>
+                            <field name="completed_ticket_ids" invisible="state != 'closed'">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="name"/>
+                                    <field name="story_points" sum="Points"/>
+                                </list>
+                            </field>
+                            <separator string="Not Completed" invisible="state != 'closed'"/>
+                            <field name="carried_over_ticket_ids" invisible="state != 'closed'">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="name"/>
+                                    <field name="stage_id"/>
+                                    <field name="story_points" sum="Points"/>
+                                </list>
+                            </field>
+                            <separator string="Added After the Sprint Started"/>
+                            <field name="added_ticket_ids">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="name"/>
+                                    <field name="story_points" sum="Points"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_sprint_view_search" model="ir.ui.view">
+        <field name="name">dev.sprint.search</field>
+        <field name="model">dev.sprint</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="goal"/>
+                <field name="release_id"/>
+                <field name="user_id"/>
+                <filter name="not_closed" string="Active and Planned" domain="[('state', '!=', 'closed')]"/>
+                <filter name="active_sprints" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="closed" string="Completed" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_release" string="Release" context="{'group_by': 'release_id'}"/>
+                    <filter name="group_user" string="Scrum Master" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_sprint_view_graph" model="ir.ui.view">
+        <field name="name">dev.sprint.graph</field>
+        <field name="model">dev.sprint</field>
+        <field name="arch" type="xml">
+            <graph string="Velocity" type="bar" order="asc">
+                <field name="name"/>
+                <field name="completed_points" type="measure"/>
+                <field name="committed_points" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="dev_sprint_view_pivot" model="ir.ui.view">
+        <field name="name">dev.sprint.pivot</field>
+        <field name="model">dev.sprint</field>
+        <field name="arch" type="xml">
+            <pivot string="Sprints">
+                <field name="name" type="row"/>
+                <field name="committed_points" type="measure"/>
+                <field name="completed_points" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="dev_sprint_action" model="ir.actions.act_window">
+        <field name="name">Sprints</field>
+        <field name="res_model">dev.sprint</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
+        <field name="context">{'search_default_not_closed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Plan your first sprint</p>
+            <p>Pick tickets from the backlog, set a sprint goal and start the sprint. When it ends, complete it:
+                unfinished tickets move on to the next sprint and keep their history.</p>
+        </field>
+    </record>
+
+    <record id="dev_sprint_action_velocity" model="ir.actions.act_window">
+        <field name="name">Velocity</field>
+        <field name="res_model">dev.sprint</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_closed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No completed sprints yet</p>
+            <p>Velocity compares the story points committed with those completed in each sprint.</p>
+        </field>
+    </record>
+
+    <!-- Epics -->
+    <record id="dev_epic_view_list" model="ir.ui.view">
+        <field name="name">dev.epic.list</field>
+        <field name="model">dev.epic</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="is_closed">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="key"/>
+                <field name="name"/>
+                <field name="priority_id" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="date_start" options="{'numeric': True}" optional="hide"/>
+                <field name="date_target" options="{'numeric': True}" optional="show"/>
+                <field name="ticket_count" optional="show"/>
+                <field name="sprint_count" optional="show"/>
+                <field name="progress" widget="progressbar" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="stage_id"/>
+                <field name="is_closed" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_epic_view_kanban" model="ir.ui.view">
+        <field name="name">dev.epic.kanban</field>
+        <field name="model">dev.epic</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" sample="1">
+                <field name="color"/>
+                <templates>
+                    <t t-name="menu">
+                        <a t-if="widget.editable" role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="key" class="small text-muted"/>
+                            <field name="priority_id" class="small"/>
+                        </div>
+                        <field name="name" class="fw-bold"/>
+                        <field name="summary" class="small text-muted"/>
+                        <field name="progress" widget="progressbar"/>
+                        <footer>
+                            <span class="small"><field name="ticket_done_count"/> / <field name="ticket_count"/> tickets</span>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="dev_epic_view_form" model="ir.ui.view">
+        <field name="name">dev.epic.form</field>
+        <field name="model">dev.epic</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_tickets" type="object" class="oe_stat_button" icon="fa-ticket">
+                            <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                        </button>
+                        <button name="action_open_sprints" type="object" class="oe_stat_button" icon="fa-refresh">
+                            <field name="sprint_count" widget="statinfo" string="Sprints"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <div class="text-muted"><field name="key" readonly="1"/></div>
+                        <h1><field name="name" placeholder="e.g. Customer self-service"/></h1>
+                        <field name="summary" placeholder="What does this epic deliver?"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="priority_id" options="{'no_create': True}"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <field name="date_target" options="{'numeric': True}"/>
+                            <label for="progress"/>
+                            <div class="o_row">
+                                <field name="progress" widget="progressbar"/>
+                                <span class="text-muted small">
+                                    <field name="points_done" class="oe_inline"/> / <field name="points_total" class="oe_inline"/> points
+                                </span>
+                            </div>
+                            <field name="release_ids" widget="many2many_tags" invisible="not release_ids"/>
+                            <field name="active" invisible="1"/>
+                            <field name="is_closed" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" options="{'collaborative': true}"
+                                   placeholder="The goal, scope and outcome of this epic."/>
+                        </page>
+                        <page string="Tickets" name="tickets">
+                            <field name="ticket_ids" context="{'default_epic_id': id}">
+                                <list decoration-muted="is_closed">
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="type_id"/>
+                                    <field name="name"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="sprint_ids" widget="many2many_tags" optional="show"/>
+                                    <field name="story_points" sum="Story Points"/>
+                                    <field name="stage_id"/>
+                                    <field name="is_closed" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sprints" name="sprints">
+                            <field name="sprint_ids" options="{'no_create': True}">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="date_start" options="{'numeric': True}"/>
+                                    <field name="date_end" options="{'numeric': True}"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Features" name="features">
+                            <field name="feature_ids" options="{'no_create': True}">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="name"/>
+                                    <field name="progress" widget="progressbar"/>
+                                    <field name="stage_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_epic_view_search" model="ir.ui.view">
+        <field name="name">dev.epic.search</field>
+        <field name="model">dev.epic</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('key', 'ilike', self)]"/>
+                <field name="user_id"/>
+                <field name="sprint_ids"/>
+                <field name="tag_ids"/>
+                <filter name="open" string="Open" domain="[('is_closed', '=', False)]"/>
+                <filter name="mine" string="My Epics" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_user" string="Owner" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_priority" string="Priority" context="{'group_by': 'priority_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_epic_action" model="ir.actions.act_window">
+        <field name="name">Epics</field>
+        <field name="res_model">dev.epic</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first epic</p>
+            <p>An epic is a large body of work: group its tickets and features under it and follow its progress across
+                sprints.</p>
+        </field>
+    </record>
+
+    <!-- Wizards -->
+    <record id="dev_sprint_complete_view_form" model="ir.ui.view">
+        <field name="name">dev.sprint.complete.form</field>
+        <field name="model">dev.sprint.complete</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="sprint_id" invisible="1"/>
+                <p>
+                    <field name="done_count" class="oe_inline fw-bold"/> ticket(s) are done and
+                    <field name="open_count" class="oe_inline fw-bold"/> are unfinished. Unfinished tickets stay
+                    linked to this sprint (so their history is kept) and move on to:
+                </p>
+                <group>
+                    <field name="target_sprint_id" options="{'no_create': True}" placeholder="The backlog"/>
+                    <field name="create_next" invisible="target_sprint_id"/>
+                </group>
+                <footer>
+                    <button name="action_complete" type="object" string="Complete Sprint" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_ticket_add_sprint_view_form" model="ir.ui.view">
+        <field name="name">dev.ticket.add.sprint.form</field>
+        <field name="model">dev.ticket.add.sprint</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="sprint_id" options="{'no_create': True}"/>
+                    <field name="ticket_ids" widget="many2many_tags" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_add" type="object" string="Add to Sprint" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_ticket_add_sprint_action" model="ir.actions.act_window">
+        <field name="name">Add to Sprint</field>
+        <field name="res_model">dev.ticket.add.sprint</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_dev_ticket"/>
+        <field name="binding_view_types">list,kanban</field>
+    </record>
+</odoo>

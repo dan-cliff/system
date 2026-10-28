@@ -13,6 +13,8 @@
                 <field name="priority_id" optional="show"/>
                 <field name="user_id" widget="many2one_avatar_user" optional="show"/>
                 <field name="reporter_id" widget="many2one_avatar_user" optional="hide"/>
+                <field name="epic_id" optional="show"/>
+                <field name="sprint_ids" widget="many2many_tags" optional="show"/>
                 <field name="feature_id" optional="show"/>
                 <field name="release_id" optional="show"/>
                 <field name="repository_id" optional="hide"/>
@@ -38,6 +40,7 @@
                 <field name="color"/>
                 <field name="type_icon"/>
                 <field name="is_blocked"/>
+                <field name="epic_color"/>
                 <progressbar field="kanban_state" colors='{"normal": "muted", "done": "success", "blocked": "danger"}'/>
                 <templates>
                     <t t-name="menu">
@@ -50,6 +53,10 @@
                         <div class="small text-muted">
                             <field name="feature_id"/>
                         </div>
+                        <span t-if="record.epic_id.raw_value"
+                              t-attf-class="o_tag o_tag_color_{{ record.epic_color.raw_value or 0 }} rounded-pill px-2 small align-self-start">
+                            <field name="epic_id"/>
+                        </span>
                         <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                         <div t-if="record.is_blocked.raw_value" class="small text-danger">
                             <i class="fa fa-ban me-1"/>Blocked
@@ -137,6 +144,8 @@
                             <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                         </group>
                         <group>
+                            <field name="epic_id" options="{'no_create': True}"/>
+                            <field name="sprint_ids" widget="many2many_tags" options="{'no_create': True}"/>
                             <field name="feature_id" options="{'no_create': True}"/>
                             <field name="release_id" options="{'no_create': True}"/>
                             <field name="repository_id" options="{'no_create': True}"/>
@@ -244,6 +253,8 @@
                 <field name="user_id"/>
                 <field name="release_id"/>
                 <field name="feature_id"/>
+                <field name="epic_id"/>
+                <field name="sprint_ids"/>
                 <field name="repository_id"/>
                 <field name="tag_ids"/>
                 <field name="branch_ids"/>
@@ -255,9 +266,16 @@
                 <filter name="done" string="Done" domain="[('is_closed', '=', True)]"/>
                 <filter name="blocked" string="Blocked" domain="[('is_blocked', '=', True)]"/>
                 <separator/>
-                <filter name="backlog" string="Backlog (no release)" domain="[('release_id', '=', False)]"/>
+                <filter name="active_sprint" string="Active Sprints" domain="[('sprint_ids.state', '=', 'active')]"/>
+                <filter name="backlog" string="Backlog (not in a sprint)"
+                        domain="[('sprint_ids', 'not any', [('state', 'in', ('planned', 'active'))])]"/>
+                <filter name="carried_over" string="Carried Over" domain="[('sprint_count', '&gt;', 1)]"/>
+                <separator/>
+                <filter name="no_release" string="No Release" domain="[('release_id', '=', False)]"/>
                 <filter name="current_release" string="Active Releases"
                         domain="[('release_id.state', 'in', ('open', 'documentation', 'review'))]"/>
+                <filter name="current_work" string="Current Work"
+                        domain="['|', ('sprint_ids.state', '=', 'active'), ('release_id.state', 'in', ('open', 'documentation', 'review'))]"/>
                 <separator/>
                 <filter name="overdue" string="Overdue"
                         domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d')), ('is_closed', '=', False)]"/>
@@ -269,6 +287,8 @@
                     <filter name="group_priority" string="Priority" context="{'group_by': 'priority_id'}"/>
                     <filter name="group_release" string="Release" context="{'group_by': 'release_id'}"/>
                     <filter name="group_feature" string="Feature" context="{'group_by': 'feature_id'}"/>
+                    <filter name="group_epic" string="Epic" context="{'group_by': 'epic_id'}"/>
+                    <filter name="group_sprint" string="Current Sprint" context="{'group_by': 'sprint_id'}"/>
                     <filter name="group_repository" string="Repository" context="{'group_by': 'repository_id'}"/>
                     <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>
@@ -353,10 +373,11 @@
         <field name="name">Board</field>
         <field name="res_model">dev.ticket</field>
         <field name="view_mode">kanban,list,form,calendar,activity</field>
-        <field name="context">{'search_default_current_release': 1}</field>
+        <field name="context">{'search_default_current_work': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Nothing on the board yet</p>
-            <p>The board shows the tickets of the releases that are open, in documentation or in review.</p>
+            <p>The board shows the tickets of the active sprints, and of the releases that are open, in documentation
+                or in review.</p>
         </field>
     </record>
 
@@ -367,8 +388,8 @@
         <field name="context">{'search_default_backlog': 1, 'search_default_open': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">The backlog is empty</p>
-            <p>Tickets that aren't planned into a release yet. Drag them into order of importance, then give them a
-                release.</p>
+            <p>Open tickets that aren't in an active or planned sprint. Drag them into order of importance, then
+                select them and use Actions &gt; Add to Sprint to plan them.</p>
         </field>
     </record>
 

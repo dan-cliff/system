@@ -56,6 +56,15 @@ class DevTicket(models.Model):
                                  domain="[('state', 'not in', ('closed', 'cancelled'))]")
     release_state = fields.Selection(related='release_id.state', string='Release Status')
     feature_id = fields.Many2one('dev.feature', 'Feature', tracking=True, index='btree_not_null')
+    epic_id = fields.Many2one('dev.epic', 'Epic', tracking=True, index='btree_not_null')
+    epic_color = fields.Integer(related='epic_id.color', string='Epic Color')
+    sprint_ids = fields.Many2many('dev.sprint', 'dev_sprint_ticket_rel', 'ticket_id', 'sprint_id', string='Sprints',
+                                  help='Every sprint the ticket has been planned into: work that runs over a sprint '
+                                       'is carried into the next one and keeps its earlier sprints.')
+    sprint_id = fields.Many2one('dev.sprint', 'Current Sprint', compute='_compute_sprint_id', store=True,
+                                index='btree_not_null',
+                                help='The active sprint, else the next planned one, else the last completed one.')
+    sprint_count = fields.Integer('Sprint Count', compute='_compute_sprint_id', store=True)
     repository_id = fields.Many2one('dev.repository', 'Repository', compute='_compute_repository_id', store=True,
                                     readonly=False, tracking=True)
     repository_token_set = fields.Boolean(related='repository_id.token_set')
@@ -87,6 +96,15 @@ class DevTicket(models.Model):
                           or ticket.parent_id.repository_id)
             if repository:
                 ticket.repository_id = repository
+
+    @api.depends('sprint_ids.state', 'sprint_ids.date_start')
+    def _compute_sprint_id(self):
+        rank = {'active': 0, 'planned': 1, 'closed': 2}
+        for ticket in self:
+            sprints = ticket.sprint_ids.sorted(lambda s: (
+                rank[s.state], s.date_start.toordinal() * (-1 if s.state == 'closed' else 1) if s.date_start else 0))
+            ticket.sprint_id = sprints[:1]
+            ticket.sprint_count = len(ticket.sprint_ids)
 
     @api.depends('child_ids')
     def _compute_child_count(self):
@@ -127,12 +145,15 @@ class DevTicket(models.Model):
     def _onchange_feature_id(self):
         if self.feature_id.release_id and not self.release_id:
             self.release_id = self.feature_id.release_id
+        if self.feature_id.epic_id and not self.epic_id:
+            self.epic_id = self.feature_id.epic_id
 
     @api.onchange('parent_id')
     def _onchange_parent_id(self):
         if self.parent_id:
             self.release_id = self.release_id or self.parent_id.release_id
             self.feature_id = self.feature_id or self.parent_id.feature_id
+            self.epic_id = self.epic_id or self.parent_id.epic_id
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -141,6 +162,7 @@ class DevTicket(models.Model):
                 vals['key'] = self.env['ir.sequence'].sudo().next_by_code('dev.ticket') or False
         tickets = super().create(vals_list)
         tickets.filtered('is_closed').date_closed = fields.Datetime.now()
+        tickets._link_epic_sprints()
         return tickets
 
     def write(self, vals):
@@ -148,7 +170,17 @@ class DevTicket(models.Model):
             stage = self.env['dev.ticket.stage'].browse(vals['stage_id'])
             vals['date_closed'] = fields.Datetime.now() if stage.is_closed else False
             vals.setdefault('kanban_state', 'normal')
-        return super().write(vals)
+        result = super().write(vals)
+        if 'sprint_ids' in vals or 'epic_id' in vals:
+            self._link_epic_sprints()
+        return result
+
+    def _link_epic_sprints(self):
+        """An epic tracks every sprint its tickets are in."""
+        for ticket in self.filtered(lambda t: t.epic_id and t.sprint_ids):
+            missing = ticket.sprint_ids - ticket.epic_id.sudo().sprint_ids
+            if missing:
+                ticket.epic_id.sudo().sprint_ids = [(4, sprint.id) for sprint in missing]
 
     # ── Buttons ────────────────────────────────────────────────────────────
     def action_assign_to_me(self):

@@ -95,3 +95,16 @@ class DevPageTemplate(models.Model):
     active = fields.Boolean(default=True)
     description = fields.Text()
     body = fields.Html(sanitize_style=True)
+
+
+class DevEpicStage(models.Model):
+    _name = 'dev.epic.stage'
+    _description = 'Epic Stage'
+    _order = 'sequence, id'
+
+    name = fields.Char(required=True, translate=True)
+    sequence = fields.Integer(default=10)
+    active = fields.Boolean(default=True)
+    fold = fields.Boolean('Folded in Board')
+    is_closed = fields.Boolean('Closing Stage', help='Epics in this stage are finished.')
+    description = fields.Text()
