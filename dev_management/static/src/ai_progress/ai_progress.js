@@ -1,4 +1,5 @@
-import { Component, onWillUnmount, reactive, useState } from "@odoo/owl";
+import { Component, onMounted, onWillUnmount, reactive, useRef, useState } from "@odoo/owl";
+import { Dialog } from "@web/core/dialog/dialog";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -69,9 +70,96 @@ registry.category("main_components").add("dev_management.AiProgressOverlay", {
 });
 
 /**
- * Runs one AI job of a record (see dev.ai.mixin): saves the record, asks the
- * server how to word the AI step, runs the job with the overlay showing, then
- * reloads the record and reports the outcome.
+ * Dialog asking the user for an extra prompt before an AI job runs. Submit passes the
+ * prompt to `onSubmit`; Cancel (or closing the dialog) changes nothing.
+ */
+export class DevAiPromptDialog extends Component {
+    static template = "dev_management.AiPromptDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        title: String,
+        help: { type: String, optional: true },
+        placeholder: { type: String, optional: true },
+        selectedText: { type: String, optional: true },
+        submitLabel: { type: String, optional: true },
+        onSubmit: Function,
+    };
+
+    setup() {
+        this.state = useState({ prompt: "" });
+        this.textareaRef = useRef("prompt");
+        onMounted(() => this.textareaRef.el?.focus());
+    }
+
+    get canSubmit() {
+        return Boolean(this.state.prompt.trim());
+    }
+
+    submit() {
+        if (!this.canSubmit) {
+            return;
+        }
+        const prompt = this.state.prompt.trim();
+        this.props.close();
+        this.props.onSubmit(prompt);
+    }
+
+    onKeydown(ev) {
+        if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) {
+            ev.preventDefault();
+            this.submit();
+        }
+    }
+}
+
+/**
+ * Save the record, run one AI job with the overlay showing (see dev.ai.mixin), then
+ * reload the record (or let `apply` put the result in place) and report the outcome.
+ */
+export async function runAiJob({ record, orm, notification, job, kwargs = {}, title, apply }) {
+    if (aiProgress.active) {
+        return;
+    }
+    aiProgress.start(title || _t("Working with AI"), [
+        _t("Saving"),
+        _t("Checking what is needed"),
+        _t("Asking the AI"),
+        _t("Updating the record"),
+    ]);
+    try {
+        if (!(await record.save())) {
+            return;
+        }
+        aiProgress.next();
+        const info = await orm.call(record.resModel, "get_ai_job_info", [[record.resId], job], kwargs);
+        if (info.title) {
+            aiProgress.setTitle(info.title);
+        }
+        aiProgress.next(info.step);
+        const result = await orm.call(record.resModel, "action_ai_run", [[record.resId], job], kwargs);
+        aiProgress.next();
+        if (apply) {
+            await apply(result);
+        } else {
+            await record.load();
+        }
+        const message = typeof result === "string" ? result : result?.message;
+        notification.add(message || _t("Done."), { type: "success" });
+    } catch (error) {
+        notification.add(error.data?.message || error.message || String(error), {
+            title: _t("The AI could not finish"),
+            type: "danger",
+            sticky: true,
+        });
+    } finally {
+        aiProgress.stop();
+    }
+}
+
+/**
+ * Runs one AI job of a record. With `ask_prompt`, a dialog first asks for additional
+ * context, which is passed to the job as `prompt`.
  *
  * <widget name="dev_ai_action" options="{'job': 'release_name', 'label': 'Name with AI', 'icon': 'fa-magic'}"/>
  */
@@ -83,47 +171,39 @@ export class DevAiActionButton extends Component {
         label: { type: String, optional: true },
         icon: { type: String, optional: true },
         btnClass: { type: String, optional: true },
+        askPrompt: { type: Boolean, optional: true },
+        dialogTitle: { type: String, optional: true },
+        dialogHelp: { type: String, optional: true },
+        placeholder: { type: String, optional: true },
     };
 
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
     }
 
-    async run() {
-        const record = this.props.record;
-        if (aiProgress.active) {
-            return;
+    onClick() {
+        if (!this.props.askPrompt) {
+            return this.run();
         }
-        aiProgress.start(this.props.label || _t("Working with AI"), [
-            _t("Saving"),
-            _t("Checking what is needed"),
-            _t("Asking the AI"),
-            _t("Updating the record"),
-        ]);
-        try {
-            if (!(await record.save())) {
-                return;
-            }
-            aiProgress.next();
-            const info = await this.orm.call(record.resModel, "get_ai_job_info", [[record.resId], this.props.job]);
-            if (info.title) {
-                aiProgress.setTitle(info.title);
-            }
-            aiProgress.next(info.step);
-            const message = await this.orm.call(record.resModel, "action_ai_run", [[record.resId], this.props.job]);
-            aiProgress.next();
-            await record.load();
-            this.notification.add(message || _t("Done."), { type: "success" });
-        } catch (error) {
-            this.notification.add(error.data?.message || error.message || String(error), {
-                title: _t("The AI could not finish"),
-                type: "danger",
-                sticky: true,
-            });
-        } finally {
-            aiProgress.stop();
-        }
+        this.dialog.add(DevAiPromptDialog, {
+            title: this.props.dialogTitle || this.props.label || _t("Additional context"),
+            help: this.props.dialogHelp,
+            placeholder: this.props.placeholder,
+            onSubmit: (prompt) => this.run({ prompt }),
+        });
+    }
+
+    run(kwargs = {}) {
+        return runAiJob({
+            record: this.props.record,
+            orm: this.orm,
+            notification: this.notification,
+            job: this.props.job,
+            kwargs,
+            title: this.props.label,
+        });
     }
 }
 
@@ -134,5 +214,9 @@ registry.category("view_widgets").add("dev_ai_action", {
         label: options.label,
         icon: options.icon,
         btnClass: options.btn_class,
+        askPrompt: Boolean(options.ask_prompt),
+        dialogTitle: options.dialog_title,
+        dialogHelp: options.dialog_help,
+        placeholder: options.placeholder,
     }),
 });

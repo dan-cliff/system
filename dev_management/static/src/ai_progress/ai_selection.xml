@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dev_management.AiSelectionAssistant">
+        <span t-ref="root" class="o_dev_ai_selection">
+            <button t-if="state.visible" type="button" class="o_dev_ai_selection_button"
+                    t-attf-style="top: {{ state.top }}px; left: {{ state.left }}px;"
+                    title="Rework the selected text with AI" aria-label="Rework the selected text with AI"
+                    t-on-mousedown="onButtonMousedown" t-on-click="open">
+                <i class="fa fa-magic"/>
+            </button>
+        </span>
+    </t>
+</templates>

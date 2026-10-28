@@ -4,11 +4,19 @@ A feature holds the problem statement, technical specification, acceptance
 criteria, supporting research and third-party documentation links, and groups
 the tickets that build it.
 """
+import re
+
 from markupsafe import Markup
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools import html2plaintext
+from odoo.tools import html2plaintext, html_sanitize
+
+
+def _unwrap_paragraph(html):
+    """Inline replacement HTML: drop a single wrapping <p>...</p> the AI may have added anyway."""
+    match = re.fullmatch(r'\s*<p>(.*)</p>\s*', html or '', re.DOTALL)
+    return match.group(1) if match and '<p' not in match.group(1) else html
 
 
 class DevFeature(models.Model):
@@ -17,7 +25,7 @@ class DevFeature(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin', 'dev.ai.mixin']
     _order = 'priority_sequence, sequence, id desc'
     _rec_names_search = ['name', 'key']
-    _dev_ai_jobs = ('feature_spec', 'feature_tickets')
+    _dev_ai_jobs = ('feature_spec', 'feature_tickets', 'feature_research', 'selection_edit')
 
     key = fields.Char('Feature Number', readonly=True, copy=False, index=True)
     name = fields.Char('Title', required=True, tracking=True)
@@ -60,6 +68,9 @@ class DevFeature(models.Model):
     points_total = fields.Float('Story Points', compute='_compute_progress')
     progress = fields.Float('Progress (%)', compute='_compute_progress')
     criteria_done = fields.Char('Criteria Met', compute='_compute_criteria_done')
+    ai_spec_drafted = fields.Boolean(
+        'Drafted with AI', copy=False,
+        help='"Draft with AI" has run: the button becomes "Rerun AI with additional context".')
 
     @api.model
     def _read_group_stage_ids(self, stages, domain):
@@ -120,35 +131,61 @@ class DevFeature(models.Model):
             if value and value.strip():
                 lines.append('%s:\n%s' % (label, value.strip()[:15000]))
         if self.criterion_ids:
-            lines.append(_('Acceptance criteria:\n%s', '\n'.join('- ' + c.name for c in self.criterion_ids)))
+            met = _(' (met)')
+            lines.append(_('Acceptance criteria:\n%s', '\n'.join(
+                '- %s%s' % (c.name, met if c.done else '') for c in self.criterion_ids)))
         if self.link_ids:
             lines.append(_('Reference links:\n%s', '\n'.join('- %s %s' % (l.name, l.url or '') for l in self.link_ids)))
         if self.repository_id:
             lines.append(_('Repository: %s', self.repository_id.full_name))
         return '\n\n'.join(lines)
 
-    def _ai_feature_spec_info(self):
+    def _ai_feature_spec_info(self, prompt=None, **kwargs):
+        provider = self.env['dev.ai']._provider_label()
+        if prompt:
+            return {
+                'title': _('Reworking the feature with AI'),
+                'step': _('Asking %(provider)s to rework the problem and goals, technical specification and '
+                          'acceptance criteria of "%(name)s" with your additional context',
+                          provider=provider, name=self.name),
+            }
         missing = [label for field, label in (('description', _('the problem and goals')),
                                               ('specification', _('a technical specification')),
                                               ('criterion_ids', _('acceptance criteria'))) if not self[field]]
         return {
             'title': _('Drafting the feature with AI'),
-            'step': _('Asking %(provider)s to write %(parts)s for "%(name)s"',
-                      provider=self.env['dev.ai']._provider_label(), name=self.name,
+            'step': _('Asking %(provider)s to write %(parts)s for "%(name)s"', provider=provider, name=self.name,
                       parts=', '.join(missing) if missing else _('an improved specification and acceptance criteria')),
         }
 
-    def _ai_feature_spec(self):
+    def _ai_feature_spec(self, prompt=None, **kwargs):
+        """Draft with AI, or, with ``prompt``, rework the whole draft with the user's additional context."""
         self.ensure_one()
+        answer_format = _(
+            'Answer with JSON only: {"description": "<p>...</p>", "specification": "<h3>...</h3><p>...</p>", '
+            '"acceptance_criteria": ["Given ..., when ..., then ...", ...]} using only the HTML tags p, h3, ul, '
+            'ol, li, strong, em and code.')
+        if prompt:
+            met = self.criterion_ids.filtered('done')
+            request = _(
+                'Help a product team rework the design of this software feature.\n\n%(context)s\n\n'
+                'Additional context and instructions from the team (follow them):\n%(prompt)s\n\n'
+                'Rework the problem and goals, the technical specification and the acceptance criteria with this '
+                'context, and return the complete revised versions of all three (not just the changes). Keep what '
+                'is still right. Acceptance criteria already met: %(met)s - keep them exactly as written and do not '
+                'repeat them in your list.\n\n%(format)s',
+                context=self._ai_context(), prompt=prompt.strip()[:8000], format=answer_format,
+                met='; '.join(met.mapped('name')) or _('none'))
+        else:
+            request = _(
+                'Help a product team design this software feature.\n\n%(context)s\n\n'
+                'Write: the problem and goals (who has the problem, why it matters, what success looks like), a '
+                'technical specification (approach, data model changes, user interface, integrations, edge cases, '
+                'security and performance considerations, open questions) and 4 to 10 testable acceptance '
+                'criteria in Given/When/Then form. Build on what is already written rather than contradicting '
+                'it.\n\n%(format)s', context=self._ai_context(), format=answer_format)
         data = self._ai_json(
-            _('Help a product team design this software feature.\n\n%(context)s\n\n'
-              'Write: the problem and goals (who has the problem, why it matters, what success looks like), a '
-              'technical specification (approach, data model changes, user interface, integrations, edge cases, '
-              'security and performance considerations, open questions) and 4 to 10 testable acceptance '
-              'criteria in Given/When/Then form. Build on what is already written rather than contradicting it.\n\n'
-              'Answer with JSON only: {"description": "<p>...</p>", "specification": "<h3>...</h3><p>...</p>", '
-              '"acceptance_criteria": ["Given ..., when ..., then ...", ...]} using only the HTML tags p, h3, ul, '
-              'ol, li, strong, em and code.', context=self._ai_context()),
+            request,
             system=_('You are a senior product manager and software architect writing clear feature specifications.'),
             max_tokens=8000)
         vals = {}
@@ -158,24 +195,212 @@ class DevFeature(models.Model):
             vals['specification'] = data['specification']
         criteria = [c.strip() for c in data.get('acceptance_criteria') or [] if isinstance(c, str) and c.strip()]
         if criteria:
-            existing = set(self.criterion_ids.mapped('name'))
-            start = max(self.criterion_ids.mapped('sequence') or [0])
-            vals['criterion_ids'] = [(0, 0, {'name': c, 'sequence': start + i + 1})
-                                     for i, c in enumerate(criteria) if c not in existing]
+            if prompt:
+                # A rework replaces the criteria not met yet; met ones stay as they are.
+                kept = self.criterion_ids.filtered('done')
+                commands = [(2, c.id) for c in self.criterion_ids - kept]
+            else:
+                kept = self.criterion_ids
+                commands = []
+            existing = set(kept.mapped('name'))
+            start = max(kept.mapped('sequence') or [0])
+            commands += [(0, 0, {'name': c, 'sequence': start + i + 1})
+                         for i, c in enumerate(criteria) if c not in existing]
+            vals['criterion_ids'] = commands
         if not vals:
             raise UserError(_('The AI did not return a specification. Please try again.'))
+        vals['ai_spec_drafted'] = True
         self.write(vals)
+        if prompt:
+            return _('The feature has been reworked with your context: check the Problem and Goals, Specification '
+                     'and Acceptance Criteria tabs.')
         return _('The feature has been drafted: check the Problem and Goals, Specification and Acceptance '
                  'Criteria tabs.')
 
-    def _ai_feature_tickets_info(self):
+    # ── AI research ────────────────────────────────────────────────────────
+    def _ai_feature_research_info(self, **kwargs):
+        return {
+            'title': _('Researching the feature with AI'),
+            'step': _('Asking %(provider)s to search the web for documentation, standards, competitors and data '
+                      'about "%(name)s", and to suggest what else to research',
+                      provider=self.env['dev.ai']._provider_label(), name=self.name),
+        }
+
+    def _ai_feature_research(self, **kwargs):
+        """Research with AI: findings from the web (with their sources) and suggestions for further research.
+
+        The findings and suggestions are added to Supporting Research; every third-party source the AI used
+        is added to the Third-party Documentation tab. Sources the AI names but didn't actually get from its
+        searches are left out.
+        """
+        self.ensure_one()
+        result = self.env['dev.ai']._research(
+            _('Research this software feature for its product team.\n\n%(context)s\n\n'
+              'Search the web for what helps design and build it: third-party and API documentation, standards '
+              'and regulations, how competitors or well-known products do it, best practices, and relevant '
+              'data or studies. Then write:\n'
+              '1. Findings: what you found that matters for this feature, each with the source it came from.\n'
+              '2. Research suggestions: open questions still to answer and how to answer them (user interviews, '
+              'data to gather, experiments, products to review).\n\n'
+              'End your answer with JSON only, in this form: {"findings_html": "<ul><li>...</li></ul>", '
+              '"suggestions_html": "<ul><li>...</li></ul>", "sources": [{"title": "...", "url": "https://...", '
+              '"why": "what it is useful for"}]} using only the HTML tags p, h4, ul, ol, li, strong, em, code '
+              'and a. List in "sources" only pages you actually read in your searches.',
+              context=self._ai_context()),
+            system=_('You are a meticulous product researcher. You cite real sources and never invent links.'))
+        data = self.env['dev.ai']._parse_json(result['text'], 'findings_html')
+        if not isinstance(data, dict) or not (data.get('findings_html') or data.get('suggestions_html')):
+            raise UserError(_('The AI research could not be understood. Please try again.'))
+        sources = self._ai_research_sources(data.get('sources'), result)
+        today = fields.Date.context_today(self).strftime('%d/%m/%Y')
+        section = Markup('<h3>%s</h3>') % _('AI research (%s)', today)
+        if not result['searched']:
+            section += Markup('<p><em>%s</em></p>') % _(
+                'Web search was not available, so these findings come from the AI\'s own knowledge and have no '
+                'sources. Check them before relying on them.')
+        if data.get('findings_html'):
+            section += Markup('<h4>%s</h4>') % _('Findings') + html_sanitize(data['findings_html'])
+        if data.get('suggestions_html'):
+            section += Markup('<h4>%s</h4>') % _('Research suggestions') + html_sanitize(data['suggestions_html'])
+        if sources:
+            section += Markup('<h4>%s</h4><ul>%s</ul>') % (_('Sources'), Markup('').join(
+                Markup('<li><a href="%s" target="_blank">%s</a></li>') % (src['url'], src['title'])
+                for src in sources))
+        existing_urls = set(self.link_ids.mapped('url'))
+        new_links = [src for src in sources if src['url'] not in existing_urls]
+        start = max(self.link_ids.mapped('sequence') or [0])
+        self.write({
+            'research': (self.research or Markup('')) + section,
+            'link_ids': [(0, 0, {
+                'name': src['title'][:200],
+                'url': src['url'],
+                'sequence': start + i + 1,
+                'notes': _('%(why)sFound by AI research on %(date)s.',
+                           why=(src['why'] + ' ') if src.get('why') else '', date=today),
+            }) for i, src in enumerate(new_links)],
+        })
+        return _('Research added to the Research tab, with %s new source(s) in Third-party Documentation.',
+                 len(new_links))
+
+    @api.model
+    def _ai_research_sources(self, listed, result):
+        """The sources to keep: those the AI listed and actually found, then any others its answer cited."""
+        found = result['found']
+        sources, seen = [], set()
+        for item in listed or []:
+            if not isinstance(item, dict):
+                continue
+            url = (item.get('url') or '').strip()
+            if url in found and url not in seen:
+                seen.add(url)
+                sources.append({'url': url, 'title': (item.get('title') or found[url] or url).strip(),
+                                'why': (item.get('why') or '').strip()})
+        for url in result['cited']:
+            if url not in seen:
+                seen.add(url)
+                sources.append({'url': url, 'title': found.get(url) or url, 'why': ''})
+        return sources
+
+    # ── AI selection edits ─────────────────────────────────────────────────
+    # Fields where text can be selected and reworked with AI; for a list of lines, the line's text field.
+    _dev_ai_selection_fields = {
+        'summary': None,
+        'description': None,
+        'specification': None,
+        'research': None,
+        'criterion_ids': 'name',
+    }
+
+    def _ai_selection_target(self, field, subfield=None):
+        if field not in self._dev_ai_selection_fields or self._dev_ai_selection_fields[field] != (subfield or None):
+            raise UserError(_('This text can\'t be reworked with AI.'))
+        model_field = self._fields[field]
+        if subfield:
+            return model_field, self.env[model_field.comodel_name]._fields[subfield]
+        return model_field, model_field
+
+    def _ai_selection_edit_info(self, field=None, subfield=None, **kwargs):
+        parent, target = self._ai_selection_target(field, subfield)
+        label = parent.get_description(self.env)['string']
+        return {
+            'title': _('Reworking the selected text with AI'),
+            'step': _('Asking %(provider)s to rework the text you selected in %(field)s, as you asked',
+                      provider=self.env['dev.ai']._provider_label(), field=label),
+        }
+
+    def _ai_selection_edit(self, field=None, subfield=None, prompt='', selected_text='', before='', after='',
+                           is_html=False, multi_block=False, old_value=None, start=None, end=None, **kwargs):
+        """Rework the selected passage of a field as the user asked.
+
+        HTML fields: returns {'html': replacement} for the form to put in place of the selection.
+        Text fields and lines: ``old_value`` with the ``start``/``end`` of the selection identifies the text;
+        the replacement is written here.
+        """
+        self.ensure_one()
+        parent, target = self._ai_selection_target(field, subfield)
+        if not (prompt or '').strip() or not (selected_text or '').strip():
+            raise UserError(_('Select some text and say what the AI should do with it.'))
+        html = bool(is_html) and target.type == 'html'
+        if html:
+            fmt = (_('Return HTML using only the tags p, h3, ul, ol, li, strong, em, code and a, because the '
+                     'selection spans several paragraphs or list items.') if multi_block else
+                   _('Return the replacement as inline HTML only (no p, list or heading tags; you may use strong, '
+                     'em, code, a and br), because it goes inside an existing paragraph.'))
+        else:
+            fmt = _('Return plain text only, with no markdown or HTML.')
+        data = self._ai_json(
+            _('You are helping a product team edit the "%(field)s" of a software feature.\n\n'
+              'The whole feature, for context:\n%(context)s\n\n'
+              'Text just before the selection:\n"""%(before)s"""\n\n'
+              'The selected text to rework:\n"""%(selected)s"""\n\n'
+              'Text just after the selection:\n"""%(after)s"""\n\n'
+              'Instruction from the team: %(prompt)s\n\n'
+              'Rewrite only the selected text so it follows the instruction and still reads naturally with the '
+              'text around it. %(format)s\n\nAnswer with JSON only: {"replacement": "..."}',
+              field=parent.get_description(self.env)['string'], context=self._ai_context(),
+              before=(before or '')[-2000:], selected=(
+                  kwargs.get('selected_html') if html and kwargs.get('selected_html') else selected_text)[:20000],
+              after=(after or '')[:1000], prompt=prompt.strip()[:4000], format=fmt),
+            system=_('You are an expert technical editor. You change only what you are asked to change.'),
+            max_tokens=8000)
+        replacement = data.get('replacement')
+        if not isinstance(replacement, str) or not replacement.strip():
+            raise UserError(_('The AI did not return a replacement. Please try again.'))
+        if html:
+            replacement = html_sanitize(replacement)
+            if not multi_block:
+                replacement = _unwrap_paragraph(replacement)
+            return {'html': replacement, 'message': _('The selected text has been reworked.')}
+        return self._ai_selection_write_text(field, subfield, old_value, start, end, replacement.strip())
+
+    def _ai_selection_write_text(self, field, subfield, old_value, start, end, replacement):
+        try:
+            start, end = int(start), int(end)
+        except (TypeError, ValueError):
+            raise UserError(_('The selection was lost. Select the text again.'))
+        old_value = old_value or ''
+        if not 0 <= start < end <= len(old_value):
+            raise UserError(_('The selection was lost. Select the text again.'))
+        new_value = old_value[:start] + replacement + old_value[end:]
+        if subfield:
+            line = self[field].filtered(lambda l: (l[subfield] or '') == old_value)[:1]
+            if not line:
+                raise UserError(_('That text changed while the AI was working. Select it again.'))
+            line[subfield] = new_value
+        else:
+            if (self[field] or '') != old_value:
+                raise UserError(_('That text changed while the AI was working. Select it again.'))
+            self[field] = new_value
+        return _('The selected text has been reworked.')
+
+    def _ai_feature_tickets_info(self, **kwargs):
         return {
             'title': _('Breaking the feature into tickets with AI'),
             'step': _('Asking %(provider)s to split "%(name)s" into development tickets with acceptance criteria '
                       'and story points', provider=self.env['dev.ai']._provider_label(), name=self.name),
         }
 
-    def _ai_feature_tickets(self):
+    def _ai_feature_tickets(self, **kwargs):
         self.ensure_one()
         types = self.env['dev.ticket.type'].search([])
         existing = '\n'.join('- %s %s' % (t.key, t.name) for t in self.ticket_ids) or _('none')

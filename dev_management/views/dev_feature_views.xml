@@ -62,7 +62,11 @@
             <form>
                 <header>
                     <widget name="dev_ai_action" options="{'job': 'feature_spec', 'label': 'Draft with AI', 'icon': 'fa-magic'}"
-                            invisible="not ai_available"/>
+                            invisible="not ai_available or ai_spec_drafted"/>
+                    <widget name="dev_ai_action"
+                            options="{'job': 'feature_spec', 'label': 'Rerun AI with additional context', 'icon': 'fa-refresh', 'ask_prompt': True, 'dialog_title': 'Rerun AI with additional context', 'dialog_help': 'The AI reworks the Problem and Goals, Specification and Acceptance Criteria using everything on the feature plus what you add here. Criteria marked as met are kept as they are.', 'placeholder': 'e.g. It must also work offline, and leave out the reporting part for now'}"
+                            invisible="not ai_available or not ai_spec_drafted"/>
+                    <field name="ai_spec_drafted" invisible="1"/>
                     <widget name="dev_ai_action" options="{'job': 'feature_tickets', 'label': 'Break into Tickets with AI', 'icon': 'fa-sitemap'}"
                             invisible="not ai_available"/>
                     <field name="ai_available" invisible="1"/>
@@ -75,6 +79,8 @@
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="dev_ai_selection" invisible="not ai_available"
+                            options="{'fields': ['summary', 'description', 'specification', 'research', 'criterion_ids']}"/>
                     <div class="oe_title">
                         <div class="text-muted"><field name="key" readonly="1"/></div>
                         <h1><field name="name" placeholder="e.g. Customer self-service portal"/></h1>
@@ -123,6 +129,13 @@
                             </field>
                         </page>
                         <page string="Research" name="research">
+                            <div class="d-flex align-items-center gap-2 mb-2" invisible="not ai_available">
+                                <widget name="dev_ai_action" options="{'job': 'feature_research', 'label': 'Research with AI', 'icon': 'fa-search'}"/>
+                                <span class="text-muted small">
+                                    Searches the web for documentation, standards, competitors and data, adds the
+                                    findings and research suggestions below, and the sources to Third-party Documentation.
+                                </span>
+                            </div>
                             <field name="research" options="{'collaborative': true}"
                                    placeholder="User interviews, competitor analysis, data, survey results..."/>
                         </page>

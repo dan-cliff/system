@@ -88,3 +88,24 @@
         box-shadow: 0 0 0 0.9rem rgba(142, 92, 240, 0);
     }
 }
+
+// Floating "rework the selection with AI" button (see ai_selection.js).
+.o_dev_ai_selection_button {
+    position: fixed;
+    z-index: 1040;
+    width: 2.125rem;
+    height: 2.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    color: #ffffff;
+    background: linear-gradient(135deg, #8E5CF0, #3BB8FF);
+    box-shadow: 0 0.35rem 1rem rgba(42, 63, 143, 0.35);
+    transition: transform 0.1s ease-in-out;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}

@@ -1,9 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="dev_management.AiActionButton">
-        <button type="button" t-attf-class="btn {{ props.btnClass or 'btn-secondary' }}" t-on-click="run">
+        <button type="button" t-attf-class="btn {{ props.btnClass or 'btn-secondary' }}" t-on-click="onClick">
             <i t-attf-class="fa {{ props.icon or 'fa-magic' }} me-1"/><t t-esc="props.label or 'AI'"/>
         </button>
+    </t>
+
+    <t t-name="dev_management.AiPromptDialog">
+        <Dialog title="props.title" size="'md'">
+            <p t-if="props.help" class="text-muted" t-esc="props.help"/>
+            <div t-if="props.selectedText" class="o_dev_ai_selected_text mb-3">
+                <div class="small text-muted mb-1">Selected text</div>
+                <blockquote class="border-start border-3 ps-2 mb-0 small" t-esc="props.selectedText"/>
+            </div>
+            <textarea t-ref="prompt" class="form-control" rows="5" t-model="state.prompt" t-on-keydown="onKeydown"
+                      t-att-placeholder="props.placeholder or 'Tell the AI what to change...'"/>
+            <div class="small text-muted mt-1">Ctrl+Enter to submit.</div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="submit" t-att-disabled="!canSubmit">
+                    <i class="fa fa-magic me-1"/><t t-esc="props.submitLabel or 'Submit'"/>
+                </button>
+                <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
     </t>
 
     <t t-name="dev_management.AiProgressOverlay">
