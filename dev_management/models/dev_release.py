@@ -353,8 +353,28 @@ class DevRelease(models.Model):
                                             count=len(open_tickets), release=target.display_name))
 
     def action_open_github_release(self):
+        """Open the release on GitHub.
+
+        A draft's address (releases/tag/untagged-...) changes every time the draft is edited, so the
+        current one is fetched from GitHub first; if that isn't possible the repository's releases
+        page (which lists drafts to collaborators) is opened instead of a stale link.
+        """
         self.ensure_one()
-        return {'type': 'ir.actions.act_url', 'url': self.github_release_url, 'target': 'new'}
+        # A published release keeps its address; a draft's can only be trusted straight from GitHub.
+        url = self.github_release_url if self.github_published else False
+        if self.github_release_id and self.repository_id._github_ready():
+            try:
+                status, data = self.repository_id._github_request(
+                    'GET', '/releases/%s' % self.github_release_id, ok_statuses=(404,))
+            except UserError:
+                status, data = None, {}
+            if status == 200 and data.get('html_url'):
+                url = data['html_url']
+                if url != self.github_release_url:
+                    self.sudo().github_release_url = url
+        if not url:
+            url = '%s/releases' % self.repository_id.html_url
+        return {'type': 'ir.actions.act_url', 'url': url, 'target': 'new'}
 
     def action_open_next_release(self):
         self.ensure_one()
@@ -421,10 +441,11 @@ class DevRelease(models.Model):
         # Releases whose repository has lost its token are left alone (nothing to update on GitHub with).
         for release in self.filtered(lambda r: r.github_release_id and r.repository_id._github_ready()):
             try:
-                release.repository_id._github('PATCH', '/releases/%s' % release.github_release_id,
-                                              release._github_payload())
-                if release.github_error:
-                    release.github_error = False
+                data = release.repository_id._github('PATCH', '/releases/%s' % release.github_release_id,
+                                                     release._github_payload())
+                # GitHub gives a draft a new untagged-... address on every edit: keep the link current.
+                release.sudo().write({'github_release_url': data.get('html_url') or release.github_release_url,
+                                      'github_error': False})
             except UserError as error:
                 if raise_errors:
                     raise
@@ -508,9 +529,10 @@ class DevRelease(models.Model):
         for release in self:
             if not release.github_release_id:
                 release._github_create_draft()
-            release.repository_id._github('PATCH', '/releases/%s' % release.github_release_id,
-                                          dict(release._github_payload(draft=False), make_latest='true'))
-            release.sudo().write({'github_published': True, 'github_error': False})
+            data = release.repository_id._github('PATCH', '/releases/%s' % release.github_release_id,
+                                                 dict(release._github_payload(draft=False), make_latest='true'))
+            release.sudo().write({'github_published': True, 'github_error': False,
+                                  'github_release_url': data.get('html_url') or release.github_release_url})
             release.message_post(body=_('Published %s on GitHub.', release.version))
         return True
 
