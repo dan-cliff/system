@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dev_root"
+              name="Development"
+              web_icon="dev_management,static/description/icon.png"
+              action="dev_ticket_action_board"
+              groups="group_dev_user"
+              sequence="76"/>
+
+    <menuitem id="menu_dev_tickets" name="Tickets" parent="menu_dev_root" sequence="10"/>
+    <menuitem id="menu_dev_ticket_board" name="Board" parent="menu_dev_tickets"
+              action="dev_ticket_action_board" sequence="10"/>
+    <menuitem id="menu_dev_ticket_my" name="My Tickets" parent="menu_dev_tickets"
+              action="dev_ticket_action_my" sequence="20"/>
+    <menuitem id="menu_dev_ticket_backlog" name="Backlog" parent="menu_dev_tickets"
+              action="dev_ticket_action_backlog" sequence="30"/>
+    <menuitem id="menu_dev_ticket_all" name="All Tickets" parent="menu_dev_tickets"
+              action="dev_ticket_action" sequence="40"/>
+
+    <menuitem id="menu_dev_features" name="Features" parent="menu_dev_root"
+              action="dev_feature_action" sequence="20"/>
+    <menuitem id="menu_dev_releases" name="Releases" parent="menu_dev_root"
+              action="dev_release_action" sequence="30"/>
+
+    <menuitem id="menu_dev_documentation" name="Documentation" parent="menu_dev_root" sequence="40"/>
+    <menuitem id="menu_dev_space" name="Spaces" parent="menu_dev_documentation"
+              action="dev_space_action" sequence="10"/>
+    <menuitem id="menu_dev_page" name="All Pages" parent="menu_dev_documentation"
+              action="dev_page_action" sequence="20"/>
+
+    <menuitem id="menu_dev_reporting" name="Reporting" parent="menu_dev_root" sequence="80"/>
+    <menuitem id="menu_dev_ticket_analysis" name="Tickets" parent="menu_dev_reporting"
+              action="dev_ticket_action_analysis" sequence="10"/>
+    <menuitem id="menu_dev_release_analysis" name="Releases" parent="menu_dev_reporting"
+              action="dev_release_action_analysis" sequence="20"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_dev_reports" name="Reports" parent="menu_dev_root" sequence="85"/>
+
+    <menuitem id="menu_dev_config" name="Configuration" parent="menu_dev_root"
+              groups="group_dev_admin" sequence="90"/>
+    <menuitem id="menu_dev_settings" name="Settings" parent="menu_dev_config"
+              action="dev_config_settings_action" sequence="1"/>
+    <menuitem id="menu_dev_repository" name="Repositories" parent="menu_dev_config"
+              action="dev_repository_action" sequence="10"/>
+    <menuitem id="menu_dev_branch" name="Branches" parent="menu_dev_config"
+              action="dev_branch_action" sequence="15"/>
+    <menuitem id="menu_dev_ticket_type" name="Ticket Types" parent="menu_dev_config"
+              action="dev_ticket_type_action" sequence="20"/>
+    <menuitem id="menu_dev_priority" name="Priorities" parent="menu_dev_config"
+              action="dev_priority_action" sequence="30"/>
+    <menuitem id="menu_dev_ticket_stage" name="Ticket Stages" parent="menu_dev_config"
+              action="dev_ticket_stage_action" sequence="40"/>
+    <menuitem id="menu_dev_feature_stage" name="Feature Stages" parent="menu_dev_config"
+              action="dev_feature_stage_action" sequence="50"/>
+    <menuitem id="menu_dev_link_type" name="Link Types" parent="menu_dev_config"
+              action="dev_link_type_action" sequence="60"/>
+    <menuitem id="menu_dev_tag" name="Tags" parent="menu_dev_config"
+              action="dev_tag_action" sequence="70"/>
+    <menuitem id="menu_dev_page_template" name="Page Templates" parent="menu_dev_config"
+              action="dev_page_template_action" sequence="80"/>
+</odoo>

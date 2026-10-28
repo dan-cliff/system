@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/><stop offset="0.55" stop-color="#0A6CF0"/><stop offset="1" stop-color="#2A3F8F"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/><stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/><stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.45"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.2"/>
+    </filter>
+    <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#2A3F8F" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="512" cy="912" rx="390" ry="34" fill="url(#shadow)"/>
+
+  <!-- Main object: a code editor window -->
+  <g filter="url(#soft)">
+    <rect x="72" y="150" width="760" height="600" rx="70" fill="url(#rim)"/>
+    <rect x="108" y="250" width="688" height="464" rx="40" fill="url(#panel)"/>
+  </g>
+  <rect x="110" y="166" width="680" height="40" rx="20" fill="url(#gloss)"/>
+  <!-- window dots -->
+  <circle cx="152" cy="202" r="18" fill="#FF5A6E"/>
+  <circle cx="206" cy="202" r="18" fill="#FFC93C"/>
+  <circle cx="260" cy="202" r="18" fill="#14C9A5"/>
+  <rect x="330" y="190" width="300" height="24" rx="12" fill="#FFFFFF" opacity="0.35"/>
+
+  <!-- code lines: placeholder bars, indented like code -->
+  <rect x="160" y="300" width="96" height="30" rx="15" fill="url(#purple)"/>
+  <rect x="272" y="300" width="230" height="30" rx="15" fill="#A9ABDC"/>
+  <rect x="216" y="360" width="80" height="30" rx="15" fill="url(#coral)"/>
+  <rect x="312" y="360" width="290" height="30" rx="15" fill="#A9ABDC"/>
+  <rect x="272" y="420" width="190" height="30" rx="15" fill="#A9ABDC"/>
+  <rect x="478" y="420" width="110" height="30" rx="15" fill="url(#yellow)"/>
+  <rect x="272" y="480" width="250" height="30" rx="15" fill="#A9ABDC"/>
+  <rect x="216" y="540" width="140" height="30" rx="15" fill="url(#teal)"/>
+  <rect x="372" y="540" width="120" height="30" rx="15" fill="#A9ABDC"/>
+  <rect x="160" y="600" width="70" height="30" rx="15" fill="url(#purple)"/>
+
+  <!-- Accent: a release badge with a branch-and-merge graph -->
+  <g filter="url(#lift)">
+    <circle cx="752" cy="688" r="210" fill="url(#purple)"/>
+  </g>
+  <ellipse cx="752" cy="560" rx="150" ry="62" fill="url(#gloss)"/>
+  <g stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" fill="none">
+    <line x1="680" y1="590" x2="680" y2="800"/>
+    <path d="M824 610 C824 700 680 690 680 770"/>
+  </g>
+  <circle cx="680" cy="590" r="40" fill="url(#yellow)" stroke="#FFFFFF" stroke-width="16"/>
+  <circle cx="824" cy="600" r="40" fill="url(#coral)" stroke="#FFFFFF" stroke-width="16"/>
+  <circle cx="680" cy="800" r="40" fill="url(#teal)" stroke="#FFFFFF" stroke-width="16"/>
+</svg>

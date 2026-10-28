@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_feature_view_list" model="ir.ui.view">
+        <field name="name">dev.feature.list</field>
+        <field name="model">dev.feature</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="is_closed">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="key"/>
+                <field name="name"/>
+                <field name="priority_id" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="release_id" optional="show"/>
+                <field name="repository_id" optional="hide"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                <field name="target_date" options="{'numeric': True}" optional="show"/>
+                <field name="ticket_count" optional="show"/>
+                <field name="progress" widget="progressbar" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="stage_id"/>
+                <field name="is_closed" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_feature_view_kanban" model="ir.ui.view">
+        <field name="name">dev.feature.kanban</field>
+        <field name="model">dev.feature</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" sample="1">
+                <field name="color"/>
+                <templates>
+                    <t t-name="menu">
+                        <a t-if="widget.editable" role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="key" class="small text-muted"/>
+                            <field name="priority_id" class="small"/>
+                        </div>
+                        <field name="name" class="fw-bold"/>
+                        <field name="summary" class="small text-muted"/>
+                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <field name="progress" widget="progressbar"/>
+                        <footer>
+                            <field name="release_id" class="small"/>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="dev_feature_view_form" model="ir.ui.view">
+        <field name="name">dev.feature.form</field>
+        <field name="model">dev.feature</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <widget name="dev_ai_action" options="{'job': 'feature_spec', 'label': 'Draft with AI', 'icon': 'fa-magic'}"
+                            invisible="not ai_available"/>
+                    <widget name="dev_ai_action" options="{'job': 'feature_tickets', 'label': 'Break into Tickets with AI', 'icon': 'fa-sitemap'}"
+                            invisible="not ai_available"/>
+                    <field name="ai_available" invisible="1"/>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_tickets" type="object" class="oe_stat_button" icon="fa-ticket">
+                            <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <div class="text-muted"><field name="key" readonly="1"/></div>
+                        <h1><field name="name" placeholder="e.g. Customer self-service portal"/></h1>
+                        <field name="summary" placeholder="One or two sentences: who is it for and what does it let them do?"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="priority_id" options="{'no_create': True}"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="release_id" options="{'no_create': True}"/>
+                            <field name="repository_id" options="{'no_create': True}"/>
+                            <field name="target_date" options="{'numeric': True}"/>
+                            <label for="progress"/>
+                            <div class="o_row">
+                                <field name="progress" widget="progressbar"/>
+                                <span class="text-muted small"><field name="ticket_done_count" class="oe_inline"/> / <field name="ticket_count" class="oe_inline"/> tickets</span>
+                            </div>
+                            <field name="active" invisible="1"/>
+                            <field name="is_closed" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Problem and Goals" name="description">
+                            <field name="description" options="{'collaborative': true}"
+                                   placeholder="The problem this feature solves, who has it, why it matters and what success looks like."/>
+                        </page>
+                        <page string="Specification" name="specification">
+                            <field name="specification" options="{'collaborative': true}"
+                                   placeholder="Approach, data model, user interface, integrations, edge cases, security and performance, open questions."/>
+                        </page>
+                        <page string="Acceptance Criteria" name="criteria">
+                            <div class="text-muted small mb-2" invisible="not criteria_done">
+                                Met: <field name="criteria_done" class="oe_inline"/>
+                            </div>
+                            <field name="criterion_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="hide"/>
+                                    <field name="done" widget="boolean_toggle" nolabel="1"/>
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Research" name="research">
+                            <field name="research" options="{'collaborative': true}"
+                                   placeholder="User interviews, competitor analysis, data, survey results..."/>
+                        </page>
+                        <page string="Third-party Documentation" name="links">
+                            <field name="link_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="hide"/>
+                                    <field name="name"/>
+                                    <field name="url" widget="url"/>
+                                    <field name="file" filename="file_name" widget="binary"/>
+                                    <field name="file_name" column_invisible="1"/>
+                                    <field name="notes" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Tickets" name="tickets">
+                            <field name="ticket_ids" context="{'default_feature_id': id, 'default_release_id': release_id, 'default_repository_id': repository_id}">
+                                <list decoration-muted="is_closed">
+                                    <field name="id" optional="show"/>
+                                    <field name="key"/>
+                                    <field name="type_id"/>
+                                    <field name="name"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="release_id" optional="show"/>
+                                    <field name="story_points" sum="Story Points"/>
+                                    <field name="stage_id"/>
+                                    <field name="is_closed" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Branches" name="branches">
+                            <field name="branch_ids" context="{'default_repository_id': repository_id}">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="repository_id"/>
+                                    <field name="exists_on_github"/>
+                                    <field name="pr_state" optional="show"/>
+                                    <field name="html_url" widget="url" text="Open"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documentation" name="pages">
+                            <field name="page_ids" options="{'no_create': True}">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="space_id"/>
+                                    <field name="date_edited" options="{'numeric': True}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter reload_on_follower="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_feature_view_search" model="ir.ui.view">
+        <field name="name">dev.feature.search</field>
+        <field name="model">dev.feature</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('key', 'ilike', self)]"/>
+                <field name="description"/>
+                <field name="specification"/>
+                <field name="user_id"/>
+                <field name="release_id"/>
+                <field name="tag_ids"/>
+                <filter name="my" string="My Features" domain="[('user_id', '=', uid)]"/>
+                <filter name="open" string="Open" domain="[('is_closed', '=', False)]"/>
+                <filter name="unplanned" string="Not in a Release" domain="[('release_id', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_user" string="Product Owner" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_release" string="Release" context="{'group_by': 'release_id'}"/>
+                    <filter name="group_priority" string="Priority" context="{'group_by': 'priority_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_feature_action" model="ir.actions.act_window">
+        <field name="name">Features</field>
+        <field name="res_model">dev.feature</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Design your first feature</p>
+            <p>Write up the problem, the technical specification, acceptance criteria, research and third-party
+                documentation, then break it into tickets.</p>
+        </field>
+    </record>
+</odoo>

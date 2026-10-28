@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_ticket_view_list" model="ir.ui.view">
+        <field name="name">dev.ticket.list</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="is_closed" decoration-danger="is_blocked and not is_closed" multi_edit="1">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="key"/>
+                <field name="type_id" optional="show"/>
+                <field name="name"/>
+                <field name="priority_id" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="reporter_id" widget="many2one_avatar_user" optional="hide"/>
+                <field name="feature_id" optional="show"/>
+                <field name="release_id" optional="show"/>
+                <field name="repository_id" optional="hide"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                <field name="story_points" sum="Story Points" optional="show"/>
+                <field name="date_deadline" options="{'numeric': True}" optional="hide"/>
+                <field name="create_date" string="Created" options="{'numeric': True}" optional="hide"/>
+                <field name="date_closed" options="{'numeric': True}" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="stage_id"/>
+                <field name="is_closed" column_invisible="1"/>
+                <field name="is_blocked" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_kanban" model="ir.ui.view">
+        <field name="name">dev.ticket.kanban</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column" quick_create_view="dev_management.dev_ticket_view_form_quick_create"
+                    sample="1">
+                <field name="color"/>
+                <field name="type_icon"/>
+                <field name="is_blocked"/>
+                <progressbar field="kanban_state" colors='{"normal": "muted", "done": "success", "blocked": "danger"}'/>
+                <templates>
+                    <t t-name="menu">
+                        <a t-if="widget.editable" role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold"/>
+                        <div class="small text-muted">
+                            <field name="feature_id"/>
+                        </div>
+                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <div t-if="record.is_blocked.raw_value" class="small text-danger">
+                            <i class="fa fa-ban me-1"/>Blocked
+                        </div>
+                        <footer class="align-items-center">
+                            <i t-attf-class="fa fa-fw {{ record.type_icon.raw_value or 'fa-circle-o' }} me-1"
+                               t-att-title="record.type_id.value"/>
+                            <field name="type_id" invisible="1"/>
+                            <field name="key" class="small text-muted"/>
+                            <field name="priority_id" class="small ms-2"/>
+                            <div class="ms-auto d-flex align-items-center gap-1">
+                                <span class="badge rounded-pill text-bg-light" t-if="record.story_points.raw_value">
+                                    <field name="story_points"/>
+                                </span>
+                                <field name="kanban_state" widget="state_selection"/>
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                            </div>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_form_quick_create" model="ir.ui.view">
+        <field name="name">dev.ticket.form.quick_create</field>
+        <field name="model">dev.ticket</field>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="name" placeholder="e.g. Let customers reset their password"/>
+                    <field name="type_id" options="{'no_create': True}"/>
+                    <field name="user_id" widget="many2one_avatar_user"/>
+                    <field name="release_id" options="{'no_create': True}"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_form" model="ir.ui.view">
+        <field name="name">dev.ticket.form</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_assign_to_me" type="object" string="Assign to Me" class="btn-primary"
+                            invisible="user_id"/>
+                    <button name="action_create_branch" type="object" string="Create Branch" icon="fa-code-fork"
+                            invisible="not repository_token_set or is_closed"
+                            help="Create a branch for this ticket on GitHub, from the repository's default branch."/>
+                    <widget name="dev_ai_action"
+                            options="{'job': 'ticket_criteria', 'label': 'Acceptance Criteria with AI', 'icon': 'fa-magic'}"
+                            invisible="not ai_available"/>
+                    <field name="ai_available" invisible="1"/>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_children" type="object" class="oe_stat_button" icon="fa-sitemap"
+                                invisible="not child_count">
+                            <field name="child_count" widget="statinfo" string="Sub-tasks"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Blocked" bg_color="text-bg-warning" invisible="not is_blocked or is_closed"/>
+                    <div class="oe_title">
+                        <div class="text-muted">
+                            <field name="parent_id" invisible="not parent_id" class="oe_inline" readonly="1"/>
+                            <span invisible="not parent_id"> / </span>
+                            <field name="key" class="oe_inline" readonly="1"/>
+                        </div>
+                        <h1 class="d-flex align-items-center gap-2">
+                            <field name="name" placeholder="e.g. Let customers reset their password" class="flex-grow-1"/>
+                            <field name="kanban_state" widget="state_selection" class="ms-auto"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="type_id" options="{'no_create': True}"/>
+                            <field name="priority_id" options="{'no_create': True}"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="reporter_id" widget="many2one_avatar_user"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="feature_id" options="{'no_create': True}"/>
+                            <field name="release_id" options="{'no_create': True}"/>
+                            <field name="repository_id" options="{'no_create': True}"/>
+                            <field name="story_points"/>
+                            <field name="estimate_hours" widget="float_time"/>
+                            <field name="date_deadline" options="{'numeric': True}"/>
+                            <field name="date_closed" options="{'numeric': True}" invisible="not date_closed"/>
+                            <field name="active" invisible="1"/>
+                            <field name="is_closed" invisible="1"/>
+                            <field name="is_blocked" invisible="1"/>
+                            <field name="repository_token_set" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" options="{'collaborative': true}"
+                                   placeholder="What needs to be done, and why. Add steps to reproduce for bugs."/>
+                        </page>
+                        <page string="Acceptance Criteria" name="criteria">
+                            <div class="text-muted small mb-2" invisible="not criteria_done">
+                                Met: <field name="criteria_done" class="oe_inline"/>
+                            </div>
+                            <field name="criterion_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="hide"/>
+                                    <field name="done" widget="boolean_toggle" nolabel="1"/>
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sub-tasks" name="children">
+                            <field name="child_ids" context="{'default_release_id': release_id, 'default_feature_id': feature_id, 'default_repository_id': repository_id}">
+                                <list editable="bottom" decoration-muted="is_closed">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="show"/>
+                                    <field name="key" readonly="1"/>
+                                    <field name="name"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="story_points" optional="show"/>
+                                    <field name="stage_id"/>
+                                    <field name="is_closed" column_invisible="1"/>
+                                    <field name="release_id" column_invisible="1"/>
+                                    <field name="feature_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Links" name="links">
+                            <field name="link_ids">
+                                <list editable="bottom">
+                                    <field name="id" optional="hide"/>
+                                    <field name="link_type_id" string="This ticket" options="{'no_create': True}"/>
+                                    <field name="target_id" options="{'no_create': True}"/>
+                                    <field name="target_stage_id"/>
+                                </list>
+                            </field>
+                            <separator string="Linked from other tickets" invisible="not inverse_link_ids"/>
+                            <field name="inverse_link_ids" readonly="1" invisible="not inverse_link_ids">
+                                <list>
+                                    <field name="id" optional="hide"/>
+                                    <field name="inverse_name" string="This ticket"/>
+                                    <field name="source_id"/>
+                                    <field name="source_stage_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Branches" name="branches">
+                            <field name="branch_ids" context="{'default_repository_id': repository_id}"
+                                   options="{'create_name_field': 'name'}">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="repository_id"/>
+                                    <field name="exists_on_github"/>
+                                    <field name="pr_state" optional="show"/>
+                                    <field name="merge_state" optional="show"/>
+                                    <field name="html_url" widget="url" text="Open"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documentation" name="pages">
+                            <field name="page_ids" widget="many2many" options="{'no_create': True}">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="space_id"/>
+                                    <field name="date_edited" options="{'numeric': True}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter reload_on_follower="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_search" model="ir.ui.view">
+        <field name="name">dev.ticket.search</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('key', 'ilike', self)]"/>
+                <field name="description"/>
+                <field name="user_id"/>
+                <field name="release_id"/>
+                <field name="feature_id"/>
+                <field name="repository_id"/>
+                <field name="tag_ids"/>
+                <field name="branch_ids"/>
+                <filter name="my" string="My Tickets" domain="[('user_id', '=', uid)]"/>
+                <filter name="reported" string="Reported by Me" domain="[('reporter_id', '=', uid)]"/>
+                <filter name="unassigned" string="Unassigned" domain="[('user_id', '=', False)]"/>
+                <separator/>
+                <filter name="open" string="Open" domain="[('is_closed', '=', False)]"/>
+                <filter name="done" string="Done" domain="[('is_closed', '=', True)]"/>
+                <filter name="blocked" string="Blocked" domain="[('is_blocked', '=', True)]"/>
+                <separator/>
+                <filter name="backlog" string="Backlog (no release)" domain="[('release_id', '=', False)]"/>
+                <filter name="current_release" string="Active Releases"
+                        domain="[('release_id.state', 'in', ('open', 'documentation', 'review'))]"/>
+                <separator/>
+                <filter name="overdue" string="Overdue"
+                        domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d')), ('is_closed', '=', False)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_user" string="Assignee" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'type_id'}"/>
+                    <filter name="group_priority" string="Priority" context="{'group_by': 'priority_id'}"/>
+                    <filter name="group_release" string="Release" context="{'group_by': 'release_id'}"/>
+                    <filter name="group_feature" string="Feature" context="{'group_by': 'feature_id'}"/>
+                    <filter name="group_repository" string="Repository" context="{'group_by': 'repository_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_pivot" model="ir.ui.view">
+        <field name="name">dev.ticket.pivot</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <pivot string="Tickets" sample="1">
+                <field name="release_id" type="row"/>
+                <field name="stage_id" type="col"/>
+                <field name="story_points" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_graph" model="ir.ui.view">
+        <field name="name">dev.ticket.graph</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <graph string="Tickets" type="bar" stacked="1" sample="1">
+                <field name="release_id"/>
+                <field name="type_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_calendar" model="ir.ui.view">
+        <field name="name">dev.ticket.calendar</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <calendar date_start="date_deadline" mode="month" color="user_id" quick_create="0" event_open_popup="1">
+                <field name="key"/>
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="stage_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="dev_ticket_view_activity" model="ir.ui.view">
+        <field name="name">dev.ticket.activity</field>
+        <field name="model">dev.ticket</field>
+        <field name="arch" type="xml">
+            <activity string="Tickets">
+                <templates>
+                    <div t-name="activity-box">
+                        <field name="user_id" widget="many2one_avatar_user"/>
+                        <div class="flex-grow-1">
+                            <field name="name" class="o_text_block o_text_bold"/>
+                            <field name="key" class="text-muted"/>
+                        </div>
+                    </div>
+                </templates>
+            </activity>
+        </field>
+    </record>
+
+    <record id="dev_ticket_action" model="ir.actions.act_window">
+        <field name="name">Tickets</field>
+        <field name="res_model">dev.ticket</field>
+        <field name="view_mode">kanban,list,form,calendar,pivot,graph,activity</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first ticket</p>
+            <p>Tickets are the stories, tasks and bugs your team works on. Plan them into releases, link them to
+                each other and to their GitHub branches.</p>
+        </field>
+    </record>
+
+    <record id="dev_ticket_action_my" model="ir.actions.act_window">
+        <field name="name">My Tickets</field>
+        <field name="res_model">dev.ticket</field>
+        <field name="view_mode">kanban,list,form,calendar,activity</field>
+        <field name="context">{'search_default_my': 1, 'search_default_open': 1}</field>
+    </record>
+
+    <record id="dev_ticket_action_board" model="ir.actions.act_window">
+        <field name="name">Board</field>
+        <field name="res_model">dev.ticket</field>
+        <field name="view_mode">kanban,list,form,calendar,activity</field>
+        <field name="context">{'search_default_current_release': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing on the board yet</p>
+            <p>The board shows the tickets of the releases that are open, in documentation or in review.</p>
+        </field>
+    </record>
+
+    <record id="dev_ticket_action_backlog" model="ir.actions.act_window">
+        <field name="name">Backlog</field>
+        <field name="res_model">dev.ticket</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_backlog': 1, 'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">The backlog is empty</p>
+            <p>Tickets that aren't planned into a release yet. Drag them into order of importance, then give them a
+                release.</p>
+        </field>
+    </record>
+
+    <record id="dev_ticket_action_analysis" model="ir.actions.act_window">
+        <field name="name">Tickets Analysis</field>
+        <field name="res_model">dev.ticket</field>
+        <field name="view_mode">pivot,graph,list</field>
+    </record>
+</odoo>

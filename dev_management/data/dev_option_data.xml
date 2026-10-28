@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Starting options: users rename, add and archive them under Configuration. -->
+
+    <!-- Ticket types -->
+    <record id="ticket_type_story" model="dev.ticket.type">
+        <field name="name">Story</field>
+        <field name="sequence">10</field>
+        <field name="icon">fa-bookmark</field>
+        <field name="color">10</field>
+        <field name="branch_prefix">feature</field>
+        <field name="description">A piece of functionality described from the user's point of view.</field>
+    </record>
+    <record id="ticket_type_task" model="dev.ticket.type">
+        <field name="name">Task</field>
+        <field name="sequence">20</field>
+        <field name="icon">fa-check-square</field>
+        <field name="color">4</field>
+        <field name="branch_prefix">task</field>
+        <field name="description">Technical work that needs doing.</field>
+    </record>
+    <record id="ticket_type_bug" model="dev.ticket.type">
+        <field name="name">Bug</field>
+        <field name="sequence">30</field>
+        <field name="icon">fa-bug</field>
+        <field name="color">1</field>
+        <field name="branch_prefix">bugfix</field>
+        <field name="description">Something that doesn't work as it should.</field>
+    </record>
+    <record id="ticket_type_improvement" model="dev.ticket.type">
+        <field name="name">Improvement</field>
+        <field name="sequence">40</field>
+        <field name="icon">fa-arrow-circle-up</field>
+        <field name="color">2</field>
+        <field name="branch_prefix">improvement</field>
+        <field name="description">A change that makes existing functionality better.</field>
+    </record>
+    <record id="ticket_type_spike" model="dev.ticket.type">
+        <field name="name">Spike</field>
+        <field name="sequence">50</field>
+        <field name="icon">fa-flask</field>
+        <field name="color">9</field>
+        <field name="branch_prefix">spike</field>
+        <field name="description">Time-boxed research to answer a question or reduce risk.</field>
+    </record>
+    <record id="ticket_type_subtask" model="dev.ticket.type">
+        <field name="name">Sub-task</field>
+        <field name="sequence">60</field>
+        <field name="icon">fa-level-down</field>
+        <field name="color">0</field>
+        <field name="branch_prefix">task</field>
+        <field name="description">Part of a bigger ticket.</field>
+    </record>
+
+    <!-- Priorities (most urgent first) -->
+    <record id="priority_highest" model="dev.priority">
+        <field name="name">Highest</field>
+        <field name="sequence">10</field>
+        <field name="icon">fa-angle-double-up</field>
+        <field name="color">1</field>
+    </record>
+    <record id="priority_high" model="dev.priority">
+        <field name="name">High</field>
+        <field name="sequence">20</field>
+        <field name="icon">fa-angle-up</field>
+        <field name="color">2</field>
+    </record>
+    <record id="priority_medium" model="dev.priority">
+        <field name="name">Medium</field>
+        <field name="sequence">30</field>
+        <field name="icon">fa-minus</field>
+        <field name="color">3</field>
+    </record>
+    <record id="priority_low" model="dev.priority">
+        <field name="name">Low</field>
+        <field name="sequence">40</field>
+        <field name="icon">fa-angle-down</field>
+        <field name="color">4</field>
+    </record>
+    <record id="priority_lowest" model="dev.priority">
+        <field name="name">Lowest</field>
+        <field name="sequence">50</field>
+        <field name="icon">fa-angle-double-down</field>
+        <field name="color">0</field>
+    </record>
+
+    <!-- Ticket stages -->
+    <record id="ticket_stage_backlog" model="dev.ticket.stage">
+        <field name="name">Backlog</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="ticket_stage_todo" model="dev.ticket.stage">
+        <field name="name">To Do</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="ticket_stage_progress" model="dev.ticket.stage">
+        <field name="name">In Progress</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="ticket_stage_review" model="dev.ticket.stage">
+        <field name="name">Code Review</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="ticket_stage_testing" model="dev.ticket.stage">
+        <field name="name">Testing</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="ticket_stage_done" model="dev.ticket.stage">
+        <field name="name">Done</field>
+        <field name="sequence">60</field>
+        <field name="is_closed" eval="True"/>
+    </record>
+    <record id="ticket_stage_wont_do" model="dev.ticket.stage">
+        <field name="name">Won't Do</field>
+        <field name="sequence">70</field>
+        <field name="is_closed" eval="True"/>
+        <field name="fold" eval="True"/>
+    </record>
+
+    <!-- Feature stages -->
+    <record id="feature_stage_idea" model="dev.feature.stage">
+        <field name="name">Idea</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="feature_stage_discovery" model="dev.feature.stage">
+        <field name="name">Discovery</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="feature_stage_specification" model="dev.feature.stage">
+        <field name="name">Specification</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="feature_stage_ready" model="dev.feature.stage">
+        <field name="name">Ready for Development</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="feature_stage_development" model="dev.feature.stage">
+        <field name="name">In Development</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="feature_stage_released" model="dev.feature.stage">
+        <field name="name">Released</field>
+        <field name="sequence">60</field>
+        <field name="is_closed" eval="True"/>
+    </record>
+    <record id="feature_stage_parked" model="dev.feature.stage">
+        <field name="name">Parked</field>
+        <field name="sequence">70</field>
+        <field name="is_closed" eval="True"/>
+        <field name="fold" eval="True"/>
+    </record>
+
+    <!-- Ticket link types -->
+    <record id="link_type_blocks" model="dev.link.type">
+        <field name="name">blocks</field>
+        <field name="inverse_name">is blocked by</field>
+        <field name="sequence">10</field>
+        <field name="is_blocking" eval="True"/>
+    </record>
+    <record id="link_type_relates" model="dev.link.type">
+        <field name="name">relates to</field>
+        <field name="inverse_name">relates to</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="link_type_duplicates" model="dev.link.type">
+        <field name="name">duplicates</field>
+        <field name="inverse_name">is duplicated by</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="link_type_clones" model="dev.link.type">
+        <field name="name">clones</field>
+        <field name="inverse_name">is cloned by</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="link_type_causes" model="dev.link.type">
+        <field name="name">causes</field>
+        <field name="inverse_name">is caused by</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <!-- Documentation page templates -->
+    <record id="page_template_requirements" model="dev.page.template">
+        <field name="name">Product Requirements</field>
+        <field name="sequence">10</field>
+        <field name="description">Goals, background, user stories, requirements and open questions.</field>
+        <field name="body"><![CDATA[<h2>Goals</h2><ul><li>What must this achieve?</li></ul><h2>Background and strategic fit</h2><p>Why are we doing this?</p><h2>Assumptions</h2><ul><li></li></ul><h2>Requirements</h2><table class="table table-bordered"><thead><tr><th>#</th><th>Title</th><th>User Story</th><th>Importance</th><th>Notes</th></tr></thead><tbody><tr><td>1</td><td></td><td></td><td>Must Have</td><td></td></tr></tbody></table><h2>User interaction and design</h2><p></p><h2>Questions</h2><table class="table table-bordered"><thead><tr><th>Question</th><th>Outcome</th></tr></thead><tbody><tr><td></td><td></td></tr></tbody></table><h2>Not doing</h2><ul><li></li></ul>]]></field>
+    </record>
+    <record id="page_template_design" model="dev.page.template">
+        <field name="name">Technical Design</field>
+        <field name="sequence">20</field>
+        <field name="description">Architecture, data model, APIs, risks and rollout plan.</field>
+        <field name="body"><![CDATA[<h2>Summary</h2><p></p><h2>Context</h2><p></p><h2>Proposed design</h2><h3>Architecture</h3><p></p><h3>Data model</h3><p></p><h3>APIs and integrations</h3><p></p><h2>Alternatives considered</h2><ul><li></li></ul><h2>Security, privacy and performance</h2><p></p><h2>Testing plan</h2><p></p><h2>Rollout and migration</h2><p></p><h2>Open questions</h2><ul><li></li></ul>]]></field>
+    </record>
+    <record id="page_template_meeting" model="dev.page.template">
+        <field name="name">Meeting Notes</field>
+        <field name="sequence">30</field>
+        <field name="description">Attendees, agenda, discussion, decisions and action items.</field>
+        <field name="body"><![CDATA[<h2>Date</h2><p></p><h2>Attendees</h2><ul><li></li></ul><h2>Agenda</h2><ul><li></li></ul><h2>Discussion</h2><p></p><h2>Decisions</h2><ul><li></li></ul><h2>Action items</h2><ul class="o_checklist"><li></li></ul>]]></field>
+    </record>
+    <record id="page_template_decision" model="dev.page.template">
+        <field name="name">Decision Record</field>
+        <field name="sequence">40</field>
+        <field name="description">An architecture or product decision, its options and its consequences.</field>
+        <field name="body"><![CDATA[<h2>Status</h2><p>Proposed / Accepted / Superseded</p><h2>Context</h2><p></p><h2>Options</h2><table class="table table-bordered"><thead><tr><th>Option</th><th>Pros</th><th>Cons</th></tr></thead><tbody><tr><td></td><td></td><td></td></tr></tbody></table><h2>Decision</h2><p></p><h2>Consequences</h2><p></p>]]></field>
+    </record>
+    <record id="page_template_retro" model="dev.page.template">
+        <field name="name">Retrospective</field>
+        <field name="sequence">50</field>
+        <field name="description">What went well, what didn't and what to change in the next release.</field>
+        <field name="body"><![CDATA[<h2>Release</h2><p></p><h2>What went well</h2><ul><li></li></ul><h2>What didn't go well</h2><ul><li></li></ul><h2>What we'll try next time</h2><ul class="o_checklist"><li></li></ul>]]></field>
+    </record>
+    <record id="page_template_howto" model="dev.page.template">
+        <field name="name">How-to Article</field>
+        <field name="sequence">60</field>
+        <field name="description">Step-by-step instructions for a task.</field>
+        <field name="body"><![CDATA[<p>Explain in one or two sentences what this article helps the reader do.</p><h2>Before you start</h2><ul><li></li></ul><h2>Steps</h2><ol><li></li></ol><h2>Troubleshooting</h2><p></p><h2>Related articles</h2><ul><li></li></ul>]]></field>
+    </record>
+    <record id="page_template_release_notes" model="dev.page.template">
+        <field name="name">Release Notes</field>
+        <field name="sequence">70</field>
+        <field name="description">What is new, improved and fixed in a release.</field>
+        <field name="body"><![CDATA[<h2>Summary</h2><p></p><h2>New features</h2><ul><li></li></ul><h2>Improvements</h2><ul><li></li></ul><h2>Bug fixes</h2><ul><li></li></ul><h2>Known issues</h2><ul><li></li></ul><h2>Upgrade notes</h2><p></p>]]></field>
+    </record>
+</odoo>

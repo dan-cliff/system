@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="helpdesk_ticket_view_form_suggestions" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form.dev_feature_suggestions</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk_management.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='stage_id']" position="before">
+                <button name="action_create_suggestion" type="object" string="Create Feature Suggestion"
+                        icon="fa-lightbulb-o" groups="dev_feature_suggestions.group_suggestion_user"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_suggestions" type="object" class="oe_stat_button" icon="fa-lightbulb-o"
+                        groups="dev_feature_suggestions.group_suggestion_user" invisible="not suggestion_count">
+                    <field name="suggestion_count" widget="statinfo" string="Suggestions"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_view_form_helpdesk" model="ir.ui.view">
+        <field name="name">dev.suggestion.form.helpdesk</field>
+        <field name="model">dev.suggestion</field>
+        <field name="inherit_id" ref="dev_feature_suggestions.dev_suggestion_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='delivery']" position="after">
+                <page string="Helpdesk" name="helpdesk" groups="helpdesk_management.group_helpdesk_user">
+                    <field name="helpdesk_ticket_ids" options="{'no_create': True}">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="ticket_ref"/>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="stage_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

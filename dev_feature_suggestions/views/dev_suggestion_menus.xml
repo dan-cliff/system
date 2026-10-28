@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_suggestion_root"
+              name="Feature Suggestions"
+              web_icon="dev_feature_suggestions,static/description/icon.png"
+              action="dev_suggestion_action"
+              groups="group_suggestion_user"
+              sequence="77"/>
+
+    <menuitem id="menu_suggestion_all" name="Suggestions" parent="menu_suggestion_root"
+              action="dev_suggestion_action" sequence="10"/>
+    <menuitem id="menu_suggestion_website" name="Website Forum" parent="menu_suggestion_root"
+              action="dev_suggestion_action_website" sequence="20"/>
+
+    <menuitem id="menu_suggestion_reporting" name="Reporting" parent="menu_suggestion_root" sequence="80"/>
+    <menuitem id="menu_suggestion_analysis" name="Suggestions" parent="menu_suggestion_reporting"
+              action="dev_suggestion_action_analysis" sequence="10"/>
+    <menuitem id="menu_suggestion_vote_analysis" name="Votes" parent="menu_suggestion_reporting"
+              action="dev_suggestion_vote_action_analysis" sequence="20"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_suggestion_reports" name="Reports" parent="menu_suggestion_root" sequence="85"/>
+
+    <menuitem id="menu_suggestion_config" name="Configuration" parent="menu_suggestion_root"
+              groups="group_suggestion_admin" sequence="90"/>
+    <menuitem id="menu_suggestion_settings" name="Settings" parent="menu_suggestion_config"
+              action="dev_suggestion_config_settings_action" sequence="1"/>
+    <menuitem id="menu_suggestion_category" name="Categories" parent="menu_suggestion_config"
+              action="dev_suggestion_category_action" sequence="10"/>
+    <menuitem id="menu_suggestion_status" name="Statuses" parent="menu_suggestion_config"
+              action="dev_suggestion_status_action" sequence="20"/>
+    <menuitem id="menu_suggestion_source" name="Sources" parent="menu_suggestion_config"
+              action="dev_suggestion_source_action" sequence="30"/>
+    <menuitem id="menu_suggestion_importance" name="Importance Levels" parent="menu_suggestion_config"
+              action="dev_suggestion_importance_action" sequence="40"/>
+</odoo>

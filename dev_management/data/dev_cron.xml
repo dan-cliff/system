@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Triggered as soon as a release is created while a naming prompt and an AI key
+         are set; the hourly run picks up anything left over. -->
+    <record id="ir_cron_dev_release_ai_name" model="ir.cron">
+        <field name="name">Development: name new releases with AI</field>
+        <field name="model_id" ref="model_dev_release"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_ai_name()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+    </record>
+</odoo>

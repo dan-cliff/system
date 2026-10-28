@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Configuration option lists (CLAUDE.md > Choice fields): users add, rename and archive options. -->
+
+    <record id="dev_ticket_type_view_list" model="ir.ui.view">
+        <field name="name">dev.ticket.type.list</field>
+        <field name="model">dev.ticket.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="icon"/>
+                <field name="branch_prefix"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_ticket_type_view_form" model="ir.ui.view">
+        <field name="name">dev.ticket.type.form</field>
+        <field name="model">dev.ticket.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="icon"/>
+                        <field name="branch_prefix"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="description"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_ticket_type_action" model="ir.actions.act_window">
+        <field name="name">Ticket Types</field>
+        <field name="res_model">dev.ticket.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add ticket types</p>
+            <p>Kinds of ticket: Story, Task, Bug, ...</p>
+        </field>
+    </record>
+
+    <record id="dev_priority_view_list" model="ir.ui.view">
+        <field name="name">dev.priority.list</field>
+        <field name="model">dev.priority</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="icon"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_priority_view_form" model="ir.ui.view">
+        <field name="name">dev.priority.form</field>
+        <field name="model">dev.priority</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="icon"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_priority_action" model="ir.actions.act_window">
+        <field name="name">Priorities</field>
+        <field name="res_model">dev.priority</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add priorities</p>
+            <p>Ticket and feature priorities, most urgent first.</p>
+        </field>
+    </record>
+
+    <record id="dev_ticket_stage_view_list" model="ir.ui.view">
+        <field name="name">dev.ticket.stage.list</field>
+        <field name="model">dev.ticket.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="is_closed"/>
+                <field name="fold"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_ticket_stage_view_form" model="ir.ui.view">
+        <field name="name">dev.ticket.stage.form</field>
+        <field name="model">dev.ticket.stage</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="is_closed"/>
+                        <field name="fold"/>
+                        <field name="description"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_ticket_stage_action" model="ir.actions.act_window">
+        <field name="name">Ticket Stages</field>
+        <field name="res_model">dev.ticket.stage</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add ticket stages</p>
+            <p>The columns of the ticket board.</p>
+        </field>
+    </record>
+
+    <record id="dev_feature_stage_view_list" model="ir.ui.view">
+        <field name="name">dev.feature.stage.list</field>
+        <field name="model">dev.feature.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="is_closed"/>
+                <field name="fold"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_feature_stage_view_form" model="ir.ui.view">
+        <field name="name">dev.feature.stage.form</field>
+        <field name="model">dev.feature.stage</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="is_closed"/>
+                        <field name="fold"/>
+                        <field name="description"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_feature_stage_action" model="ir.actions.act_window">
+        <field name="name">Feature Stages</field>
+        <field name="res_model">dev.feature.stage</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add feature stages</p>
+            <p>The stages features go through, from idea to release.</p>
+        </field>
+    </record>
+
+    <record id="dev_link_type_view_list" model="ir.ui.view">
+        <field name="name">dev.link.type.list</field>
+        <field name="model">dev.link.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="inverse_name"/>
+                <field name="is_blocking"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_link_type_view_form" model="ir.ui.view">
+        <field name="name">dev.link.type.form</field>
+        <field name="model">dev.link.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="inverse_name"/>
+                        <field name="is_blocking"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_link_type_action" model="ir.actions.act_window">
+        <field name="name">Link Types</field>
+        <field name="res_model">dev.link.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add link types</p>
+            <p>How tickets can relate to each other.</p>
+        </field>
+    </record>
+
+    <record id="dev_tag_view_list" model="ir.ui.view">
+        <field name="name">dev.tag.list</field>
+        <field name="model">dev.tag</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_tag_view_form" model="ir.ui.view">
+        <field name="name">dev.tag.form</field>
+        <field name="model">dev.tag</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_tag_action" model="ir.actions.act_window">
+        <field name="name">Tags</field>
+        <field name="res_model">dev.tag</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add tags</p>
+            <p>Labels for tickets, features and pages.</p>
+        </field>
+    </record>
+
+    <record id="dev_page_template_view_list" model="ir.ui.view">
+        <field name="name">dev.page.template.list</field>
+        <field name="model">dev.page.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_page_template_view_form" model="ir.ui.view">
+        <field name="name">dev.page.template.form</field>
+        <field name="model">dev.page.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title"><h1><field name="name" placeholder="e.g. Product Requirements"/></h1></div>
+                    <group>
+                        <field name="description"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                    <field name="body" placeholder="The content new pages start with."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_page_template_action" model="ir.actions.act_window">
+        <field name="name">Page Templates</field>
+        <field name="res_model">dev.page.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add page templates</p>
+            <p>Starting points for documentation pages.</p>
+        </field>
+    </record>
+</odoo>

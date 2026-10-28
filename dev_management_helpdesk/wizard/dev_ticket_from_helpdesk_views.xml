@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_ticket_from_helpdesk_view_form" model="ir.ui.view">
+        <field name="name">dev.ticket.from.helpdesk.form</field>
+        <field name="model">dev.ticket.from.helpdesk</field>
+        <field name="arch" type="xml">
+            <form>
+                <p class="text-muted">
+                    Raise one or more development tickets for this request (each line becomes a ticket), or link
+                    tickets that already cover it. Both stay linked to the Helpdesk ticket, which gets a note when
+                    they are done and when they are released.
+                </p>
+                <field name="helpdesk_ticket_id" invisible="1"/>
+                <field name="line_ids">
+                    <list editable="bottom">
+                        <field name="id" optional="hide"/>
+                        <field name="name"/>
+                        <field name="type_id" options="{'no_create': True}"/>
+                        <field name="priority_id" options="{'no_create': True}"/>
+                        <field name="release_id" options="{'no_create': True}" optional="show"/>
+                        <field name="feature_id" options="{'no_create': True}" optional="show"/>
+                        <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                        <field name="description" column_invisible="1"/>
+                    </list>
+                    <form>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="type_id" options="{'no_create': True}"/>
+                                <field name="priority_id" options="{'no_create': True}"/>
+                            </group>
+                            <group>
+                                <field name="release_id" options="{'no_create': True}"/>
+                                <field name="feature_id" options="{'no_create': True}"/>
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                            </group>
+                        </group>
+                        <field name="description"/>
+                    </form>
+                </field>
+                <group>
+                    <field name="existing_ticket_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_create" type="object" string="Create and Link" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

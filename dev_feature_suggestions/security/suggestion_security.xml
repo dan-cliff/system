@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every suggestion permission below is
+         its own privilege with one "Allowed" group, whose record rules give it its meaning.
+         All of them imply the technical Feature Suggestions user group, which holds the
+         ACLs and a deny rule, so users can only do what a permission opens. Votes follow
+         their suggestion. Moderating (status, publishing, official responses, merging and
+         turning suggestions into features) is a workflow privilege. Website visitors and
+         portal users never get ACLs: the website pages read and write through sudo().
+         "Own" = created by them or where they are the Owner (user_id). -->
+
+    <record id="module_category_feature_suggestions" model="ir.module.category">
+        <field name="name">Feature Suggestions</field>
+        <field name="description">Collect, vote on and prioritise ideas from customers and colleagues.</field>
+        <field name="sequence">59</field>
+    </record>
+
+    <record id="privilege_feature_suggestions" model="res.groups.privilege">
+        <field name="name">Feature Suggestions</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Feature Suggestions app.</field>
+    </record>
+
+    <record id="group_suggestion_user" model="res.groups">
+        <field name="name">Feature Suggestions: User</field>
+        <field name="privilege_id" eval="False"/>
+        <field name="comment">Technical: given by every Feature Suggestions permission. Opens the app; what users can do with suggestions comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Workflow: moderating suggestions (not CRUD) -->
+    <record id="privilege_dev_suggestion_moderate" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: Moderate</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">15</field>
+        <field name="description">Change the status of suggestions, publish them on the website, write the official response, merge duplicates and turn suggestions into features.</field>
+    </record>
+    <record id="group_dev_suggestion_moderate" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_moderate"/>
+        <field name="comment">Change the status of suggestions, publish them on the website, write the official response, merge duplicates and turn suggestions into features.</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+
+    <!-- ── Feature Suggestions ── -->
+    <record id="privilege_dev_suggestion_create_only" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: Create Only</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">20</field>
+        <field name="description">Create feature suggestions, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_dev_suggestion_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_create_only"/>
+        <field name="comment">Create feature suggestions, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+    <record id="privilege_dev_suggestion_edit_own" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">21</field>
+        <field name="description">Create feature suggestions, and view and edit their own (created by them or where they are the Owner).</field>
+    </record>
+    <record id="group_dev_suggestion_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_edit_own"/>
+        <field name="comment">Create feature suggestions, and view and edit their own (created by them or where they are the Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+    <record id="privilege_dev_suggestion_edit_team" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">22</field>
+        <field name="description">Create feature suggestions, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_dev_suggestion_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_edit_team"/>
+        <field name="comment">Create feature suggestions, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+    <record id="privilege_dev_suggestion_edit_all" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: Create and Edit All</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">23</field>
+        <field name="description">Create, view and edit every feature suggestion.</field>
+    </record>
+    <record id="group_dev_suggestion_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_edit_all"/>
+        <field name="comment">Create, view and edit every feature suggestion.</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+    <record id="privilege_dev_suggestion_view_all" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: View All</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">24</field>
+        <field name="description">View every feature suggestion.</field>
+    </record>
+    <record id="group_dev_suggestion_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_view_all"/>
+        <field name="comment">View every feature suggestion.</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+    <record id="privilege_dev_suggestion_delete_own" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: Delete Own</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">25</field>
+        <field name="description">Delete their own feature suggestions (created by them or where they are the Owner).</field>
+    </record>
+    <record id="group_dev_suggestion_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_delete_own"/>
+        <field name="comment">Delete their own feature suggestions (created by them or where they are the Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+    <record id="privilege_dev_suggestion_delete_all" model="res.groups.privilege">
+        <field name="name">Feature Suggestions: Delete All</field>
+        <field name="category_id" ref="module_category_feature_suggestions"/>
+        <field name="sequence">26</field>
+        <field name="description">Delete any feature suggestion.</field>
+    </record>
+    <record id="group_dev_suggestion_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_suggestion_delete_all"/>
+        <field name="comment">Delete any feature suggestion.</field>
+        <field name="implied_ids" eval="[(4, ref('group_suggestion_user'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing (rules of different groups are OR-ed) -->
+    <record id="rule_dev_suggestion_deny" model="ir.rule">
+        <field name="name">Feature Suggestions: only through a permission</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_suggestion_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_suggestion_vote_deny" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: only through a permission</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_suggestion_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <!-- Feature Suggestions: Create Only -->
+    <record id="rule_dev_suggestion_create_only" model="ir.rule">
+        <field name="name">Feature Suggestions: Create Only</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_suggestion_vote_suggestion_id_create_only" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: Create Only</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_create_only'))]"/>
+        <field name="domain_force">[('suggestion_id', '!=', False), '|', ('suggestion_id.create_uid', '=', user.id), ('suggestion_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Feature Suggestions: Create and Edit Own -->
+    <record id="rule_dev_suggestion_edit_own" model="ir.rule">
+        <field name="name">Feature Suggestions: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_suggestion_vote_suggestion_id_edit_own" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_edit_own'))]"/>
+        <field name="domain_force">[('suggestion_id', '!=', False), '|', ('suggestion_id.create_uid', '=', user.id), ('suggestion_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Feature Suggestions: Create and Edit My Team -->
+    <record id="rule_dev_suggestion_edit_team" model="ir.rule">
+        <field name="name">Feature Suggestions: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_suggestion_vote_suggestion_id_edit_team" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_edit_team'))]"/>
+        <field name="domain_force">[('suggestion_id', '!=', False), '|', '|', '|', ('suggestion_id.create_uid', '=', user.id), ('suggestion_id.user_id', '=', user.id), ('suggestion_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('suggestion_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Feature Suggestions: Create and Edit All -->
+    <record id="rule_dev_suggestion_edit_all" model="ir.rule">
+        <field name="name">Feature Suggestions: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_suggestion_vote_suggestion_id_edit_all" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_edit_all'))]"/>
+        <field name="domain_force">[('suggestion_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Feature Suggestions: View All -->
+    <record id="rule_dev_suggestion_view_all" model="ir.rule">
+        <field name="name">Feature Suggestions: View All</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_dev_suggestion_vote_suggestion_id_view_all" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: View All</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_view_all'))]"/>
+        <field name="domain_force">[('suggestion_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Feature Suggestions: Delete Own -->
+    <record id="rule_dev_suggestion_delete_own" model="ir.rule">
+        <field name="name">Feature Suggestions: Delete Own</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_suggestion_vote_suggestion_id_delete_own" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: Delete Own</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_delete_own'))]"/>
+        <field name="domain_force">[('suggestion_id', '!=', False), '|', ('suggestion_id.create_uid', '=', user.id), ('suggestion_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Feature Suggestions: Delete All -->
+    <record id="rule_dev_suggestion_delete_all" model="ir.rule">
+        <field name="name">Feature Suggestions: Delete All</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_dev_suggestion_vote_suggestion_id_delete_all" model="ir.rule">
+        <field name="name">Feature Suggestion Votes: Delete All</field>
+        <field name="model_id" ref="model_dev_suggestion_vote"/>
+        <field name="groups" eval="[(4, ref('group_dev_suggestion_delete_all'))]"/>
+        <field name="domain_force">[('suggestion_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <record id="group_suggestion_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_feature_suggestions"/>
+        <field name="comment">Every Feature Suggestions permission, including deleting any suggestion and moderating, plus Configuration (settings, categories, statuses, sources and importance levels).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_suggestion_moderate'))] + [(4, ref('group_dev_suggestion_%s' % p)) for p in ('create_only', 'edit_own', 'edit_team', 'edit_all', 'view_all', 'delete_own', 'delete_all')]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Multi-company -->
+    <record id="rule_dev_suggestion_company" model="ir.rule">
+        <field name="name">Feature Suggestions: multi-company</field>
+        <field name="model_id" ref="model_dev_suggestion"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>
