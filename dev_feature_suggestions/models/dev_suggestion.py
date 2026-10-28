@@ -14,6 +14,11 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import html2plaintext
 
+from odoo.addons.dev_management.models.dev_ai import json_object
+
+IDS = {'type': 'array', 'items': {'type': 'integer'}}
+TRIAGE_SCHEMA = json_object(summary={'type': 'string'}, category={'type': 'string'}, duplicate_ids=IDS, feature_ids=IDS)
+
 # Changing these needs the "Feature Suggestions: Moderate" permission.
 MODERATED_FIELDS = {'status_id', 'is_published', 'website_published', 'official_response', 'merged_into_id'}
 
@@ -320,7 +325,7 @@ class DevSuggestion(models.Model):
               others='\n'.join('%s: %s' % (s.id, s.name) for s in others) or _('none'),
               features='\n'.join('%s: %s' % (f.id, f.name) for f in features) or _('none')),
             system=_('You are a product manager who triages customer feedback carefully and never invents ids.'),
-            max_tokens=2000)
+            max_tokens=4000, schema=TRIAGE_SCHEMA)
 
         def ids(key, records):
             wanted = set()

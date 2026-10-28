@@ -16,6 +16,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import html2plaintext
 
+from .dev_ai import json_object
+
 _logger = logging.getLogger(__name__)
 
 STATES = [
@@ -591,7 +593,7 @@ class DevRelease(models.Model):
               'Answer with JSON only: {"name": "...", "trivia": "..."}',
               prompt=prompt, used=', '.join(n for n in used if n) or _('none')),
             system=_('You name software releases after real things or people, and know reliable facts about them.'),
-            max_tokens=1500)
+            max_tokens=2000, schema=json_object(name={'type': 'string'}, trivia={'type': 'string'}))
         name = (data.get('name') or '').strip()
         if not name:
             raise UserError(_('The AI did not suggest a name. Please try again.'))
@@ -626,7 +628,7 @@ class DevRelease(models.Model):
               'tags p, h3, ul, li, strong and em.',
               version=self.version, name=self.name, repo=self.repository_id.name, items='\n\n'.join(items)[:60000]),
             system=_('You are a technical writer who writes clear, friendly release notes.'),
-            max_tokens=4000)
+            max_tokens=8000, schema=json_object(html={'type': 'string'}))
         html = data.get('html')
         if not html:
             raise UserError(_('The AI did not return release notes. Please try again.'))
