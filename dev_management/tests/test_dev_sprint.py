@@ -20,7 +20,7 @@ class TestDevSprint(TransactionCase):
     @freeze_time('2026-10-27')
     def test_sprint_lifecycle_and_carry_over(self):
         sprint = self.env['dev.sprint'].create({'ticket_ids': [(6, 0, (self.t1 | self.t2).ids)]})
-        self.assertTrue(sprint.name.startswith('Sprint '))
+        self.assertRegex(sprint.name, r'^Sprint 2026-\d{3}$')
         self.assertEqual(sprint.date_start, date(2026, 11, 2), 'Starts the first Monday')
         self.assertEqual(sprint.date_end, date(2026, 11, 15), 'Sprint length from Settings')
         self.assertEqual(self.t1.sprint_id, sprint)
@@ -137,3 +137,23 @@ class TestDevSprint(TransactionCase):
         theirs.user_id = user
         self.assertEqual(self.env['dev.sprint'].with_user(user).search([('id', 'in', (mine | theirs).ids)]),
                          mine | theirs, 'The Scrum Master counts as owner')
+
+    def test_sprint_names(self):
+        """Sprint YYYY-NNN: numbered within the year the sprint starts in."""
+        import re
+        Sprint = self.env['dev.sprint']
+        first = Sprint.create({'date_start': date(2026, 11, 2)})
+        second = Sprint.create({'date_start': date(2026, 11, 16)})
+        next_year = Sprint.create({'date_start': date(2027, 1, 4)})
+        for sprint, year in ((first, 2026), (second, 2026), (next_year, 2027)):
+            self.assertRegex(sprint.name, r'^Sprint %s-\d{3}$' % year)
+        number = lambda s: int(re.search(r'-(\d+)$', s.name).group(1))  # noqa: E731
+        self.assertEqual(number(second), number(first) + 1)
+        self.assertEqual(Sprint.create({'name': 'Hardening', 'date_start': date(2026, 12, 1)}).name, 'Hardening',
+                         'A name typed in is kept')
+        # The next sprint created on completion is named for its own start year.
+        late = Sprint.create({'date_start': date(2026, 12, 14), 'date_end': date(2026, 12, 27)})
+        self.assertRegex(late._create_next_sprint().name, r'^Sprint 2026-\d{3}$')
+        self.assertRegex(Sprint.create({'date_start': date(2026, 12, 28),
+                                        'date_end': date(2027, 1, 10)})._create_next_sprint().name,
+                         r'^Sprint 2027-\d{3}$')
