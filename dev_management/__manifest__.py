@@ -1,6 +1,6 @@
 {
     'name': 'Development',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Services/Development',
     'summary': 'Plan, build, document and ship software: releases, features, tickets, documentation and GitHub',
     'description': """
@@ -27,6 +27,10 @@ Jira and Confluence, built into Odoo.
   (then reruns it with additional context), researches the feature on the web (adding the
   sources it used to Third-party Documentation), reworks any selected text from a floating
   AI button, and breaks a feature into tickets.
+* Agile planning, like Jira Scrum: sprints (Planned, Active, Completed) with a goal,
+  capacity, committed scope, burndown chart, sprint report and velocity. Completing a
+  sprint moves unfinished tickets to the next sprint or the backlog; tickets keep every
+  sprint they were in. Epics group tickets and features and track their sprints.
 * Tickets, like Jira issues: types, priorities, a board of configurable stages, sub-tasks,
   links between tickets (blocks, relates to, duplicates, ...), story points, estimates,
   labels, acceptance criteria (AI can write them), backlog, release, feature and GitHub
@@ -57,6 +61,7 @@ Jira and Confluence, built into Odoo.
         'views/dev_feature_views.xml',
         'views/dev_ticket_views.xml',
         'views/dev_space_views.xml',
+        'views/dev_sprint_views.xml',
         'views/res_config_settings_views.xml',
         'views/dev_menus.xml',
     ],

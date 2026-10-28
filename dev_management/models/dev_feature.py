@@ -50,6 +50,7 @@ class DevFeature(models.Model):
     priority_sequence = fields.Integer('Priority Order', related='priority_id.sequence', store=True)
     user_id = fields.Many2one('res.users', 'Product Owner', default=lambda self: self.env.user, tracking=True,
                               domain=[('share', '=', False)])
+    epic_id = fields.Many2one('dev.epic', 'Epic', tracking=True, index='btree_not_null')
     release_id = fields.Many2one('dev.release', 'Release', tracking=True, index='btree_not_null',
                                  domain="[('state', 'not in', ('closed', 'cancelled'))]")
     repository_id = fields.Many2one('dev.repository', 'Repository', tracking=True,

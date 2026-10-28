@@ -101,6 +101,8 @@ class DevRelease(models.Model):
     ticket_ids = fields.One2many('dev.ticket', 'release_id', string='Tickets')
     feature_ids = fields.One2many('dev.feature', 'release_id', string='Features')
     page_ids = fields.One2many('dev.page', 'release_id', string='Documentation')
+    sprint_ids = fields.One2many('dev.sprint', 'release_id', string='Sprints')
+    sprint_count = fields.Integer('Sprint Count', compute='_compute_sprint_count')
     branch_ids = fields.Many2many('dev.branch', compute='_compute_branch_ids', string='Branches',
                                   help='Branches of the tickets and features in this release, on its repository.')
     ticket_count = fields.Integer('Ticket Count', compute='_compute_progress')
@@ -191,6 +193,17 @@ class DevRelease(models.Model):
                 release.progress = 100.0 * release.points_done / release.points_total
             else:
                 release.progress = 100.0 * len(done) / len(tickets) if tickets else 0.0
+
+    @api.depends('sprint_ids')
+    def _compute_sprint_count(self):
+        for release in self:
+            release.sprint_count = len(release.sprint_ids)
+
+    def action_open_sprints(self):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window']._for_xml_id('dev_management.dev_sprint_action')
+        action.update(domain=[('release_id', '=', self.id)], context={'default_release_id': self.id})
+        return action
 
     @api.depends('next_release_ids')
     def _compute_next_release_id(self):

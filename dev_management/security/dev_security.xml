@@ -11,7 +11,7 @@
 
     <record id="module_category_development" model="ir.module.category">
         <field name="name">Development</field>
-        <field name="description">Plan, build and ship software: releases, features, tickets and documentation.</field>
+        <field name="description">Plan, build and ship software: releases, sprints, epics, features, tickets and documentation.</field>
         <field name="sequence">58</field>
     </record>
 
@@ -301,11 +301,183 @@
         <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
     </record>
 
+    <!-- ── Sprints ── -->
+    <record id="privilege_dev_sprint_create_only" model="res.groups.privilege">
+        <field name="name">Sprints: Create Only</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">71</field>
+        <field name="description">Create sprints, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_dev_sprint_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_sprint_create_only"/>
+        <field name="comment">Create sprints, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_sprint_edit_own" model="res.groups.privilege">
+        <field name="name">Sprints: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">72</field>
+        <field name="description">Create sprints, and view and edit their own (created by them or where they are the Scrum Master).</field>
+    </record>
+    <record id="group_dev_sprint_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_sprint_edit_own"/>
+        <field name="comment">Create sprints, and view and edit their own (created by them or where they are the Scrum Master).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_sprint_edit_team" model="res.groups.privilege">
+        <field name="name">Sprints: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">73</field>
+        <field name="description">Create sprints, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_dev_sprint_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_sprint_edit_team"/>
+        <field name="comment">Create sprints, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_sprint_edit_all" model="res.groups.privilege">
+        <field name="name">Sprints: Create and Edit All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">74</field>
+        <field name="description">Create, view and edit every sprint.</field>
+    </record>
+    <record id="group_dev_sprint_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_sprint_edit_all"/>
+        <field name="comment">Create, view and edit every sprint.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_sprint_view_all" model="res.groups.privilege">
+        <field name="name">Sprints: View All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">75</field>
+        <field name="description">View every sprint.</field>
+    </record>
+    <record id="group_dev_sprint_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_sprint_view_all"/>
+        <field name="comment">View every sprint.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_sprint_delete_own" model="res.groups.privilege">
+        <field name="name">Sprints: Delete Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">76</field>
+        <field name="description">Delete their own sprints (created by them or where they are the Scrum Master).</field>
+    </record>
+    <record id="group_dev_sprint_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_sprint_delete_own"/>
+        <field name="comment">Delete their own sprints (created by them or where they are the Scrum Master).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_sprint_delete_all" model="res.groups.privilege">
+        <field name="name">Sprints: Delete All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">77</field>
+        <field name="description">Delete any sprint.</field>
+    </record>
+    <record id="group_dev_sprint_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_sprint_delete_all"/>
+        <field name="comment">Delete any sprint.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+
+    <!-- ── Epics ── -->
+    <record id="privilege_dev_epic_create_only" model="res.groups.privilege">
+        <field name="name">Epics: Create Only</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">88</field>
+        <field name="description">Create epics, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_dev_epic_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_epic_create_only"/>
+        <field name="comment">Create epics, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_epic_edit_own" model="res.groups.privilege">
+        <field name="name">Epics: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">89</field>
+        <field name="description">Create epics, and view and edit their own (created by them or where they are the Owner).</field>
+    </record>
+    <record id="group_dev_epic_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_epic_edit_own"/>
+        <field name="comment">Create epics, and view and edit their own (created by them or where they are the Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_epic_edit_team" model="res.groups.privilege">
+        <field name="name">Epics: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">90</field>
+        <field name="description">Create epics, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_dev_epic_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_epic_edit_team"/>
+        <field name="comment">Create epics, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_epic_edit_all" model="res.groups.privilege">
+        <field name="name">Epics: Create and Edit All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">91</field>
+        <field name="description">Create, view and edit every epic.</field>
+    </record>
+    <record id="group_dev_epic_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_epic_edit_all"/>
+        <field name="comment">Create, view and edit every epic.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_epic_view_all" model="res.groups.privilege">
+        <field name="name">Epics: View All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">92</field>
+        <field name="description">View every epic.</field>
+    </record>
+    <record id="group_dev_epic_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_epic_view_all"/>
+        <field name="comment">View every epic.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_epic_delete_own" model="res.groups.privilege">
+        <field name="name">Epics: Delete Own</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">93</field>
+        <field name="description">Delete their own epics (created by them or where they are the Owner).</field>
+    </record>
+    <record id="group_dev_epic_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_epic_delete_own"/>
+        <field name="comment">Delete their own epics (created by them or where they are the Owner).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+    <record id="privilege_dev_epic_delete_all" model="res.groups.privilege">
+        <field name="name">Epics: Delete All</field>
+        <field name="category_id" ref="module_category_development"/>
+        <field name="sequence">94</field>
+        <field name="description">Delete any epic.</field>
+    </record>
+    <record id="group_dev_epic_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_dev_epic_delete_all"/>
+        <field name="comment">Delete any epic.</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_user'))]"/>
+    </record>
+
     <!-- ── Documentation Spaces ── -->
     <record id="privilege_dev_space_create_only" model="res.groups.privilege">
         <field name="name">Documentation Spaces: Create Only</field>
         <field name="category_id" ref="module_category_development"/>
-        <field name="sequence">71</field>
+        <field name="sequence">105</field>
         <field name="description">Create documentation spaces and their pages, and view their own (no editing after saving).</field>
     </record>
     <record id="group_dev_space_create_only" model="res.groups">
@@ -317,7 +489,7 @@
     <record id="privilege_dev_space_edit_own" model="res.groups.privilege">
         <field name="name">Documentation Spaces: Create and Edit Own</field>
         <field name="category_id" ref="module_category_development"/>
-        <field name="sequence">72</field>
+        <field name="sequence">106</field>
         <field name="description">Create documentation spaces and their pages, and view and edit their own (created by them or where they are the Owner).</field>
     </record>
     <record id="group_dev_space_edit_own" model="res.groups">
@@ -329,7 +501,7 @@
     <record id="privilege_dev_space_edit_team" model="res.groups.privilege">
         <field name="name">Documentation Spaces: Create and Edit My Team</field>
         <field name="category_id" ref="module_category_development"/>
-        <field name="sequence">73</field>
+        <field name="sequence">107</field>
         <field name="description">Create documentation spaces and their pages, and view and edit their own and their team&apos;s.</field>
     </record>
     <record id="group_dev_space_edit_team" model="res.groups">
@@ -341,7 +513,7 @@
     <record id="privilege_dev_space_edit_all" model="res.groups.privilege">
         <field name="name">Documentation Spaces: Create and Edit All</field>
         <field name="category_id" ref="module_category_development"/>
-        <field name="sequence">74</field>
+        <field name="sequence">108</field>
         <field name="description">Create, view and edit every documentation space and its pages.</field>
     </record>
     <record id="group_dev_space_edit_all" model="res.groups">
@@ -353,7 +525,7 @@
     <record id="privilege_dev_space_view_all" model="res.groups.privilege">
         <field name="name">Documentation Spaces: View All</field>
         <field name="category_id" ref="module_category_development"/>
-        <field name="sequence">75</field>
+        <field name="sequence">109</field>
         <field name="description">View every documentation space and its pages.</field>
     </record>
     <record id="group_dev_space_view_all" model="res.groups">
@@ -365,7 +537,7 @@
     <record id="privilege_dev_space_delete_own" model="res.groups.privilege">
         <field name="name">Documentation Spaces: Delete Own</field>
         <field name="category_id" ref="module_category_development"/>
-        <field name="sequence">76</field>
+        <field name="sequence">110</field>
         <field name="description">Delete their own documentation spaces and their pages (created by them or where they are the Owner).</field>
     </record>
     <record id="group_dev_space_delete_own" model="res.groups">
@@ -377,7 +549,7 @@
     <record id="privilege_dev_space_delete_all" model="res.groups.privilege">
         <field name="name">Documentation Spaces: Delete All</field>
         <field name="category_id" ref="module_category_development"/>
-        <field name="sequence">77</field>
+        <field name="sequence">111</field>
         <field name="description">Delete any documentation space and its pages.</field>
     </record>
     <record id="group_dev_space_delete_all" model="res.groups">
@@ -421,6 +593,18 @@
     <record id="rule_dev_ticket_link_deny" model="ir.rule">
         <field name="name">Ticket Links: only through a permission</field>
         <field name="model_id" ref="model_dev_ticket_link"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_sprint_deny" model="ir.rule">
+        <field name="name">Sprints: only through a permission</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_dev_epic_deny" model="ir.rule">
+        <field name="name">Epics: only through a permission</field>
+        <field name="model_id" ref="model_dev_epic"/>
         <field name="groups" eval="[(4, ref('group_dev_user'))]"/>
         <field name="domain_force">[(0, '=', 1)]</field>
     </record>
@@ -855,6 +1039,132 @@
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
     </record>
+    <!-- Sprints: Create Only -->
+    <record id="rule_dev_sprint_create_only" model="ir.rule">
+        <field name="name">Sprints: Create Only</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_sprint_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sprints: Create and Edit Own -->
+    <record id="rule_dev_sprint_edit_own" model="ir.rule">
+        <field name="name">Sprints: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_sprint_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sprints: Create and Edit My Team -->
+    <record id="rule_dev_sprint_edit_team" model="ir.rule">
+        <field name="name">Sprints: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_sprint_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sprints: Create and Edit All -->
+    <record id="rule_dev_sprint_edit_all" model="ir.rule">
+        <field name="name">Sprints: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_sprint_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sprints: View All -->
+    <record id="rule_dev_sprint_view_all" model="ir.rule">
+        <field name="name">Sprints: View All</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_sprint_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Sprints: Delete Own -->
+    <record id="rule_dev_sprint_delete_own" model="ir.rule">
+        <field name="name">Sprints: Delete Own</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_sprint_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Sprints: Delete All -->
+    <record id="rule_dev_sprint_delete_all" model="ir.rule">
+        <field name="name">Sprints: Delete All</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="groups" eval="[(4, ref('group_dev_sprint_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Epics: Create Only -->
+    <record id="rule_dev_epic_create_only" model="ir.rule">
+        <field name="name">Epics: Create Only</field>
+        <field name="model_id" ref="model_dev_epic"/>
+        <field name="groups" eval="[(4, ref('group_dev_epic_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Epics: Create and Edit Own -->
+    <record id="rule_dev_epic_edit_own" model="ir.rule">
+        <field name="name">Epics: Create and Edit Own</field>
+        <field name="model_id" ref="model_dev_epic"/>
+        <field name="groups" eval="[(4, ref('group_dev_epic_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Epics: Create and Edit My Team -->
+    <record id="rule_dev_epic_edit_team" model="ir.rule">
+        <field name="name">Epics: Create and Edit My Team</field>
+        <field name="model_id" ref="model_dev_epic"/>
+        <field name="groups" eval="[(4, ref('group_dev_epic_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Epics: Create and Edit All -->
+    <record id="rule_dev_epic_edit_all" model="ir.rule">
+        <field name="name">Epics: Create and Edit All</field>
+        <field name="model_id" ref="model_dev_epic"/>
+        <field name="groups" eval="[(4, ref('group_dev_epic_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Epics: View All -->
+    <record id="rule_dev_epic_view_all" model="ir.rule">
+        <field name="name">Epics: View All</field>
+        <field name="model_id" ref="model_dev_epic"/>
+        <field name="groups" eval="[(4, ref('group_dev_epic_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Epics: Delete Own -->
+    <record id="rule_dev_epic_delete_own" model="ir.rule">
+        <field name="name">Epics: Delete Own</field>
+        <field name="model_id" ref="model_dev_epic"/>
+        <field name="groups" eval="[(4, ref('group_dev_epic_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Epics: Delete All -->
+    <record id="rule_dev_epic_delete_all" model="ir.rule">
+        <field name="name">Epics: Delete All</field>
+        <field name="model_id" ref="model_dev_epic"/>
+        <field name="groups" eval="[(4, ref('group_dev_epic_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
     <!-- Documentation Spaces: Create Only -->
     <record id="rule_dev_space_create_only" model="ir.rule">
         <field name="name">Documentation Spaces: Create Only</field>
@@ -1035,8 +1345,8 @@
         <field name="name">Administrator</field>
         <field name="sequence">20</field>
         <field name="privilege_id" ref="privilege_dev_management"/>
-        <field name="comment">Every Development permission, including deleting anything and shipping releases, plus Configuration (settings, repositories and their GitHub tokens, branches, ticket types, priorities, stages, link types, tags and page templates).</field>
-        <field name="implied_ids" eval="[(4, ref('group_dev_release_ship'))] + [(4, ref('group_%s_%s' % (m, p))) for m in ('dev_release', 'dev_feature', 'dev_ticket', 'dev_space') for p in ('create_only', 'edit_own', 'edit_team', 'edit_all', 'view_all', 'delete_own', 'delete_all')]"/>
+        <field name="comment">Every Development permission, including deleting anything and shipping releases, plus Configuration (settings, repositories and their GitHub tokens, branches, ticket types, priorities, stages, epic stages, link types, tags and page templates).</field>
+        <field name="implied_ids" eval="[(4, ref('group_dev_release_ship'))] + [(4, ref('group_%s_%s' % (m, p))) for m in ('dev_release', 'dev_feature', 'dev_ticket', 'dev_sprint', 'dev_epic', 'dev_space') for p in ('create_only', 'edit_own', 'edit_team', 'edit_all', 'view_all', 'delete_own', 'delete_all')]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
@@ -1054,6 +1364,16 @@
     <record id="rule_dev_ticket_company" model="ir.rule">
         <field name="name">Tickets: multi-company</field>
         <field name="model_id" ref="model_dev_ticket"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dev_sprint_company" model="ir.rule">
+        <field name="name">Sprints: multi-company</field>
+        <field name="model_id" ref="model_dev_sprint"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_dev_epic_company" model="ir.rule">
+        <field name="name">Epics: multi-company</field>
+        <field name="model_id" ref="model_dev_epic"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
     <record id="rule_dev_space_company" model="ir.rule">

@@ -1,6 +1,6 @@
 {
     'name': 'Development - Permission Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services/Development',
     'summary': 'Standard Permission Management roles for Development',
     'description': """
@@ -10,9 +10,11 @@
         - Development – Administrator: everything, including deleting anything, shipping
           releases and Configuration
         - Development – Manager: create and edit their own and their team's releases,
-          features, tickets and documentation; view every release, feature and space
-        - Development – Employee: create and edit their own releases, features, tickets and
-          documentation; view every release, feature and space
+          sprints, epics, features, tickets and documentation; view every release, sprint,
+          epic, feature and space
+        - Development – Employee: create and edit their own releases, sprints, epics,
+          features, tickets and documentation; view every release, sprint, epic, feature and
+          space
         - Development – Developer: create, view and edit every ticket (work the shared
           board); view every release, feature and space; edit their own documentation
         - Development – Product Designer: create, view and edit every feature; view every
@@ -21,7 +23,10 @@
           (Alpha, Beta and Core Release, merging branches, publishing on GitHub); view every
           feature, ticket and space
 
-        Viewing every release, feature and space is added to the Manager and Employee
+        - Development – Scrum Master: create, view and edit every sprint, epic and ticket, to
+          plan, start and complete sprints; view every release, feature and space
+
+        Viewing every release, sprint, epic, feature and space is added to the Manager and Employee
         roles so people can pick a release or feature on their tickets and read the team's
         documentation.
     """,

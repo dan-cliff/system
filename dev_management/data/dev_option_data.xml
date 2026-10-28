@@ -150,6 +150,27 @@
         <field name="fold" eval="True"/>
     </record>
 
+    <!-- Epic stages -->
+    <record id="epic_stage_todo" model="dev.epic.stage">
+        <field name="name">To Do</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="epic_stage_progress" model="dev.epic.stage">
+        <field name="name">In Progress</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="epic_stage_done" model="dev.epic.stage">
+        <field name="name">Done</field>
+        <field name="sequence">30</field>
+        <field name="is_closed" eval="True"/>
+    </record>
+    <record id="epic_stage_cancelled" model="dev.epic.stage">
+        <field name="name">Cancelled</field>
+        <field name="sequence">40</field>
+        <field name="is_closed" eval="True"/>
+        <field name="fold" eval="True"/>
+    </record>
+
     <!-- Ticket link types -->
     <record id="link_type_blocks" model="dev.link.type">
         <field name="name">blocks</field>
