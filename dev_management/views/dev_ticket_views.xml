@@ -99,7 +99,7 @@
                     <button name="action_assign_to_me" type="object" string="Assign to Me" class="btn-primary"
                             invisible="user_id"/>
                     <button name="action_create_branch" type="object" string="Create Branch" icon="fa-code-fork"
-                            invisible="not repository_id or is_closed"
+                            invisible="not repository_token_set or is_closed"
                             help="Create a branch for this ticket on GitHub, from the repository's default branch."/>
                     <widget name="dev_ai_action"
                             options="{'job': 'ticket_criteria', 'label': 'Acceptance Criteria with AI', 'icon': 'fa-magic'}"
@@ -147,6 +147,7 @@
                             <field name="active" invisible="1"/>
                             <field name="is_closed" invisible="1"/>
                             <field name="is_blocked" invisible="1"/>
+                            <field name="repository_token_set" invisible="1"/>
                         </group>
                     </group>
                     <notebook>

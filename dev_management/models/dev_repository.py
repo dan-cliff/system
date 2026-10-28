@@ -87,6 +87,32 @@ class DevRepository(models.Model):
                 self.name = self.full_name.split('/')[-1]
 
     # ── GitHub API ─────────────────────────────────────────────────────────
+    def _github_ready(self):
+        """True when there are repositories and every one of them has a GitHub access token."""
+        return bool(self) and all(repo.sudo().github_token for repo in self)
+
+    def _github_guard(self, request):
+        """Check the GitHub access token before a GitHub request is made.
+
+        Returns False when every repository in ``self`` has a token, so the request can go ahead.
+        Otherwise the request is cancelled before anything is changed, and this returns a warning
+        notification (to return from the button) saying why and where to add the token.
+        """
+        if self._github_ready():
+            return False
+        missing = self.filtered(lambda repo: not repo.sudo().github_token)
+        if missing:
+            message = _('%(request)s was cancelled: there is no GitHub access token for %(repos)s. A Development '
+                        'Administrator can add one in Development > Configuration > Repositories.',
+                        request=request, repos=', '.join(missing.mapped('name')))
+        else:
+            message = _('%s was cancelled: choose a repository first.', request)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {'type': 'warning', 'title': _('GitHub is not connected'), 'message': message},
+        }
+
     def _github_request(self, method, path, payload=None, params=None, ok_statuses=()):
         """Call the GitHub REST API for this repository; ``path`` is relative to /repos/<owner>/<repo>.
 
@@ -95,8 +121,10 @@ class DevRepository(models.Model):
         self.ensure_one()
         token = self.sudo().github_token
         if not token:
-            raise UserError(_('Set the GitHub access token on the repository %s first '
-                              '(Development > Configuration > Repositories).', self.name))
+            # Callers check with _github_guard() first; this is the safety net.
+            raise UserError(_('The GitHub request was cancelled: there is no GitHub access token for %s. A '
+                              'Development Administrator can add one in Development > Configuration > '
+                              'Repositories.', self.name))
         url = '%s/repos/%s%s' % (GITHUB_API, self.full_name, path)
         try:
             response = requests.request(method, url, json=payload, params=params, timeout=GITHUB_TIMEOUT, headers={
@@ -160,6 +188,9 @@ class DevRepository(models.Model):
     # ── Buttons ────────────────────────────────────────────────────────────
     def action_test_connection(self):
         self.ensure_one()
+        cancelled = self._github_guard(_('Test Connection'))
+        if cancelled:
+            return cancelled
         try:
             data = self._github('GET', '')
         except UserError as error:
@@ -177,6 +208,9 @@ class DevRepository(models.Model):
 
     def action_sync_branches(self):
         """Add every GitHub branch of the repository to Odoo, and archive the ones deleted on GitHub."""
+        cancelled = self._github_guard(_('Sync Branches'))
+        if cancelled:
+            return cancelled
         Branch = self.env['dev.branch']
         for repo in self:
             remote = {item['name']: item for item in repo._github_paginate('/branches', max_pages=10)}
@@ -226,6 +260,7 @@ class DevBranch(models.Model):
     repository_id = fields.Many2one('dev.repository', required=True, ondelete='cascade', index=True)
     active = fields.Boolean(default=True)
     html_url = fields.Char('GitHub URL', compute='_compute_html_url')
+    repository_token_set = fields.Boolean(related='repository_id.token_set')
     ticket_ids = fields.Many2many('dev.ticket', 'dev_branch_ticket_rel', 'branch_id', 'ticket_id', string='Tickets')
     feature_ids = fields.Many2many('dev.feature', 'dev_branch_feature_rel', 'branch_id', 'feature_id',
                                    string='Features')
@@ -284,6 +319,9 @@ class DevBranch(models.Model):
 
     def action_sync(self):
         """Refresh the branch's latest commit and pull request from GitHub."""
+        cancelled = self.repository_id._github_guard(_('Refresh from GitHub'))
+        if cancelled:
+            return cancelled
         for branch in self:
             repo = branch.repository_id
             sha = repo._github_branch_sha(branch.name)
@@ -299,6 +337,9 @@ class DevBranch(models.Model):
         return True
 
     def action_create_on_github(self):
+        cancelled = self.repository_id._github_guard(_('Create on GitHub'))
+        if cancelled:
+            return cancelled
         for branch in self:
             branch.repository_id._github_create_branch(branch.name)
             branch.exists_on_github = True

@@ -418,7 +418,8 @@ class DevRelease(models.Model):
                            'github_error': False})
 
     def _github_update_release(self, raise_errors=True):
-        for release in self:
+        # Releases whose repository has lost its token are left alone (nothing to update on GitHub with).
+        for release in self.filtered(lambda r: r.github_release_id and r.repository_id._github_ready()):
             try:
                 release.repository_id._github('PATCH', '/releases/%s' % release.github_release_id,
                                               release._github_payload())
@@ -430,6 +431,9 @@ class DevRelease(models.Model):
                 release.github_error = error.args[0]
 
     def action_github_create_release(self):
+        cancelled = self.repository_id._github_guard(_('Create Draft on GitHub'))
+        if cancelled:
+            return cancelled
         for release in self:
             if release.github_release_id:
                 release._github_update_release()
@@ -438,6 +442,9 @@ class DevRelease(models.Model):
         return True
 
     def action_github_update_release(self):
+        cancelled = self.repository_id._github_guard(_('Update GitHub Release'))
+        if cancelled:
+            return cancelled
         self._github_update_release()
         return self.repository_id._notify(_('The GitHub release has been updated.'))
 
@@ -450,6 +457,9 @@ class DevRelease(models.Model):
         self._check_ship()
         self.ensure_one()
         repo = self.repository_id
+        cancelled = repo._github_guard(_('Merge Branches'))
+        if cancelled:
+            return cancelled
         if not self.version:
             raise UserError(_('Give the release a release number first.'))
         created = repo._github_create_branch(self.release_branch)
@@ -492,6 +502,9 @@ class DevRelease(models.Model):
     def action_github_publish(self):
         """Publish the draft GitHub release, tagging the release number."""
         self._check_ship()
+        cancelled = self.repository_id._github_guard(_('Publish on GitHub'))
+        if cancelled:
+            return cancelled
         for release in self:
             if not release.github_release_id:
                 release._github_create_draft()

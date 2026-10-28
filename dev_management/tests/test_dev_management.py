@@ -265,3 +265,41 @@ class TestDevManagement(TransactionCase):
         # Without any permission, nothing.
         nobody = new_test_user(self.env, 'dev_nobody', groups='base.group_user,dev_management.group_dev_user')
         self.assertFalse(self.env['dev.ticket'].with_user(nobody).search([]))
+
+    def test_github_cancelled_without_token(self):
+        """Every GitHub request is cancelled gracefully when the repository has no access token."""
+        def no_call(*args, **kwargs):
+            raise AssertionError('GitHub must not be called without a token')
+
+        with patch('odoo.addons.dev_management.models.dev_repository.requests.request', no_call):
+            # Automatic requests are skipped: the release is still created and numbered.
+            release = self._release(state='core')
+            self.assertEqual(release.version[-3:], '001')
+            self.assertFalse(release.github_release_id)
+            self.assertFalse(release.github_error)
+            release.name = 'Renamed'
+            self.assertFalse(release.github_error)
+            branch = self.env['dev.branch'].create({'name': 'feature/x', 'repository_id': self.repo.id})
+            ticket = self.env['dev.ticket'].create({'name': 'T', 'release_id': release.id,
+                                                    'branch_ids': [(6, 0, branch.ids)]})
+            self.assertFalse(ticket.repository_token_set)
+            # Requests made from buttons return a warning and change nothing.
+            for action in (self.repo.action_test_connection, self.repo.action_sync_branches,
+                           branch.action_sync, branch.action_create_on_github,
+                           ticket.action_create_branch, release.action_github_create_release,
+                           release.action_github_update_release, release.action_merge_branches,
+                           release.action_github_publish):
+                result = action()
+                self.assertEqual(result['tag'], 'display_notification', action)
+                self.assertEqual(result['params']['type'], 'warning')
+                self.assertIn('cancelled', result['params']['message'])
+            self.assertEqual(ticket.branch_ids, branch)
+            self.assertFalse(branch.merge_state)
+            self.assertFalse(release.release_branch_created)
+            self.assertFalse(release.github_published)
+            # A ticket without a repository is cancelled too.
+            orphan = self.env['dev.ticket'].create({'name': 'No repository'})
+            self.assertIn('choose a repository', orphan.action_create_branch()['params']['message'])
+        # The low-level call still refuses (safety net) with a friendly error.
+        with self.assertRaises(UserError):
+            self.repo._github('GET', '')

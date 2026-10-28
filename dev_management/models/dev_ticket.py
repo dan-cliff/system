@@ -56,6 +56,7 @@ class DevTicket(models.Model):
     feature_id = fields.Many2one('dev.feature', 'Feature', tracking=True, index='btree_not_null')
     repository_id = fields.Many2one('dev.repository', 'Repository', compute='_compute_repository_id', store=True,
                                     readonly=False, tracking=True)
+    repository_token_set = fields.Boolean(related='repository_id.token_set')
     branch_ids = fields.Many2many('dev.branch', 'dev_branch_ticket_rel', 'ticket_id', 'branch_id',
                                   string='Branches', help='GitHub branches where this ticket is worked on. They are '
                                                           'merged together when the release is shipped.')
@@ -169,8 +170,9 @@ class DevTicket(models.Model):
     def action_create_branch(self):
         """Create a branch for the ticket on GitHub (from the repository's default branch) and link it."""
         self.ensure_one()
-        if not self.repository_id:
-            raise UserError(_('Choose the ticket\'s repository (or its release) first.'))
+        cancelled = self.repository_id._github_guard(_('Create Branch'))
+        if cancelled:
+            return cancelled
         name = self._branch_name()
         self.repository_id._github_create_branch(name)
         Branch = self.env['dev.branch'].sudo().with_context(active_test=False)

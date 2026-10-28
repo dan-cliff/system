@@ -159,8 +159,13 @@
                         </div>
                         <field name="ai_name_state" invisible="1"/>
                     </div>
-                    <div class="alert alert-warning" role="alert" invisible="not github_error">
+                    <div class="alert alert-warning" role="alert" invisible="not github_error or not repository_token_set">
                         <strong>GitHub: </strong><field name="github_error" class="oe_inline"/>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="not repository_id or repository_token_set">
+                        GitHub is not connected for this repository, so the release stays in Odoo: no draft release,
+                        branch merging or publishing on GitHub. A Development Administrator can add an access token in
+                        Development &gt; Configuration &gt; Repositories.
                     </div>
                     <group>
                         <group>
@@ -247,7 +252,8 @@
                                 <widget name="dev_ai_action" options="{'job': 'release_notes', 'label': 'Write with AI', 'icon': 'fa-magic'}"
                                         invisible="not ai_available"/>
                                 <button name="action_github_update_release" type="object" class="btn-link"
-                                        icon="fa-github" string="Update GitHub Release" invisible="not github_release_id"/>
+                                        icon="fa-github" string="Update GitHub Release"
+                                        invisible="not github_release_id or not repository_token_set"/>
                                 <button name="action_github_create_release" type="object" class="btn-link"
                                         icon="fa-github" string="Create Draft on GitHub"
                                         invisible="github_release_id or not repository_token_set"/>

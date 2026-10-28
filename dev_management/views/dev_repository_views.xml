@@ -44,6 +44,11 @@
                     <div class="alert alert-warning" role="alert" invisible="not github_error">
                         <strong>GitHub: </strong><field name="github_error" class="oe_inline"/>
                     </div>
+                    <div class="alert alert-info" role="status" invisible="token_set or not id">
+                        No GitHub access token yet: nothing is sent to or read from GitHub for this repository.
+                        Add one in the GitHub Access tab to turn on draft releases, release numbers from GitHub tags,
+                        branches and merging.
+                    </div>
                     <group>
                         <group>
                             <field name="full_name" placeholder="owner/repository"/>
@@ -146,9 +151,10 @@
             <form>
                 <header>
                     <button name="action_sync" type="object" string="Refresh from GitHub" icon="fa-refresh"
-                            invisible="not id"/>
+                            invisible="not id or not repository_token_set"/>
                     <button name="action_create_on_github" type="object" string="Create on GitHub" icon="fa-github"
-                            invisible="not id or exists_on_github"/>
+                            invisible="not id or exists_on_github or not repository_token_set"/>
+                    <field name="repository_token_set" invisible="1"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
