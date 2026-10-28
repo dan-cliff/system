@@ -1,6 +1,6 @@
 {
     'name': 'Development',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services/Development',
     'summary': 'Plan, build, document and ship software: releases, features, tickets, documentation and GitHub',
     'description': """
@@ -24,7 +24,9 @@ Jira and Confluence, built into Odoo.
   only), Test Connection and Sync Branches.
 * Features: problem and goals, technical specification, acceptance criteria, research and
   third-party documentation, with its tickets and branches. AI drafts the specification
-  and breaks a feature into tickets.
+  (then reruns it with additional context), researches the feature on the web (adding the
+  sources it used to Third-party Documentation), reworks any selected text from a floating
+  AI button, and breaks a feature into tickets.
 * Tickets, like Jira issues: types, priorities, a board of configurable stages, sub-tasks,
   links between tickets (blocks, relates to, duplicates, ...), story points, estimates,
   labels, acceptance criteria (AI can write them), backlog, release, feature and GitHub

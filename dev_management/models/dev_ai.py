@@ -14,6 +14,7 @@ skipped and an explicit call raises a friendly UserError.
 """
 import json
 import logging
+import re
 
 import requests
 
@@ -72,15 +73,8 @@ def _error_detail(response, key='error'):
         return response.text
 
 
-def _claude(env, api_key, prompt, system, max_tokens, timeout):
-    body = {
-        'model': CLAUDE_MODEL,
-        'max_tokens': max_tokens,
-        'messages': [{'role': 'user', 'content': prompt}],
-        'fallbacks': 'default',
-    }
-    if system:
-        body['system'] = system
+def _claude_post(env, api_key, body, timeout):
+    """POST a Messages API request and return the response JSON, raising UserError on failure."""
     try:
         response = requests.post(CLAUDE_API_URL, json=body, timeout=timeout, headers={
             'x-api-key': api_key,
@@ -94,10 +88,30 @@ def _claude(env, api_key, prompt, system, max_tokens, timeout):
     if response.status_code >= 400:
         detail = _error_detail(response)
         _logger.warning('Claude API returned %s: %s', response.status_code, detail)
-        raise UserError(env._('Claude API error (%(status)s): %(detail)s', status=response.status_code, detail=detail))
+        raise ClaudeApiError(env._('Claude API error (%(status)s): %(detail)s', status=response.status_code,
+                                   detail=detail), status=response.status_code)
     payload = response.json()
     if payload.get('stop_reason') == 'refusal':
         raise UserError(env._('Claude declined this request. Please review the record and try again.'))
+    return payload
+
+
+class ClaudeApiError(UserError):
+    def __init__(self, message, status=None):
+        super().__init__(message)
+        self.status = status
+
+
+def _claude(env, api_key, prompt, system, max_tokens, timeout):
+    body = {
+        'model': CLAUDE_MODEL,
+        'max_tokens': max_tokens,
+        'messages': [{'role': 'user', 'content': prompt}],
+        'fallbacks': 'default',
+    }
+    if system:
+        body['system'] = system
+    payload = _claude_post(env, api_key, body, timeout)
     return ''.join(block.get('text', '') for block in payload.get('content', []) if block.get('type') == 'text')
 
 
@@ -122,6 +136,106 @@ def _gemini(env, api_key, prompt, system, max_tokens, timeout):
     payload = response.json()
     parts = (payload.get('candidates') or [{}])[0].get('content', {}).get('parts', [])
     return ''.join(part.get('text', '') for part in parts)
+
+
+# How many web searches one research request may run, and how often a paused server-side
+# search loop (stop_reason "pause_turn") is resumed.
+RESEARCH_MAX_SEARCHES = 6
+RESEARCH_MAX_CONTINUATIONS = 3
+
+
+def ai_research(env, prompt, system='', max_tokens=8000, timeout=300):
+    """Like ai_request_text, but the AI may search the web first.
+
+    Returns {'text': answer, 'found': {url: title} of every page the searches returned,
+    'cited': [urls the answer cites], 'searched': whether web search was available}.
+    Claude uses its server-side web search tool, Gemini uses Google Search grounding. When the
+    provider refuses web search (e.g. turned off for the organisation), the prompt is answered
+    without it and 'searched' is False.
+    """
+    provider, api_key = ai_credentials(env)
+    if not api_key:
+        raise UserError(no_ai_message(env))
+    if provider == 'claude':
+        return _claude_research(env, api_key, prompt, system, max_tokens, timeout)
+    return _gemini_research(env, api_key, prompt, system, max_tokens, timeout)
+
+
+def _claude_research(env, api_key, prompt, system, max_tokens, timeout):
+    messages = [{'role': 'user', 'content': prompt}]
+    body = {
+        'model': CLAUDE_MODEL,
+        'max_tokens': max_tokens,
+        'messages': messages,
+        'tools': [{'type': 'web_search_20260209', 'name': 'web_search', 'max_uses': RESEARCH_MAX_SEARCHES}],
+        'fallbacks': 'default',
+    }
+    if system:
+        body['system'] = system
+    try:
+        payload = _claude_post(env, api_key, body, timeout)
+    except ClaudeApiError as error:
+        if error.status != 400:
+            raise
+        _logger.warning('Claude web search unavailable, researching without it: %s', error)
+        text = _claude(env, api_key, prompt, system, max_tokens, timeout)
+        return {'text': text, 'found': {}, 'cited': [], 'searched': False}
+    blocks = list(payload.get('content', []))
+    for _attempt in range(RESEARCH_MAX_CONTINUATIONS):
+        if payload.get('stop_reason') != 'pause_turn':
+            break
+        # Resume the paused server-side search loop: resend the turn so far, no extra user message.
+        body['messages'] = messages + [{'role': 'assistant', 'content': payload.get('content', [])}]
+        payload = _claude_post(env, api_key, body, timeout)
+        blocks += payload.get('content', [])
+    found, cited, text = {}, [], []
+    for block in blocks:
+        if block.get('type') == 'web_search_tool_result' and isinstance(block.get('content'), list):
+            for result in block['content']:
+                if result.get('type') == 'web_search_result' and result.get('url'):
+                    found.setdefault(result['url'], result.get('title') or result['url'])
+        elif block.get('type') == 'text':
+            text.append(block.get('text', ''))
+            for citation in block.get('citations') or []:
+                url = citation.get('url')
+                if url and url not in cited:
+                    cited.append(url)
+                    found.setdefault(url, citation.get('title') or url)
+    return {'text': ''.join(text), 'found': found, 'cited': cited, 'searched': True}
+
+
+def _gemini_research(env, api_key, prompt, system, max_tokens, timeout):
+    body = {
+        'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
+        'tools': [{'google_search': {}}],
+        'generationConfig': {'maxOutputTokens': max_tokens},
+    }
+    if system:
+        body['systemInstruction'] = {'parts': [{'text': system}]}
+    try:
+        response = requests.post(GEMINI_API_URL % GEMINI_MODEL, json=body, timeout=timeout, headers={
+            'x-goog-api-key': api_key, 'content-type': 'application/json',
+        })
+    except requests.RequestException as exc:
+        _logger.warning('Gemini API call failed: %s', exc)
+        raise UserError(env._('Could not reach the Gemini API: %s', exc)) from exc
+    if response.status_code == 400:
+        _logger.warning('Gemini search grounding unavailable, researching without it: %s', _error_detail(response))
+        text = _gemini(env, api_key, prompt, system, max_tokens, timeout)
+        return {'text': text, 'found': {}, 'cited': [], 'searched': False}
+    if response.status_code >= 400:
+        detail = _error_detail(response)
+        _logger.warning('Gemini API returned %s: %s', response.status_code, detail)
+        raise UserError(env._('Gemini API error (%(status)s): %(detail)s', status=response.status_code, detail=detail))
+    candidate = (response.json().get('candidates') or [{}])[0]
+    text = ''.join(part.get('text', '') for part in candidate.get('content', {}).get('parts', []))
+    found, cited = {}, []
+    for chunk in (candidate.get('groundingMetadata') or {}).get('groundingChunks') or []:
+        web = chunk.get('web') or {}
+        if web.get('uri'):
+            found.setdefault(web['uri'], web.get('title') or web['uri'])
+            cited.append(web['uri'])
+    return {'text': text, 'found': found, 'cited': cited, 'searched': True}
 
 
 def ai_parse_json(text):
@@ -173,6 +287,22 @@ class DevAi(models.AbstractModel):
     @api.model
     def _request_json(self, prompt, system='', max_tokens=4000):
         return ai_request_json(self.env, prompt, system=system, max_tokens=max_tokens)
+
+    @api.model
+    def _parse_json(self, text, first_key=None):
+        """JSON object at the end of an answer that may start with prose (e.g. a research answer)."""
+        data = ai_parse_json(text)
+        if isinstance(data, dict) or not text:
+            return data
+        for start in [m.start() for m in re.finditer(r'\{\s*"', text)][::-1]:
+            data = ai_parse_json(text[start:text.rfind('}') + 1])
+            if isinstance(data, dict) and (not first_key or first_key in data):
+                return data
+        return None
+
+    @api.model
+    def _research(self, prompt, system='', max_tokens=8000):
+        return ai_research(self.env, prompt, system=system, max_tokens=max_tokens)
 
     @api.model
     def _check_available(self):
