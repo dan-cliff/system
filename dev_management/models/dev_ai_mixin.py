@@ -47,5 +47,6 @@ class DevAiMixin(models.AbstractModel):
         return getattr(self, '_ai_%s' % job)(**kwargs) or _('Done.')
 
     @api.model
-    def _ai_json(self, prompt, system='', max_tokens=4000):
-        return self.env['dev.ai']._request_json(prompt, system=system, max_tokens=max_tokens)
+    def _ai_json(self, prompt, system='', max_tokens=4000, schema=None):
+        """Ask for a JSON answer; pass a ``schema`` (dev_ai.json_object) so the answer is always valid JSON."""
+        return self.env['dev.ai']._request_json(prompt, system=system, max_tokens=max_tokens, schema=schema)

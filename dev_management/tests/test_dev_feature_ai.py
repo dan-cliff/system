@@ -163,3 +163,40 @@ class TestFeatureAi(TransactionCase):
         self.assertEqual(post.call_args.kwargs['json']['tools'], [{'google_search': {}}])
         self.assertEqual(result['found'], {'https://g.example': 'g.example'})
         self.assertTrue(result['searched'])
+
+    def test_json_answers_schema_truncation_and_fences(self):
+        """Structured answers: schema sent, a cut-off answer retried with more room, code fences tolerated."""
+        cut_off = {'stop_reason': 'max_tokens', 'content': [{'type': 'text', 'text': '{"description": "<p>Long'}]}
+        complete = {'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text':
+                    '```json\n{"description": "<p>D</p>", "specification": "<p>S</p>", "acceptance_criteria": ["C"]}\n```'}]}
+        bodies = []
+
+        def post(url, json=None, timeout=None, headers=None):
+            bodies.append(json)
+            return FakeResponse(200, cut_off if len(bodies) == 1 else complete)
+
+        with patch(AI + '.requests.post', post):
+            self.feature.action_ai_run('feature_spec')
+        self.assertEqual(len(bodies), 2, 'The cut-off answer is asked for again')
+        self.assertEqual(bodies[0]['output_config']['format']['type'], 'json_schema')
+        self.assertEqual(bodies[0]['output_config']['format']['schema']['required'],
+                         ['description', 'specification', 'acceptance_criteria'])
+        self.assertEqual(bodies[1]['max_tokens'], 2 * bodies[0]['max_tokens'])
+        self.assertEqual(self.feature.description, '<p>D</p>')
+
+        # Still cut off at the largest size: a clear message, not "could not be understood".
+        with patch(AI + '.requests.post', return_value=FakeResponse(200, cut_off)), \
+                self.assertRaisesRegex(UserError, 'too long'):
+            dev_ai.ai_request_json(self.env, 'x', max_tokens=dev_ai.MAX_RETRY_TOKENS, schema={'type': 'object'})
+
+    def test_gemini_json_mode_and_truncation(self):
+        params = self.env['ir.config_parameter'].sudo()
+        params.set_param('claude_ai_settings.api_key', '')
+        params.set_param('claude_ai_settings.gemini_api_key', 'g-key')
+        cut = {'candidates': [{'finishReason': 'MAX_TOKENS', 'content': {'parts': [{'text': '{"a": '}]}}]}
+        done = {'candidates': [{'finishReason': 'STOP', 'content': {'parts': [{'text': '{"a": 1}'}]}}]}
+        replies = [FakeResponse(200, cut), FakeResponse(200, done)]
+        with patch(AI + '.requests.post', side_effect=lambda *a, **k: replies.pop(0)) as post:
+            data = dev_ai.ai_request_json(self.env, 'x', schema=dev_ai.json_object(a={'type': 'integer'}))
+        self.assertEqual(data, {'a': 1})
+        self.assertEqual(post.call_args.kwargs['json']['generationConfig']['responseMimeType'], 'application/json')

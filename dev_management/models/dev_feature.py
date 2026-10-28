@@ -12,6 +12,14 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import html2plaintext, html_sanitize
 
+from .dev_ai import json_object
+
+STRINGS = {'type': 'array', 'items': {'type': 'string'}}
+SPEC_SCHEMA = json_object(description={'type': 'string'}, specification={'type': 'string'}, acceptance_criteria=STRINGS)
+TICKETS_SCHEMA = json_object(tickets={'type': 'array', 'items': json_object(
+    name={'type': 'string'}, type={'type': 'string'}, story_points={'type': 'number'},
+    description={'type': 'string'}, acceptance_criteria=STRINGS)})
+
 
 def _unwrap_paragraph(html):
     """Inline replacement HTML: drop a single wrapping <p>...</p> the AI may have added anyway."""
@@ -164,7 +172,7 @@ class DevFeature(models.Model):
         answer_format = _(
             'Answer with JSON only: {"description": "<p>...</p>", "specification": "<h3>...</h3><p>...</p>", '
             '"acceptance_criteria": ["Given ..., when ..., then ...", ...]} using only the HTML tags p, h3, ul, '
-            'ol, li, strong, em and code.')
+            'ol, li, strong, em and code. Be thorough but concise: keep the whole answer under about 2,000 words.')
         if prompt:
             met = self.criterion_ids.filtered('done')
             request = _(
@@ -187,7 +195,7 @@ class DevFeature(models.Model):
         data = self._ai_json(
             request,
             system=_('You are a senior product manager and software architect writing clear feature specifications.'),
-            max_tokens=8000)
+            max_tokens=16000, schema=SPEC_SCHEMA)
         vals = {}
         if data.get('description'):
             vals['description'] = data['description']
@@ -362,7 +370,7 @@ class DevFeature(models.Model):
                   kwargs.get('selected_html') if html and kwargs.get('selected_html') else selected_text)[:20000],
               after=(after or '')[:1000], prompt=prompt.strip()[:4000], format=fmt),
             system=_('You are an expert technical editor. You change only what you are asked to change.'),
-            max_tokens=8000)
+            max_tokens=16000, schema=TICKETS_SCHEMA)
         replacement = data.get('replacement')
         if not isinstance(replacement, str) or not replacement.strip():
             raise UserError(_('The AI did not return a replacement. Please try again.'))
@@ -412,7 +420,7 @@ class DevFeature(models.Model):
               '"<p>what to do and how</p>", "acceptance_criteria": ["...", "..."]}]}',
               context=self._ai_context(), existing=existing, types=', '.join(types.mapped('name'))),
             system=_('You are a tech lead who plans work into small, well-described tickets.'),
-            max_tokens=8000)
+            max_tokens=8000, schema=json_object(replacement={'type': 'string'}))
         items = [item for item in data.get('tickets') or [] if isinstance(item, dict) and item.get('name')]
         if not items:
             raise UserError(_('The AI did not suggest any tickets. Please try again.'))

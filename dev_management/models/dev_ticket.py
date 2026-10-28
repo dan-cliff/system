@@ -10,6 +10,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import html2plaintext
 
+from .dev_ai import json_object
+
 
 class DevTicket(models.Model):
     _name = 'dev.ticket'
@@ -210,7 +212,8 @@ class DevTicket(models.Model):
               'covering the main path, edge cases and errors.\n\n%(context)s\n\n'
               'Answer with JSON only: {"acceptance_criteria": ["Given ..., when ..., then ...", ...]}',
               context='\n\n'.join(context)),
-            system=_('You are a QA-minded tech lead writing precise acceptance criteria.'), max_tokens=3000)
+            system=_('You are a QA-minded tech lead writing precise acceptance criteria.'), max_tokens=4000,
+            schema=json_object(acceptance_criteria={'type': 'array', 'items': {'type': 'string'}}))
         criteria = [c.strip() for c in data.get('acceptance_criteria') or [] if isinstance(c, str) and c.strip()]
         if not criteria:
             raise UserError(_('The AI did not return any acceptance criteria. Please try again.'))

@@ -56,14 +56,35 @@ def no_ai_message(env):
              'Settings > General Settings > Integrations, or in the Odoo AI app settings.')
 
 
-def ai_request_text(env, prompt, system='', max_tokens=4000, timeout=180):
-    """Send one prompt to the configured AI and return its answer, raising UserError on failure."""
+# Longest answer asked for when a JSON answer was cut off and is retried with more room.
+MAX_RETRY_TOKENS = 32000
+
+
+class AiTruncated(UserError):
+    """The AI stopped because its answer reached max_tokens: the answer is incomplete."""
+
+
+def json_object(**properties):
+    """A JSON schema for an object with these properties, all required (as structured outputs need)."""
+    return {'type': 'object', 'properties': properties, 'required': list(properties), 'additionalProperties': False}
+
+
+def ai_request_text(env, prompt, system='', max_tokens=4000, timeout=180, schema=None):
+    """Send one prompt to the configured AI and return its answer, raising UserError on failure.
+
+    With a JSON ``schema`` the answer is constrained to valid JSON: Claude's structured outputs
+    follow the schema exactly, Gemini's JSON mode guarantees valid JSON.
+    """
     provider, api_key = ai_credentials(env)
     if not api_key:
         raise UserError(no_ai_message(env))
     if provider == 'claude':
-        return _claude(env, api_key, prompt, system, max_tokens, timeout)
-    return _gemini(env, api_key, prompt, system, max_tokens, timeout)
+        return _claude(env, api_key, prompt, system, max_tokens, timeout, schema=schema)
+    return _gemini(env, api_key, prompt, system, max_tokens, timeout, schema=schema)
+
+
+def _truncated_message(env):
+    return env._('The AI\'s answer was too long and was cut off. Please try again, or ask for less at once.')
 
 
 def _error_detail(response, key='error'):
@@ -102,7 +123,7 @@ class ClaudeApiError(UserError):
         self.status = status
 
 
-def _claude(env, api_key, prompt, system, max_tokens, timeout):
+def _claude(env, api_key, prompt, system, max_tokens, timeout, schema=None):
     body = {
         'model': CLAUDE_MODEL,
         'max_tokens': max_tokens,
@@ -111,15 +132,21 @@ def _claude(env, api_key, prompt, system, max_tokens, timeout):
     }
     if system:
         body['system'] = system
+    if schema:
+        body['output_config'] = {'format': {'type': 'json_schema', 'schema': schema}}
     payload = _claude_post(env, api_key, body, timeout)
+    if payload.get('stop_reason') == 'max_tokens':
+        raise AiTruncated(_truncated_message(env))
     return ''.join(block.get('text', '') for block in payload.get('content', []) if block.get('type') == 'text')
 
 
-def _gemini(env, api_key, prompt, system, max_tokens, timeout):
+def _gemini(env, api_key, prompt, system, max_tokens, timeout, schema=None):
     body = {
         'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
         'generationConfig': {'maxOutputTokens': max_tokens},
     }
+    if schema:
+        body['generationConfig']['responseMimeType'] = 'application/json'
     if system:
         body['systemInstruction'] = {'parts': [{'text': system}]}
     try:
@@ -133,8 +160,10 @@ def _gemini(env, api_key, prompt, system, max_tokens, timeout):
         detail = _error_detail(response)
         _logger.warning('Gemini API returned %s: %s', response.status_code, detail)
         raise UserError(env._('Gemini API error (%(status)s): %(detail)s', status=response.status_code, detail=detail))
-    payload = response.json()
-    parts = (payload.get('candidates') or [{}])[0].get('content', {}).get('parts', [])
+    candidate = (response.json().get('candidates') or [{}])[0]
+    if candidate.get('finishReason') == 'MAX_TOKENS':
+        raise AiTruncated(_truncated_message(env))
+    parts = candidate.get('content', {}).get('parts', [])
     return ''.join(part.get('text', '') for part in parts)
 
 
@@ -260,9 +289,20 @@ def ai_parse_json(text):
     return None
 
 
-def ai_request_json(env, prompt, system='', max_tokens=4000, timeout=180):
-    """ai_request_text + ai_parse_json, raising a UserError when the answer isn't a JSON object."""
-    text = ai_request_text(env, prompt, system=system, max_tokens=max_tokens, timeout=timeout)
+def ai_request_json(env, prompt, system='', max_tokens=4000, timeout=180, schema=None):
+    """ai_request_text + ai_parse_json, raising a UserError when the answer isn't a JSON object.
+
+    An answer cut off at ``max_tokens`` is incomplete JSON: it is asked for once more with
+    twice the room before giving up.
+    """
+    try:
+        text = ai_request_text(env, prompt, system=system, max_tokens=max_tokens, timeout=timeout, schema=schema)
+    except AiTruncated:
+        if max_tokens >= MAX_RETRY_TOKENS:
+            raise
+        _logger.info('AI answer cut off at %s tokens, retrying with more room', max_tokens)
+        text = ai_request_text(env, prompt, system=system, max_tokens=min(max_tokens * 2, MAX_RETRY_TOKENS),
+                               timeout=timeout * 2, schema=schema)
     data = ai_parse_json(text)
     if not isinstance(data, dict):
         _logger.warning('Could not parse AI response as JSON: %s', (text or '')[:2000])
@@ -285,8 +325,8 @@ class DevAi(models.AbstractModel):
         return PROVIDER_LABELS.get(ai_credentials(self.env)[0], _('the AI'))
 
     @api.model
-    def _request_json(self, prompt, system='', max_tokens=4000):
-        return ai_request_json(self.env, prompt, system=system, max_tokens=max_tokens)
+    def _request_json(self, prompt, system='', max_tokens=4000, schema=None):
+        return ai_request_json(self.env, prompt, system=system, max_tokens=max_tokens, schema=schema)
 
     @api.model
     def _parse_json(self, text, first_key=None):
