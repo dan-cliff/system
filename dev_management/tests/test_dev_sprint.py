@@ -157,3 +157,59 @@ class TestDevSprint(TransactionCase):
         self.assertRegex(Sprint.create({'date_start': date(2026, 12, 28),
                                         'date_end': date(2027, 1, 10)})._create_next_sprint().name,
                          r'^Sprint 2027-\d{3}$')
+
+    def test_bulk_update(self):
+        Sprint = self.env['dev.sprint']
+        old = Sprint.create({'date_start': date(2026, 11, 2), 'ticket_ids': [(6, 0, (self.t1 | self.t2).ids)]})
+        past = Sprint.create({'date_start': date(2026, 10, 5), 'ticket_ids': [(6, 0, self.t1.ids)]})
+        past.state = 'closed'
+        new = Sprint.create({'date_start': date(2026, 11, 16)})
+        epic = self.env['dev.epic'].create({'name': 'Accounts'})
+        repo = self.env['dev.repository'].create({'name': 'App', 'full_name': 'acme/bulk'})
+        release = self.env['dev.release'].create({'name': 'R1', 'repository_id': repo.id})
+        bug = self.env['dev.ticket.type'].create({'name': 'Bulk Bug'})
+        tag_a, tag_b = self.env['dev.tag'].create([{'name': 'bulk-a'}, {'name': 'bulk-b'}])
+        user = new_test_user(self.env, 'bulk_assignee', groups='base.group_user')
+        self.t1.tag_ids = tag_a
+        self.t2.user_id = user
+        tickets = self.t1 | self.t2
+        Wizard = self.env['dev.ticket.bulk.update'].with_context(active_ids=tickets.ids)
+
+        Wizard.create({
+            'update_epic': True, 'epic_id': epic.id,
+            'update_user': True, 'user_id': user.id,
+            'update_type': True, 'type_id': bug.id,
+            'update_release': True, 'release_id': release.id,
+            'update_story_points': True, 'story_points': 2,
+            'update_date_deadline': True, 'date_deadline': date(2026, 12, 1),
+            'update_company': True, 'company_id': self.env.company.id,
+            'tag_mode': 'add', 'tag_ids': [(6, 0, tag_b.ids)],
+            'sprint_mode': 'replace', 'sprint_ids': [(6, 0, new.ids)],
+        }).action_apply()
+        for ticket in tickets:
+            self.assertEqual((ticket.epic_id, ticket.user_id, ticket.type_id, ticket.release_id),
+                             (epic, user, bug, release))
+            self.assertEqual((ticket.story_points, ticket.date_deadline), (2, date(2026, 12, 1)))
+        self.assertEqual(self.t1.tag_ids, tag_a | tag_b)
+        self.assertEqual(self.t2.tag_ids, tag_b)
+        self.assertEqual(self.t1.sprint_ids, past | new, 'Open sprints replaced, completed ones kept as history')
+        self.assertEqual(self.t2.sprint_ids, new)
+        self.assertIn(new, epic.sprint_ids, 'The epic tracks the new sprint')
+
+        # Unticked fields are left alone; a ticked empty one is cleared.
+        Wizard.create({'epic_id': False, 'update_user': True, 'tag_mode': 'remove',
+                       'tag_ids': [(6, 0, tag_a.ids)], 'sprint_mode': 'add',
+                       'sprint_ids': [(6, 0, old.ids)]}).action_apply()
+        self.assertEqual(self.t1.epic_id, epic)
+        self.assertFalse(tickets.user_id)
+        self.assertEqual(self.t1.tag_ids, tag_b)
+        self.assertEqual(self.t2.sprint_ids, old | new)
+
+        Wizard.create({'sprint_mode': 'replace', 'sprint_from_ids': [(6, 0, old.ids)]}).action_apply()
+        self.assertEqual(self.t2.sprint_ids, new, 'Only the named sprint is replaced (here with none)')
+        Wizard.create({'sprint_mode': 'remove', 'sprint_ids': [(6, 0, new.ids)],
+                       'tag_mode': 'replace'}).action_apply()
+        self.assertFalse(self.t2.sprint_ids)
+        self.assertFalse(tickets.tag_ids)
+        with self.assertRaises(UserError):
+            Wizard.create({'update_company': True}).action_apply()

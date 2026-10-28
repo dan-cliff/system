@@ -7,4 +7,5 @@ from . import dev_feature
 from . import dev_ticket
 from . import dev_space
 from . import dev_sprint
+from . import dev_ticket_bulk_update
 from . import res_config_settings

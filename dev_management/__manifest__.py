@@ -1,6 +1,6 @@
 {
     'name': 'Development',
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.4.0',
     'category': 'Services/Development',
     'summary': 'Plan, build, document and ship software: releases, features, tickets, documentation and GitHub',
     'description': """
@@ -34,7 +34,9 @@ Jira and Confluence, built into Odoo.
 * Tickets, like Jira issues: types, priorities, a board of configurable stages, sub-tasks,
   links between tickets (blocks, relates to, duplicates, ...), story points, estimates,
   labels, acceptance criteria (AI can write them), backlog, release, feature and GitHub
-  branches ("Create Branch" creates one on GitHub).
+  branches ("Create Branch" creates one on GitHub). Bulk Update on the ticket list changes
+  epic, assignee, labels, type, sprints (add, remove, replace), release, story points, due
+  date and company (and Organisation, with dev_management_org) on many tickets at once.
 * Documentation, like Confluence: spaces with a tree of pages written collaboratively,
   page templates, full page history with restore, links to releases, features and tickets.
 * Reporting on tickets and releases.
@@ -59,6 +61,7 @@ Jira and Confluence, built into Odoo.
         'views/dev_repository_views.xml',
         'views/dev_release_views.xml',
         'views/dev_feature_views.xml',
+        'views/dev_ticket_bulk_update_views.xml',
         'views/dev_ticket_views.xml',
         'views/dev_space_views.xml',
         'views/dev_sprint_views.xml',
