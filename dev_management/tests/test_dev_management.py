@@ -26,6 +26,8 @@ class FakeGithub:
         self.releases = list(releases)
         self.calls = []
         self.branches = {'main': 'sha-main'}
+        self.edits = 0
+        self.release_url = None
 
     def __call__(self, method, url, json=None, params=None, timeout=None, headers=None):
         path = url.split('/repos/acme/app', 1)[1]
@@ -36,9 +38,18 @@ class FakeGithub:
         if method == 'GET' and path == '/releases':
             return FakeResponse(200, [{'tag_name': t} for t in self.releases] if page == 1 else [])
         if method == 'POST' and path == '/releases':
-            return FakeResponse(201, {'id': 77, 'html_url': 'https://github.com/acme/app/releases/77'})
+            self.release_url = 'https://github.com/acme/app/releases/tag/untagged-0'
+            return FakeResponse(201, {'id': 77, 'html_url': self.release_url})
         if method == 'PATCH' and path.startswith('/releases/'):
-            return FakeResponse(200, {'id': 77})
+            # Like GitHub: every edit of a draft gives it a new untagged-... address.
+            self.edits += 1
+            if json.get('draft') is False:
+                self.release_url = 'https://github.com/acme/app/releases/tag/%s' % json['tag_name']
+            else:
+                self.release_url = 'https://github.com/acme/app/releases/tag/untagged-%s' % self.edits
+            return FakeResponse(200, {'id': 77, 'html_url': self.release_url})
+        if method == 'GET' and path == '/releases/77':
+            return FakeResponse(200, {'id': 77, 'html_url': self.release_url})
         if method == 'GET' and path.startswith('/git/ref/heads/'):
             name = path[len('/git/ref/heads/'):]
             if name in self.branches:
@@ -303,3 +314,25 @@ class TestDevManagement(TransactionCase):
         # The low-level call still refuses (safety net) with a friendly error.
         with self.assertRaises(UserError):
             self.repo._github('GET', '')
+
+    def test_github_release_link_follows_draft_edits(self):
+        """The GitHub smart button opens the draft's current address, which changes on every edit."""
+        self.repo.github_token = 'token'
+        fake = FakeGithub()
+        with patch('odoo.addons.dev_management.models.dev_repository.requests.request', fake):
+            release = self._release()
+            self.assertTrue(release.github_release_url.endswith('untagged-0'))
+            release.name = 'Proxima Centauri'  # e.g. named by the AI after creation
+            self.assertTrue(release.github_release_url.endswith('untagged-1'))
+            fake.release_url = 'https://github.com/acme/app/releases/tag/untagged-9'  # edited on GitHub
+            self.assertEqual(release.action_open_github_release()['url'], fake.release_url)
+            self.assertEqual(release.github_release_url, fake.release_url)
+            release.state = 'core'
+            release.action_github_publish()
+            self.assertEqual(release.github_release_url,
+                             'https://github.com/acme/app/releases/tag/%s' % release.version)
+        # Without a token a draft falls back to the releases page rather than a stale link.
+        self.repo.github_token = False
+        draft = self._release()
+        draft.write({'github_release_id': 5, 'github_release_url': 'https://github.com/acme/app/releases/tag/untagged-x'})
+        self.assertEqual(draft.action_open_github_release()['url'], 'https://github.com/acme/app/releases')
