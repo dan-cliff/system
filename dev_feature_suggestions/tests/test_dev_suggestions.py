@@ -149,3 +149,15 @@ class TestFeatureRequestsWebsite(HttpCase):
         self.url_open('/feature-requests/%s/comment' % suggestion.id, data={'csrf_token': csrf, 'body': 'Me too <b>!</b>'})
         comment = suggestion.message_ids.filtered(lambda m: m.author_id == portal.partner_id)
         self.assertIn('&lt;b&gt;', comment.body)
+
+
+@tagged('post_install', '-at_install')
+class TestSuggestionAiSchema(TransactionCase):
+
+    def test_triage_uses_its_answer(self):
+        from odoo.addons.dev_management.tests.test_dev_feature_ai import schema_driven
+        self.env['ir.config_parameter'].sudo().set_param('claude_ai_settings.api_key', 'sk-test')
+        suggestion = self.env['dev.suggestion'].create({'name': 'Dark mode'})
+        with patch('odoo.addons.dev_management.models.dev_ai.ai_request_json', side_effect=schema_driven):
+            suggestion.action_ai_run('suggestion_triage')
+        self.assertEqual(suggestion.ai_summary, 'Answer text')

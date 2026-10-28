@@ -198,20 +198,21 @@ class DevTicket(models.Model):
 
     def _ai_ticket_criteria(self):
         self.ensure_one()
-        context = [_('Ticket (%(type)s): %(name)s', type=self.type_id.name or _('ticket'), name=self.name)]
+        # Not called "context": _() reads a local of that name to find the language.
+        parts = [_('Ticket (%(type)s): %(name)s', type=self.type_id.name or _('ticket'), name=self.name)]
         if self.description:
-            context.append(_('Description:\n%s', html2plaintext(self.description)[:10000]))
+            parts.append(_('Description:\n%s', html2plaintext(self.description)[:10000]))
         if self.feature_id:
-            context.append(_('Part of the feature "%(name)s": %(summary)s', name=self.feature_id.name,
+            parts.append(_('Part of the feature "%(name)s": %(summary)s', name=self.feature_id.name,
                              summary=self.feature_id.summary or html2plaintext(self.feature_id.description or '')[:3000]))
         if self.criterion_ids:
-            context.append(_('Existing criteria (keep, do not repeat):\n%s',
+            parts.append(_('Existing criteria (keep, do not repeat):\n%s',
                              '\n'.join('- ' + c.name for c in self.criterion_ids)))
         data = self._ai_json(
             _('Write 3 to 8 testable acceptance criteria for this development ticket, in Given/When/Then form, '
               'covering the main path, edge cases and errors.\n\n%(context)s\n\n'
               'Answer with JSON only: {"acceptance_criteria": ["Given ..., when ..., then ...", ...]}',
-              context='\n\n'.join(context)),
+              context='\n\n'.join(parts)),
             system=_('You are a QA-minded tech lead writing precise acceptance criteria.'), max_tokens=4000,
             schema=json_object(acceptance_criteria={'type': 'array', 'items': {'type': 'string'}}))
         criteria = [c.strip() for c in data.get('acceptance_criteria') or [] if isinstance(c, str) and c.strip()]

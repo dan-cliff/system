@@ -200,3 +200,56 @@ class TestFeatureAi(TransactionCase):
             data = dev_ai.ai_request_json(self.env, 'x', schema=dev_ai.json_object(a={'type': 'integer'}))
         self.assertEqual(data, {'a': 1})
         self.assertEqual(post.call_args.kwargs['json']['generationConfig']['responseMimeType'], 'application/json')
+
+
+def answer_from_schema(schema):
+    """A valid answer for a JSON schema, as structured outputs would return."""
+    kind = schema.get('type')
+    if kind == 'object':
+        return {key: answer_from_schema(sub) for key, sub in schema['properties'].items()}
+    if kind == 'array':
+        return [answer_from_schema(schema['items'])]
+    if kind in ('number', 'integer'):
+        return 1
+    return 'Answer text'
+
+
+def schema_driven(*args, **kwargs):
+    """Stands in for ai_request_json: answers exactly the shape of the schema the job sent."""
+    schema = kwargs.get('schema')
+    assert schema, 'Every JSON AI request sends its schema'
+    return answer_from_schema(schema)
+
+
+@tagged('post_install', '-at_install')
+class TestAiSchemas(TransactionCase):
+    """Each AI job must read the keys of the schema it sends (else the AI's answer is thrown away)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.env['ir.config_parameter'].sudo().set_param('claude_ai_settings.api_key', 'sk-test')
+        cls.env['ir.config_parameter'].sudo().set_param('dev_management.release_name_prompt', 'Planets')
+
+    def test_every_job_uses_its_answer(self):
+        repo = self.env['dev.repository'].create({'name': 'App', 'full_name': 'acme/app'})
+        release = self.env['dev.release'].create({'repository_id': repo.id})
+        feature = self.env['dev.feature'].create({'name': 'Offline', 'summary': 'Work offline', 'release_id': release.id})
+        ticket = self.env['dev.ticket'].create({'name': 'Queue saves', 'release_id': release.id})
+        with patch(AI + '.ai_request_json', side_effect=schema_driven):
+            feature.action_ai_run('feature_spec')
+            self.assertEqual(feature.description, '<p>Answer text</p>')
+            feature.action_ai_run('feature_tickets')
+            self.assertIn('Answer text', feature.ticket_ids.mapped('name'))
+            feature.action_ai_run('selection_edit', field='summary', prompt='Shorter', selected_text='Work',
+                                  old_value='Work offline', start=0, end=4)
+            self.assertEqual(feature.summary, 'Answer text offline')
+            result = feature.action_ai_run('selection_edit', field='description', prompt='x', selected_text='Answer',
+                                           is_html=True)
+            self.assertEqual(result['html'], 'Answer text')
+            release.action_ai_run('release_name')
+            self.assertEqual(release.name, 'Answer text')
+            release.action_ai_run('release_notes')
+            self.assertEqual(release.release_notes, '<p>Answer text</p>')
+            ticket.action_ai_run('ticket_criteria')
+            self.assertEqual(ticket.criterion_ids.mapped('name'), ['Answer text'])
