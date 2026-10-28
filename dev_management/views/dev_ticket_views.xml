@@ -5,6 +5,10 @@
         <field name="model">dev.ticket</field>
         <field name="arch" type="xml">
             <list decoration-muted="is_closed" decoration-danger="is_blocked and not is_closed" multi_edit="1">
+                <header>
+                    <button name="%(dev_ticket_bulk_update_action)d" type="action" string="Bulk Update"
+                            icon="fa-pencil-square-o"/>
+                </header>
                 <field name="sequence" widget="handle"/>
                 <field name="id" optional="show"/>
                 <field name="key"/>
