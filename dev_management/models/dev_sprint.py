@@ -30,8 +30,8 @@ class DevSprint(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date_start desc, id desc'
 
-    name = fields.Char(required=True, tracking=True,
-                       default=lambda self: self.env['ir.sequence'].sudo().next_by_code('dev.sprint') or _('New Sprint'))
+    name = fields.Char(tracking=True, copy=False,
+                       help='Left empty, it is set to Sprint YYYY-NNN: the NNNth sprint starting in that year.')
     goal = fields.Text('Sprint Goal', tracking=True, help='What the team commits to achieving in this sprint.')
     state = fields.Selection(SPRINT_STATES, 'Status', default='planned', required=True, tracking=True, copy=False,
                              index=True, group_expand=True)
@@ -120,9 +120,18 @@ class DevSprint(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('name'):
+                vals['name'] = self._next_name(vals.get('date_start') or self._fields['date_start'].default(self))
         sprints = super().create(vals_list)
         sprints.ticket_ids._link_epic_sprints()
         return sprints
+
+    @api.model
+    def _next_name(self, date_start):
+        """Sprint YYYY-NNN: numbered within the year the sprint starts in (the sequence restarts each year)."""
+        return self.env['ir.sequence'].sudo().next_by_code(
+            'dev.sprint', sequence_date=fields.Date.to_date(date_start)) or _('New Sprint')
 
     def write(self, vals):
         result = super().write(vals)
