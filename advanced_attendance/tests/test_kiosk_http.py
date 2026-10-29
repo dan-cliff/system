@@ -28,6 +28,18 @@ class TestKioskRoutes(AttendanceKioskCase, HttpCase):
         self.assertIn(f"'/onsite/{self.kiosk.access_token}'", sw.text)
         self.assertEqual(self.url_open('/onsite/not-a-real-token-123456').status_code, 404)
 
+    def test_assets_are_versioned(self):
+        """The kiosk links its script and stylesheet with a fingerprint, so browsers never
+        run a cached copy of an older kiosk.js against a newer page."""
+        from odoo.addons.advanced_attendance.controllers.kiosk import _asset_version
+        version = _asset_version()
+        page = self.get().text
+        self.assertIn(f'/advanced_attendance/static/src/kiosk/kiosk.js?v={version}', page)
+        self.assertIn(f'/advanced_attendance/static/src/kiosk/kiosk.css?v={version}', page)
+        sw = self.get('/sw.js').text
+        self.assertIn(f"const VERSION = '{version}'", sw)
+        self.assertNotIn('__ASSET_VERSION__', sw)
+
     def test_config_and_roster(self):
         config = self.get('/config.json').json()
         self.assertEqual(config['location'], 'Workshop')

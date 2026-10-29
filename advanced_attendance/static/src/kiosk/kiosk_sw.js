@@ -1,14 +1,16 @@
 /* On Site kiosk service worker.
- * Served from /onsite/<token>/sw.js with __KIOSK_SCOPE__ replaced by /onsite/<token>.
+ * Served from /onsite/<token>/sw.js with __KIOSK_SCOPE__ replaced by /onsite/<token>
+ * and __ASSET_VERSION__ by the fingerprint of kiosk.js / kiosk.css.
  * Caches the app shell, static files and worker photos so the kiosk opens
  * offline. Kiosk data (config, roster, sign ins) is handled by kiosk.js.
  */
 const SCOPE = '__KIOSK_SCOPE__';
-const CACHE = 'onsite-kiosk-' + SCOPE.split('/').pop().slice(0, 12) + '-v2';
+const VERSION = '__ASSET_VERSION__';
+const CACHE = 'onsite-kiosk-' + SCOPE.split('/').pop().slice(0, 12) + '-' + VERSION;
 const SHELL = [
     SCOPE,
-    '/advanced_attendance/static/src/kiosk/kiosk.css',
-    '/advanced_attendance/static/src/kiosk/kiosk.js',
+    '/advanced_attendance/static/src/kiosk/kiosk.css?v=' + VERSION,
+    '/advanced_attendance/static/src/kiosk/kiosk.js?v=' + VERSION,
     '/advanced_attendance/static/src/img/icon-192.png',
     // Badge scanning decoder for browsers without a built-in one.
     '/web/static/lib/zxing-library/zxing-library.js',
@@ -45,7 +47,8 @@ async function networkFirst(request) {
         if (response && response.ok) cache.put(request, response.clone());
         return response;
     } catch (e) {
-        const cached = await cache.match(request, { ignoreSearch: true });
+        // Same file and version first; any copy of the page itself (it has no version).
+        const cached = await cache.match(request) || await cache.match(request, { ignoreSearch: true });
         if (cached) return cached;
         throw e;
     }

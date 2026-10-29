@@ -11,10 +11,12 @@ Routes (``<token>`` is the kiosk's access token, which makes each URL unique):
     POST /onsite/<token>/action               Sign in / sign out
     POST /onsite/<token>/sync                 Replay events recorded offline
 """
+import hashlib
 import json
 import logging
 import time
 from collections import defaultdict
+from functools import lru_cache
 from datetime import datetime, timedelta, timezone
 
 from odoo import _, fields, http
@@ -31,6 +33,18 @@ _failed_pins = defaultdict(list)
 
 # Offline events are trusted, but never further back than this.
 MAX_OFFLINE_AGE = timedelta(days=14)
+
+
+@lru_cache(maxsize=1)
+def _asset_version():
+    """Fingerprint of the kiosk's script and stylesheet. The kiosk page links them
+    with it (?v=...), so browsers fetch them again whenever they change instead of
+    using a copy Odoo told them to keep for a week."""
+    digest = hashlib.sha256()
+    for path in ('advanced_attendance/static/src/kiosk/kiosk.js', 'advanced_attendance/static/src/kiosk/kiosk.css'):
+        with file_open(path, 'rb') as f:
+            digest.update(f.read())
+    return digest.hexdigest()[:12]
 
 
 def _json(data, status=200, cache='no-store'):
@@ -96,7 +110,9 @@ class AttendanceKioskController(http.Controller):
                 _('This kiosk link is not valid. Ask your administrator for the current link.'),
                 headers=[('Content-Type', 'text/plain; charset=utf-8')], status=404,
             )
-        response = request.render('advanced_attendance.kiosk_app', {'kiosk': kiosk, 'token': token})
+        response = request.render('advanced_attendance.kiosk_app', {
+            'kiosk': kiosk, 'token': token, 'asset_version': _asset_version(),
+        })
         response.headers['Cache-Control'] = 'no-cache'
         return response
 
@@ -139,7 +155,7 @@ class AttendanceKioskController(http.Controller):
             return request.make_response('', status=404)
         with file_open('advanced_attendance/static/src/kiosk/kiosk_sw.js') as f:
             script = f.read()
-        script = script.replace('__KIOSK_SCOPE__', f'/onsite/{token}')
+        script = script.replace('__KIOSK_SCOPE__', f'/onsite/{token}').replace('__ASSET_VERSION__', _asset_version())
         return request.make_response(script, headers=[
             ('Content-Type', 'application/javascript'),
             ('Service-Worker-Allowed', f'/onsite/{token}'),
