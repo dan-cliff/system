@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Opportunities: Account and Primary Contact in place of the partner fields -->
+    <record id="modern_crm_opportunity_view_form" model="ir.ui.view">
+        <field name="name">modern.crm.opportunity.form.advanced_accounts</field>
+        <field name="model">modern.crm.opportunity</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_opportunity_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//field[@name='partner_id'][@widget='res_partner_many2one']" position="before">
+                <field name="adv_account_id" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" string="Primary Contact" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </xpath>
+            <xpath expr="//sheet//field[@name='partner_id'][@widget='res_partner_many2one']" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+            <xpath expr="//sheet//field[@name='contact_id']" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not contact_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='contact_role_ids']/list/field[@name='partner_id']" position="before">
+                <field name="adv_contact_id" string="Contact" required="not partner_id"
+                       domain="[('account_id', '=', parent.adv_account_id)] if parent.adv_account_id else []"
+                       context="{'default_account_id': parent.adv_account_id}"/>
+                <field name="adv_account_id" column_invisible="True"/>
+            </xpath>
+            <xpath expr="//field[@name='contact_role_ids']/list/field[@name='partner_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Partner</attribute>
+                <attribute name="readonly">1</attribute>
+                <attribute name="required">0</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="modern_crm_opportunity_view_form_quick_create" model="ir.ui.view">
+        <field name="name">modern.crm.opportunity.form.quick_create.advanced_accounts</field>
+        <field name="model">modern.crm.opportunity</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_opportunity_view_form_quick_create"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" string="Primary Contact" options="{'no_quick_create': True}"/>
+                <field name="contact_id" invisible="1"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="modern_crm_opportunity_view_list" model="ir.ui.view">
+        <field name="name">modern.crm.opportunity.list.advanced_accounts</field>
+        <field name="model">modern.crm.opportunity</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_opportunity_view_list"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" optional="show"/>
+                <field name="adv_contact_id" string="Primary Contact" optional="show"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Partner</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="modern_crm_opportunity_view_search" model="ir.ui.view">
+        <field name="name">modern.crm.opportunity.search.advanced_accounts</field>
+        <field name="model">modern.crm.opportunity</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_opportunity_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id" string="Primary Contact"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_partner']" position="attributes">
+                <attribute name="context">{'group_by': 'adv_account_id'}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Contracts: the Account -->
+    <record id="modern_crm_contract_view_form" model="ir.ui.view">
+        <field name="name">modern.crm.contract.form.advanced_accounts</field>
+        <field name="model">modern.crm.contract</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_contract_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group/group/field[@name='partner_id']" position="before">
+                <field name="adv_account_id" readonly="state != 'draft'" required="not partner_id"
+                       options="{'no_quick_create': True}"/>
+            </xpath>
+            <xpath expr="//sheet/group/group/field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">adv_account_id or not partner_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="modern_crm_contract_view_list" model="ir.ui.view">
+        <field name="name">modern.crm.contract.list.advanced_accounts</field>
+        <field name="model">modern.crm.contract</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_contract_view_list"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" optional="show"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Partner</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="modern_crm_contract_view_search" model="ir.ui.view">
+        <field name="name">modern.crm.contract.search.advanced_accounts</field>
+        <field name="model">modern.crm.contract</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_contract_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="before">
+                <field name="adv_account_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_partner']" position="attributes">
+                <attribute name="context">{'group_by': 'adv_account_id'}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Leads: the existing Account and Contact the lead converts into -->
+    <record id="modern_crm_lead_view_form" model="ir.ui.view">
+        <field name="name">modern.crm.lead.form.advanced_accounts</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//field[@name='partner_id']" position="before">
+                <field name="adv_account_id" string="Existing Account" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" string="Existing Contact" options="{'no_quick_create': True}"/>
+            </xpath>
+            <xpath expr="//sheet//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_view_search" model="ir.ui.view">
+        <field name="name">modern.crm.lead.search.advanced_accounts</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="inherit_id" ref="modern_crm.modern_crm_lead_view_search"/>
+        <field name="arch" type="xml">
+            <field name="company_name" position="after">
+                <field name="adv_account_id" string="Existing Account"/>
+                <field name="adv_contact_id" string="Existing Contact"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- CRM's Customers menus open Accounts and Contacts -->
+    <record id="modern_crm.menu_modern_crm_accounts" model="ir.ui.menu">
+        <field name="action" ref="advanced_accounts.advanced_account_action"/>
+    </record>
+    <record id="modern_crm.menu_modern_crm_contacts" model="ir.ui.menu">
+        <field name="action" ref="advanced_accounts.advanced_contact_action"/>
+    </record>
+</odoo>

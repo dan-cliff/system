@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_advanced_accounts_root"
+              name="Advanced Accounts"
+              web_icon="advanced_accounts,static/description/icon.png"
+              action="advanced_account_action"
+              groups="base.group_user"
+              sequence="20"/>
+
+    <menuitem id="menu_advanced_accounts_accounts" name="Accounts" parent="menu_advanced_accounts_root"
+              action="advanced_account_action" sequence="10"/>
+    <menuitem id="menu_advanced_accounts_contacts" name="Contacts" parent="menu_advanced_accounts_root"
+              action="advanced_contact_action" sequence="20"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         No action and no children: it stays hidden until a report is placed here. -->
+    <menuitem id="menu_advanced_accounts_reports" name="Reports" parent="menu_advanced_accounts_root"
+              sequence="80"/>
+
+    <menuitem id="menu_advanced_accounts_config" name="Configuration" parent="menu_advanced_accounts_root"
+              groups="group_advanced_accounts_manager" sequence="90"/>
+    <menuitem id="menu_advanced_accounts_settings" name="Settings" parent="menu_advanced_accounts_config"
+              action="advanced_accounts_settings_action" groups="base.group_system" sequence="10"/>
+    <menuitem id="menu_advanced_accounts_account_types" name="Account Types" parent="menu_advanced_accounts_config"
+              action="advanced_account_type_action" sequence="20"/>
+    <menuitem id="menu_advanced_accounts_industries" name="Industries" parent="menu_advanced_accounts_config"
+              action="base.res_partner_industry_action" sequence="30"/>
+    <menuitem id="menu_advanced_accounts_tags" name="Tags" parent="menu_advanced_accounts_config"
+              action="base.action_partner_category_form" sequence="40"/>
+</odoo>

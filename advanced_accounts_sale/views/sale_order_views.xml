@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form" model="ir.ui.view">
+        <field name="name">sale.order.form.advanced_accounts</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='partner_details']/field[@name='partner_id']" position="before">
+                <field name="adv_account_id" readonly="state in ['cancel', 'sale']"
+                       required="not adv_contact_id and not partner_id" options="{'no_quick_create': True}"
+                       placeholder="Type to find an Account..."/>
+                <field name="adv_contact_id" readonly="state in ['cancel', 'sale']"
+                       options="{'no_quick_create': True}" context="{'default_account_id': adv_account_id}"/>
+            </xpath>
+            <xpath expr="//group[@name='partner_details']/field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_tree" model="ir.ui.view">
+        <field name="name">sale.order.list.advanced_accounts</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" optional="show" readonly="1"/>
+                <field name="adv_contact_id" optional="show" readonly="1"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sales_order_filter" model="ir.ui.view">
+        <field name="name">sale.order.search.advanced_accounts</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <xpath expr="//search" position="inside">
+                <group>
+                    <filter name="group_adv_account" string="Account" context="{'group_by': 'adv_account_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
