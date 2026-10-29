@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_pos_form" model="ir.ui.view">
+        <field name="name">pos.order.form.advanced_accounts</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id'][@context]" position="before">
+                <field name="adv_account_id" readonly="account_move" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" readonly="account_move" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id'][@context]" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_order_tree" model="ir.ui.view">
+        <field name="name">pos.order.list.advanced_accounts</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" optional="show" readonly="1"/>
+                <field name="adv_contact_id" optional="show" readonly="1"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_pos_order_filter" model="ir.ui.view">
+        <field name="name">pos.order.search.advanced_accounts</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_filter"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <xpath expr="//search" position="inside">
+                <group>
+                    <filter name="group_adv_account" string="Account" context="{'group_by': 'adv_account_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

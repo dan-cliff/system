@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_embroidery_job_form" model="ir.ui.view">
+        <field name="name">embroidery.job.form.advanced_accounts</field>
+        <field name="model">embroidery.job</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//field[@name='partner_id']" position="before">
+                <field name="adv_account_id" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </xpath>
+            <xpath expr="//sheet//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+            <field name="design_id" position="attributes">
+                <attribute name="context">{'default_partner_id': partner_id, 'default_adv_account_id': adv_account_id, 'default_adv_contact_id': adv_contact_id, 'default_company_id': company_id}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_embroidery_job_list" model="ir.ui.view">
+        <field name="name">embroidery.job.list.advanced_accounts</field>
+        <field name="model">embroidery.job</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_job_list"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" optional="show"/>
+                <field name="adv_contact_id" optional="show"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_embroidery_job_search" model="ir.ui.view">
+        <field name="name">embroidery.job.search.advanced_accounts</field>
+        <field name="model">embroidery.job</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_job_search"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <xpath expr="//filter[@name='group_partner']" position="attributes">
+                <attribute name="string">Account</attribute>
+                <attribute name="context">{'group_by': 'adv_account_id'}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_embroidery_design_form" model="ir.ui.view">
+        <field name="name">embroidery.design.form.advanced_accounts</field>
+        <field name="model">embroidery.design</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_design_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//field[@name='partner_id']" position="before">
+                <field name="adv_account_id" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </xpath>
+            <xpath expr="//sheet//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_embroidery_design_list" model="ir.ui.view">
+        <field name="name">embroidery.design.list.advanced_accounts</field>
+        <field name="model">embroidery.design</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_design_list"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" optional="show"/>
+                <field name="adv_contact_id" optional="show"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_embroidery_design_search" model="ir.ui.view">
+        <field name="name">embroidery.design.search.advanced_accounts</field>
+        <field name="model">embroidery.design</field>
+        <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_design_search"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <xpath expr="//filter[@name='group_partner']" position="attributes">
+                <attribute name="string">Account</attribute>
+                <attribute name="context">{'group_by': 'adv_account_id'}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

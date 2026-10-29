@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_accounts</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="92"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Advanced Accounts" id="advanced_accounts" string="Advanced Accounts"
+                     name="advanced_accounts" groups="advanced_accounts.group_advanced_accounts_manager">
+                    <block title="Use Accounts and Contacts in" id="advanced_accounts_apps">
+                        <div class="text-muted mb-3 ps-3">
+                            Each app switched on here gets an Account and a Contact field in place of its
+                            customer (or vendor) field. Switching one on installs its support app, and the app
+                            itself if it is not installed yet.
+                        </div>
+                        <setting id="advanced_accounts_crm" string="CRM"
+                                 help="Opportunities, contact roles, contracts and leads pick Accounts and Contacts instead of partners.">
+                            <field name="module_advanced_accounts_crm"/>
+                        </setting>
+                        <setting id="advanced_accounts_sale" string="Sales"
+                                 help="Quotations and sales orders pick an Account and Contact instead of a Customer.">
+                            <field name="module_advanced_accounts_sale"/>
+                        </setting>
+                        <setting id="advanced_accounts_account" string="Invoicing"
+                                 help="Invoices and bills pick an Account and Contact instead of a Customer / Vendor.">
+                            <field name="module_advanced_accounts_account"/>
+                        </setting>
+                        <setting id="advanced_accounts_project" string="Project"
+                                 help="Projects pick an Account and Contact instead of a Customer.">
+                            <field name="module_advanced_accounts_project"/>
+                        </setting>
+                        <setting id="advanced_accounts_helpdesk" string="Helpdesk"
+                                 help="Tickets pick an Account and Contact instead of a Customer.">
+                            <field name="module_advanced_accounts_helpdesk"/>
+                        </setting>
+                        <setting id="advanced_accounts_feature_suggestions" string="Feature Suggestions"
+                                 help="Suggestions pick the Account and Contact who suggested them.">
+                            <field name="module_advanced_accounts_feature_suggestions"/>
+                        </setting>
+                        <setting id="advanced_accounts_print_farm" string="Print Farm Jobs"
+                                 help="Print jobs get a customer Account and Contact.">
+                            <field name="module_advanced_accounts_print_farm"/>
+                        </setting>
+                        <setting id="advanced_accounts_embroidery" string="Embroidery Jobs"
+                                 help="Jobs and designs pick an Account and Contact instead of a Customer.">
+                            <field name="module_advanced_accounts_embroidery"/>
+                        </setting>
+                        <setting id="advanced_accounts_checklists" string="Checklists"
+                                 help="Checklists get a customer Account and Contact.">
+                            <field name="module_advanced_accounts_checklists"/>
+                        </setting>
+                        <setting id="advanced_accounts_signr" string="Sign&apos;r"
+                                 help="Signature requests get a customer Account and Contact.">
+                            <field name="module_advanced_accounts_signr"/>
+                        </setting>
+                        <setting id="advanced_accounts_purchase" string="Purchase"
+                                 help="Purchase orders pick an Account and Contact instead of a Vendor.">
+                            <field name="module_advanced_accounts_purchase"/>
+                        </setting>
+                        <setting id="advanced_accounts_expense" string="Expenses"
+                                 help="Expenses paid by the company pick a vendor Account and Contact.">
+                            <field name="module_advanced_accounts_expense"/>
+                        </setting>
+                        <setting id="advanced_accounts_pos" string="Point of Sale"
+                                 help="Orders show an Account and Contact instead of a Customer.">
+                            <field name="module_advanced_accounts_pos"/>
+                        </setting>
+                        <setting id="advanced_accounts_asset" string="Asset Management"
+                                 help="Supplier and Manufacturer become Accounts; Owner and Assigned To become Contacts.">
+                            <field name="module_advanced_accounts_asset"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_accounts_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'advanced_accounts', 'bin_size': False}</field>
+    </record>
+</odoo>

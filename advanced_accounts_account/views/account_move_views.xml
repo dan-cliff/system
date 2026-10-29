@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="name">account.move.form.advanced_accounts</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@id='header_left_group']/label[@for='partner_id'][1]" position="before">
+                <field name="adv_account_id" readonly="state != 'draft'" options="{'no_quick_create': True}"
+                       invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')"
+                       placeholder="Type to find an Account..."/>
+                <field name="adv_contact_id" readonly="state != 'draft'" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"
+                       invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')"/>
+            </xpath>
+            <xpath expr="//group[@id='header_left_group']/label[@for='partner_id'][1]" position="attributes">
+                <attribute name="invisible">move_type not in ('out_invoice', 'out_refund', 'out_receipt') or adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+            <xpath expr="//group[@id='header_left_group']/label[@for='partner_id'][2]" position="attributes">
+                <attribute name="invisible">move_type not in ('in_invoice', 'in_refund', 'in_receipt') or adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+            <xpath expr="//group[@id='header_left_group']/div/field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt') or adv_account_id or adv_contact_id or not partner_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_invoice_tree" model="ir.ui.view">
+        <field name="name">account.move.list.invoice.advanced_accounts</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_partner_display_name'][1]" position="before">
+                <field name="adv_account_id" optional="show" readonly="1"/>
+                <field name="adv_contact_id" optional="show" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_partner_display_name'][1]" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_partner_display_name'][2]" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_invoice_filter" model="ir.ui.view">
+        <field name="name">account.move.search.invoice.advanced_accounts</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </xpath>
+            <xpath expr="//search" position="inside">
+                <group>
+                    <filter name="group_adv_account" string="Account" context="{'group_by': 'adv_account_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

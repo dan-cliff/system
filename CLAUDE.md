@@ -289,6 +289,54 @@ When an app needs actions and Actions is installed, add a bridge module
   (`advanced.action._transfer_records` in a `post_init_hook`) and back in an
   `uninstall_hook`.
 
+## Customers and contacts (Advanced Accounts)
+
+Customers, vendors and the people we deal with are **Accounts**
+(`advanced.account`, companies) and **Contacts** (`advanced.contact`, people
+linked to an Account) from the **Advanced Accounts** app
+(`advanced_accounts`), not the standard Contacts app. Both keep their
+details on a `res.partner` (`_inherits`), and a user made for a Contact is
+built on that same partner, so they stay in sync. Our own users and
+employees are never Contacts: fields meant to pick an employee or user stay
+as they are. Employees come from **Personnel** (`advanced_hr`, which takes
+over from the Employees app on Odoo's own `hr.employee`): depend on
+`advanced_hr`, not `hr`, wherever Advanced Accounts needs employees.
+
+Whenever an app we create or update has a customer, vendor or contact
+field (or should have one):
+
+- Put the change in an optional support app `advanced_accounts_<app>`
+  named "Remap <App> Contacts to Advanced Accounts" (`depends:
+  ['advanced_accounts', '<app>']`, **not** `auto_install`), and add its
+  `module_advanced_accounts_<app>` toggle to the Advanced Accounts settings
+  page (`advanced_accounts/models/res_config_settings.py` and
+  `views/res_config_settings_views.xml`), so each app is switched on by
+  choice. The app itself keeps its `res.partner` field and works without
+  Advanced Accounts.
+- One customer per record: inherit `advanced.accounts.mixin`, which adds
+  `adv_account_id` and `adv_contact_id`. Set `_adv_partner_field` to the
+  partner field they stand in for (`False` when the record has none: the
+  fields are then its own), and `_adv_account_partner_field` when the
+  record keeps the Account in a separate partner field (see
+  `advanced_accounts_crm`). Several partner fields, or ones that aren't
+  "the customer" (e.g. an asset's Supplier, Manufacturer, Owner): inherit
+  `advanced.accounts.remap.mixin` and list `{new field: partner field}` in
+  `_adv_remap` (see `advanced_accounts_asset`).
+- Views: put the Account and Contact fields just before the partner field,
+  with the same `readonly` / `invisible` conditions, and make the partner
+  field `invisible="adv_account_id or adv_contact_id or not partner_id"`
+  (it then only shows for a partner that isn't an Account or Contact, such
+  as one of our users). Lists: Account and Contact columns before the
+  partner column, which becomes `optional="hide"`. Searches: the two
+  fields and an "Account" group-by.
+- Behaviour comes from the mixins: picking an Account limits the Contacts
+  to that Account; picking a Contact fills in its Account; the Contact
+  picker lists "Contact Name (Account Name)" while the chosen Contact
+  shows its name only; the partner field follows, and partners made by
+  other code join Advanced Accounts automatically.
+- Need a login for a Contact? Use the Contact's "Create User" (a portal
+  user on the Contact's partner), never a separate partner.
+
 ## Choice fields
 
 - Don't use `fields.Selection` for a list of choices. Use a `Many2one` (single
