@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Personnel's menus, in the Employees app's root (renamed Personnel in
+         data/personnel_titles.xml), so other apps' menus there stay. -->
+    <menuitem id="menu_personnel_employees"
+              name="Employees"
+              parent="hr.menu_hr_root"
+              action="action_personnel_employee"
+              groups="group_personnel_user"
+              sequence="3"/>
+    <menuitem id="menu_personnel_directory"
+              name="Directory"
+              parent="hr.menu_hr_root"
+              action="action_personnel_directory"
+              sequence="4"/>
+    <menuitem id="menu_personnel_departments"
+              name="Departments"
+              parent="hr.menu_hr_root"
+              action="action_personnel_department"
+              sequence="5"/>
+
+    <!-- Reporting (Odoo's analysis menu, other apps add to it) stays; Report
+         Builder's Reports folder sits directly before Configuration. -->
+    <record id="hr.hr_menu_hr_reports" model="ir.ui.menu">
+        <field name="sequence">90</field>
+    </record>
+    <menuitem id="menu_personnel_reports" name="Reports" parent="hr.menu_hr_root" sequence="95"/>
+    <record id="hr.menu_human_resources_configuration" model="ir.ui.menu">
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- Configuration -->
+    <menuitem id="menu_personnel_badges"
+              name="ID Badges"
+              parent="hr.menu_config_employee"
+              action="action_badge_template"
+              groups="group_personnel_admin"
+              sequence="8"/>
+    <menuitem id="menu_personnel_audit_trail"
+              name="Audit Trail"
+              parent="hr.menu_human_resources_configuration"
+              action="action_audit_trail"
+              groups="group_audit_trail_view"
+              sequence="90"/>
+    <menuitem id="menu_personnel_contract_types"
+              name="Contract Types"
+              parent="hr.menu_config_recruitment"
+              action="action_personnel_contract_type"
+              sequence="3"/>
+    <record id="hr.menu_view_hr_job" model="ir.ui.menu">
+        <field name="action" ref="action_personnel_job"/>
+    </record>
+</odoo>
