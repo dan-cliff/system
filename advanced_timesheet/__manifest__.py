@@ -25,6 +25,9 @@
 
         With Attendances installed (advanced_timesheet_attendance, installed automatically):
         - Optionally fill timesheets from attendance records; manual entries are still allowed
+
+        With On Site installed (advanced_timesheet_onsite, installed automatically):
+        - The same, from On Site's attendances (it takes over from Attendances)
     """,
     'author': "Cliff's Country Crafts",
     'depends': ['base', 'base_setup', 'mail'],
