@@ -38,7 +38,7 @@ standard roles ship in advanced_accounts_permission.
 """,
     'author': "Cliff's Country Crafts",
     'license': 'LGPL-3',
-    'depends': ['mail', 'base_setup'],
+    'depends': ['mail', 'base_setup', 'hr'],
     'data': [
         'security/advanced_accounts_security.xml',
         'security/ir.model.access.csv',
