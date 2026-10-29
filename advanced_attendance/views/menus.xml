@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_onsite_root"
+              name="On Site"
+              sequence="205"
+              web_icon="advanced_attendance,static/description/icon.png"
+              groups="advanced_attendance.group_onsite_user"/>
+
+    <menuitem id="menu_onsite_present" name="On Site Now" parent="menu_onsite_root"
+              action="action_advanced_attendance_present" sequence="5"/>
+
+    <menuitem id="menu_onsite_attendances" name="Attendances" parent="menu_onsite_root"
+              action="action_advanced_attendance" sequence="10"/>
+
+    <menuitem id="menu_onsite_kiosks_root" name="Kiosks" parent="menu_onsite_root" sequence="20"/>
+    <menuitem id="menu_onsite_kiosk" name="Kiosks" parent="menu_onsite_kiosks_root"
+              action="action_attendance_kiosk" sequence="10"/>
+    <menuitem id="menu_onsite_kiosk_response" name="Questionnaire Responses" parent="menu_onsite_kiosks_root"
+              action="action_attendance_kiosk_response" sequence="20"/>
+
+    <menuitem id="menu_onsite_alerts_root" name="Alerts" parent="menu_onsite_root" sequence="30"/>
+    <menuitem id="menu_onsite_alert" name="Sign In / Out Alerts" parent="menu_onsite_alerts_root"
+              action="action_attendance_alert" sequence="10"/>
+    <menuitem id="menu_onsite_alert_log" name="Alert History" parent="menu_onsite_alerts_root"
+              action="action_attendance_alert_log" sequence="20"/>
+
+    <menuitem id="menu_onsite_reporting" name="Reporting" parent="menu_onsite_root" sequence="40"/>
+    <menuitem id="menu_onsite_analysis" name="Attendances" parent="menu_onsite_reporting"
+              action="action_advanced_attendance_analysis" sequence="10"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_onsite_reports" name="Reports" parent="menu_onsite_root" sequence="99"/>
+
+    <menuitem id="menu_onsite_config" name="Configuration" parent="menu_onsite_root" sequence="100"
+              groups="advanced_attendance.group_onsite_admin"/>
+    <menuitem id="menu_onsite_settings" name="Settings" parent="menu_onsite_config"
+              action="advanced_attendance_config_settings_action" sequence="0" groups="base.group_system"/>
+    <menuitem id="menu_onsite_questionnaires" name="Kiosk Questionnaires" parent="menu_onsite_config"
+              action="action_attendance_kiosk_questionnaire" sequence="10"/>
+</odoo>

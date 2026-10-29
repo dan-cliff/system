@@ -1,0 +1,172 @@
+from datetime import datetime, time
+
+import pytz
+
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
+
+
+class HrEmployee(models.Model):
+    _inherit = 'hr.employee'
+
+    # Prefixed with onsite_ so they never clash with Odoo's Attendances app
+    # while both are installed.
+    onsite_attendance_ids = fields.One2many(
+        'advanced.attendance', 'employee_id', string='On Site Attendances',
+        groups='advanced_attendance.group_onsite_user',
+    )
+    onsite_last_attendance_id = fields.Many2one(
+        'advanced.attendance', string='Last On Site Attendance', compute='_compute_onsite_last_attendance_id',
+        store=True, groups='advanced_attendance.group_onsite_user',
+    )
+    onsite_last_check_in = fields.Datetime(
+        string='Last Signed In', related='onsite_last_attendance_id.check_in', store=True,
+        groups='advanced_attendance.group_onsite_user',
+    )
+    onsite_last_check_out = fields.Datetime(
+        string='Last Signed Out', related='onsite_last_attendance_id.check_out', store=True,
+        groups='advanced_attendance.group_onsite_user',
+    )
+    onsite_state = fields.Selection(
+        [('checked_out', 'Signed Out'), ('checked_in', 'Signed In')],
+        string='On Site Status', compute='_compute_onsite_state',
+        groups='advanced_attendance.group_onsite_user',
+    )
+    onsite_hours_today = fields.Float(
+        string='Hours On Site Today', compute='_compute_onsite_hours_today',
+        groups='advanced_attendance.group_onsite_user',
+    )
+
+    @api.depends('onsite_attendance_ids.check_in')
+    def _compute_onsite_last_attendance_id(self):
+        Attendance = self.env['advanced.attendance'].sudo()
+        now = fields.Datetime.now()
+        for employee in self:
+            employee.onsite_last_attendance_id = Attendance.search([
+                ('employee_id', '=', employee.id), ('check_in', '<=', now),
+            ], order='check_in desc', limit=1) if employee.id else False
+
+    @api.depends('onsite_last_attendance_id.check_out')
+    def _compute_onsite_state(self):
+        for employee in self:
+            attendance = employee.sudo().onsite_last_attendance_id
+            employee.onsite_state = 'checked_in' if attendance and not attendance.check_out else 'checked_out'
+
+    def _compute_onsite_hours_today(self):
+        now = fields.Datetime.now()
+        Attendance = self.env['advanced.attendance'].sudo()
+        for employee in self:
+            tz = pytz.timezone(employee._get_tz() or 'UTC')
+            day_start = tz.localize(datetime.combine(pytz.utc.localize(now).astimezone(tz).date(), time.min))
+            start = day_start.astimezone(pytz.utc).replace(tzinfo=None)
+            hours = 0.0
+            for attendance in Attendance.search([
+                ('employee_id', '=', employee.id), ('check_in', '<=', now),
+                '|', ('check_out', '>=', start), ('check_out', '=', False),
+            ]):
+                hours += ((attendance.check_out or now) - max(attendance.check_in, start)).total_seconds() / 3600
+            employee.onsite_hours_today = hours
+
+    # Show employees who are signed in as present (Odoo's Attendances app does the
+    # same with its own records).
+    @api.depends('onsite_last_attendance_id.check_out')
+    def _compute_presence_state(self):
+        super()._compute_presence_state()
+        signed_in = set(self.env['advanced.attendance'].sudo().search([
+            ('employee_id', 'in', self.ids), ('check_out', '=', False),
+        ]).employee_id.ids)
+        for employee in self:
+            if employee.id in signed_in and employee.hr_presence_state != 'archive':
+                employee.hr_presence_state = 'present'
+
+    # ── Learning capabilities (kiosk sign in rules) ────────────────────────
+    def _onsite_current_capabilities(self, courses=None):
+        """Return the Learning capabilities each employee currently holds.
+
+        A capability is current when the employee has a completed training
+        record for the course that has not expired.
+
+        :param courses: optional ``lms.course`` recordset to limit the check to
+        :return: ``{employee_id: {course_id: expiry_date or False}}`` where
+            ``False`` means the capability never expires. When an employee
+            holds several current records for a course, the latest expiry wins.
+        """
+        result = {employee.id: {} for employee in self}
+        if not self:
+            return result
+        today = fields.Date.context_today(self)
+        domain = [
+            ('employee_id', 'in', self.ids),
+            ('state', '=', 'completed'),
+            '|', ('expiry_date', '=', False), ('expiry_date', '>=', today),
+        ]
+        if courses is not None:
+            if not courses:
+                return result
+            domain.append(('course_id', 'in', courses.ids))
+        records = self.env['lms.employee.record'].sudo().search_read(
+            domain, ['employee_id', 'course_id', 'expiry_date'],
+        )
+        for rec in records:
+            held = result[rec['employee_id'][0]]
+            course_id = rec['course_id'][0]
+            expiry = rec['expiry_date']
+            if course_id not in held:
+                held[course_id] = expiry
+            elif held[course_id] and (not expiry or expiry > held[course_id]):
+                held[course_id] = expiry
+        return result
+
+    # ── Signing in and out from Odoo (toolbar) ─────────────────────────────
+    def _onsite_systray_data(self):
+        """What the toolbar Sign In / Out button shows for this employee."""
+        self.ensure_one()
+        employee = self.sudo()
+        last = employee.onsite_last_attendance_id
+        company = employee.company_id
+        return {
+            'id': employee.id,
+            'name': employee.name,
+            'state': employee.onsite_state,
+            'hours_today': employee.onsite_hours_today,
+            'last_check_in': fields.Datetime.to_string(last.check_in) if last else False,
+            'location_tracking': company.onsite_location_tracking,
+        }
+
+    def _onsite_sign_in_out(self, where=None):
+        """Sign the employee in, or out when they are signed in.
+
+        :param where: optional ``{'latitude', 'longitude', 'location', 'ip_address', 'browser'}``
+        :return: the attendance
+        """
+        self.ensure_one()
+        Attendance = self.env['advanced.attendance'].sudo()
+        employee = self.sudo()
+        now = fields.Datetime.now()
+        where = where or {}
+        attendance = Attendance.search([('employee_id', '=', employee.id), ('check_out', '=', False)],
+                                       order='check_in desc', limit=1)
+        if attendance:
+            due = attendance._auto_sign_out_due()
+            if due and due <= now:
+                # Overdue automatic sign out: apply it, then sign them in again.
+                if attendance.in_kiosk_id:
+                    attendance.in_kiosk_id._kiosk_apply_auto_sign_out(attendance, due)
+                else:
+                    attendance._apply_auto_sign_out(due)
+                attendance = Attendance
+        if not attendance:
+            return Attendance.create({
+                'employee_id': employee.id,
+                'check_in': now,
+                'in_mode': 'systray',
+                **{f'in_{key}': value for key, value in where.items()},
+            })
+        if attendance.in_kiosk_id and attendance.in_kiosk_id.other_sign_out_action == 'block':
+            raise UserError(_('You signed in at %s, so you must sign out there.', attendance.in_kiosk_id.name))
+        attendance.write({
+            'check_out': max(now, attendance.check_in),
+            'out_mode': 'systray',
+            **{f'out_{key}': value for key, value in where.items()},
+        })
+        return attendance
