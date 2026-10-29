@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="personnel_department_view_form" model="ir.ui.view">
+        <field name="name">hr.department.form.personnel</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_form"/>
+        <field name="mode">primary</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class" add="o_personnel_department_form" separator=" "/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_audit_trail" type="object" class="oe_stat_button" icon="fa-history"
+                        groups="advanced_hr.group_audit_trail_view">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value"><field name="personnel_audit_count"/></span>
+                        <span class="o_stat_text">Audit Trail</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="personnel_department_view_list" model="ir.ui.view">
+        <field name="name">hr.department.list.personnel</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="string">Departments</attribute>
+                <attribute name="class" add="o_personnel_list" separator=" "/>
+            </xpath>
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='company_id'][@groups='base.group_multi_company']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="personnel_department_view_kanban" model="ir.ui.view">
+        <field name="name">hr.department.kanban.personnel</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.hr_department_view_kanban"/>
+        <field name="mode">primary</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="class" add="o_personnel_department_kanban" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="personnel_department_view_search" model="ir.ui.view">
+        <field name="name">hr.department.search.personnel</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_filter"/>
+        <field name="mode">primary</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <field name="manager_id" position="after">
+                <field name="parent_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <group>
+                    <filter name="group_parent" string="Parent Department" domain="[]" context="{'group_by': 'parent_id'}"/>
+                    <filter name="group_company" string="Company" domain="[]" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </field>
+        </field>
+    </record>
+
+    <record id="action_personnel_department" model="ir.actions.act_window">
+        <field name="name">Departments</field>
+        <field name="path">personnel-departments</field>
+        <field name="res_model">hr.department</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('has_read_access', '=', True)]</field>
+        <field name="context">{'personnel_app': True}</field>
+        <field name="search_view_id" ref="personnel_department_view_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'sequence': 10, 'view_id': ref('personnel_department_view_kanban')}),
+            (0, 0, {'view_mode': 'list', 'sequence': 15, 'view_id': ref('personnel_department_view_list')}),
+            (0, 0, {'view_mode': 'form', 'sequence': 20, 'view_id': ref('personnel_department_view_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a new department</p>
+            <p>Structure employees per department and see their time off, expenses, recruitment and more.</p>
+        </field>
+    </record>
+</odoo>
