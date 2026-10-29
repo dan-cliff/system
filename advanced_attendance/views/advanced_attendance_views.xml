@@ -7,6 +7,9 @@
             <list string="Attendances" duplicate="false"
                   decoration-success="color == 10" decoration-danger="color == 1">
                 <header>
+                    <button class="btn-secondary" string="Sign Out" name="action_manual_sign_out" type="object"
+                            groups="advanced_attendance.group_attendance_manual_sign_out"
+                            confirm="Sign out everyone selected now?"/>
                     <button class="btn-secondary" string="Approve Extra Hours" name="action_approve_overtime"
                             type="object" groups="advanced_attendance.group_attendance_approve"/>
                     <button class="btn-secondary" string="Refuse Extra Hours" name="action_refuse_overtime"
@@ -163,6 +166,10 @@
                         <footer>
                             <field name="worked_hours" widget="float_time" invisible="not check_out"/>
                             <span class="badge text-bg-success" invisible="check_out">On site</span>
+                            <button name="action_manual_sign_out" type="object" string="Sign Out"
+                                    class="btn btn-sm btn-warning ms-auto" invisible="check_out"
+                                    groups="advanced_attendance.group_attendance_manual_sign_out"
+                                    confirm="Sign this person out now?"/>
                         </footer>
                     </t>
                 </templates>

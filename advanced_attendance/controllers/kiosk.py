@@ -210,9 +210,12 @@ class AttendanceKioskController(http.Controller):
         Employee = request.env['hr.employee'].sudo()
         method = data.get('method')
         if (method == 'badge' and kiosk.identify_badge) or (method == 'reader' and kiosk.identify_reader):
-            employee = kiosk._kiosk_find_badge(data.get('badge'))
+            scanned = str(data.get('badge') or '')[:128]
+            employee = kiosk._kiosk_find_badge(scanned)
             if not employee:
-                return _error(_('Badge not recognised.'), status=404)
+                _logger.info('Kiosk %s: no employee has the Badge ID %r (%s)', kiosk.id, scanned, method)
+                # Show what was read, so a wrong or misread code is easy to spot.
+                return _error(_('Badge not recognised.'), status=404, scanned=scanned)
         elif method == 'name' and kiosk.identify_name:
             try:
                 employee = Employee.browse(int(data.get('employee_id'))).exists()

@@ -1,6 +1,6 @@
 {
     'name': 'On Site',
-    'version': '19.0.1.1.1',
+    'version': '19.0.1.2.0',
     'category': 'Human Resources/Attendances',
     'sequence': 205,
     'summary': 'Attendances, sign in kiosks with rules and questionnaires, offline PWA kiosks '
@@ -13,7 +13,8 @@ A new version of the Attendances app that replaces Odoo's Attendances
 
 * Attendances: who signed in and out, when and where, worked hours (less the
   lunch break of the working schedule), no overlapping attendances, an
-  "On Site Now" board, analysis (pivot / graph) and employees shown as
+  "On Site Now" board (with a Sign Out button for manual and evacuation
+  sign outs, under its own permission), analysis (pivot / graph) and employees shown as
   present while signed in.
 * Extra hours (overtime), as in Odoo's Attendances app: overtime rulesets
   with rules based on hours worked per day / week (from the employee's
@@ -37,7 +38,8 @@ A new version of the Attendances app that replaces Odoo's Attendances
 * Sign in / out alerts: Discuss messages when particular employees (or
   everyone) arrive or leave, limited to sites, dates, days and times.
 * Permissions per CLAUDE.md (Attendances, Kiosks and Alerts privileges, Sign
-  In from Odoo, Approve Extra Hours and the On Site Administrator); roles ship in
+  In from Odoo, Approve Extra Hours, Manual Sign Out and the On Site
+  Administrator); roles ship in
   advanced_attendance_permission.
 
 On install, existing attendances, kiosks, questionnaires, responses and
