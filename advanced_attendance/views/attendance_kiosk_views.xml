@@ -72,6 +72,11 @@
                             <group>
                                 <group string="Identification">
                                     <field name="identify_badge"/>
+                                    <field name="identify_reader"/>
+                                    <div class="text-muted small" colspan="2"
+                                         invisible="not identify_badge or not identify_reader">
+                                        The reader replaces the camera on the kiosk screen.
+                                    </div>
                                     <field name="identify_name"/>
                                     <field name="require_pin" invisible="not identify_name"/>
                                 </group>

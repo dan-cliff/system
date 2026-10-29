@@ -9,9 +9,10 @@
          Kiosks (own = created by them) and Sign In / Out Alerts (own = created by them or
          sent to them). Child models follow their parent: sign in rules and kiosk
          questionnaires follow the kiosk, alert conditions and history follow the alert,
-         questionnaire responses follow the attendance's employee. Responses and alert
-         history are written by the kiosk and the alerts, so permissions only view or
-         delete them.
+         questionnaire responses and extra hours follow the attendance's employee. Responses, extra hours
+         and alert history are written by the kiosk, the overtime rules and the alerts,
+         so permissions only view or delete them; extra hours are approved through the
+         "Approve Extra Hours" permission.
 
          My Team = their own plus those of the employees under them in the org chart. -->
     <data noupdate="1">
@@ -318,6 +319,20 @@
         <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
     </record>
 
+    <!-- Workflow: approving and refusing extra hours (when the company approves them by a manager) -->
+    <record id="privilege_attendance_approve" model="res.groups.privilege">
+        <field name="name">Attendances: Approve Extra Hours</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">51</field>
+        <field name="description">Approve or refuse the extra hours of the attendances they can see.</field>
+    </record>
+    <record id="group_attendance_approve" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_approve"/>
+        <field name="comment">Approve or refuse the extra hours of the attendances they can see.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
     <record id="privilege_advanced_attendance" model="res.groups.privilege">
         <field name="name">On Site</field>
         <field name="category_id" ref="module_category_advanced_attendance"/>
@@ -327,8 +342,8 @@
     <record id="group_onsite_admin" model="res.groups">
         <field name="name">Administrator</field>
         <field name="privilege_id" ref="privilege_advanced_attendance"/>
-        <field name="comment">Every On Site permission, including deleting any attendance, kiosk or alert and signing in from Odoo, plus Configuration.</field>
-        <field name="implied_ids" eval="[(4, ref('group_attendance_create_only')), (4, ref('group_attendance_edit_own')), (4, ref('group_attendance_edit_team')), (4, ref('group_attendance_edit_all')), (4, ref('group_attendance_view_all')), (4, ref('group_attendance_delete_own')), (4, ref('group_attendance_delete_all')), (4, ref('group_kiosk_create_only')), (4, ref('group_kiosk_edit_own')), (4, ref('group_kiosk_edit_team')), (4, ref('group_kiosk_edit_all')), (4, ref('group_kiosk_view_all')), (4, ref('group_kiosk_delete_own')), (4, ref('group_kiosk_delete_all')), (4, ref('group_alert_create_only')), (4, ref('group_alert_edit_own')), (4, ref('group_alert_edit_team')), (4, ref('group_alert_edit_all')), (4, ref('group_alert_view_all')), (4, ref('group_alert_delete_own')), (4, ref('group_alert_delete_all')), (4, ref('group_onsite_systray'))]"/>
+        <field name="comment">Every On Site permission, including deleting any attendance, kiosk or alert, signing in from Odoo and approving extra hours, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_attendance_create_only')), (4, ref('group_attendance_edit_own')), (4, ref('group_attendance_edit_team')), (4, ref('group_attendance_edit_all')), (4, ref('group_attendance_view_all')), (4, ref('group_attendance_delete_own')), (4, ref('group_attendance_delete_all')), (4, ref('group_kiosk_create_only')), (4, ref('group_kiosk_edit_own')), (4, ref('group_kiosk_edit_team')), (4, ref('group_kiosk_edit_all')), (4, ref('group_kiosk_view_all')), (4, ref('group_kiosk_delete_own')), (4, ref('group_kiosk_delete_all')), (4, ref('group_alert_create_only')), (4, ref('group_alert_edit_own')), (4, ref('group_alert_edit_team')), (4, ref('group_alert_edit_all')), (4, ref('group_alert_view_all')), (4, ref('group_alert_delete_own')), (4, ref('group_alert_delete_all')), (4, ref('group_onsite_systray')), (4, ref('group_attendance_approve'))]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
@@ -348,6 +363,12 @@
     <record id="rule_response_line_deny" model="ir.rule">
         <field name="name">Questionnaire Answers: only through a permission</field>
         <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_overtime_deny" model="ir.rule">
+        <field name="name">Extra Hours: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
         <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
         <field name="domain_force">[(0, '=', 1)]</field>
     </record>
@@ -415,6 +436,15 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+    <record id="rule_overtime_create_only" model="ir.rule">
+        <field name="name">Extra Hours: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_create_only'))]"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 
     <!-- Attendances: Create and Edit Own -->
     <record id="rule_attendance_edit_own" model="ir.rule">
@@ -438,6 +468,15 @@
         <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
         <field name="groups" eval="[(4, ref('group_attendance_edit_own'))]"/>
         <field name="domain_force">['|', ('response_id.attendance_id.create_uid', '=', user.id), ('response_id.employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_overtime_edit_own" model="ir.rule">
+        <field name="name">Extra Hours: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_own'))]"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
@@ -469,6 +508,15 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+    <record id="rule_overtime_edit_team" model="ir.rule">
+        <field name="name">Extra Hours: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_team'))]"/>
+        <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 
     <!-- Attendances: Create and Edit All -->
     <record id="rule_attendance_edit_all" model="ir.rule">
@@ -490,6 +538,15 @@
     <record id="rule_response_line_edit_all" model="ir.rule">
         <field name="name">Questionnaire Answers: Create and Edit All</field>
         <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_overtime_edit_all" model="ir.rule">
+        <field name="name">Extra Hours: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
         <field name="groups" eval="[(4, ref('group_attendance_edit_all'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_write" eval="False"/>
@@ -525,6 +582,15 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+    <record id="rule_overtime_view_all" model="ir.rule">
+        <field name="name">Extra Hours: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 
     <!-- Attendances: Delete Own -->
     <record id="rule_attendance_delete_own" model="ir.rule">
@@ -551,6 +617,14 @@
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
     </record>
+    <record id="rule_overtime_delete_own" model="ir.rule">
+        <field name="name">Extra Hours: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_own'))]"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
 
     <!-- Attendances: Delete All -->
     <record id="rule_attendance_delete_all" model="ir.rule">
@@ -572,6 +646,14 @@
     <record id="rule_response_line_delete_all" model="ir.rule">
         <field name="name">Questionnaire Answers: Delete All</field>
         <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_overtime_delete_all" model="ir.rule">
+        <field name="name">Extra Hours: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
         <field name="groups" eval="[(4, ref('group_attendance_delete_all'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_write" eval="False"/>
@@ -973,5 +1055,15 @@
         <field name="name">Alert History: multi-company</field>
         <field name="model_id" ref="model_advanced_attendance_alert_log"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_overtime_company" model="ir.rule">
+        <field name="name">Extra Hours: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_overtime_ruleset_company" model="ir.rule">
+        <field name="name">Overtime Rulesets: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_overtime_ruleset"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
     </record>
 </odoo>

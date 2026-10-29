@@ -1,6 +1,6 @@
 {
     'name': 'On Site',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Human Resources/Attendances',
     'sequence': 205,
     'summary': 'Attendances, sign in kiosks with rules and questionnaires, offline PWA kiosks '
@@ -15,11 +15,19 @@ A new version of the Attendances app that replaces Odoo's Attendances
   lunch break of the working schedule), no overlapping attendances, an
   "On Site Now" board, analysis (pivot / graph) and employees shown as
   present while signed in.
+* Extra hours (overtime), as in Odoo's Attendances app: overtime rulesets
+  with rules based on hours worked per day / week (from the employee's
+  schedule or a fixed number) or on timing (non-working days, outside a
+  schedule, time of day, leave), tolerances, pay rates, approval by a
+  manager, and Absence Management (missing hours as negative extra hours).
+  Each Personnel contract picks its ruleset.
 * Sign in from Odoo: a Sign In / Out button in the top toolbar (also on the
   home screen), optionally recording GPS position, IP address and browser.
 * Automatic sign out for people who forget, per kiosk or for the company.
 * Kiosks: as many as you need, each with its own URL that installs as a
-  Progressive Web App and keeps working offline; badge or name + PIN; a rule
+  Progressive Web App and keeps working offline; workers identify with
+  their Personnel Badge ID (a QR code or barcode read by the always-on
+  camera, or an external RFID / barcode reader) or by name + PIN; a rule
   builder for who may sign in; minimum Learning capabilities per kiosk and
   per rule with expiry warnings; per-kiosk handling of signing in or out at
   another kiosk.
@@ -29,7 +37,7 @@ A new version of the Attendances app that replaces Odoo's Attendances
 * Sign in / out alerts: Discuss messages when particular employees (or
   everyone) arrive or leave, limited to sites, dates, days and times.
 * Permissions per CLAUDE.md (Attendances, Kiosks and Alerts privileges, Sign
-  In from Odoo and the On Site Administrator); roles ship in
+  In from Odoo, Approve Extra Hours and the On Site Administrator); roles ship in
   advanced_attendance_permission.
 
 On install, existing attendances, kiosks, questionnaires, responses and
@@ -44,6 +52,8 @@ new URLs (/onsite/...), so set kiosk devices up again with them.
         'data/res_lang_data.xml',
         'data/ir_cron_data.xml',
         'data/questionnaire_data.xml',
+        'data/overtime_ruleset_data.xml',
+        'views/attendance_overtime_views.xml',
         'views/advanced_attendance_views.xml',
         'views/attendance_kiosk_rule_views.xml',
         'views/attendance_kiosk_questionnaire_views.xml',

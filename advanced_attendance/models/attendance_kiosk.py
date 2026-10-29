@@ -1,4 +1,5 @@
 import hashlib
+import re
 import time as time_module
 import uuid
 from datetime import date, datetime, time, timedelta
@@ -21,6 +22,13 @@ TICKET_LIFETIME_SECONDS = 10 * 60
 
 def _new_token(*args):
     return uuid.uuid4().hex
+
+
+def normalize_badge(code):
+    """Badge ID as compared by the kiosk: no spaces or control characters, upper case,
+    without the leading zeros RFID readers often add (kiosk.js does the same)."""
+    code = re.sub(r'[\s\x00-\x1f\x7f]+', '', str(code or '')).upper()
+    return re.sub(r'^0+(?=.)', '', code)
 
 
 def _iso_utc(dt):
@@ -85,8 +93,14 @@ class AttendanceKiosk(models.Model):
 
     # ── Identification ─────────────────────────────────────────────────────
     identify_badge = fields.Boolean(
-        string='Badge Scan', default=True,
-        help="Workers sign in by scanning the barcode on their badge (the employee's Badge ID).",
+        string='Badge Scan (Camera)', default=True,
+        help="The kiosk's camera is always on, ready to read the QR code or barcode on a worker's "
+             "badge (the employee's Badge ID in Personnel).",
+    )
+    identify_reader = fields.Boolean(
+        string='External RFID / Barcode Reader',
+        help='Workers scan their badge on an RFID or barcode reader connected to the device '
+             '(one that types the Badge ID, like a keyboard). Replaces the camera on the kiosk screen.',
     )
     identify_name = fields.Boolean(
         string='Select Name', default=True,
@@ -202,10 +216,10 @@ class AttendanceKiosk(models.Model):
             if kiosk.auto_sign_out_type == 'time' and not 0 <= kiosk.auto_sign_out_time < 24:
                 raise ValidationError(_('Automatic sign out time must be between 00:00 and 23:59.'))
 
-    @api.constrains('identify_badge', 'identify_name')
+    @api.constrains('identify_badge', 'identify_reader', 'identify_name')
     def _check_identification(self):
         for kiosk in self:
-            if not kiosk.identify_badge and not kiosk.identify_name:
+            if not kiosk.identify_badge and not kiosk.identify_reader and not kiosk.identify_name:
                 raise ValidationError(_('Kiosk "%s" needs at least one way for workers to identify themselves.', kiosk.name))
 
     # ── Actions ────────────────────────────────────────────────────────────
@@ -505,6 +519,24 @@ class AttendanceKiosk(models.Model):
                 due |= line.questionnaire_id
         return due
 
+    # ── Badges ─────────────────────────────────────────────────────────────
+    def _kiosk_find_badge(self, code):
+        """The active employee whose Badge ID matches a scanned code, ignoring spaces,
+        letter case and leading zeros. None when no single employee matches."""
+        Employee = self.env['hr.employee'].sudo()
+        raw = str(code or '').strip()
+        if not raw:
+            return None
+        exact = Employee.search([('barcode', '=', raw)], limit=2)
+        if len(exact) == 1:
+            return exact
+        wanted = normalize_badge(raw)
+        if not wanted:
+            return None
+        candidates = Employee.search([('barcode', 'ilike', wanted)])
+        matches = candidates.filtered(lambda e: normalize_badge(e.barcode) == wanted)
+        return matches if len(matches) == 1 else None
+
     # ── Kiosk payloads ─────────────────────────────────────────────────────
     def _kiosk_hash(self, value):
         if not value:
@@ -545,7 +577,7 @@ class AttendanceKiosk(models.Model):
                 'name': employee.name,
                 'job': employee.job_title or '',
                 'avatar': f'/onsite/{self.sudo().access_token}/avatar/{employee.id}',
-                'badge': self._kiosk_hash(employee.barcode) if self.offline_enabled else None,
+                'badge': self._kiosk_hash(normalize_badge(employee.barcode)) if self.offline_enabled else None,
                 'pin': self._kiosk_hash(employee.pin) if self.offline_enabled else None,
                 'has_pin': bool(employee.pin),
                 **evaluation[employee.id],
@@ -565,6 +597,7 @@ class AttendanceKiosk(models.Model):
             'location': self.work_location_id.name,
             'welcome': self.welcome_message or '',
             'identify_badge': self.identify_badge,
+            'identify_reader': self.identify_reader,
             'identify_name': self.identify_name,
             'require_pin': self.require_pin,
             'offline': self.offline_enabled,

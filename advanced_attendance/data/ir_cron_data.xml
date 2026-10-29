@@ -8,4 +8,14 @@
         <field name="interval_number">5</field>
         <field name="interval_type">minutes</field>
     </record>
+
+    <record id="ir_cron_onsite_absence_detection" model="ir.cron">
+        <field name="name">On Site: Detect Absences</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_absence_detection()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 02:00:00')"/>
+    </record>
 </odoo>

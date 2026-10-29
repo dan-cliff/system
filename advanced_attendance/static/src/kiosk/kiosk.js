@@ -316,7 +316,7 @@
             avatar(employee, 'lg'),
             el('div', { class: 'k-person-name' }, employee.name),
             employee.job ? el('div', { class: 'k-person-job' }, employee.job) : null,
-        ];
+        ].filter(Boolean);
     }
 
     function showResult(kind, title, lines) {
@@ -336,9 +336,18 @@
         $('k-kiosk-place').textContent = config.location + ' · ' + config.company;
         $('k-welcome').textContent = config.welcome || '';
         $('k-welcome').hidden = !config.welcome;
-        $('k-badge-hint').hidden = !config.identify_badge;
+        // The external reader replaces the camera when both are on.
+        const mode = config.identify_reader ? 'reader' : config.identify_badge ? 'camera' : null;
+        $('k-scan').hidden = !mode;
+        $('k-scan-camera').hidden = mode !== 'camera';
+        $('k-scan-reader').hidden = mode !== 'reader';
         $('k-name-select').hidden = !config.identify_name;
-        $('k-camera-btn').hidden = !(config.identify_badge && 'BarcodeDetector' in window && navigator.mediaDevices);
+        $('k-home').classList.toggle('k-home-split', Boolean(mode && config.identify_name));
+        if (mode === 'camera') {
+            startCamera();
+        } else {
+            stopCamera();
+        }
     }
 
     function renderGrid() {
@@ -389,16 +398,25 @@
         return false;
     }
 
-    async function identifyBadge(code) {
-        if (!state.config || !state.config.identify_badge || !code) return;
+    // Badge IDs are compared without spaces, case or leading zeros (as on the server).
+    function normalizeBadge(code) {
+        // eslint-disable-next-line no-control-regex
+        return String(code || '').replace(/[\s\x00-\x1f\x7f]+/g, '').toUpperCase().replace(/^0+(?=.)/, '');
+    }
+
+    async function identifyBadge(code, method) {
+        method = method || 'badge';
+        const config = state.config;
+        if (!config || !code) return;
+        if (method === 'badge' ? !config.identify_badge : !config.identify_reader) return;
         try {
-            const response = await request('/identify', { method: 'badge', badge: code });
+            const response = await request('/identify', { method: method, badge: code });
             return handleIdentify(response);
         } catch (e) {
             if (!(e instanceof NetworkError)) throw e;
         }
         if (!offlineAllowed()) return;
-        const hash = await sha256(state.config.salt + ':' + code);
+        const hash = await sha256(config.salt + ':' + normalizeBadge(code));
         const employee = hash && state.roster.find((e) => e.badge === hash);
         if (!employee) {
             showResult('error', 'Badge not recognised', ['Please try again or see your supervisor.']);
@@ -748,68 +766,192 @@
         }
     }
 
-    // ── Badge scanners ──────────────────────────────────────────────────────
-    // USB / Bluetooth scanners type the badge ID quickly and press Enter.
+    // ── External RFID / barcode reader ─────────────────────────────────────
+    // Readers act as a keyboard: they type the badge ID quickly, usually followed by
+    // Enter (or Tab). A burst of fast keystrokes that stops without one also counts.
     function setupKeyboardWedge() {
+        const KEY_GAP = 80;      // ms between keystrokes from a reader
+        const IDLE_SUBMIT = 250; // ms of silence that ends a burst without Enter
         let buffer = '';
         let last = 0;
+        let idleTimer = null;
+        const submit = () => {
+            clearTimeout(idleTimer);
+            const code = buffer;
+            buffer = '';
+            if (code.length < 3 || !state.config || !state.config.identify_reader) return;
+            if (!$('screen-home').classList.contains('k-active')) return;
+            // A reader typing into the name search: undo what it typed.
+            const search = $('k-search');
+            if (document.activeElement === search && search.value.endsWith(code)) {
+                search.value = search.value.slice(0, -code.length);
+                renderGrid();
+            }
+            identifyBadge(code, 'reader');
+        };
         document.addEventListener('keydown', (ev) => {
+            if (!state.config || !state.config.identify_reader) return;
             const target = ev.target;
-            if (target && (target.tagName === 'INPUT' && target.id !== 'k-search' || target.tagName === 'TEXTAREA')) return;
+            if (target && ((target.tagName === 'INPUT' && target.id !== 'k-search') || target.tagName === 'TEXTAREA')) return;
             const now = Date.now();
-            if (now - last > 100) buffer = '';
+            if (now - last > KEY_GAP) buffer = '';
             last = now;
-            if (ev.key === 'Enter') {
-                if (buffer.length >= 3 && $('screen-home').classList.contains('k-active')) {
+            clearTimeout(idleTimer);
+            if (ev.key === 'Enter' || ev.key === 'Tab') {
+                if (buffer.length >= 3) {
                     ev.preventDefault();
-                    const code = buffer;
-                    buffer = '';
-                    $('k-search').value = '';
-                    renderGrid();
-                    identifyBadge(code);
+                    submit();
                 }
                 buffer = '';
             } else if (ev.key.length === 1) {
                 buffer += ev.key;
+                if (buffer.length >= 4) idleTimer = setTimeout(submit, IDLE_SUBMIT);
             }
+        }, true);
+    }
+
+    // ── Camera (Badge Scan) ─────────────────────────────────────────────────
+    // The camera stays on while the home screen shows, reading QR codes and barcodes.
+    // Browsers with a built-in barcode detector use it; the others use ZXing, the
+    // decoder Odoo ships (cached by the service worker for offline use).
+    const ZXING_URL = '/web/static/lib/zxing-library/zxing-library.js';
+    const SCAN_INTERVAL = 200;
+    const SAME_CODE_PAUSE = 4000;
+    const camera = { stream: null, detector: null, starting: null, timer: null, lastCode: '', lastAt: 0 };
+
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error('Could not load ' + src));
+            document.head.appendChild(script);
         });
     }
 
-    async function openCamera() {
-        const overlay = $('k-camera');
-        const video = $('k-camera-video');
-        let stream;
+    async function nativeDetector() {
+        if (!('BarcodeDetector' in window)) return null;
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            const formats = await window.BarcodeDetector.getSupportedFormats();
+            if (!formats.includes('qr_code')) return null;
+            return new window.BarcodeDetector({ formats: formats });
         } catch (e) {
-            showResult('error', 'The camera is not available', []);
-            return;
+            return null;
         }
-        const detector = new window.BarcodeDetector();
-        overlay.hidden = false;
-        video.srcObject = stream;
-        await video.play();
-        let active = true;
-        const close = () => {
-            active = false;
-            overlay.hidden = true;
-            stream.getTracks().forEach((t) => t.stop());
-        };
-        $('k-camera-close').onclick = close;
-        const scan = async () => {
-            if (!active) return;
-            try {
-                const codes = await detector.detect(video);
-                if (codes.length) {
-                    close();
-                    identifyBadge(codes[0].rawValue);
-                    return;
+    }
+
+    async function zxingDetector() {
+        if (!window.ZXing) await loadScript(ZXING_URL);
+        const ZXing = window.ZXing;
+        const F = ZXing.BarcodeFormat;
+        const reader = new ZXing.MultiFormatReader();
+        reader.setHints(new Map([
+            [ZXing.DecodeHintType.POSSIBLE_FORMATS, [F.QR_CODE, F.CODE_128, F.CODE_39, F.EAN_13, F.EAN_8,
+                F.UPC_A, F.UPC_E, F.ITF, F.DATA_MATRIX, F.PDF_417, F.AZTEC]],
+            [ZXing.DecodeHintType.TRY_HARDER, true],
+        ]));
+        const canvas = document.createElement('canvas');
+        return {
+            async detect(video) {
+                if (!video.videoWidth) return [];
+                // Decode a scaled-down frame: fast enough on tablets, sharp enough for badges.
+                const scale = Math.min(1, 800 / Math.max(video.videoWidth, video.videoHeight));
+                canvas.width = Math.round(video.videoWidth * scale);
+                canvas.height = Math.round(video.videoHeight * scale);
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(
+                    new ZXing.HTMLCanvasElementLuminanceSource(canvas)));
+                try {
+                    return [{ rawValue: reader.decodeWithState(bitmap).getText() }];
+                } catch (e) {
+                    return [];  // nothing found in this frame
+                } finally {
+                    reader.reset();
                 }
-            } catch (e) { /* frame not ready */ }
-            setTimeout(scan, 250);
+            },
         };
-        scan();
-        setTimeout(() => active && close(), 60 * 1000);
+    }
+
+    function cameraMessage(text) {
+        $('k-camera-message').hidden = !text;
+        $('k-camera-message-text').textContent = text || '';
+    }
+
+    function startCamera() {
+        if (camera.stream || camera.starting) return camera.starting;
+        camera.starting = (async () => {
+            if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+                cameraMessage('This device has no camera the kiosk can use.');
+                return;
+            }
+            try {
+                camera.detector = camera.detector || await nativeDetector() || await zxingDetector();
+            } catch (e) {
+                cameraMessage('The badge scanner could not start. Check the connection and try again.');
+                return;
+            }
+            try {
+                camera.stream = await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+                    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                });
+            } catch (e) {
+                cameraMessage(e && e.name === 'NotAllowedError'
+                    ? 'Allow this kiosk to use the camera to scan badges.'
+                    : 'The camera is not available.');
+                return;
+            }
+            const video = $('k-camera-video');
+            video.srcObject = camera.stream;
+            // Mirror a front (user-facing) camera so people see themselves as in a mirror.
+            const settings = camera.stream.getVideoTracks()[0].getSettings();
+            video.style.setProperty('--k-mirror', settings.facingMode === 'environment' ? 1 : -1);
+            try {
+                await video.play();
+            } catch (e) { /* autoplay is muted, so it plays */ }
+            cameraMessage('');
+            scheduleScan();
+        })().finally(() => {
+            camera.starting = null;
+        });
+        return camera.starting;
+    }
+
+    function stopCamera() {
+        clearTimeout(camera.timer);
+        if (camera.stream) {
+            camera.stream.getTracks().forEach((track) => track.stop());
+            camera.stream = null;
+        }
+        $('k-camera-video').srcObject = null;
+    }
+
+    function scheduleScan() {
+        clearTimeout(camera.timer);
+        camera.timer = setTimeout(scanFrame, SCAN_INTERVAL);
+    }
+
+    async function scanFrame() {
+        if (!camera.stream) return;
+        // Only scan while the home screen shows (and the kiosk is visible).
+        if (document.visibilityState !== 'visible' || !$('screen-home').classList.contains('k-active')) {
+            return scheduleScan();
+        }
+        let codes = [];
+        try {
+            codes = await camera.detector.detect($('k-camera-video'));
+        } catch (e) { /* frame not ready */ }
+        const code = codes.length && String(codes[0].rawValue || '').trim();
+        const now = Date.now();
+        if (code && !(code === camera.lastCode && now - camera.lastAt < SAME_CODE_PAUSE)) {
+            camera.lastCode = code;
+            camera.lastAt = now;
+            const viewport = document.querySelector('.k-viewport');
+            viewport.classList.add('k-viewport-found');
+            setTimeout(() => viewport.classList.remove('k-viewport-found'), 600);
+            await identifyBadge(code, 'badge');
+        }
+        scheduleScan();
     }
 
     // ── PWA ─────────────────────────────────────────────────────────────────
@@ -858,7 +1000,19 @@
         document.querySelectorAll('.k-back').forEach((b) => b.addEventListener('click', goHome));
         $('k-search').addEventListener('input', () => renderGrid());
         $('k-questionnaire-form').addEventListener('submit', submitQuestionnaires);
-        $('k-camera-btn').addEventListener('click', openCamera);
+        $('k-camera-retry').addEventListener('click', () => {
+            cameraMessage('');
+            stopCamera();
+            startCamera();
+        });
+        document.addEventListener('visibilitychange', () => {
+            // Free the camera while the kiosk is hidden; take it back when it shows.
+            if (document.visibilityState === 'hidden') {
+                stopCamera();
+            } else if (state.config && state.config.identify_badge && !state.config.identify_reader) {
+                startCamera();
+            }
+        });
         document.addEventListener('pointerdown', resetTimer);
         window.addEventListener('online', () => refresh(true));
 

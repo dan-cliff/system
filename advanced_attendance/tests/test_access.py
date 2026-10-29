@@ -57,3 +57,44 @@ class TestAccess(TransactionCase):
         admin_group = self.env.ref('advanced_attendance.group_onsite_admin')
         self.assertIn(self.env.ref('base.user_admin'), admin_group.user_ids)
         self.assertIn(self.env.ref('advanced_attendance.group_attendance_delete_all'), admin_group.all_implied_ids)
+
+
+@tagged('post_install', '-at_install')
+class TestOvertimeApproval(TransactionCase):
+    """Approving extra hours is the "Attendances: Approve Extra Hours" permission."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.env.company.onsite_overtime_validation = 'by_manager'
+        Users = cls.env['res.users'].with_context(no_reset_password=True)
+        view_all = cls.env.ref('advanced_attendance.group_attendance_view_all')
+        approve = cls.env.ref('advanced_attendance.group_attendance_approve')
+        cls.viewer = Users.create({'name': 'Viewer', 'login': 'ot.viewer', 'group_ids': [Command.link(view_all.id)]})
+        cls.approver = Users.create({'name': 'Approver', 'login': 'ot.approver',
+                                     'group_ids': [Command.link(view_all.id), Command.link(approve.id)]})
+        calendar = cls.env['resource.calendar'].create({'name': 'Standard 8h', 'tz': 'UTC'})
+        cls.employee = cls.env['hr.employee'].create({
+            'name': 'Olive Overtime', 'tz': 'UTC', 'resource_calendar_id': calendar.id,
+            'date_version': '2020-01-01', 'contract_date_start': '2020-01-01',
+        })
+        # A Monday, 08:00 - 19:00: 10 hours worked (less lunch), 2 extra.
+        cls.attendance = cls.env['advanced.attendance'].create({
+            'employee_id': cls.employee.id,
+            'check_in': '2026-03-02 08:00:00', 'check_out': '2026-03-02 19:00:00',
+        })
+
+    def test_extra_hours_wait_for_approval(self):
+        self.assertEqual(self.employee.onsite_ruleset_id, self.env.ref('advanced_attendance.onsite_default_ruleset'))
+        self.assertAlmostEqual(self.attendance.overtime_hours, 2.0)
+        self.assertEqual(self.attendance.overtime_status, 'to_approve')
+        self.assertEqual(self.attendance.validated_overtime_hours, 0)
+
+    def test_only_approvers_approve(self):
+        with self.assertRaises(AccessError):
+            self.attendance.with_user(self.viewer).action_approve_overtime()
+        self.attendance.with_user(self.approver).action_approve_overtime()
+        self.assertEqual(self.attendance.overtime_status, 'approved')
+        self.assertAlmostEqual(self.attendance.validated_overtime_hours, 2.0)
+        self.attendance.with_user(self.approver).action_refuse_overtime()
+        self.assertEqual(self.attendance.overtime_status, 'refused')

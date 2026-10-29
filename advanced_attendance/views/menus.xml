@@ -12,6 +12,10 @@
     <menuitem id="menu_onsite_attendances" name="Attendances" parent="menu_onsite_root"
               action="action_advanced_attendance" sequence="10"/>
 
+    <menuitem id="menu_onsite_overtime" name="Extra Hours" parent="menu_onsite_root"
+              action="action_advanced_attendance_overtime" sequence="15"
+              groups="advanced_attendance.group_attendance_approve"/>
+
     <menuitem id="menu_onsite_kiosks_root" name="Kiosks" parent="menu_onsite_root" sequence="20"/>
     <menuitem id="menu_onsite_kiosk" name="Kiosks" parent="menu_onsite_kiosks_root"
               action="action_attendance_kiosk" sequence="10"/>
@@ -38,4 +42,6 @@
               action="advanced_attendance_config_settings_action" sequence="0" groups="base.group_system"/>
     <menuitem id="menu_onsite_questionnaires" name="Kiosk Questionnaires" parent="menu_onsite_config"
               action="action_attendance_kiosk_questionnaire" sequence="10"/>
+    <menuitem id="menu_onsite_overtime_rulesets" name="Overtime Rulesets" parent="menu_onsite_config"
+              action="onsite_overtime_ruleset_action" sequence="20"/>
 </odoo>
