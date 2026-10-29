@@ -28,13 +28,7 @@
         homeTimer: null,
         syncing: false,
         installPrompt: null,
-        lastActions: {},    // employee id -> time of their last sign in / out on this kiosk
     };
-
-    // Identifying someone signs them in or out straight away. Within this long of
-    // their last sign in or out here, they get the buttons instead, so a badge left
-    // in front of the camera doesn't sign them straight back out.
-    const REPEAT_GUARD = 60 * 1000;
 
     class NetworkError extends Error {}
 
@@ -532,7 +526,6 @@
     function autoAction(employee) {
         const status = signInState(employee);
         const access = eligibility(employee);
-        if (Date.now() - (state.lastActions[employee.id] || 0) < REPEAT_GUARD) return null;
         if (status.state === 'here') return 'sign_out';
         if (!access.ok) return null;
         if (status.state === 'out') return 'sign_in';
@@ -729,9 +722,6 @@
             showResult('error', 'Please scan your badge or select your name again.', []);
             return;
         }
-        if (data.status === 'signed_in' || data.status === 'signed_out') {
-            state.lastActions[employee.id] = Date.now();
-        }
         switch (data.status) {
         case 'signed_in':
             showResult('success', 'Welcome, ' + employee.name.split(' ')[0], [
@@ -783,7 +773,6 @@
         state.queue.push(event);
         save('queue', state.queue);
         applyEventLocally(employee, event);
-        if (!event.blocked) state.lastActions[employee.id] = Date.now();
         storeRoster();
         renderFooter();
         renderGrid();
@@ -800,6 +789,12 @@
         }
     }
 
+    // Badges are acted on from the home screen, and from the result screen so the next
+    // person in the queue doesn't have to wait for it to close.
+    function readyToIdentify() {
+        return $('screen-home').classList.contains('k-active') || $('screen-result').classList.contains('k-active');
+    }
+
     // ── External RFID / barcode reader ─────────────────────────────────────
     // Readers act as a keyboard: they type the badge ID quickly, usually followed by
     // Enter (or Tab). A burst of fast keystrokes that stops without one also counts.
@@ -814,7 +809,7 @@
             const code = buffer;
             buffer = '';
             if (code.length < 3 || !state.config || !state.config.identify_reader) return;
-            if (!$('screen-home').classList.contains('k-active')) return;
+            if (!readyToIdentify()) return;
             // A reader typing into the name search: undo what it typed.
             const search = $('k-search');
             if (document.activeElement === search && search.value.endsWith(code)) {
@@ -850,13 +845,16 @@
     // decoder Odoo ships (cached by the service worker for offline use).
     const ZXING_URL = '/web/static/lib/zxing-library/zxing-library.js';
     const SCAN_INTERVAL = 200;
-    const SAME_CODE_PAUSE = 15000;
+    // After a badge is used, the camera ignores it until it has been out of view this
+    // long, so a badge left in front of the camera doesn't sign someone straight back
+    // out, but taking it away and showing it again works at once.
+    const GONE_AFTER = 2500;
     // Formats badges are printed with. Retail formats (EAN, UPC, ITF) are left out: their
     // readers can "find" a number in the pattern of a QR code.
     const BADGE_FORMATS = ['qr_code', 'code_128', 'code_39', 'data_matrix'];
     const camera = {
         stream: null, detector: null, starting: null, timer: null,
-        lastCode: '', lastAt: 0,
+        used: '', usedSeenAt: 0,  // the badge last used, and when the camera last saw it
         candidate: '',  // a code must be read on two frames in a row before it is used
     };
 
@@ -975,10 +973,9 @@
 
     async function scanFrame() {
         if (!camera.stream) return;
-        // Only scan while the home screen shows (and the kiosk is visible).
-        if (document.visibilityState !== 'visible' || !$('screen-home').classList.contains('k-active')) {
-            return scheduleScan();
-        }
+        if (document.visibilityState !== 'visible') return scheduleScan();
+        // Frames are read on every screen, to know when the last badge used has gone,
+        // but badges are only acted on from the home and result screens.
         let codes = [];
         try {
             codes = await camera.detector.detect($('k-camera-video'));
@@ -989,9 +986,13 @@
         const code = read && read === camera.candidate ? read : '';
         camera.candidate = read;
         const now = Date.now();
-        if (code && !(code === camera.lastCode && now - camera.lastAt < SAME_CODE_PAUSE)) {
-            camera.lastCode = code;
-            camera.lastAt = now;
+        if (camera.used) {
+            if (read === camera.used) camera.usedSeenAt = now;
+            else if (now - camera.usedSeenAt > GONE_AFTER) camera.used = '';
+        }
+        if (code && code !== camera.used && readyToIdentify()) {
+            camera.used = code;
+            camera.usedSeenAt = now;
             const viewport = document.querySelector('.k-viewport');
             viewport.classList.add('k-viewport-found');
             setTimeout(() => viewport.classList.remove('k-viewport-found'), 600);
