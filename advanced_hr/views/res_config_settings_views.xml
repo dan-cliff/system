@@ -11,7 +11,8 @@
                 <attribute name="logo">/advanced_hr/static/description/icon.png</attribute>
             </xpath>
             <xpath expr="//block[@name='work_organization_setting_container']" position="after">
-                <block title="ID Badges" name="personnel_badges_setting_container">
+                <block title="ID Badges" name="personnel_badges_setting_container"
+                       groups="advanced_hr.group_personnel_admin">
                     <setting id="personnel_badges_setting" string="ID Badges"
                              help="Design the badges listed on the employee's Print menu. The first one is printed by the employee's Print Badge button.">
                         <div class="mt8">
