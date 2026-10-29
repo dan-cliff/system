@@ -36,7 +36,13 @@ class AdvancedPartnerDelegation(models.AbstractModel):
             else:
                 own['partner_id'] = Partner.create(partner_vals).id
             own_list.append(own)
-        return super().create(own_list)
+        # Odoo may still write precomputed partner values (e.g. properties)
+        # to the partner while creating: do that with sudo() too, then apply
+        # the user's own create rules to the new records.
+        self.check_access('create')
+        records = super(AdvancedPartnerDelegation, self.sudo()).create(own_list).sudo(self.env.su)
+        records.check_access('create')
+        return records
 
     def write(self, vals):
         own, partner_vals = self._split_partner_vals(vals)

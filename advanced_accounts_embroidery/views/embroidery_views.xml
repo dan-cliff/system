@@ -5,12 +5,12 @@
         <field name="model">embroidery.job</field>
         <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_job_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@string='Order']/field[@name='partner_id']" position="before">
+            <xpath expr="//sheet//field[@name='partner_id']" position="before">
                 <field name="adv_account_id" options="{'no_quick_create': True}"/>
                 <field name="adv_contact_id" options="{'no_quick_create': True}"
                        context="{'default_account_id': adv_account_id}"/>
             </xpath>
-            <xpath expr="//group[@string='Order']/field[@name='partner_id']" position="attributes">
+            <xpath expr="//sheet//field[@name='partner_id']" position="attributes">
                 <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
             </xpath>
             <field name="design_id" position="attributes">
@@ -55,12 +55,12 @@
         <field name="model">embroidery.design</field>
         <field name="inherit_id" ref="embroidery_jobbing.view_embroidery_design_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@string='Design']/field[@name='partner_id']" position="before">
+            <xpath expr="//sheet//field[@name='partner_id']" position="before">
                 <field name="adv_account_id" options="{'no_quick_create': True}"/>
                 <field name="adv_contact_id" options="{'no_quick_create': True}"
                        context="{'default_account_id': adv_account_id}"/>
             </xpath>
-            <xpath expr="//group[@string='Design']/field[@name='partner_id']" position="attributes">
+            <xpath expr="//sheet//field[@name='partner_id']" position="attributes">
                 <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
             </xpath>
         </field>

@@ -75,22 +75,28 @@ class AdvancedAccountsMixin(models.AbstractModel):
             values[self._adv_partner_field] = (contact or account).partner_id.id
         return values
 
-    def _adv_update_partners(self):
-        for field, value in self._adv_partner_values(self.adv_account_id, self.adv_contact_id).items():
+    def _adv_update_partners(self, account, contact):
+        for field, value in self._adv_partner_values(account, contact).items():
             if self[field].id != value:
                 self[field] = value
 
+    # Each onchange sets the partner field(s) first: the Account and Contact
+    # are computed from them, so setting them last would undo the change.
     @api.onchange('adv_account_id')
     def _onchange_adv_account_id(self):
-        if self.adv_contact_id and self.adv_account_id and self.adv_contact_id.account_id != self.adv_account_id:
-            self.adv_contact_id = False
-        self._adv_update_partners()
+        contact = self.adv_contact_id
+        if contact and self.adv_account_id and contact.account_id != self.adv_account_id:
+            contact = self.env['advanced.contact']
+        self._adv_update_partners(self.adv_account_id, contact)
+        if self.adv_contact_id != contact:
+            self.adv_contact_id = contact
 
     @api.onchange('adv_contact_id')
     def _onchange_adv_contact_id(self):
-        if self.adv_contact_id.account_id:
-            self.adv_account_id = self.adv_contact_id.account_id
-        self._adv_update_partners()
+        account = self.adv_contact_id.account_id or self.adv_account_id
+        self._adv_update_partners(account, self.adv_contact_id)
+        if self.adv_account_id != account:
+            self.adv_account_id = account
 
     def _adv_fill_partner_vals(self, vals, record=None):
         """Called with values that set the Account or Contact but none of the

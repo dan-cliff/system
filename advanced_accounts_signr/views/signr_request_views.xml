@@ -5,7 +5,7 @@
         <field name="model">signr.request</field>
         <field name="inherit_id" ref="signr.signr_request_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@string='Document']/field[@name='document_type_id']" position="after">
+            <xpath expr="//sheet//field[@name='document_type_id']" position="after">
                 <field name="adv_account_id" readonly="state != 'draft'" options="{'no_quick_create': True}"/>
                 <field name="adv_contact_id" readonly="state != 'draft'" options="{'no_quick_create': True}"
                        context="{'default_account_id': adv_account_id}"/>

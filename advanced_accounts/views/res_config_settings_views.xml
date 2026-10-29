@@ -16,59 +16,59 @@
                             itself if it is not installed yet.
                         </div>
                         <setting id="advanced_accounts_crm" string="CRM"
-                                 help="Opportunities, leads and contracts: pick an Account and Contact instead of a partner.">
+                                 help="Opportunities, contact roles, contracts and leads pick Accounts and Contacts instead of partners.">
                             <field name="module_advanced_accounts_crm"/>
                         </setting>
                         <setting id="advanced_accounts_sale" string="Sales"
-                                 help="Quotations and sales orders: pick an Account and Contact instead of a partner.">
+                                 help="Quotations and sales orders pick an Account and Contact instead of a Customer.">
                             <field name="module_advanced_accounts_sale"/>
                         </setting>
                         <setting id="advanced_accounts_account" string="Invoicing"
-                                 help="Customer invoices and vendor bills: pick an Account and Contact instead of a partner.">
+                                 help="Invoices and bills pick an Account and Contact instead of a Customer / Vendor.">
                             <field name="module_advanced_accounts_account"/>
                         </setting>
                         <setting id="advanced_accounts_project" string="Project"
-                                 help="Projects: pick an Account and Contact instead of a partner.">
+                                 help="Projects pick an Account and Contact instead of a Customer.">
                             <field name="module_advanced_accounts_project"/>
                         </setting>
                         <setting id="advanced_accounts_helpdesk" string="Helpdesk"
-                                 help="Tickets: pick an Account and Contact instead of a partner.">
+                                 help="Tickets pick an Account and Contact instead of a Customer.">
                             <field name="module_advanced_accounts_helpdesk"/>
                         </setting>
                         <setting id="advanced_accounts_feature_suggestions" string="Feature Suggestions"
-                                 help="Suggestions (Suggested By): pick an Account and Contact instead of a partner.">
+                                 help="Suggestions pick the Account and Contact who suggested them.">
                             <field name="module_advanced_accounts_feature_suggestions"/>
                         </setting>
                         <setting id="advanced_accounts_print_farm" string="Print Farm Jobs"
-                                 help="Print jobs (new Account and Contact fields): pick an Account and Contact instead of a partner.">
+                                 help="Print jobs get a customer Account and Contact.">
                             <field name="module_advanced_accounts_print_farm"/>
                         </setting>
                         <setting id="advanced_accounts_embroidery" string="Embroidery Jobs"
-                                 help="Jobs and designs: pick an Account and Contact instead of a partner.">
+                                 help="Jobs and designs pick an Account and Contact instead of a Customer.">
                             <field name="module_advanced_accounts_embroidery"/>
                         </setting>
                         <setting id="advanced_accounts_checklists" string="Checklists"
-                                 help="Checklists (new Account and Contact fields): pick an Account and Contact instead of a partner.">
+                                 help="Checklists get a customer Account and Contact.">
                             <field name="module_advanced_accounts_checklists"/>
                         </setting>
                         <setting id="advanced_accounts_signr" string="Sign&apos;r"
-                                 help="Signature requests (new Account and Contact fields): pick an Account and Contact instead of a partner.">
+                                 help="Signature requests get a customer Account and Contact.">
                             <field name="module_advanced_accounts_signr"/>
                         </setting>
                         <setting id="advanced_accounts_purchase" string="Purchase"
-                                 help="Purchase orders (vendor): pick an Account and Contact instead of a partner.">
+                                 help="Purchase orders pick an Account and Contact instead of a Vendor.">
                             <field name="module_advanced_accounts_purchase"/>
                         </setting>
                         <setting id="advanced_accounts_expense" string="Expenses"
-                                 help="Expenses (vendor): pick an Account and Contact instead of a partner.">
+                                 help="Expenses paid by the company pick a vendor Account and Contact.">
                             <field name="module_advanced_accounts_expense"/>
                         </setting>
                         <setting id="advanced_accounts_pos" string="Point of Sale"
-                                 help="Orders (customer): pick an Account and Contact instead of a partner.">
+                                 help="Orders show an Account and Contact instead of a Customer.">
                             <field name="module_advanced_accounts_pos"/>
                         </setting>
                         <setting id="advanced_accounts_asset" string="Asset Management"
-                                 help="Assets (Supplier, Manufacturer, Owner, Assigned To) and maintenance logs (Supplier): pick an Account and Contact instead of a partner.">
+                                 help="Supplier and Manufacturer become Accounts; Owner and Assigned To become Contacts.">
                             <field name="module_advanced_accounts_asset"/>
                         </setting>
                     </block>
@@ -81,7 +81,6 @@
         <field name="name">Settings</field>
         <field name="res_model">res.config.settings</field>
         <field name="view_mode">form</field>
-        <field name="target">inline</field>
         <field name="context">{'module': 'advanced_accounts', 'bin_size': False}</field>
     </record>
 </odoo>

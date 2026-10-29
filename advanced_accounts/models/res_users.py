@@ -7,7 +7,7 @@ class ResUsers(models.Model):
     # A user built for a Contact shares the Contact's partner, so its name,
     # email and phone are the Contact's.
     adv_contact_id = fields.Many2one(
-        'advanced.contact', string='Contact', compute='_compute_adv_contact_id', compute_sudo=True)
+        'advanced.contact', string='Linked Contact', compute='_compute_adv_contact_id', compute_sudo=True)
 
     @api.depends('partner_id')
     def _compute_adv_contact_id(self):
