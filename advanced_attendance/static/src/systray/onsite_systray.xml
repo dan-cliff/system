@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_attendance.OnSiteSystray">
+        <Dropdown t-if="state.employee" position="'bottom-end'" beforeOpen.bind="load"
+                  menuClass="'o_onsite_systray_menu p-3'" state="dropdown">
+            <button class="o_onsite_systray" title="On Site" aria-label="On Site">
+                <i t-if="state.busy" class="fa fa-spinner fa-spin" role="img"/>
+                <i t-else="" class="fa fa-circle" role="img"
+                   t-attf-class="text-{{ signedIn ? 'success' : 'danger' }}"/>
+            </button>
+            <t t-set-slot="content">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between gap-4">
+                        <div>
+                            <small class="d-block text-muted">
+                                <t t-if="signedIn">Signed in since <t t-out="since"/></t>
+                                <t t-else="">Signed out</t>
+                            </small>
+                            <strong t-out="state.employee.name"/>
+                        </div>
+                        <div class="text-end">
+                            <small class="d-block text-muted">Today</small>
+                            <span class="fs-4 text-info" t-out="hoursToday"/>
+                        </div>
+                    </div>
+                    <button t-on-click="signInOut" t-att-disabled="state.busy"
+                            t-attf-class="btn btn-{{ signedIn ? 'warning' : 'success' }}">
+                        <t t-if="signedIn">Sign Out</t>
+                        <t t-else="">Sign In</t>
+                        <i t-attf-class="fa fa-sign-{{ signedIn ? 'out' : 'in' }} ms-1"/>
+                    </button>
+                </div>
+            </t>
+        </Dropdown>
+    </t>
+</templates>

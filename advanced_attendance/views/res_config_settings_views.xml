@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_attendance</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="41"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="On Site" id="advanced_attendance" string="On Site"
+                     name="advanced_attendance" groups="advanced_attendance.group_onsite_admin">
+                    <block title="Signing In from Odoo" id="onsite_systray_block">
+                        <setting id="onsite_systray" string="Sign In from Odoo"
+                                 help="Employees with the &quot;Attendances: Sign In from Odoo&quot; permission get a Sign In / Out button in the top toolbar.">
+                            <field name="onsite_systray"/>
+                        </setting>
+                        <setting id="onsite_location_tracking" string="Record Location"
+                                 help="When signing in or out from Odoo, record the GPS position (if the device allows it), IP address and browser.">
+                            <field name="onsite_location_tracking"/>
+                        </setting>
+                    </block>
+                    <block title="Automatic Sign Out" id="onsite_auto_sign_out_block">
+                        <setting id="onsite_auto_sign_out" string="Automatic Sign Out"
+                                 help="Sign out employees who forget to, when they signed in from Odoo or were added by hand. Kiosk sign ins follow each kiosk's own setting.">
+                            <field name="onsite_auto_sign_out"/>
+                            <div class="mt-2" invisible="not onsite_auto_sign_out">
+                                <label for="onsite_auto_sign_out_hours" class="o_light_label me-2"/>
+                                <field name="onsite_auto_sign_out_hours" widget="float_time" class="oe_inline"/>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_attendance_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'advanced_attendance', 'bin_size': False}</field>
+    </record>
+</odoo>

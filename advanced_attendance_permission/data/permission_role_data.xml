@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_onsite_admin" model="permission.role">
+            <field name="name">On Site – Administrator</field>
+            <field name="description">Everything in On Site: create, edit and delete any attendance, kiosk or alert, sign in from Odoo, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_advanced_attendance'), 'group_id': ref('advanced_attendance.group_onsite_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_create_only'), 'group_id': ref('advanced_attendance.group_attendance_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_edit_own'), 'group_id': ref('advanced_attendance.group_attendance_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_edit_team'), 'group_id': ref('advanced_attendance.group_attendance_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_edit_all'), 'group_id': ref('advanced_attendance.group_attendance_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_view_all'), 'group_id': ref('advanced_attendance.group_attendance_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_delete_own'), 'group_id': ref('advanced_attendance.group_attendance_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_delete_all'), 'group_id': ref('advanced_attendance.group_attendance_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_create_only'), 'group_id': ref('advanced_attendance.group_kiosk_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_edit_own'), 'group_id': ref('advanced_attendance.group_kiosk_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_edit_team'), 'group_id': ref('advanced_attendance.group_kiosk_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_edit_all'), 'group_id': ref('advanced_attendance.group_kiosk_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_view_all'), 'group_id': ref('advanced_attendance.group_kiosk_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_delete_own'), 'group_id': ref('advanced_attendance.group_kiosk_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_delete_all'), 'group_id': ref('advanced_attendance.group_kiosk_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_create_only'), 'group_id': ref('advanced_attendance.group_alert_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_edit_own'), 'group_id': ref('advanced_attendance.group_alert_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_edit_team'), 'group_id': ref('advanced_attendance.group_alert_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_edit_all'), 'group_id': ref('advanced_attendance.group_alert_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_view_all'), 'group_id': ref('advanced_attendance.group_alert_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_delete_own'), 'group_id': ref('advanced_attendance.group_alert_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_delete_all'), 'group_id': ref('advanced_attendance.group_alert_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_systray'), 'group_id': ref('advanced_attendance.group_onsite_systray')})
+            ]"/>
+        </record>
+        <record id="role_onsite_manager" model="permission.role">
+            <field name="name">On Site – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s attendances, kiosks and alerts, and sign in from Odoo. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_edit_team'), 'group_id': ref('advanced_attendance.group_attendance_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_edit_team'), 'group_id': ref('advanced_attendance.group_kiosk_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_edit_team'), 'group_id': ref('advanced_attendance.group_alert_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_systray'), 'group_id': ref('advanced_attendance.group_onsite_systray')})
+            ]"/>
+        </record>
+        <record id="role_onsite_employee" model="permission.role">
+            <field name="name">On Site – Employee</field>
+            <field name="description">Create, view and edit their own attendances, kiosks and alerts, and sign in from Odoo. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_edit_own'), 'group_id': ref('advanced_attendance.group_attendance_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_edit_own'), 'group_id': ref('advanced_attendance.group_kiosk_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_edit_own'), 'group_id': ref('advanced_attendance.group_alert_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_systray'), 'group_id': ref('advanced_attendance.group_onsite_systray')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

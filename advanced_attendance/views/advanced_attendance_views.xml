@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advanced_attendance_list" model="ir.ui.view">
+        <field name="name">advanced.attendance.list</field>
+        <field name="model">advanced.attendance</field>
+        <field name="arch" type="xml">
+            <list string="Attendances" duplicate="false"
+                  decoration-success="color == 10" decoration-danger="color == 1">
+                <field name="id" optional="show"/>
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="department_id" optional="hide"/>
+                <field name="check_in" options="{'numeric': True}"/>
+                <field name="check_out" options="{'numeric': True}"/>
+                <field name="worked_hours" widget="float_time" sum="Total"/>
+                <field name="in_kiosk_id" optional="show"/>
+                <field name="kiosk_work_location_id" optional="hide"/>
+                <field name="out_kiosk_id" optional="hide"/>
+                <field name="in_mode" optional="hide"/>
+                <field name="out_mode" optional="hide"/>
+                <field name="in_location" optional="hide"/>
+                <field name="out_location" optional="hide"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="create_uid" optional="hide"/>
+                <field name="write_date" options="{'numeric': True}" optional="hide"/>
+                <field name="color" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_advanced_attendance_form" model="ir.ui.view">
+        <field name="name">advanced.attendance.form</field>
+        <field name="model">advanced.attendance</field>
+        <field name="arch" type="xml">
+            <form string="Attendance" duplicate="false">
+                <sheet>
+                    <group>
+                        <group name="employee">
+                            <field name="employee_id" widget="many2one_avatar_employee"
+                                   options="{'no_create': True}"/>
+                            <field name="check_in" options="{'numeric': True, 'rounding': 0}"/>
+                            <field name="check_out" options="{'numeric': True, 'rounding': 0}"
+                                   placeholder="Still on site"/>
+                        </group>
+                        <group name="hours">
+                            <field name="worked_hours" widget="float_time"/>
+                            <field name="department_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <separator string="Sign In"/>
+                    <group name="check_in_group">
+                        <group>
+                            <field name="in_mode"/>
+                            <field name="in_kiosk_id" invisible="not in_kiosk_id"/>
+                            <field name="kiosk_work_location_id" invisible="not kiosk_work_location_id"/>
+                            <field name="kiosk_offline_in" invisible="not kiosk_offline_in"/>
+                            <field name="in_ip_address" invisible="not in_ip_address"/>
+                            <field name="in_browser" invisible="not in_browser"/>
+                        </group>
+                        <group invisible="not in_location and not in_latitude">
+                            <field name="in_location"/>
+                            <label for="in_latitude" string="GPS Position" invisible="not in_latitude"/>
+                            <div invisible="not in_latitude">
+                                <div class="o_row">
+                                    <field name="in_latitude" nolabel="1"/>,
+                                    <field name="in_longitude" nolabel="1"/>
+                                </div>
+                                <button name="action_in_attendance_maps" type="object" class="btn btn-link ps-0"
+                                        icon="oi-arrow-right" string="View on Maps"/>
+                            </div>
+                        </group>
+                    </group>
+                    <separator string="Sign Out" invisible="not check_out"/>
+                    <group name="check_out_group" invisible="not check_out">
+                        <group>
+                            <field name="out_mode"/>
+                            <field name="out_kiosk_id" invisible="not out_kiosk_id"/>
+                            <field name="kiosk_transferred" invisible="not kiosk_transferred"/>
+                            <field name="kiosk_offline_out" invisible="not kiosk_offline_out"/>
+                            <field name="out_ip_address" invisible="not out_ip_address"/>
+                            <field name="out_browser" invisible="not out_browser"/>
+                        </group>
+                        <group invisible="not out_location and not out_latitude">
+                            <field name="out_location"/>
+                            <label for="out_latitude" string="GPS Position" invisible="not out_latitude"/>
+                            <div invisible="not out_latitude">
+                                <div class="o_row">
+                                    <field name="out_latitude" nolabel="1"/>,
+                                    <field name="out_longitude" nolabel="1"/>
+                                </div>
+                                <button name="action_out_attendance_maps" type="object" class="btn btn-link ps-0"
+                                        icon="oi-arrow-right" string="View on Maps"/>
+                            </div>
+                        </group>
+                    </group>
+                    <div invisible="not kiosk_response_ids">
+                        <separator string="Questionnaire Responses"/>
+                        <field name="kiosk_response_ids" readonly="1">
+                            <list decoration-danger="blocked">
+                                <field name="id" optional="show"/>
+                                <field name="date" options="{'numeric': True}"/>
+                                <field name="questionnaire_id"/>
+                                <field name="blocked"/>
+                            </list>
+                        </field>
+                    </div>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_advanced_attendance_kanban" model="ir.ui.view">
+        <field name="name">advanced.attendance.kanban</field>
+        <field name="model">advanced.attendance</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <field name="check_out"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="employee_id" widget="many2one_avatar_employee"
+                               options="{'display_avatar_name': True}" class="fs-5 fw-bold mb-2"/>
+                        <div>
+                            <i class="fa fa-sign-in me-1" role="img" aria-label="Signed In" title="Signed In"/>
+                            <field name="check_in" options="{'numeric': True}"/>
+                            <t t-if="record.check_out.raw_value">
+                                - <field name="check_out" options="{'numeric': True}"/>
+                            </t>
+                        </div>
+                        <div class="text-muted" t-if="record.in_kiosk_id.raw_value">
+                            <i class="fa fa-map-marker me-1" role="img" aria-label="Where" title="Where"/>
+                            <field name="in_kiosk_id"/>
+                        </div>
+                        <footer>
+                            <field name="worked_hours" widget="float_time" invisible="not check_out"/>
+                            <span class="badge text-bg-success" invisible="check_out">On site</span>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_advanced_attendance_search" model="ir.ui.view">
+        <field name="name">advanced.attendance.search</field>
+        <field name="model">advanced.attendance</field>
+        <field name="arch" type="xml">
+            <search string="Attendances">
+                <field name="employee_id"/>
+                <field name="department_id" operator="child_of"/>
+                <field name="check_in"/>
+                <field name="in_kiosk_id"/>
+                <field name="kiosk_work_location_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter string="My Attendances" name="myattendances" domain="[('employee_id.user_id', '=', uid)]"/>
+                <filter string="My Team" name="myteam" domain="[('employee_id.parent_id.user_id', '=', uid)]"/>
+                <separator/>
+                <filter string="On Site Now" name="nocheckout" domain="[('check_out', '=', False)]"/>
+                <filter string="Signed In at a Kiosk" name="kiosk" domain="[('in_kiosk_id', '!=', False)]"/>
+                <filter string="Signed In from Odoo" name="systray" domain="[('in_mode', '=', 'systray')]"/>
+                <filter string="Signed Out Automatically" name="auto_out" domain="[('out_mode', '=', 'auto_check_out')]"/>
+                <filter string="Recorded Offline" name="kiosk_offline"
+                        domain="['|', ('kiosk_offline_in', '=', True), ('kiosk_offline_out', '=', True)]"/>
+                <separator/>
+                <filter string="Date" name="check_in_filter" date="check_in"/>
+                <filter string="Archived Employees" name="archived_employees" domain="[('employee_id.active', '=', False)]"/>
+                <group>
+                    <filter string="Employee" name="groupby_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Department" name="groupby_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Date" name="groupby_date" context="{'group_by': 'check_in:day'}"/>
+                    <filter string="Kiosk" name="groupby_kiosk" context="{'group_by': 'in_kiosk_id'}"/>
+                    <filter string="Work Location" name="groupby_kiosk_location" context="{'group_by': 'kiosk_work_location_id'}"/>
+                    <filter string="Signed In With" name="groupby_mode_in" context="{'group_by': 'in_mode'}"/>
+                    <filter string="Company" name="groupby_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_advanced_attendance_pivot" model="ir.ui.view">
+        <field name="name">advanced.attendance.pivot</field>
+        <field name="model">advanced.attendance</field>
+        <field name="arch" type="xml">
+            <pivot string="Attendances" sample="1">
+                <field name="employee_id" type="row"/>
+                <field name="check_in" interval="week" type="col"/>
+                <field name="worked_hours" type="measure" widget="float_time"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_advanced_attendance_graph" model="ir.ui.view">
+        <field name="name">advanced.attendance.graph</field>
+        <field name="model">advanced.attendance</field>
+        <field name="arch" type="xml">
+            <graph string="Attendances" sample="1">
+                <field name="check_in" interval="day"/>
+                <field name="worked_hours" type="measure" widget="float_time"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_advanced_attendance_present" model="ir.actions.act_window">
+        <field name="name">On Site Now</field>
+        <field name="res_model">advanced.attendance</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_nocheckout': 1, 'create': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nobody is signed in right now</p>
+            <p>Everyone currently signed in, at a kiosk or from Odoo, shows here.</p>
+        </field>
+    </record>
+
+    <record id="action_advanced_attendance" model="ir.actions.act_window">
+        <field name="name">Attendances</field>
+        <field name="res_model">advanced.attendance</field>
+        <field name="view_mode">list,kanban,form,pivot,graph</field>
+        <field name="view_id" ref="view_advanced_attendance_list"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No attendances yet</p>
+            <p>Employees sign in and out at a kiosk or with the On Site button in the top toolbar.
+               You can also record an attendance here.</p>
+        </field>
+    </record>
+
+    <record id="action_advanced_attendance_analysis" model="ir.actions.act_window">
+        <field name="name">Attendance Analysis</field>
+        <field name="res_model">advanced.attendance</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="context">{'search_default_check_in_filter': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No attendances to analyse yet</p>
+        </field>
+    </record>
+</odoo>

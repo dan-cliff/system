@@ -1,0 +1,977 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions). Every permission below is its own
+         privilege with one "Allowed" group, whose record rules give it its meaning. They
+         all imply the technical On Site user group, which holds the ACLs and a deny rule
+         per operation, so users can only do what a permission opens.
+
+         Primary models: Attendances (own = created by them or for their employee),
+         Kiosks (own = created by them) and Sign In / Out Alerts (own = created by them or
+         sent to them). Child models follow their parent: sign in rules and kiosk
+         questionnaires follow the kiosk, alert conditions and history follow the alert,
+         questionnaire responses follow the attendance's employee. Responses and alert
+         history are written by the kiosk and the alerts, so permissions only view or
+         delete them.
+
+         My Team = their own plus those of the employees under them in the org chart. -->
+    <data noupdate="1">
+        <record id="module_category_advanced_attendance" model="ir.module.category">
+            <field name="name">On Site</field>
+            <field name="description">Attendances, sign in kiosks and sign in / out alerts.</field>
+            <field name="sequence">41</field>
+        </record>
+    </data>
+
+    <record id="group_onsite_user" model="res.groups">
+        <field name="name">On Site: User</field>
+        <field name="comment">Technical: given by every On Site permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Attendances -->
+    <record id="privilege_attendance_create_only" model="res.groups.privilege">
+        <field name="name">Attendances: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">20</field>
+        <field name="description">Create attendances, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_attendance_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_create_only"/>
+        <field name="comment">Create attendances, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_attendance_edit_own" model="res.groups.privilege">
+        <field name="name">Attendances: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">21</field>
+        <field name="description">Create attendances, and view and edit their own.</field>
+    </record>
+    <record id="group_attendance_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_edit_own"/>
+        <field name="comment">Create attendances, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_attendance_edit_team" model="res.groups.privilege">
+        <field name="name">Attendances: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">22</field>
+        <field name="description">Create attendances, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_attendance_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_edit_team"/>
+        <field name="comment">Create attendances, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_attendance_edit_all" model="res.groups.privilege">
+        <field name="name">Attendances: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">23</field>
+        <field name="description">Create, view and edit all attendances.</field>
+    </record>
+    <record id="group_attendance_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_edit_all"/>
+        <field name="comment">Create, view and edit all attendances.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_attendance_view_all" model="res.groups.privilege">
+        <field name="name">Attendances: View All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">24</field>
+        <field name="description">View all attendances.</field>
+    </record>
+    <record id="group_attendance_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_view_all"/>
+        <field name="comment">View all attendances.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_attendance_delete_own" model="res.groups.privilege">
+        <field name="name">Attendances: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">25</field>
+        <field name="description">Delete their own attendances.</field>
+    </record>
+    <record id="group_attendance_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_delete_own"/>
+        <field name="comment">Delete their own attendances.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_attendance_delete_all" model="res.groups.privilege">
+        <field name="name">Attendances: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">26</field>
+        <field name="description">Delete any of the attendances.</field>
+    </record>
+    <record id="group_attendance_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_delete_all"/>
+        <field name="comment">Delete any of the attendances.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <!-- Kiosks -->
+    <record id="privilege_kiosk_create_only" model="res.groups.privilege">
+        <field name="name">Kiosks: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">30</field>
+        <field name="description">Create kiosks, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_kiosk_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_kiosk_create_only"/>
+        <field name="comment">Create kiosks, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_kiosk_edit_own" model="res.groups.privilege">
+        <field name="name">Kiosks: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">31</field>
+        <field name="description">Create kiosks, and view and edit their own.</field>
+    </record>
+    <record id="group_kiosk_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_kiosk_edit_own"/>
+        <field name="comment">Create kiosks, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_kiosk_edit_team" model="res.groups.privilege">
+        <field name="name">Kiosks: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">32</field>
+        <field name="description">Create kiosks, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_kiosk_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_kiosk_edit_team"/>
+        <field name="comment">Create kiosks, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_kiosk_edit_all" model="res.groups.privilege">
+        <field name="name">Kiosks: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">33</field>
+        <field name="description">Create, view and edit all kiosks.</field>
+    </record>
+    <record id="group_kiosk_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_kiosk_edit_all"/>
+        <field name="comment">Create, view and edit all kiosks.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_kiosk_view_all" model="res.groups.privilege">
+        <field name="name">Kiosks: View All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">34</field>
+        <field name="description">View all kiosks.</field>
+    </record>
+    <record id="group_kiosk_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_kiosk_view_all"/>
+        <field name="comment">View all kiosks.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_kiosk_delete_own" model="res.groups.privilege">
+        <field name="name">Kiosks: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">35</field>
+        <field name="description">Delete their own kiosks.</field>
+    </record>
+    <record id="group_kiosk_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_kiosk_delete_own"/>
+        <field name="comment">Delete their own kiosks.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_kiosk_delete_all" model="res.groups.privilege">
+        <field name="name">Kiosks: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">36</field>
+        <field name="description">Delete any of the kiosks.</field>
+    </record>
+    <record id="group_kiosk_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_kiosk_delete_all"/>
+        <field name="comment">Delete any of the kiosks.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <!-- Sign In / Out Alerts -->
+    <record id="privilege_alert_create_only" model="res.groups.privilege">
+        <field name="name">Sign In / Out Alerts: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">40</field>
+        <field name="description">Create sign in / out alerts, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_alert_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_alert_create_only"/>
+        <field name="comment">Create sign in / out alerts, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_alert_edit_own" model="res.groups.privilege">
+        <field name="name">Sign In / Out Alerts: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">41</field>
+        <field name="description">Create sign in / out alerts, and view and edit their own.</field>
+    </record>
+    <record id="group_alert_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_alert_edit_own"/>
+        <field name="comment">Create sign in / out alerts, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_alert_edit_team" model="res.groups.privilege">
+        <field name="name">Sign In / Out Alerts: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">42</field>
+        <field name="description">Create sign in / out alerts, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_alert_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_alert_edit_team"/>
+        <field name="comment">Create sign in / out alerts, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_alert_edit_all" model="res.groups.privilege">
+        <field name="name">Sign In / Out Alerts: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">43</field>
+        <field name="description">Create, view and edit all sign in / out alerts.</field>
+    </record>
+    <record id="group_alert_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_alert_edit_all"/>
+        <field name="comment">Create, view and edit all sign in / out alerts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_alert_view_all" model="res.groups.privilege">
+        <field name="name">Sign In / Out Alerts: View All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">44</field>
+        <field name="description">View all sign in / out alerts.</field>
+    </record>
+    <record id="group_alert_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_alert_view_all"/>
+        <field name="comment">View all sign in / out alerts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_alert_delete_own" model="res.groups.privilege">
+        <field name="name">Sign In / Out Alerts: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">45</field>
+        <field name="description">Delete their own sign in / out alerts.</field>
+    </record>
+    <record id="group_alert_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_alert_delete_own"/>
+        <field name="comment">Delete their own sign in / out alerts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_alert_delete_all" model="res.groups.privilege">
+        <field name="name">Sign In / Out Alerts: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">46</field>
+        <field name="description">Delete any of the sign in / out alerts.</field>
+    </record>
+    <record id="group_alert_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_alert_delete_all"/>
+        <field name="comment">Delete any of the sign in / out alerts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <!-- Workflow: signing in and out from the Odoo toolbar -->
+    <record id="privilege_attendance_systray" model="res.groups.privilege">
+        <field name="name">Attendances: Sign In from Odoo</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">50</field>
+        <field name="description">Sign themselves in and out with the On Site button in the top toolbar.</field>
+    </record>
+    <record id="group_onsite_systray" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_attendance_systray"/>
+        <field name="comment">Sign themselves in and out with the On Site button in the top toolbar.</field>
+        <field name="implied_ids" eval="[(4, ref('group_onsite_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_attendance" model="res.groups.privilege">
+        <field name="name">On Site</field>
+        <field name="category_id" ref="module_category_advanced_attendance"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the On Site app.</field>
+    </record>
+    <record id="group_onsite_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_advanced_attendance"/>
+        <field name="comment">Every On Site permission, including deleting any attendance, kiosk or alert and signing in from Odoo, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_attendance_create_only')), (4, ref('group_attendance_edit_own')), (4, ref('group_attendance_edit_team')), (4, ref('group_attendance_edit_all')), (4, ref('group_attendance_view_all')), (4, ref('group_attendance_delete_own')), (4, ref('group_attendance_delete_all')), (4, ref('group_kiosk_create_only')), (4, ref('group_kiosk_edit_own')), (4, ref('group_kiosk_edit_team')), (4, ref('group_kiosk_edit_all')), (4, ref('group_kiosk_view_all')), (4, ref('group_kiosk_delete_own')), (4, ref('group_kiosk_delete_all')), (4, ref('group_alert_create_only')), (4, ref('group_alert_edit_own')), (4, ref('group_alert_edit_team')), (4, ref('group_alert_edit_all')), (4, ref('group_alert_view_all')), (4, ref('group_alert_delete_own')), (4, ref('group_alert_delete_all')), (4, ref('group_onsite_systray'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing -->
+    <record id="rule_attendance_deny" model="ir.rule">
+        <field name="name">Attendances: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_response_deny" model="ir.rule">
+        <field name="name">Questionnaire Responses: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_response_line_deny" model="ir.rule">
+        <field name="name">Questionnaire Answers: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_kiosk_deny" model="ir.rule">
+        <field name="name">Kiosks: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_kiosk_rule_deny" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_kiosk_qline_deny" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_alert_deny" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_alert_condition_deny" model="ir.rule">
+        <field name="name">Alert Conditions: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_alert_log_deny" model="ir.rule">
+        <field name="name">Alert History: only through a permission</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_onsite_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <!-- Attendances: Create Only -->
+    <record id="rule_attendance_create_only" model="ir.rule">
+        <field name="name">Attendances: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_attendance_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_create_only" model="ir.rule">
+        <field name="name">Questionnaire Responses: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_attendance_create_only'))]"/>
+        <field name="domain_force">['|', ('attendance_id.create_uid', '=', user.id), ('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_line_create_only" model="ir.rule">
+        <field name="name">Questionnaire Answers: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_create_only'))]"/>
+        <field name="domain_force">['|', ('response_id.attendance_id.create_uid', '=', user.id), ('response_id.employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Attendances: Create and Edit Own -->
+    <record id="rule_attendance_edit_own" model="ir.rule">
+        <field name="name">Attendances: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_edit_own" model="ir.rule">
+        <field name="name">Questionnaire Responses: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_own'))]"/>
+        <field name="domain_force">['|', ('attendance_id.create_uid', '=', user.id), ('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_line_edit_own" model="ir.rule">
+        <field name="name">Questionnaire Answers: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_own'))]"/>
+        <field name="domain_force">['|', ('response_id.attendance_id.create_uid', '=', user.id), ('response_id.employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Attendances: Create and Edit My Team -->
+    <record id="rule_attendance_edit_team" model="ir.rule">
+        <field name="name">Attendances: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('employee_id.user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_edit_team" model="ir.rule">
+        <field name="name">Questionnaire Responses: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('attendance_id.create_uid', '=', user.id), ('employee_id.user_id', '=', user.id), ('attendance_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_line_edit_team" model="ir.rule">
+        <field name="name">Questionnaire Answers: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('response_id.attendance_id.create_uid', '=', user.id), ('response_id.employee_id.user_id', '=', user.id), ('response_id.attendance_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('response_id.employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Attendances: Create and Edit All -->
+    <record id="rule_attendance_edit_all" model="ir.rule">
+        <field name="name">Attendances: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_edit_all" model="ir.rule">
+        <field name="name">Questionnaire Responses: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_line_edit_all" model="ir.rule">
+        <field name="name">Questionnaire Answers: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Attendances: View All -->
+    <record id="rule_attendance_view_all" model="ir.rule">
+        <field name="name">Attendances: View All</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_attendance_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_view_all" model="ir.rule">
+        <field name="name">Questionnaire Responses: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_attendance_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_response_line_view_all" model="ir.rule">
+        <field name="name">Questionnaire Answers: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Attendances: Delete Own -->
+    <record id="rule_attendance_delete_own" model="ir.rule">
+        <field name="name">Attendances: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_response_delete_own" model="ir.rule">
+        <field name="name">Questionnaire Responses: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_own'))]"/>
+        <field name="domain_force">['|', ('attendance_id.create_uid', '=', user.id), ('employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_response_line_delete_own" model="ir.rule">
+        <field name="name">Questionnaire Answers: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_own'))]"/>
+        <field name="domain_force">['|', ('response_id.attendance_id.create_uid', '=', user.id), ('response_id.employee_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Attendances: Delete All -->
+    <record id="rule_attendance_delete_all" model="ir.rule">
+        <field name="name">Attendances: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_response_delete_all" model="ir.rule">
+        <field name="name">Questionnaire Responses: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_response_line_delete_all" model="ir.rule">
+        <field name="name">Questionnaire Answers: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response_line"/>
+        <field name="groups" eval="[(4, ref('group_attendance_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Kiosks: Create Only -->
+    <record id="rule_kiosk_create_only" model="ir.rule">
+        <field name="name">Kiosks: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_kiosk_rule_create_only" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_create_only'))]"/>
+        <field name="domain_force">[('kiosk_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_kiosk_qline_create_only" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_create_only'))]"/>
+        <field name="domain_force">[('kiosk_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Kiosks: Create and Edit Own -->
+    <record id="rule_kiosk_edit_own" model="ir.rule">
+        <field name="name">Kiosks: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_kiosk_rule_edit_own" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_own'))]"/>
+        <field name="domain_force">[('kiosk_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_kiosk_qline_edit_own" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_own'))]"/>
+        <field name="domain_force">[('kiosk_id.create_uid', '=', user.id)]</field>
+    </record>
+
+    <!-- Kiosks: Create and Edit My Team -->
+    <record id="rule_kiosk_edit_team" model="ir.rule">
+        <field name="name">Kiosks: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_kiosk_rule_edit_team" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_team'))]"/>
+        <field name="domain_force">['|', ('kiosk_id.create_uid', '=', user.id), ('kiosk_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_kiosk_qline_edit_team" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_team'))]"/>
+        <field name="domain_force">['|', ('kiosk_id.create_uid', '=', user.id), ('kiosk_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+
+    <!-- Kiosks: Create and Edit All -->
+    <record id="rule_kiosk_edit_all" model="ir.rule">
+        <field name="name">Kiosks: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_kiosk_rule_edit_all" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_kiosk_qline_edit_all" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <!-- Kiosks: View All -->
+    <record id="rule_kiosk_view_all" model="ir.rule">
+        <field name="name">Kiosks: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_kiosk_rule_view_all" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_kiosk_qline_view_all" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Kiosks: Delete Own -->
+    <record id="rule_kiosk_delete_own" model="ir.rule">
+        <field name="name">Kiosks: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_kiosk_rule_delete_own" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_delete_own'))]"/>
+        <field name="domain_force">[('kiosk_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_kiosk_qline_delete_own" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_delete_own'))]"/>
+        <field name="domain_force">[('kiosk_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Kiosks: Delete All -->
+    <record id="rule_kiosk_delete_all" model="ir.rule">
+        <field name="name">Kiosks: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_kiosk_rule_delete_all" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_kiosk_qline_delete_all" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="groups" eval="[(4, ref('group_kiosk_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Sign In / Out Alerts: Create Only -->
+    <record id="rule_alert_create_only" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_alert_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('requester_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_alert_condition_create_only" model="ir.rule">
+        <field name="name">Alert Conditions: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_alert_create_only'))]"/>
+        <field name="domain_force">['|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_alert_log_create_only" model="ir.rule">
+        <field name="name">Alert History: Create Only</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_alert_create_only'))]"/>
+        <field name="domain_force">['|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Sign In / Out Alerts: Create and Edit Own -->
+    <record id="rule_alert_edit_own" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('requester_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_alert_condition_edit_own" model="ir.rule">
+        <field name="name">Alert Conditions: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_own'))]"/>
+        <field name="domain_force">['|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_alert_log_edit_own" model="ir.rule">
+        <field name="name">Alert History: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_own'))]"/>
+        <field name="domain_force">['|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Sign In / Out Alerts: Create and Edit My Team -->
+    <record id="rule_alert_edit_team" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('requester_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('requester_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_alert_condition_edit_team" model="ir.rule">
+        <field name="name">Alert Conditions: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id), ('alert_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('alert_id.requester_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_alert_log_edit_team" model="ir.rule">
+        <field name="name">Alert History: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id), ('alert_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('alert_id.requester_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Sign In / Out Alerts: Create and Edit All -->
+    <record id="rule_alert_edit_all" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_alert_condition_edit_all" model="ir.rule">
+        <field name="name">Alert Conditions: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_alert_log_edit_all" model="ir.rule">
+        <field name="name">Alert History: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_alert_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Sign In / Out Alerts: View All -->
+    <record id="rule_alert_view_all" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_alert_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_alert_condition_view_all" model="ir.rule">
+        <field name="name">Alert Conditions: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_alert_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_alert_log_view_all" model="ir.rule">
+        <field name="name">Alert History: View All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_alert_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Sign In / Out Alerts: Delete Own -->
+    <record id="rule_alert_delete_own" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_alert_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('requester_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_alert_condition_delete_own" model="ir.rule">
+        <field name="name">Alert Conditions: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_alert_delete_own'))]"/>
+        <field name="domain_force">['|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_alert_log_delete_own" model="ir.rule">
+        <field name="name">Alert History: Delete Own</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_alert_delete_own'))]"/>
+        <field name="domain_force">['|', ('alert_id.create_uid', '=', user.id), ('alert_id.requester_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Sign In / Out Alerts: Delete All -->
+    <record id="rule_alert_delete_all" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="groups" eval="[(4, ref('group_alert_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_alert_condition_delete_all" model="ir.rule">
+        <field name="name">Alert Conditions: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="groups" eval="[(4, ref('group_alert_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_alert_log_delete_all" model="ir.rule">
+        <field name="name">Alert History: Delete All</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="groups" eval="[(4, ref('group_alert_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Multi-company -->
+    <record id="rule_attendance_company" model="ir.rule">
+        <field name="name">Attendances: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_kiosk_company" model="ir.rule">
+        <field name="name">Kiosks: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_kiosk_rule_company" model="ir.rule">
+        <field name="name">Kiosk Sign In Rules: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_rule"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_kiosk_qline_company" model="ir.rule">
+        <field name="name">Kiosk Questionnaires: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_questionnaire_company" model="ir.rule">
+        <field name="name">Questionnaires: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_questionnaire"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_response_company" model="ir.rule">
+        <field name="name">Questionnaire Responses: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_kiosk_response"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_alert_company" model="ir.rule">
+        <field name="name">Sign In / Out Alerts: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_alert"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_alert_condition_company" model="ir.rule">
+        <field name="name">Alert Conditions: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_condition"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_alert_log_company" model="ir.rule">
+        <field name="name">Alert History: multi-company</field>
+        <field name="model_id" ref="model_advanced_attendance_alert_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

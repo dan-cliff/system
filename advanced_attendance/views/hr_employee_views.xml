@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_onsite_employee_attendances" model="ir.actions.act_window">
+        <field name="name">Attendances</field>
+        <field name="res_model">advanced.attendance</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="domain">[('employee_id', '=', active_id)]</field>
+        <field name="context">{'default_employee_id': active_id}</field>
+    </record>
+
+    <record id="view_employee_form_onsite" model="ir.ui.view">
+        <field name="name">hr.employee.form.onsite</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="%(action_onsite_employee_attendances)d" type="action"
+                        class="oe_stat_button" icon="fa-map-marker" invisible="not id"
+                        groups="advanced_attendance.group_onsite_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="onsite_hours_today" widget="float_time"/>
+                        </span>
+                        <span class="o_stat_text" invisible="onsite_state != 'checked_in'">On Site</span>
+                        <span class="o_stat_text" invisible="onsite_state == 'checked_in'">Today</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>
