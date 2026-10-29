@@ -16,7 +16,7 @@
                 <link rel="manifest" t-att-href="'/onsite/%s/manifest.webmanifest' % token"/>
                 <link rel="icon" type="image/png" href="/advanced_attendance/static/src/img/icon-192.png"/>
                 <link rel="apple-touch-icon" href="/advanced_attendance/static/src/img/icon-192.png"/>
-                <link rel="stylesheet" href="/advanced_attendance/static/src/kiosk/kiosk.css"/>
+                <link rel="stylesheet" t-att-href="'/advanced_attendance/static/src/kiosk/kiosk.css?v=%s' % asset_version"/>
             </head>
             <body t-att-data-token="token">
                 <header class="k-header">
@@ -136,7 +136,7 @@
                     <button type="button" class="k-btn k-btn-link" id="k-install-btn" hidden="hidden">Install app</button>
                 </footer>
 
-                <script src="/advanced_attendance/static/src/kiosk/kiosk.js"/>
+                <script t-att-src="'/advanced_attendance/static/src/kiosk/kiosk.js?v=%s' % asset_version"/>
             </body>
         </html>
     </template>

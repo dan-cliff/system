@@ -1,6 +1,6 @@
 {
     'name': 'On Site',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.1.1',
     'category': 'Human Resources/Attendances',
     'sequence': 205,
     'summary': 'Attendances, sign in kiosks with rules and questionnaires, offline PWA kiosks '
