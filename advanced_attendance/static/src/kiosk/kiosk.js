@@ -28,7 +28,13 @@
         homeTimer: null,
         syncing: false,
         installPrompt: null,
+        lastActions: {},    // employee id -> time of their last sign in / out on this kiosk
     };
+
+    // Identifying someone signs them in or out straight away. Within this long of
+    // their last sign in or out here, they get the buttons instead, so a badge left
+    // in front of the camera doesn't sign them straight back out.
+    const REPEAT_GUARD = 60 * 1000;
 
     class NetworkError extends Error {}
 
@@ -522,7 +528,27 @@
     }
 
     // ── Employee ────────────────────────────────────────────────────────────
+    // Sign in or out without a button press when the choice is clear.
+    function autoAction(employee) {
+        const status = signInState(employee);
+        const access = eligibility(employee);
+        if (Date.now() - (state.lastActions[employee.id] || 0) < REPEAT_GUARD) return null;
+        if (status.state === 'here') return 'sign_out';
+        if (!access.ok) return null;
+        if (status.state === 'out') return 'sign_in';
+        // Signed in at another kiosk: sign in here (and out there) unless that kiosk refuses.
+        return status.open.block_in ? null : 'sign_in';
+    }
+
     function showEmployee(employee, ticket, due) {
+        state.current = { employee: employee, ticket: ticket, due: due };
+        const action = autoAction(employee);
+        if (action === 'sign_out') return doAction('sign_out');
+        if (action === 'sign_in') return startSignIn();
+        showEmployeeScreen(employee, ticket, due);
+    }
+
+    function showEmployeeScreen(employee, ticket, due) {
         state.current = { employee: employee, ticket: ticket, due: due };
         const status = signInState(employee);
         const access = eligibility(employee);
@@ -703,6 +729,9 @@
             showResult('error', 'Please scan your badge or select your name again.', []);
             return;
         }
+        if (data.status === 'signed_in' || data.status === 'signed_out') {
+            state.lastActions[employee.id] = Date.now();
+        }
         switch (data.status) {
         case 'signed_in':
             showResult('success', 'Welcome, ' + employee.name.split(' ')[0], [
@@ -754,6 +783,7 @@
         state.queue.push(event);
         save('queue', state.queue);
         applyEventLocally(employee, event);
+        if (!event.blocked) state.lastActions[employee.id] = Date.now();
         storeRoster();
         renderFooter();
         renderGrid();
@@ -820,7 +850,7 @@
     // decoder Odoo ships (cached by the service worker for offline use).
     const ZXING_URL = '/web/static/lib/zxing-library/zxing-library.js';
     const SCAN_INTERVAL = 200;
-    const SAME_CODE_PAUSE = 4000;
+    const SAME_CODE_PAUSE = 15000;
     // Formats badges are printed with. Retail formats (EAN, UPC, ITF) are left out: their
     // readers can "find" a number in the pattern of a QR code.
     const BADGE_FORMATS = ['qr_code', 'code_128', 'code_39', 'data_matrix'];
