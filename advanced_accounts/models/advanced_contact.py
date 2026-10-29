@@ -81,7 +81,7 @@ class AdvancedContact(models.Model):
         """Give partners made outside Advanced Accounts (by the website, the
         Point of Sale, lead conversion, an import, ...) their Account or
         Contact, so they can be picked like any other. Skips our own users,
-        employees and companies: those aren't customers."""
+        employees (Personnel) and companies: those aren't customers."""
         partners = partners.sudo().exists().filtered('active')
         if not partners:
             return
@@ -90,9 +90,8 @@ class AdvancedContact(models.Model):
         excluded = env['res.users'].with_context(active_test=False).search(
             [('partner_id', 'in', candidates.ids), ('share', '=', False)]).partner_id
         excluded |= env['res.company'].with_context(active_test=False).search([]).partner_id
-        if 'hr.employee' in env and 'work_contact_id' in env['hr.employee']._fields:
-            excluded |= env['hr.employee'].with_context(active_test=False).search(
-                [('work_contact_id', 'in', candidates.ids)]).work_contact_id
+        excluded |= env['hr.employee'].with_context(active_test=False).search(
+            [('work_contact_id', 'in', candidates.ids)]).work_contact_id
         Account, Contact = env['advanced.account'], env['advanced.contact']
 
         companies = candidates.filtered(lambda p: p.is_company and p.active) - excluded

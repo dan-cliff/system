@@ -32,13 +32,16 @@ Asset Management. Picking an Account narrows the Contacts to that Account;
 picking a Contact fills in its Account. Contact pickers list "Contact Name
 (Account Name)"; the chosen Contact shows its name only.
 
+Employees come from Personnel (advanced_hr): our employees and users are
+never Contacts, and the "My Team" permissions follow Personnel's org chart.
+
 Permissions per CLAUDE.md: per-model privileges on Accounts and Contacts, a
 Create Users workflow privilege and the Advanced Accounts Administrator;
 standard roles ship in advanced_accounts_permission.
 """,
     'author': "Cliff's Country Crafts",
     'license': 'LGPL-3',
-    'depends': ['mail', 'base_setup', 'hr'],
+    'depends': ['mail', 'base_setup', 'advanced_hr'],
     'data': [
         'security/advanced_accounts_security.xml',
         'security/ir.model.access.csv',

@@ -298,7 +298,9 @@ linked to an Account) from the **Advanced Accounts** app
 details on a `res.partner` (`_inherits`), and a user made for a Contact is
 built on that same partner, so they stay in sync. Our own users and
 employees are never Contacts: fields meant to pick an employee or user stay
-as they are.
+as they are. Employees come from **Personnel** (`advanced_hr`, which takes
+over from the Employees app on Odoo's own `hr.employee`): depend on
+`advanced_hr`, not `hr`, wherever Advanced Accounts needs employees.
 
 Whenever an app we create or update has a customer, vendor or contact
 field (or should have one):

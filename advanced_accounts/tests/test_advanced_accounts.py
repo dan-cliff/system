@@ -51,6 +51,11 @@ class TestAdvancedAccounts(TransactionCase):
         self.assertFalse(self.Contact.search([('partner_id', '=', employee_user.partner_id.id)]),
                          'internal users are not Contacts')
 
+    def test_personnel_employees_are_not_contacts(self):
+        employee = self.env['hr.employee'].create({'name': 'Erin Employee'})
+        self.Contact._adopt_partners(employee.work_contact_id)
+        self.assertFalse(self.Contact.search([('partner_id', '=', employee.work_contact_id.id)]))
+
     def test_portal_user_gets_contact(self):
         user = new_test_user(self.env, login='aa_portal', groups='base.group_portal')
         self.assertTrue(user.adv_contact_id)
