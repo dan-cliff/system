@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.personnel</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='hr']" position="attributes">
+                <attribute name="string">Personnel</attribute>
+                <attribute name="data-string">Personnel</attribute>
+                <attribute name="logo">/advanced_hr/static/description/icon.png</attribute>
+            </xpath>
+            <xpath expr="//block[@name='work_organization_setting_container']" position="after">
+                <block title="ID Badges" name="personnel_badges_setting_container">
+                    <setting id="personnel_badges_setting" string="ID Badges"
+                             help="Design the badges listed on the employee's Print menu. The first one is printed by the employee's Print Badge button.">
+                        <div class="mt8">
+                            <field name="personnel_badge_count" class="oe_inline" readonly="1"/> badges
+                        </div>
+                        <button name="%(advanced_hr.action_badge_template)d" type="action" string="Design ID Badges"
+                                class="btn-link" icon="oi-arrow-right"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

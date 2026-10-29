@@ -1,0 +1,120 @@
+// Personnel: a softer, more modern look for the Employees app. Colours
+// follow the house icon palette (docs/icon_style).
+
+$personnel-colours: (
+    0: (#FF5A6E, #F9A3A3),
+    1: (#FF9F1C, #FFC93C),
+    2: (#0A6CF0, #3BB8FF),
+    3: (#14A3A3, #14C9A5),
+    4: (#5B3DB8, #8E5CF0),
+    5: (#8E2F7A, #B65CCB),
+    6: (#2A3F8F, #0A6CF0),
+    7: (#14A3A3, #3BB8FF),
+);
+$personnel-radius: 0.875rem;
+$personnel-shadow: 0 1px 2px rgba(42, 63, 143, 0.06), 0 4px 14px rgba(42, 63, 143, 0.08);
+$personnel-shadow-hover: 0 2px 4px rgba(42, 63, 143, 0.08), 0 10px 24px rgba(42, 63, 143, 0.14);
+
+// ── Employee and Directory cards ───────────────────────────────────────
+.o_personnel_kanban {
+    .o_kanban_record {
+        border: 1px solid rgba(169, 171, 220, 0.35);
+        border-radius: $personnel-radius;
+        box-shadow: $personnel-shadow;
+        overflow: hidden;
+        transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+        &:hover {
+            box-shadow: $personnel-shadow-hover;
+            transform: translateY(-1px);
+        }
+
+        .o_kanban_aside_full {
+            border-radius: calc(#{$personnel-radius} - 1px) 0 0 calc(#{$personnel-radius} - 1px);
+            overflow: hidden;
+        }
+
+        .fa.text-primary {
+            color: #5B3DB8 !important;
+        }
+
+        .o_field_many2many_tags .badge {
+            border-radius: 999px;
+            padding-inline: 0.55rem;
+        }
+    }
+
+    .o_personnel_initials {
+        width: 100%;
+        height: 100%;
+        min-height: 5rem;
+        color: #FFFFFF;
+        font-weight: 600;
+        font-size: 1.6rem;
+        letter-spacing: 0.03em;
+        background: linear-gradient(135deg, #5B3DB8, #14A3A3);
+
+        @each $key, $pair in $personnel-colours {
+            &[data-color="#{$key}"] {
+                background: linear-gradient(135deg, nth($pair, 1), nth($pair, 2));
+            }
+        }
+    }
+}
+
+// ── Department cards ───────────────────────────────────────────────────
+.o_personnel_department_kanban .o_kanban_renderer .o_kanban_record {
+    border: 1px solid rgba(169, 171, 220, 0.35);
+    border-radius: $personnel-radius;
+    box-shadow: $personnel-shadow;
+    overflow: hidden;
+    position: relative;
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: linear-gradient(180deg, #8E5CF0, #14A3A3);
+    }
+
+    &:hover {
+        box-shadow: $personnel-shadow-hover;
+        transform: translateY(-1px);
+    }
+
+    .btn {
+        border-radius: 999px;
+    }
+}
+
+// ── Forms ──────────────────────────────────────────────────────────────
+.o_personnel_employee_form, .o_personnel_department_form, .o_personnel_badge_form, .o_personnel_audit_form {
+    .o_form_sheet_bg > .o_form_sheet, .o_form_sheet {
+        border-radius: $personnel-radius;
+        box-shadow: $personnel-shadow;
+    }
+
+    .oe_button_box .oe_stat_button {
+        border-radius: 0.6rem;
+    }
+
+    .o_notebook .nav-tabs .nav-link {
+        border-top-left-radius: 0.6rem;
+        border-top-right-radius: 0.6rem;
+    }
+
+    .o_field_many2many_tags .badge {
+        border-radius: 999px;
+    }
+}
+
+.o_personnel_employee_form .o_employee_avatar img {
+    border-radius: $personnel-radius !important;
+}
+
+// ── Lists ──────────────────────────────────────────────────────────────
+.o_personnel_list .o_field_many2many_tags .badge {
+    border-radius: 999px;
+}
