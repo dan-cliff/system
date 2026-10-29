@@ -4,12 +4,14 @@
  * offline. Kiosk data (config, roster, sign ins) is handled by kiosk.js.
  */
 const SCOPE = '__KIOSK_SCOPE__';
-const CACHE = 'onsite-kiosk-' + SCOPE.split('/').pop().slice(0, 12) + '-v1';
+const CACHE = 'onsite-kiosk-' + SCOPE.split('/').pop().slice(0, 12) + '-v2';
 const SHELL = [
     SCOPE,
     '/advanced_attendance/static/src/kiosk/kiosk.css',
     '/advanced_attendance/static/src/kiosk/kiosk.js',
     '/advanced_attendance/static/src/img/icon-192.png',
+    // Badge scanning decoder for browsers without a built-in one.
+    '/web/static/lib/zxing-library/zxing-library.js',
 ];
 const NETWORK_TIMEOUT = 5000;
 
@@ -70,7 +72,7 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(networkFirst(request));
     } else if (path.startsWith(SCOPE + '/avatar/')) {
         event.respondWith(cacheFirst(request));
-    } else if (path.startsWith('/advanced_attendance/static/')) {
+    } else if (path.startsWith('/advanced_attendance/static/') || path.startsWith('/web/static/lib/zxing-library/')) {
         event.respondWith(networkFirst(request));
     }
     // Everything else (config, roster, manifest) goes straight to the network.

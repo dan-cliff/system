@@ -6,12 +6,24 @@
         <field name="arch" type="xml">
             <list string="Attendances" duplicate="false"
                   decoration-success="color == 10" decoration-danger="color == 1">
+                <header>
+                    <button class="btn-secondary" string="Approve Extra Hours" name="action_approve_overtime"
+                            type="object" groups="advanced_attendance.group_attendance_approve"/>
+                    <button class="btn-secondary" string="Refuse Extra Hours" name="action_refuse_overtime"
+                            type="object" groups="advanced_attendance.group_attendance_approve"/>
+                </header>
                 <field name="id" optional="show"/>
                 <field name="employee_id" widget="many2one_avatar_employee"/>
                 <field name="department_id" optional="hide"/>
                 <field name="check_in" options="{'numeric': True}"/>
                 <field name="check_out" options="{'numeric': True}"/>
                 <field name="worked_hours" widget="float_time" sum="Total"/>
+                <field name="overtime_hours" widget="float_time" sum="Total" optional="show"/>
+                <field name="validated_overtime_hours" widget="float_time" sum="Total" optional="show"/>
+                <field name="overtime_status" widget="badge" optional="hide"
+                       decoration-warning="overtime_status == 'to_approve'"
+                       decoration-success="overtime_status == 'approved'"
+                       decoration-danger="overtime_status == 'refused'"/>
                 <field name="in_kiosk_id" optional="show"/>
                 <field name="kiosk_work_location_id" optional="hide"/>
                 <field name="out_kiosk_id" optional="hide"/>
@@ -32,6 +44,15 @@
         <field name="model">advanced.attendance</field>
         <field name="arch" type="xml">
             <form string="Attendance" duplicate="false">
+                <header>
+                    <button name="action_approve_overtime" type="object" string="Approve Extra Hours"
+                            class="btn-primary" groups="advanced_attendance.group_attendance_approve"
+                            invisible="overtime_status not in ('to_approve', 'refused')"/>
+                    <button name="action_refuse_overtime" type="object" string="Refuse Extra Hours"
+                            groups="advanced_attendance.group_attendance_approve"
+                            invisible="overtime_status not in ('to_approve', 'approved')"/>
+                    <field name="overtime_status" widget="statusbar" invisible="not overtime_status"/>
+                </header>
                 <sheet>
                     <group>
                         <group name="employee">
@@ -43,6 +64,8 @@
                         </group>
                         <group name="hours">
                             <field name="worked_hours" widget="float_time"/>
+                            <field name="overtime_hours" widget="float_time" invisible="not overtime_status"/>
+                            <field name="validated_overtime_hours" widget="float_time" invisible="not overtime_status"/>
                             <field name="department_id"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="company_id" invisible="1"/>
@@ -94,6 +117,11 @@
                             </div>
                         </group>
                     </group>
+                    <div invisible="not linked_overtime_ids">
+                        <separator string="Extra Hours"/>
+                        <field name="linked_overtime_ids" readonly="1"
+                               context="{'list_view_ref': 'advanced_attendance.view_onsite_overtime_line_list'}"/>
+                    </div>
                     <div invisible="not kiosk_response_ids">
                         <separator string="Questionnaire Responses"/>
                         <field name="kiosk_response_ids" readonly="1">
@@ -160,6 +188,9 @@
                 <filter string="Signed In at a Kiosk" name="kiosk" domain="[('in_kiosk_id', '!=', False)]"/>
                 <filter string="Signed In from Odoo" name="systray" domain="[('in_mode', '=', 'systray')]"/>
                 <filter string="Signed Out Automatically" name="auto_out" domain="[('out_mode', '=', 'auto_check_out')]"/>
+                <filter string="Extra Hours to Approve" name="to_approve" domain="[('overtime_status', '=', 'to_approve')]"/>
+                <filter string="Extra Hours Approved" name="approved" domain="[('overtime_status', '=', 'approved')]"/>
+                <filter string="Extra Hours Refused" name="refused" domain="[('overtime_status', '=', 'refused')]"/>
                 <filter string="Recorded Offline" name="kiosk_offline"
                         domain="['|', ('kiosk_offline_in', '=', True), ('kiosk_offline_out', '=', True)]"/>
                 <separator/>
@@ -187,6 +218,8 @@
                 <field name="employee_id" type="row"/>
                 <field name="check_in" interval="week" type="col"/>
                 <field name="worked_hours" type="measure" widget="float_time"/>
+                <field name="overtime_hours" type="measure" widget="float_time"/>
+                <field name="validated_overtime_hours" type="measure" widget="float_time"/>
             </pivot>
         </field>
     </record>
@@ -222,6 +255,19 @@
             <p class="o_view_nocontent_smiling_face">No attendances yet</p>
             <p>Employees sign in and out at a kiosk or with the On Site button in the top toolbar.
                You can also record an attendance here.</p>
+        </field>
+    </record>
+
+    <record id="action_advanced_attendance_overtime" model="ir.actions.act_window">
+        <field name="name">Extra Hours to Approve</field>
+        <field name="res_model">advanced.attendance</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="view_id" ref="view_advanced_attendance_list"/>
+        <field name="context">{'search_default_to_approve': 1, 'create': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No extra hours waiting for approval</p>
+            <p>When Settings › On Site › Extra Hours Approval is "Approved by a Manager",
+               attendances with extra hours wait here to be approved or refused.</p>
         </field>
     </record>
 

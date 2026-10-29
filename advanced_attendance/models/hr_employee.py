@@ -1,9 +1,11 @@
+from collections import defaultdict
 from datetime import datetime, time
 
 import pytz
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.intervals import Intervals
 
 
 class HrEmployee(models.Model):
@@ -32,6 +34,20 @@ class HrEmployee(models.Model):
         string='On Site Status', compute='_compute_onsite_state',
         groups='advanced_attendance.group_onsite_user',
     )
+    onsite_overtime_ids = fields.One2many(
+        'advanced.attendance.overtime.line', 'employee_id', string='Extra Hours',
+        groups='advanced_attendance.group_onsite_user',
+    )
+    onsite_total_overtime = fields.Float(
+        string='Approved Extra Hours', compute='_compute_onsite_total_overtime',
+        groups='advanced_attendance.group_onsite_user',
+        help='Approved extra hours, less missed hours, over all time.',
+    )
+    onsite_ruleset_id = fields.Many2one(
+        related='version_id.onsite_ruleset_id', readonly=False, inherited=True,
+        groups='advanced_attendance.group_onsite_admin',
+    )
+    onsite_display_overtime = fields.Boolean(related='company_id.onsite_display_overtime')
     onsite_hours_today = fields.Float(
         string='Hours On Site Today', compute='_compute_onsite_hours_today',
         groups='advanced_attendance.group_onsite_user',
@@ -51,6 +67,23 @@ class HrEmployee(models.Model):
         for employee in self:
             attendance = employee.sudo().onsite_last_attendance_id
             employee.onsite_state = 'checked_in' if attendance and not attendance.check_out else 'checked_out'
+
+    @api.depends('onsite_overtime_ids.manual_duration', 'onsite_overtime_ids.status')
+    def _compute_onsite_total_overtime(self):
+        totals = dict(self.env['advanced.attendance.overtime.line'].sudo()._read_group(
+            [('status', '=', 'approved'), ('employee_id', 'in', self.ids)],
+            ['employee_id'], ['manual_duration:sum'],
+        ))
+        for employee in self:
+            employee.onsite_total_overtime = totals.get(employee, 0)
+
+    def action_archive(self):
+        result = super().action_archive()
+        # Archived employees are no longer on site.
+        self.env['advanced.attendance'].sudo().search([
+            ('employee_id', 'in', self.ids), ('check_out', '=', False),
+        ]).write({'check_out': fields.Datetime.now()})
+        return result
 
     def _compute_onsite_hours_today(self):
         now = fields.Datetime.now()
@@ -170,3 +203,44 @@ class HrEmployee(models.Model):
             **{f'out_{key}': value for key, value in where.items()},
         })
         return attendance
+
+    # ── Working schedules for the overtime rules (from Odoo's Attendances app) ──
+    def _get_schedules_by_employee_by_work_type(self, start, stop, version_periods_by_employee):
+        employees_by_calendar = defaultdict(lambda: self.env['hr.employee'])
+        leave_intervals_by_cal_by_resource = defaultdict(lambda: defaultdict(Intervals))
+        attendance_intervals_by_cal = defaultdict(Intervals)
+        lunch_intervals_by_cal = defaultdict(Intervals)
+
+        def naive(intervals):
+            return Intervals([(i_start.replace(tzinfo=None), i_stop.replace(tzinfo=None), i_model)
+                              for (i_start, i_stop, i_model) in intervals])
+
+        for employee, intervals in version_periods_by_employee.items():
+            for (_start, _stop, version) in intervals:
+                employees_by_calendar[version.resource_calendar_id] |= employee
+
+        for cal, employees in employees_by_calendar.items():
+            if not cal:  # employees are fully flexible
+                continue
+            for resource, leave_intervals in cal._leave_intervals_batch(start, stop, resources=employees.resource_id).items():
+                leave_intervals_by_cal_by_resource[cal][resource] = naive(leave_intervals)
+            attendance_intervals_by_cal[cal] = naive(cal._attendance_intervals_batch(start, stop)[False])
+            lunch_intervals_by_cal[cal] = naive(cal._attendance_intervals_batch(start, stop, lunch=True)[False])
+
+        full_schedule_by_employee = {
+            'leave': defaultdict(Intervals),
+            'schedule': defaultdict(lambda: {'work': Intervals([]), 'lunch': Intervals([])}),
+            'fully_flexible': defaultdict(Intervals),
+        }
+        for employee, intervals in version_periods_by_employee.items():
+            for (p_start, p_stop, version) in intervals:
+                interval = Intervals([(p_start.replace(tzinfo=None), p_stop.replace(tzinfo=None), self.env['resource.calendar'])])
+                calendar = version.resource_calendar_id
+                if not calendar:
+                    full_schedule_by_employee['fully_flexible'][employee] |= interval
+                    continue
+                full_schedule_by_employee['leave'][employee] |= (
+                    leave_intervals_by_cal_by_resource[calendar][employee.resource_id.id] & interval)
+                full_schedule_by_employee['schedule'][employee]['work'] |= attendance_intervals_by_cal[calendar] & interval
+                full_schedule_by_employee['schedule'][employee]['lunch'] |= lunch_intervals_by_cal[calendar] & interval
+        return full_schedule_by_employee

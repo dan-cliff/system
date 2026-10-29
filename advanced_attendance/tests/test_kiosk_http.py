@@ -48,6 +48,24 @@ class TestKioskRoutes(AttendanceKioskCase, HttpCase):
         }).json()
         self.assertEqual(result['status'], 'signed_out')
 
+    def test_badge_matching_is_lenient(self):
+        """RFID readers and QR codes can add spaces, change case or pad with zeros."""
+        self.bob.barcode = '00456ab'
+        for scanned in ('00456ab', ' 456AB\r\n', '0000456AB'):
+            identify = self.post('/identify', {'method': 'badge', 'badge': scanned}).json()
+            self.assertEqual(identify.get('employee', {}).get('id'), self.bob.id, scanned)
+        self.assertEqual(self.post('/identify', {'method': 'badge', 'badge': '4567'}).status_code, 404)
+        # The offline copy of the badge uses the same comparison as the kiosk.
+        roster = {e['id']: e for e in self.get('/roster.json').json()['employees']}
+        self.assertEqual(roster[self.bob.id]['badge'], self.kiosk._kiosk_hash('456AB'))
+
+    def test_external_reader(self):
+        self.assertEqual(self.post('/identify', {'method': 'reader', 'badge': 'ALICE01'}).status_code, 403)
+        self.kiosk.identify_reader = True
+        self.assertTrue(self.get('/config.json').json()['identify_reader'])
+        identify = self.post('/identify', {'method': 'reader', 'badge': 'alice01'}).json()
+        self.assertEqual(identify['employee']['id'], self.alice.id)
+
     def test_pin(self):
         bad = self.post('/identify', {'method': 'name', 'employee_id': self.alice.id, 'pin': '0000'})
         self.assertEqual(bad.status_code, 403)

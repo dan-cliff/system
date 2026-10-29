@@ -19,6 +19,24 @@
                             <field name="onsite_location_tracking"/>
                         </setting>
                     </block>
+                    <block title="Extra Hours" id="onsite_overtime_block">
+                        <setting id="onsite_overtime_validation" string="Extra Hours Approval" company_dependent="1"
+                                 help="Approved by a Manager: extra hours wait for someone with the &quot;Attendances: Approve Extra Hours&quot; permission.">
+                            <field name="onsite_overtime_validation" widget="radio"/>
+                            <div class="mt-2">
+                                <button name="%(advanced_attendance.onsite_overtime_ruleset_action)d" type="action"
+                                        string="Overtime Rulesets" icon="oi-arrow-right" class="btn-link"/>
+                            </div>
+                        </setting>
+                        <setting id="onsite_absence_management" string="Absence Management" company_dependent="1"
+                                 help="Count missing hours as negative extra hours, including working days with no attendance at all. Does not apply to flexible working schedules.">
+                            <field name="onsite_absence_management"/>
+                        </setting>
+                        <setting id="onsite_display_overtime" string="Display Extra Hours" company_dependent="1"
+                                 help="Show approved extra hours on employees.">
+                            <field name="onsite_display_overtime"/>
+                        </setting>
+                    </block>
                     <block title="Automatic Sign Out" id="onsite_auto_sign_out_block">
                         <setting id="onsite_auto_sign_out" string="Automatic Sign Out"
                                  help="Sign out employees who forget to, when they signed in from Odoo or were added by hand. Kiosk sign ins follow each kiosk's own setting.">

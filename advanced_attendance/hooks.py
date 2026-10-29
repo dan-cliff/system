@@ -4,7 +4,10 @@ On Site replaces Odoo's Attendances app (hr_attendance) and Attendance Kiosks
 (attendance_kiosks). When either is installed, its records are copied into On
 Site so both can be uninstalled afterwards:
 
-* attendances (hr.attendance), keeping who created them and when;
+* overtime rulesets and rules, and the ruleset of each employee contract
+  (On Site's Default Ruleset takes the rules of Attendances' Default Ruleset);
+* attendances (hr.attendance), keeping who created them and when; their
+  extra hours are worked out again and keep their approval status;
 * kiosks with their sign in rules and questionnaire triggers;
 * kiosk questionnaires, questions and choices (On Site's own copies of the two
   starter questionnaires both apps ship are archived in favour of the imported ones);
@@ -34,8 +37,12 @@ def post_init_hook(env):
     if 'attendance.kiosk' in env:
         importer.import_questionnaires()
         importer.import_kiosks()
+    if 'hr.attendance.overtime.ruleset' in env:
+        importer.import_rulesets()
     if 'hr.attendance' in env:
         importer.import_attendances()
+    if 'hr.attendance.overtime.line' in env:
+        importer.import_overtime_status()
     if 'attendance.kiosk' in env:
         importer.import_responses()
         importer.import_alerts()
@@ -186,6 +193,65 @@ class _Importer:
                 'employee_domain': line.employee_domain,
             }) for line in k.questionnaire_line_ids if line.questionnaire_id.id in qmap],
         })
+
+    # ── Overtime ───────────────────────────────────────────────────────────
+    def import_rulesets(self):
+        env = self.env
+        rmap = self.maps.setdefault('advanced.attendance.overtime.ruleset', {})
+        old_default = env.ref('hr_attendance.hr_attendance_default_ruleset', raise_if_not_found=False)
+        new_default = env.ref('advanced_attendance.onsite_default_ruleset', raise_if_not_found=False)
+        rule_fields = [
+            'name', 'description', 'base_off', 'timing_type', 'timing_start', 'timing_stop',
+            'expected_hours_from_contract', 'resource_calendar_id', 'expected_hours', 'quantity_period',
+            'sequence', 'paid', 'amount_rate', 'employee_tolerance', 'employer_tolerance',
+        ]
+        for old in env['hr.attendance.overtime.ruleset'].sudo().search([]):
+            vals = {
+                'name': old.name,
+                'description': old.description,
+                'company_id': old.company_id.id,
+                'country_id': old.country_id.id,
+                'rate_combination_mode': old.rate_combination_mode,
+                'active': old.active,
+            }
+            rules = [Command.create({
+                name: (rule[name].id if name == 'resource_calendar_id' else rule[name]) for name in rule_fields
+            }) for rule in old.rule_ids]
+            if old == old_default and new_default:
+                new_default = new_default.sudo()
+                new_default.rule_ids.unlink()  # forcecreate="0": not recreated on update
+                new_default.write({**vals, 'rule_ids': rules})
+                rmap[old.id] = new_default.id
+            else:
+                rmap[old.id] = env['advanced.attendance.overtime.ruleset'].sudo().create({**vals, 'rule_ids': rules}).id
+        versions = env['hr.version'].sudo().search([])
+        for old_ruleset, group in versions.grouped('ruleset_id').items():
+            group.write({'onsite_ruleset_id': rmap.get(old_ruleset.id, False)})
+        _logger.info('On Site: copied %s overtime rulesets', len(rmap))
+
+    def import_overtime_status(self):
+        """Keep the approval of extra hours that were approved, refused or changed by hand."""
+        Line = self.env['advanced.attendance.overtime.line'].sudo()
+        olds = self.env['hr.attendance.overtime.line'].sudo().search([])
+        news = Line.search([('employee_id', 'in', olds.employee_id.ids)]) if olds else Line
+        by_key = {}
+        for new in news:
+            by_key.setdefault((new.employee_id.id, new.time_start, new.date), []).append(new)
+        copied = 0
+        for old in olds.sorted('id'):
+            matches = by_key.get((old.employee_id.id, old.time_start, old.date))
+            if not matches:
+                continue
+            new = matches.pop(0)
+            vals = {}
+            if new.status != old.status:
+                vals['status'] = old.status
+            if old.manual_duration != old.duration:
+                vals['manual_duration'] = old.manual_duration
+            if vals:
+                new.write(vals)
+                copied += 1
+        _logger.info('On Site: kept the approval of %s extra hours', copied)
 
     # ── Attendances ────────────────────────────────────────────────────────
     def import_attendances(self):

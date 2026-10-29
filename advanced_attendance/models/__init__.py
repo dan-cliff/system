@@ -1,5 +1,6 @@
 from . import res_company
 from . import res_config_settings
+from . import hr_version
 from . import hr_employee
 from . import advanced_attendance
 from . import attendance_kiosk
@@ -7,3 +8,6 @@ from . import attendance_kiosk_rule
 from . import attendance_kiosk_questionnaire
 from . import attendance_kiosk_response
 from . import attendance_alert
+from . import attendance_overtime
+from . import attendance_overtime_rule
+from . import attendance_overtime_ruleset

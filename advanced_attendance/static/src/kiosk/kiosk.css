@@ -58,7 +58,7 @@ body {
 .k-main {
     flex: 1;
     width: 100%;
-    max-width: 960px;
+    max-width: 1280px;
     margin: 0 auto;
     padding: 24px 16px;
 }
@@ -116,20 +116,82 @@ body {
     border-left: 6px solid var(--k-primary);
 }
 .k-welcome:empty { display: none; }
-.k-badge-hint {
+/* Scan panel (camera viewport or external reader) beside the name list */
+.k-home {
+    display: grid;
+    gap: 20px;
+    align-items: start;
+}
+/* Landscape tablets and screens: scan panel on the left, names on the right */
+@media (min-width: 900px) and (orientation: landscape) {
+    .k-home-split { grid-template-columns: minmax(300px, 5fr) 7fr; }
+    .k-home-split .k-scan { position: sticky; top: 16px; }
+}
+.k-scan {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 14px;
-    flex-wrap: wrap;
     background: var(--k-surface);
     border-radius: var(--k-radius);
-    padding: 18px 20px;
-    margin-bottom: 20px;
-    font-size: 1.15rem;
+    padding: 16px;
+}
+.k-scan-prompt {
+    text-align: center;
+    font-size: 1.2rem;
     font-weight: 600;
 }
-.k-badge-hint .k-btn { margin-left: auto; }
-.k-badge-icon { font-size: 1.8rem; }
+.k-viewport {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: calc(var(--k-radius) - 4px);
+    overflow: hidden;
+    background: #020617;
+}
+/* Stacked (portrait / phones): keep the camera to about 40% of the screen height */
+@media (max-width: 899px), (orientation: portrait) {
+    .k-viewport { max-width: calc(42vh * 4 / 3); margin: 0 auto; }
+}
+.k-viewport video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(var(--k-mirror, 1));
+}
+.k-viewport-frame {
+    position: absolute;
+    inset: 16%;
+    border: 4px solid rgba(255, 255, 255, .85);
+    border-radius: 18px;
+    box-shadow: 0 0 0 9999px rgba(2, 6, 23, .35);
+    pointer-events: none;
+}
+.k-viewport-found .k-viewport-frame { border-color: var(--k-success); }
+.k-viewport-message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    text-align: center;
+    color: #f8fafc;
+    background: rgba(2, 6, 23, .85);
+}
+.k-scan-reader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 0 8px;
+}
+.k-reader-icon { width: min(260px, 70%); height: auto; }
+.k-wave { animation: k-wave 1.6s ease-in-out infinite; }
+.k-wave-2 { animation-delay: .25s; }
+@keyframes k-wave { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .k-wave { animation: none; } }
 .k-search {
     width: 100%;
     padding: 18px 20px;
@@ -284,20 +346,6 @@ body {
 .k-result-title { font-size: 1.9rem; font-weight: 700; }
 .k-result-line { font-size: 1.15rem; max-width: 640px; }
 
-/* Camera */
-.k-camera {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .9);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    z-index: 10;
-}
-.k-camera video { max-width: 90vw; max-height: 70vh; border-radius: var(--k-radius); }
-
 @media (max-width: 600px) {
     html, body { font-size: 16px; }
     .k-header { flex-direction: column; align-items: flex-start; padding-left: 16px; padding-right: 16px; }
@@ -305,6 +353,7 @@ body {
     .k-btn-lg { min-width: 0; width: 100%; }
     .k-action { width: 100%; }
     .k-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .k-scan { padding: 12px; }
     .k-keypad { grid-template-columns: repeat(3, 1fr); }
 }
 

@@ -8,6 +8,14 @@
         <field name="context">{'default_employee_id': active_id}</field>
     </record>
 
+    <record id="action_onsite_employee_overtime" model="ir.actions.act_window">
+        <field name="name">Extra Hours</field>
+        <field name="res_model">advanced.attendance.overtime.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_onsite_overtime_line_list"/>
+        <field name="domain">[('employee_id', '=', active_id)]</field>
+    </record>
+
     <record id="view_employee_form_onsite" model="ir.ui.view">
         <field name="name">hr.employee.form.onsite</field>
         <field name="model">hr.employee</field>
@@ -25,7 +33,22 @@
                         <span class="o_stat_text" invisible="onsite_state == 'checked_in'">Today</span>
                     </div>
                 </button>
+                <button name="%(action_onsite_employee_overtime)d" type="action"
+                        class="oe_stat_button" icon="fa-hourglass-half"
+                        invisible="not id or not onsite_display_overtime"
+                        groups="advanced_attendance.group_onsite_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="onsite_total_overtime" widget="float_time"/>
+                        </span>
+                        <span class="o_stat_text">Extra Hours</span>
+                    </div>
+                </button>
             </div>
+            <xpath expr="//field[@name='resource_calendar_id']" position="after">
+                <field name="onsite_ruleset_id" groups="advanced_attendance.group_onsite_admin"
+                       options="{'no_create': True}" placeholder="No extra hours"/>
+            </xpath>
         </field>
     </record>
 </odoo>

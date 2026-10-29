@@ -3,7 +3,7 @@
     <data noupdate="1">
         <record id="role_onsite_admin" model="permission.role">
             <field name="name">On Site – Administrator</field>
-            <field name="description">Everything in On Site: create, edit and delete any attendance, kiosk or alert, sign in from Odoo, and Configuration.</field>
+            <field name="description">Everything in On Site: create, edit and delete any attendance, kiosk or alert, sign in from Odoo, approve extra hours, and Configuration.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_advanced_attendance'), 'group_id': ref('advanced_attendance.group_onsite_admin')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_create_only'), 'group_id': ref('advanced_attendance.group_attendance_create_only')}),
@@ -27,7 +27,8 @@
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_view_all'), 'group_id': ref('advanced_attendance.group_alert_view_all')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_delete_own'), 'group_id': ref('advanced_attendance.group_alert_delete_own')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_delete_all'), 'group_id': ref('advanced_attendance.group_alert_delete_all')}),
-                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_systray'), 'group_id': ref('advanced_attendance.group_onsite_systray')})
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_systray'), 'group_id': ref('advanced_attendance.group_onsite_systray')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_approve'), 'group_id': ref('advanced_attendance.group_attendance_approve')})
             ]"/>
         </record>
         <record id="role_onsite_manager" model="permission.role">
@@ -48,6 +49,13 @@
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_kiosk_edit_own'), 'group_id': ref('advanced_attendance.group_kiosk_edit_own')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_edit_own'), 'group_id': ref('advanced_attendance.group_alert_edit_own')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_systray'), 'group_id': ref('advanced_attendance.group_onsite_systray')})
+            ]"/>
+        </record>
+        <record id="role_onsite_approver" model="permission.role">
+            <field name="name">On Site – Extra Hours Approver</field>
+            <field name="description">Approve or refuse the extra hours of the attendances they can see (give it with Manager when extra hours are approved by a manager).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_approve'), 'group_id': ref('advanced_attendance.group_attendance_approve')})
             ]"/>
         </record>
     </data>
