@@ -86,3 +86,15 @@ class TestBadge(PersonnelCase):
     def test_print_badge_button(self):
         action = self.emp_other.action_print_personnel_badge()
         self.assertEqual(action['report_name'], 'advanced_hr.report_badge')
+
+    def test_settings_without_personnel_rights(self):
+        """Settings opens for administrators who have no Personnel permission."""
+        from odoo.addons.mail.tests.common import mail_new_test_user
+        admin = mail_new_test_user(self.env, login='settings_only', groups='base.group_user,base.group_system,hr.group_hr_manager')
+        self.assertFalse(admin.has_group('advanced_hr.group_personnel_user'))
+        Settings = self.env['res.config.settings'].with_user(admin)
+        settings = Settings.create({})
+        self.assertEqual(settings.personnel_badge_count, self.env['advanced.hr.badge.template'].search_count([]))
+        arch = Settings.get_views([(False, 'form')])['views']['form']['arch']
+        self.assertIn('name="hr"', arch, 'The Personnel settings still show')
+        self.assertNotIn('personnel_badge_count', arch, 'ID Badges are for Personnel Administrators')
