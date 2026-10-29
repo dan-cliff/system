@@ -342,6 +342,29 @@ class AdvancedAttendance(models.Model):
         self._check_can_approve_overtime()
         self.sudo().linked_overtime_ids.action_refuse()
 
+    def action_manual_sign_out(self):
+        """Sign people out now from the On Site Now board, e.g. during an evacuation.
+        Needs the "Attendances: Manual Sign Out" permission; only attendances the user
+        can see, and only those still open."""
+        if not self.env.user.has_group('advanced_attendance.group_attendance_manual_sign_out'):
+            raise AccessError(_('You are not allowed to sign people out.'))
+        self.check_access('read')
+        now = fields.Datetime.now()
+        open_attendances = self.filtered(lambda a: not a.check_out)
+        for attendance in open_attendances.sudo():
+            attendance.write({'check_out': max(now, attendance.check_in), 'out_mode': 'manual'})
+            attendance.message_post(body=_('Signed out manually by %s.', self.env.user.name))
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'message': _('Signed out: %s', ', '.join(open_attendances.employee_id.mapped('name')))
+                if open_attendances else _('Nobody to sign out.'),
+                'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},
+            },
+        }
+
     def _check_can_approve_overtime(self):
         """Approving extra hours is the "Attendances: Approve Extra Hours" permission,
         on the attendances the user can see."""

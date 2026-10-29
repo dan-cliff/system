@@ -1,6 +1,6 @@
 {
     'name': 'On Site - Permission Management',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Human Resources/Attendances',
     'summary': 'Standard Permission Management roles for On Site',
     'description': """
@@ -8,12 +8,15 @@
         installed, and adds these roles:
 
         - On Site – Administrator: everything, including deleting any attendance,
-          kiosk or alert, signing in from Odoo, approving extra hours and Configuration
+          kiosk or alert, signing in from Odoo, approving extra hours, signing people
+          out by hand and Configuration
         - On Site – Manager: create and edit their own and their team's attendances,
           kiosks and alerts, sign in from Odoo; no deleting
         - On Site – Employee: create and edit their own attendances and alerts,
           sign in from Odoo; no deleting
         - On Site – Extra Hours Approver: approve or refuse extra hours
+        - On Site – Evacuation Warden: see everyone on site and sign them out
+          by hand (On Site Now board)
     """,
     'author': "Cliff's Country Crafts",
     'depends': ['advanced_attendance', 'permission_management'],

@@ -419,7 +419,7 @@
         const hash = await sha256(config.salt + ':' + normalizeBadge(code));
         const employee = hash && state.roster.find((e) => e.badge === hash);
         if (!employee) {
-            showResult('error', 'Badge not recognised', ['Please try again or see your supervisor.']);
+            showResult('error', 'Badge not recognised', ['Read: ' + JSON.stringify(code), 'Please try again or see your supervisor.']);
             return;
         }
         showEmployee(employee, null, null);
@@ -473,7 +473,11 @@
 
     function handleIdentify(response) {
         if (!response.ok) {
-            showResult('error', response.data.message || 'Sign in is not available.', []);
+            const scanned = response.data.scanned;
+            showResult('error', response.data.message || 'Sign in is not available.', [
+                scanned !== undefined ? 'Read: ' + JSON.stringify(scanned) : null,
+                scanned !== undefined ? 'Please try again or see your supervisor.' : null,
+            ]);
             return;
         }
         const employee = mergeEmployee(response.data.employee);
@@ -817,7 +821,14 @@
     const ZXING_URL = '/web/static/lib/zxing-library/zxing-library.js';
     const SCAN_INTERVAL = 200;
     const SAME_CODE_PAUSE = 4000;
-    const camera = { stream: null, detector: null, starting: null, timer: null, lastCode: '', lastAt: 0 };
+    // Formats badges are printed with. Retail formats (EAN, UPC, ITF) are left out: their
+    // readers can "find" a number in the pattern of a QR code.
+    const BADGE_FORMATS = ['qr_code', 'code_128', 'code_39', 'data_matrix'];
+    const camera = {
+        stream: null, detector: null, starting: null, timer: null,
+        lastCode: '', lastAt: 0,
+        candidate: '',  // a code must be read on two frames in a row before it is used
+    };
 
     function loadScript(src) {
         return new Promise((resolve, reject) => {
@@ -832,9 +843,9 @@
     async function nativeDetector() {
         if (!('BarcodeDetector' in window)) return null;
         try {
-            const formats = await window.BarcodeDetector.getSupportedFormats();
-            if (!formats.includes('qr_code')) return null;
-            return new window.BarcodeDetector({ formats: formats });
+            const supported = await window.BarcodeDetector.getSupportedFormats();
+            if (!supported.includes('qr_code')) return null;
+            return new window.BarcodeDetector({ formats: BADGE_FORMATS.filter((f) => supported.includes(f)) });
         } catch (e) {
             return null;
         }
@@ -846,8 +857,7 @@
         const F = ZXing.BarcodeFormat;
         const reader = new ZXing.MultiFormatReader();
         reader.setHints(new Map([
-            [ZXing.DecodeHintType.POSSIBLE_FORMATS, [F.QR_CODE, F.CODE_128, F.CODE_39, F.EAN_13, F.EAN_8,
-                F.UPC_A, F.UPC_E, F.ITF, F.DATA_MATRIX, F.PDF_417, F.AZTEC]],
+            [ZXing.DecodeHintType.POSSIBLE_FORMATS, [F.QR_CODE, F.CODE_128, F.CODE_39, F.DATA_MATRIX]],
             [ZXing.DecodeHintType.TRY_HARDER, true],
         ]));
         const canvas = document.createElement('canvas');
@@ -862,7 +872,9 @@
                 const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(
                     new ZXing.HTMLCanvasElementLuminanceSource(canvas)));
                 try {
-                    return [{ rawValue: reader.decodeWithState(bitmap).getText() }];
+                    const result = reader.decodeWithState(bitmap);
+                    const format = result.getBarcodeFormat() === ZXing.BarcodeFormat.QR_CODE ? 'qr_code' : 'other';
+                    return [{ rawValue: result.getText(), format: format }];
                 } catch (e) {
                     return [];  // nothing found in this frame
                 } finally {
@@ -941,7 +953,11 @@
         try {
             codes = await camera.detector.detect($('k-camera-video'));
         } catch (e) { /* frame not ready */ }
-        const code = codes.length && String(codes[0].rawValue || '').trim();
+        // Prefer a QR code when the frame holds several codes (badges may also carry a barcode).
+        const best = codes.find((c) => c.format === 'qr_code') || codes[0];
+        const read = best ? String(best.rawValue || '').trim() : '';
+        const code = read && read === camera.candidate ? read : '';
+        camera.candidate = read;
         const now = Date.now();
         if (code && !(code === camera.lastCode && now - camera.lastAt < SAME_CODE_PAUSE)) {
             camera.lastCode = code;

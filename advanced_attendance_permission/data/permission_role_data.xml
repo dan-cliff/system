@@ -3,7 +3,7 @@
     <data noupdate="1">
         <record id="role_onsite_admin" model="permission.role">
             <field name="name">On Site – Administrator</field>
-            <field name="description">Everything in On Site: create, edit and delete any attendance, kiosk or alert, sign in from Odoo, approve extra hours, and Configuration.</field>
+            <field name="description">Everything in On Site: create, edit and delete any attendance, kiosk or alert, sign in from Odoo, approve extra hours, sign people out by hand, and Configuration.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_advanced_attendance'), 'group_id': ref('advanced_attendance.group_onsite_admin')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_create_only'), 'group_id': ref('advanced_attendance.group_attendance_create_only')}),
@@ -28,7 +28,8 @@
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_delete_own'), 'group_id': ref('advanced_attendance.group_alert_delete_own')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_alert_delete_all'), 'group_id': ref('advanced_attendance.group_alert_delete_all')}),
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_systray'), 'group_id': ref('advanced_attendance.group_onsite_systray')}),
-                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_approve'), 'group_id': ref('advanced_attendance.group_attendance_approve')})
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_approve'), 'group_id': ref('advanced_attendance.group_attendance_approve')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_manual_sign_out'), 'group_id': ref('advanced_attendance.group_attendance_manual_sign_out')})
             ]"/>
         </record>
         <record id="role_onsite_manager" model="permission.role">
@@ -56,6 +57,14 @@
             <field name="description">Approve or refuse the extra hours of the attendances they can see (give it with Manager when extra hours are approved by a manager).</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_approve'), 'group_id': ref('advanced_attendance.group_attendance_approve')})
+            ]"/>
+        </record>
+        <record id="role_onsite_warden" model="permission.role">
+            <field name="name">On Site – Evacuation Warden</field>
+            <field name="description">See everyone on site and sign them out by hand from the On Site Now board, e.g. during an evacuation roll call.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_view_all'), 'group_id': ref('advanced_attendance.group_attendance_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_attendance.privilege_attendance_manual_sign_out'), 'group_id': ref('advanced_attendance.group_attendance_manual_sign_out')})
             ]"/>
         </record>
     </data>

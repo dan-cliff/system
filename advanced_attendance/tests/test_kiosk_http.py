@@ -66,7 +66,9 @@ class TestKioskRoutes(AttendanceKioskCase, HttpCase):
         for scanned in ('00456ab', ' 456AB\r\n', '0000456AB'):
             identify = self.post('/identify', {'method': 'badge', 'badge': scanned}).json()
             self.assertEqual(identify.get('employee', {}).get('id'), self.bob.id, scanned)
-        self.assertEqual(self.post('/identify', {'method': 'badge', 'badge': '4567'}).status_code, 404)
+        unknown = self.post('/identify', {'method': 'badge', 'badge': '4567'})
+        self.assertEqual(unknown.status_code, 404)
+        self.assertEqual(unknown.json()['scanned'], '4567', 'The kiosk shows what it read')
         # The offline copy of the badge uses the same comparison as the kiosk.
         roster = {e['id']: e for e in self.get('/roster.json').json()['employees']}
         self.assertEqual(roster[self.bob.id]['badge'], self.kiosk._kiosk_hash('456AB'))
