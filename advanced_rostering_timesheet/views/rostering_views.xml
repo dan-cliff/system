@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_duty_view_form" model="ir.ui.view">
+        <field name="name">rostering.duty.form.timesheet</field>
+        <field name="model">rostering.duty</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_duty_view_form"/>
+        <field name="arch" type="xml">
+            <field name="color" position="before">
+                <field name="work_type_id" options="{'no_create': True}" groups="advanced_timesheet.group_timesheet_user"/>
+            </field>
+        </field>
+    </record>
+    <record id="rostering_duty_view_list" model="ir.ui.view">
+        <field name="name">rostering.duty.list.timesheet</field>
+        <field name="model">rostering.duty</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_duty_view_list"/>
+        <field name="arch" type="xml">
+            <field name="description" position="before">
+                <field name="work_type_id" optional="show" groups="advanced_timesheet.group_timesheet_user"/>
+            </field>
+        </field>
+    </record>
+    <record id="rostering_leave_type_view_form" model="ir.ui.view">
+        <field name="name">rostering.leave.type.form.timesheet</field>
+        <field name="model">rostering.leave.type</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_type_view_form"/>
+        <field name="arch" type="xml">
+            <field name="color" position="before">
+                <field name="work_type_id" options="{'no_create': True}" groups="advanced_timesheet.group_timesheet_user"/>
+            </field>
+        </field>
+    </record>
+    <record id="rostering_leave_type_view_list" model="ir.ui.view">
+        <field name="name">rostering.leave.type.list.timesheet</field>
+        <field name="model">rostering.leave.type</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_type_view_list"/>
+        <field name="arch" type="xml">
+            <field name="description" position="before">
+                <field name="work_type_id" optional="show" groups="advanced_timesheet.group_timesheet_user"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every permission below is its
+         own privilege with one "Allowed" group, whose record rules give it its
+         meaning. All of them imply the technical Rostering user group, which
+         holds the ACLs and a deny rule per operation, so users can only do what
+         a permission opens. Shifts and breaks follow their roster: adding or
+         removing them is editing the roster. "Own" leave is a request they
+         created or that is theirs (user_id); Personnel (advanced_rostering_hr)
+         adds the org chart to "My Team" and the employee's Manager as approver.
+         Publishing and unpublishing are checked in code and write with sudo(). -->
+    <data noupdate="1">
+        <record id="module_category_advanced_rostering" model="ir.module.category">
+            <field name="name">Rostering</field>
+            <field name="description">Rosters, shifts and leave requests.</field>
+            <field name="sequence">47</field>
+        </record>
+    </data>
+
+    <record id="group_rostering_user" model="res.groups">
+        <field name="name">Rostering: User</field>
+        <field name="comment">Technical: given by every Rostering permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_create_only" model="res.groups.privilege">
+        <field name="name">Leave Requests: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">120</field>
+        <field name="description">Request leave, and view their own requests (no editing after saving).</field>
+    </record>
+    <record id="group_leave_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_create_only"/>
+        <field name="comment">Request leave, and view their own requests (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_edit_own" model="res.groups.privilege">
+        <field name="name">Leave Requests: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">130</field>
+        <field name="description">Request leave, and view and edit their own requests.</field>
+    </record>
+    <record id="group_leave_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_edit_own"/>
+        <field name="comment">Request leave, and view and edit their own requests.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_edit_team" model="res.groups.privilege">
+        <field name="name">Leave Requests: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">140</field>
+        <field name="description">Request leave for themselves and their team (everyone under them in the org chart, with Personnel), and view and edit those requests.</field>
+    </record>
+    <record id="group_leave_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_edit_team"/>
+        <field name="comment">Request leave for themselves and their team (everyone under them in the org chart, with Personnel), and view and edit those requests.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_edit_all" model="res.groups.privilege">
+        <field name="name">Leave Requests: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">150</field>
+        <field name="description">Request leave for anyone, and view and edit every request.</field>
+    </record>
+    <record id="group_leave_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_edit_all"/>
+        <field name="comment">Request leave for anyone, and view and edit every request.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_view_all" model="res.groups.privilege">
+        <field name="name">Leave Requests: View All</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">160</field>
+        <field name="description">View every leave request.</field>
+    </record>
+    <record id="group_leave_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_view_all"/>
+        <field name="comment">View every leave request.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_delete_own" model="res.groups.privilege">
+        <field name="name">Leave Requests: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">170</field>
+        <field name="description">Delete their own draft, refused or cancelled requests.</field>
+    </record>
+    <record id="group_leave_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_delete_own"/>
+        <field name="comment">Delete their own draft, refused or cancelled requests.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_delete_all" model="res.groups.privilege">
+        <field name="name">Leave Requests: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">180</field>
+        <field name="description">Delete any draft, refused or cancelled request.</field>
+    </record>
+    <record id="group_leave_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_delete_all"/>
+        <field name="comment">Delete any draft, refused or cancelled request.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_leave_approve" model="res.groups.privilege">
+        <field name="name">Leave Requests: Approve</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">190</field>
+        <field name="description">The leave team: see every request and approve or refuse those waiting in the To Approve queue (all of them without Personnel; with Personnel, the employee&apos;s Manager approves and the team covers people without one).</field>
+    </record>
+    <record id="group_leave_approve" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_leave_approve"/>
+        <field name="comment">The leave team: see every request and approve or refuse those waiting in the To Approve queue (all of them without Personnel; with Personnel, the employee&apos;s Manager approves and the team covers people without one).</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_own" model="res.groups.privilege">
+        <field name="name">Rosters: Can View Own Roster and Request Leave</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">20</field>
+        <field name="description">See their own shifts on published rosters (My Roster and Leave) and request their own leave.</field>
+    </record>
+    <record id="group_roster_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_own"/>
+        <field name="comment">See their own shifts on published rosters (My Roster and Leave) and request their own leave.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user')), (4, ref('group_leave_edit_own'))]"/>
+    </record>
+
+    <record id="privilege_roster_team" model="res.groups.privilege">
+        <field name="name">Rosters: Can View Team&apos;s Roster</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">25</field>
+        <field name="description">See the published rosters of everyone under them in the org chart, and their own (My Team&apos;s Rosters). Needs the Personnel feature switched on in Settings › Rostering.</field>
+    </record>
+    <record id="group_roster_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_team"/>
+        <field name="comment">See the published rosters of everyone under them in the org chart, and their own (My Team&apos;s Rosters). Needs the Personnel feature switched on in Settings › Rostering.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_view_all" model="res.groups.privilege">
+        <field name="name">Rosters: View All</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">30</field>
+        <field name="description">View every roster, published or not.</field>
+    </record>
+    <record id="group_roster_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_view_all"/>
+        <field name="comment">View every roster, published or not.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_edit_draft" model="res.groups.privilege">
+        <field name="name">Rosters: Can Create or Edit Unpublished Rosters</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">40</field>
+        <field name="description">Create rosters and add, change or remove shifts while a roster is unpublished, and keep the Duties, Standard Shifts and Roster Templates libraries.</field>
+    </record>
+    <record id="group_roster_edit_draft" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_edit_draft"/>
+        <field name="comment">Create rosters and add, change or remove shifts while a roster is unpublished, and keep the Duties, Standard Shifts and Roster Templates libraries.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_edit_published" model="res.groups.privilege">
+        <field name="name">Rosters: Can Create or Edit Published Rosters</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">50</field>
+        <field name="description">Add, change or remove shifts on rosters that are already published.</field>
+    </record>
+    <record id="group_roster_edit_published" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_edit_published"/>
+        <field name="comment">Add, change or remove shifts on rosters that are already published.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_publish" model="res.groups.privilege">
+        <field name="name">Rosters: Can Publish Rosters</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">60</field>
+        <field name="description">Publish rosters so the people on them can see their shifts.</field>
+    </record>
+    <record id="group_roster_publish" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_publish"/>
+        <field name="comment">Publish rosters so the people on them can see their shifts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_unpublish" model="res.groups.privilege">
+        <field name="name">Rosters: Can Unpublish Rosters</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">70</field>
+        <field name="description">Take published rosters back to draft for changes.</field>
+    </record>
+    <record id="group_roster_unpublish" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_unpublish"/>
+        <field name="comment">Take published rosters back to draft for changes.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_delete_own" model="res.groups.privilege">
+        <field name="name">Rosters: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">80</field>
+        <field name="description">Delete unpublished rosters they created.</field>
+    </record>
+    <record id="group_roster_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_delete_own"/>
+        <field name="comment">Delete unpublished rosters they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_roster_delete_all" model="res.groups.privilege">
+        <field name="name">Rosters: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">90</field>
+        <field name="description">Delete any unpublished roster.</field>
+    </record>
+    <record id="group_roster_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_roster_delete_all"/>
+        <field name="comment">Delete any unpublished roster.</field>
+        <field name="implied_ids" eval="[(4, ref('group_rostering_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_rostering" model="res.groups.privilege">
+        <field name="name">Rostering</field>
+        <field name="category_id" ref="module_category_advanced_rostering"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Rostering app.</field>
+    </record>
+    <record id="group_rostering_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_advanced_rostering"/>
+        <field name="comment">Every Rostering permission, including deleting any roster or leave request, publishing, unpublishing and approving any leave, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_roster_own')), (4, ref('group_roster_team')), (4, ref('group_roster_view_all')), (4, ref('group_roster_edit_draft')), (4, ref('group_roster_edit_published')), (4, ref('group_roster_publish')), (4, ref('group_roster_unpublish')), (4, ref('group_roster_delete_own')), (4, ref('group_roster_delete_all')), (4, ref('group_leave_create_only')), (4, ref('group_leave_edit_own')), (4, ref('group_leave_edit_team')), (4, ref('group_leave_edit_all')), (4, ref('group_leave_view_all')), (4, ref('group_leave_delete_own')), (4, ref('group_leave_delete_all')), (4, ref('group_leave_approve'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+
+    <!-- Without a permission, nothing -->
+    <record id="rule_roster_deny" model="ir.rule">
+        <field name="name">Rosters: only through a permission</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('group_rostering_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+    <record id="rule_shift_deny" model="ir.rule">
+        <field name="name">Shifts: only through a permission</field>
+        <field name="model_id" ref="model_rostering_shift"/>
+        <field name="groups" eval="[(4, ref('group_rostering_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+    <record id="rule_break_deny" model="ir.rule">
+        <field name="name">Shift Breaks: only through a permission</field>
+        <field name="model_id" ref="model_rostering_shift_break"/>
+        <field name="groups" eval="[(4, ref('group_rostering_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+    <record id="rule_leave_deny" model="ir.rule">
+        <field name="name">Leave Requests: only through a permission</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_rostering_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+
+    <!-- Can View Own Roster and Request Leave: their shifts on published rosters -->
+    <record id="rule_roster_own" model="ir.rule">
+        <field name="name">Rosters: Can View Own Roster</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('group_roster_own'))]"/>
+        <field name="domain_force">[(&apos;state&apos;, &apos;=&apos;, &apos;published&apos;), (&apos;shift_ids.user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_shift_own" model="ir.rule">
+        <field name="name">Shifts: Can View Own Roster</field>
+        <field name="model_id" ref="model_rostering_shift"/>
+        <field name="groups" eval="[(4, ref('group_roster_own'))]"/>
+        <field name="domain_force">[(&apos;roster_id.state&apos;, &apos;=&apos;, &apos;published&apos;), (&apos;user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_break_own" model="ir.rule">
+        <field name="name">Shift Breaks: Can View Own Roster</field>
+        <field name="model_id" ref="model_rostering_shift_break"/>
+        <field name="groups" eval="[(4, ref('group_roster_own'))]"/>
+        <field name="domain_force">[(&apos;shift_id.roster_id.state&apos;, &apos;=&apos;, &apos;published&apos;), (&apos;shift_id.user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Everyone who manages rosters sees them all -->
+    <record id="rule_roster_view_all" model="ir.rule">
+        <field name="name">Rosters: View All (and roster managers)</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('group_roster_view_all')), (4, ref('group_roster_edit_draft')), (4, ref('group_roster_edit_published')), (4, ref('group_roster_publish')), (4, ref('group_roster_unpublish')), (4, ref('group_roster_delete_own')), (4, ref('group_roster_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_shift_view_all" model="ir.rule">
+        <field name="name">Shifts: View All (and roster managers)</field>
+        <field name="model_id" ref="model_rostering_shift"/>
+        <field name="groups" eval="[(4, ref('group_roster_view_all')), (4, ref('group_roster_edit_draft')), (4, ref('group_roster_edit_published')), (4, ref('group_roster_publish')), (4, ref('group_roster_unpublish')), (4, ref('group_roster_delete_own')), (4, ref('group_roster_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_break_view_all" model="ir.rule">
+        <field name="name">Shift Breaks: View All (and roster managers)</field>
+        <field name="model_id" ref="model_rostering_shift_break"/>
+        <field name="groups" eval="[(4, ref('group_roster_view_all')), (4, ref('group_roster_edit_draft')), (4, ref('group_roster_edit_published')), (4, ref('group_roster_publish')), (4, ref('group_roster_unpublish')), (4, ref('group_roster_delete_own')), (4, ref('group_roster_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Can Create or Edit Unpublished Rosters -->
+    <record id="rule_roster_edit_draft" model="ir.rule">
+        <field name="name">Rosters: Can Create or Edit Unpublished Rosters</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('group_roster_edit_draft'))]"/>
+        <field name="domain_force">[(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_shift_edit_draft" model="ir.rule">
+        <field name="name">Shifts: Can Create or Edit Unpublished Rosters</field>
+        <field name="model_id" ref="model_rostering_shift"/>
+        <field name="groups" eval="[(4, ref('group_roster_edit_draft'))]"/>
+        <field name="domain_force">[(&apos;roster_id.state&apos;, &apos;=&apos;, &apos;draft&apos;)]</field>
+    </record>
+    <record id="rule_break_edit_draft" model="ir.rule">
+        <field name="name">Shift Breaks: Can Create or Edit Unpublished Rosters</field>
+        <field name="model_id" ref="model_rostering_shift_break"/>
+        <field name="groups" eval="[(4, ref('group_roster_edit_draft'))]"/>
+        <field name="domain_force">[(&apos;shift_id.roster_id.state&apos;, &apos;=&apos;, &apos;draft&apos;)]</field>
+    </record>
+
+    <!-- Can Create or Edit Published Rosters -->
+    <record id="rule_roster_edit_published" model="ir.rule">
+        <field name="name">Rosters: Can Create or Edit Published Rosters</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('group_roster_edit_published'))]"/>
+        <field name="domain_force">[(&apos;state&apos;, &apos;=&apos;, &apos;published&apos;)]</field>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_shift_edit_published" model="ir.rule">
+        <field name="name">Shifts: Can Create or Edit Published Rosters</field>
+        <field name="model_id" ref="model_rostering_shift"/>
+        <field name="groups" eval="[(4, ref('group_roster_edit_published'))]"/>
+        <field name="domain_force">[(&apos;roster_id.state&apos;, &apos;=&apos;, &apos;published&apos;)]</field>
+    </record>
+    <record id="rule_break_edit_published" model="ir.rule">
+        <field name="name">Shift Breaks: Can Create or Edit Published Rosters</field>
+        <field name="model_id" ref="model_rostering_shift_break"/>
+        <field name="groups" eval="[(4, ref('group_roster_edit_published'))]"/>
+        <field name="domain_force">[(&apos;shift_id.roster_id.state&apos;, &apos;=&apos;, &apos;published&apos;)]</field>
+    </record>
+
+    <!-- Delete Own / Delete All (rosters; their shifts go with them) -->
+    <record id="rule_roster_delete_own" model="ir.rule">
+        <field name="name">Rosters: Delete Own</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('group_roster_delete_own'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_roster_delete_all" model="ir.rule">
+        <field name="name">Rosters: Delete All</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('group_roster_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Leave Requests -->
+    <record id="rule_leave_create_only" model="ir.rule">
+        <field name="name">Leave Requests: Create Only</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_create_only'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;create_uid&apos;, &apos;=&apos;, user.id), (&apos;user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_leave_edit_own" model="ir.rule">
+        <field name="name">Leave Requests: Create and Edit Own</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_edit_own'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;create_uid&apos;, &apos;=&apos;, user.id), (&apos;user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_leave_edit_team" model="ir.rule">
+        <field name="name">Leave Requests: Create and Edit My Team</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_edit_team'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;create_uid&apos;, &apos;=&apos;, user.id), (&apos;user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_leave_edit_all" model="ir.rule">
+        <field name="name">Leave Requests: Create and Edit All</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_edit_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_leave_view_all" model="ir.rule">
+        <field name="name">Leave Requests: View All</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_view_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_leave_delete_own" model="ir.rule">
+        <field name="name">Leave Requests: Delete Own</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_delete_own'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;create_uid&apos;, &apos;=&apos;, user.id), (&apos;user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_leave_delete_all" model="ir.rule">
+        <field name="name">Leave Requests: Delete All</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_leave_approve" model="ir.rule">
+        <field name="name">Leave Requests: Approve (the leave team sees every request)</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('group_leave_approve'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Multi-company -->
+    <record id="rule_roster_company" model="ir.rule">
+        <field name="name">Rosters: multi-company</field>
+        <field name="model_id" ref="model_rostering_roster"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_shift_company" model="ir.rule">
+        <field name="name">Shifts: multi-company</field>
+        <field name="model_id" ref="model_rostering_shift"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_break_company" model="ir.rule">
+        <field name="name">Shift Breaks: multi-company</field>
+        <field name="model_id" ref="model_rostering_shift_break"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_leave_company" model="ir.rule">
+        <field name="name">Leave Requests: multi-company</field>
+        <field name="model_id" ref="model_rostering_leave"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_duty_company" model="ir.rule">
+        <field name="name">Duties: multi-company</field>
+        <field name="model_id" ref="model_rostering_duty"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;company_id&apos;, &apos;=&apos;, False), (&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_standard_shift_company" model="ir.rule">
+        <field name="name">Standard Shifts: multi-company</field>
+        <field name="model_id" ref="model_rostering_standard_shift"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;company_id&apos;, &apos;=&apos;, False), (&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_template_company" model="ir.rule">
+        <field name="name">Roster Templates: multi-company</field>
+        <field name="model_id" ref="model_rostering_template"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;company_id&apos;, &apos;=&apos;, False), (&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_template_line_company" model="ir.rule">
+        <field name="name">Roster Template Shifts: multi-company</field>
+        <field name="model_id" ref="model_rostering_template_line"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;company_id&apos;, &apos;=&apos;, False), (&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_leave_type_company" model="ir.rule">
+        <field name="name">Leave Types: multi-company</field>
+        <field name="model_id" ref="model_rostering_leave_type"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;company_id&apos;, &apos;=&apos;, False), (&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+</odoo>

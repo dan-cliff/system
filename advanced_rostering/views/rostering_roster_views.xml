@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_roster_view_list" model="ir.ui.view">
+        <field name="name">rostering.roster.list</field>
+        <field name="model">rostering.roster</field>
+        <field name="arch" type="xml">
+            <list string="Rosters" decoration-muted="state == 'draft'">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="cycle" optional="show"/>
+                <field name="shift_count" string="Shifts" optional="show"/>
+                <field name="total_hours" widget="float_time" optional="show"/>
+                <field name="published_date" options="{'numeric': True}" optional="hide"/>
+                <field name="published_by_id" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'published'"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="rostering_roster_view_form" model="ir.ui.view">
+        <field name="name">rostering.roster.form</field>
+        <field name="model">rostering.roster</field>
+        <field name="arch" type="xml">
+            <form string="Roster">
+                <header>
+                    <button name="action_publish" type="object" string="Publish" class="btn-primary"
+                            invisible="not id or not can_publish"
+                            confirm="Publish this roster? Everyone on it will be able to see their shifts."/>
+                    <button name="action_unpublish" type="object" string="Unpublish"
+                            invisible="not can_unpublish"
+                            confirm="Take this roster back to draft? The people on it will no longer see it until it is published again."/>
+                    <button name="action_open_apply_template" type="object" string="Apply Template"
+                            invisible="not id or not can_edit"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <field name="can_edit" invisible="1"/>
+                    <field name="can_publish" invisible="1"/>
+                    <field name="can_unpublish" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_calendar" type="object" class="oe_stat_button" icon="fa-calendar"
+                                invisible="not id">
+                            <div class="o_stat_info"><span class="o_stat_text">Calendar</span></div>
+                        </button>
+                        <button name="action_view_grid" type="object" class="oe_stat_button" icon="fa-table"
+                                invisible="not id">
+                            <div class="o_stat_info"><span class="o_stat_text">Hours Grid</span></div>
+                        </button>
+                        <button name="action_view_shifts" type="object" class="oe_stat_button" icon="fa-list"
+                                invisible="not id">
+                            <field name="shift_count" widget="statinfo" string="Shifts"/>
+                        </button>
+                        <button name="action_view_conflicts" type="object" class="oe_stat_button text-danger"
+                                icon="fa-plane" invisible="not leave_conflict_count">
+                            <field name="leave_conflict_count" widget="statinfo" string="On Leave"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Shop Floor" readonly="not can_edit and id"/></h1>
+                    </div>
+                    <group>
+                        <group name="period">
+                            <field name="date_start" readonly="id" options="{'numeric': True}"/>
+                            <field name="date_end" invisible="not id" options="{'numeric': True}"/>
+                            <field name="cycle" invisible="not id"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="id"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group name="totals">
+                            <field name="person_count"/>
+                            <field name="total_hours" widget="float_time"/>
+                            <field name="unassigned_count" invisible="not unassigned_count"/>
+                            <field name="published_date" invisible="not published_date" options="{'numeric': True}"/>
+                            <field name="published_by_id" invisible="not published_by_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Shifts" name="shifts">
+                            <field name="shift_ids" readonly="not can_edit"
+                                   context="{'default_date': date_start, 'default_roster_id': id}">
+                                <list editable="bottom" decoration-danger="on_leave"
+                                      decoration-muted="not is_assigned">
+                                    <field name="date" options="{'numeric': True}"/>
+                                    <field name="user_id" options="{'no_create': True}"/>
+                                    <field name="standard_shift_id" options="{'no_create': True}"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="end_time" widget="float_time"/>
+                                    <field name="break_hours" widget="float_time" optional="show"/>
+                                    <field name="paid_hours" widget="float_time" sum="Total"/>
+                                    <field name="duty_id" options="{'no_create': True}"/>
+                                    <field name="note" optional="show"/>
+                                    <field name="on_leave" optional="show"/>
+                                    <field name="is_assigned" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="Notes for the people on this roster..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="rostering_roster_view_search" model="ir.ui.view">
+        <field name="name">rostering.roster.search</field>
+        <field name="model">rostering.roster</field>
+        <field name="arch" type="xml">
+            <search string="Rosters">
+                <field name="name"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="draft" string="Unpublished" domain="[('state', '=', 'draft')]"/>
+                <filter name="published" string="Published" domain="[('state', '=', 'published')]"/>
+                <separator/>
+                <filter name="filter_date_start" string="Period" date="date_start"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_date_start" string="Period" context="{'group_by': 'date_start:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rostering_roster" model="ir.actions.act_window">
+        <field name="name">Rosters</field>
+        <field name="res_model">rostering.roster</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="rostering_roster_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first roster</p>
+            <p>Pick any day in the period, add shifts (or apply a Roster Template), then publish it to the people on it.</p>
+        </field>
+    </record>
+</odoo>

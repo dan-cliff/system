@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_rostering.MyRoster">
+        <Layout display="{ controlPanel: {} }">
+            <t t-set-slot="control-panel-create-button">
+                <button t-if="state.data and state.data.can_request" class="btn btn-primary"
+                        t-on-click="requestLeave">Request Leave</button>
+            </t>
+            <div class="o_rostering_my_roster container-fluid py-3">
+                <t t-if="state.data">
+                    <t t-set="data" t-value="state.data"/>
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                        <div class="me-auto">
+                            <h3 class="mb-0" t-esc="data.person"/>
+                            <div t-if="data.manager" class="text-muted">
+                                <i class="fa fa-user-circle-o me-1"/>Manager: <span t-esc="data.manager"/>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" title="Previous period" t-on-click="() => this.move(-1)">
+                                <i class="fa fa-chevron-left"/>
+                            </button>
+                            <button class="btn btn-secondary" t-on-click="today">Today</button>
+                            <button class="btn btn-secondary" title="Next period" t-on-click="() => this.move(1)">
+                                <i class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-lg-8">
+                            <div class="card">
+                                <div class="card-header d-flex flex-wrap align-items-baseline gap-2">
+                                    <strong class="me-auto">
+                                        <t t-esc="periodLabel"/>: <t t-esc="data.start"/> – <t t-esc="data.end"/>
+                                    </strong>
+                                    <span class="text-muted">
+                                        <t t-esc="data.shift_count"/> shifts ·
+                                        <t t-esc="formatHours(data.total_hours)"/> paid hours
+                                    </span>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <t t-foreach="data.days" t-as="day" t-key="day.date">
+                                        <li t-attf-class="list-group-item d-flex gap-3 {{ day.is_today ? 'bg-info-subtle' : '' }} {{ day.is_past ? 'text-muted' : '' }}">
+                                            <div style="min-width: 7.5rem;">
+                                                <div class="fw-bold" t-esc="day.weekday"/>
+                                                <div class="small" t-esc="day.label"/>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <t t-foreach="day.leave" t-as="leaveName" t-key="leaveName_index">
+                                                    <span class="badge text-bg-warning me-1">
+                                                        <i class="fa fa-plane me-1"/><t t-esc="leaveName"/>
+                                                    </span>
+                                                </t>
+                                                <t t-if="!day.shifts.length and !day.leave.length">
+                                                    <span class="text-muted fst-italic">Not rostered</span>
+                                                </t>
+                                                <t t-foreach="day.shifts" t-as="shift" t-key="shift.id">
+                                                    <div t-attf-class="d-flex flex-wrap align-items-baseline gap-2 {{ shift_index ? 'mt-2' : '' }}">
+                                                        <span class="fw-bold">
+                                                            <t t-esc="shift.start"/> – <t t-esc="shift.end"/>
+                                                            <small t-if="shift.overnight" class="text-muted">(next day)</small>
+                                                        </span>
+                                                        <span t-if="shift.duty"
+                                                              t-attf-class="badge o_tag_color_{{ shift.duty_color }}" t-esc="shift.duty"/>
+                                                        <span t-if="shift.standard_shift" class="text-muted" t-esc="shift.standard_shift"/>
+                                                        <span class="text-muted">· <t t-esc="formatHours(shift.paid_hours)"/> h</span>
+                                                        <t t-foreach="shift.extra" t-as="extra" t-key="extra_index">
+                                                            <span t-attf-class="badge {{ extra.class or 'text-bg-light' }}" t-esc="extra.label"/>
+                                                        </t>
+                                                        <div t-if="shift.breaks" class="w-100 small text-muted">
+                                                            <i class="fa fa-coffee me-1"/><t t-esc="shift.breaks"/>
+                                                        </div>
+                                                        <div t-if="shift.note" class="w-100 small">
+                                                            <i class="fa fa-sticky-note-o me-1"/><t t-esc="shift.note"/>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </li>
+                                    </t>
+                                </ul>
+                                <div t-if="!data.shift_count" class="card-footer text-muted">
+                                    No published roster has shifts for you in this period yet.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card">
+                                <div class="card-header d-flex align-items-center">
+                                    <strong class="me-auto">My Upcoming Leave</strong>
+                                    <button t-if="data.can_request" class="btn btn-sm btn-primary" t-on-click="requestLeave">
+                                        <i class="fa fa-plus me-1"/>Request Leave
+                                    </button>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <t t-foreach="data.leaves" t-as="leave" t-key="leave.id">
+                                        <li class="list-group-item list-group-item-action" role="button"
+                                            t-on-click="() => this.openLeave(leave.id)">
+                                            <div class="d-flex align-items-baseline gap-2">
+                                                <span class="fw-bold me-auto" t-esc="leave.type"/>
+                                                <span t-attf-class="badge {{ stateBadge(leave.state) }}" t-esc="leave.state_label"/>
+                                            </div>
+                                            <div class="small">
+                                                <t t-esc="leave.from"/>
+                                                <t t-if="leave.to !== leave.from"> – <t t-esc="leave.to"/></t>
+                                                · <t t-esc="leave.days"/> day<t t-if="leave.days !== 1">s</t>
+                                            </div>
+                                            <div t-if="leave.state === 'submitted' and leave.approver" class="small text-muted">
+                                                Waiting for <t t-esc="leave.approver"/>
+                                            </div>
+                                        </li>
+                                    </t>
+                                    <li t-if="!data.leaves.length" class="list-group-item text-muted fst-italic">
+                                        No upcoming leave.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <div t-elif="state.loading" class="text-center text-muted py-5">
+                    <i class="fa fa-spinner fa-spin me-2"/>Loading your roster...
+                </div>
+            </div>
+        </Layout>
+    </t>
+</templates>

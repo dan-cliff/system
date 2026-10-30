@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_leave_view_list" model="ir.ui.view">
+        <field name="name">rostering.leave.list</field>
+        <field name="model">rostering.leave</field>
+        <field name="arch" type="xml">
+            <list string="Leave Requests" decoration-muted="state in ('refused', 'cancelled')"
+                  decoration-info="state == 'submitted'">
+                <field name="id" optional="show"/>
+                <field name="person_name"/>
+                <field name="user_id" optional="hide"/>
+                <field name="leave_type_id"/>
+                <field name="date_from" options="{'numeric': True}"/>
+                <field name="date_to" options="{'numeric': True}"/>
+                <field name="duration_days" sum="Total"/>
+                <field name="approver_user_id" optional="show"/>
+                <field name="submitted_date" options="{'numeric': True}" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'submitted'"
+                       decoration-success="state == 'approved'" decoration-danger="state == 'refused'"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="rostering_leave_view_form" model="ir.ui.view">
+        <field name="name">rostering.leave.form</field>
+        <field name="model">rostering.leave</field>
+        <field name="arch" type="xml">
+            <form string="Leave Request">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            invisible="not can_approve"/>
+                    <button name="action_open_refuse_wizard" type="object" string="Refuse"
+                            invisible="not can_approve"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="not id or state not in ('submitted', 'refused', 'cancelled')"/>
+                    <button name="action_cancel" type="object" string="Cancel Leave"
+                            invisible="not id or state in ('refused', 'cancelled')"
+                            confirm="Cancel this leave request?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <field name="can_approve" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_shifts" type="object" class="oe_stat_button" icon="fa-calendar"
+                                invisible="not shift_count">
+                            <field name="shift_count" widget="statinfo" string="Rostered Shifts"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group name="person">
+                            <field name="user_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="leave_type_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="date_from" options="{'numeric': True}" readonly="state != 'draft'"/>
+                            <field name="date_to" options="{'numeric': True}" readonly="state != 'draft'"/>
+                            <field name="duration_days"/>
+                        </group>
+                        <group name="approval">
+                            <field name="approver_user_id" invisible="not approver_user_id"/>
+                            <field name="submitted_date" invisible="not submitted_date" options="{'numeric': True}"/>
+                            <field name="approved_by_id" invisible="not approved_by_id"/>
+                            <field name="approved_date" invisible="not approved_date" options="{'numeric': True}"/>
+                            <field name="refused_by_id" invisible="not refused_by_id"/>
+                            <field name="refuse_reason" invisible="not refuse_reason"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <field name="reason" placeholder="Anything your approver should know..." readonly="state != 'draft'"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Request Leave (from My Roster and Leave): fill in and submit in one go. -->
+    <record id="rostering_leave_view_form_request" model="ir.ui.view">
+        <field name="name">rostering.leave.form.request</field>
+        <field name="model">rostering.leave</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Request Leave">
+                <group>
+                    <group name="person">
+                        <field name="user_id" options="{'no_create': True}"/>
+                        <field name="leave_type_id" options="{'no_create': True}"/>
+                    </group>
+                    <group name="dates">
+                        <field name="date_from" options="{'numeric': True}"/>
+                        <field name="date_to" options="{'numeric': True}"/>
+                        <field name="duration_days"/>
+                    </group>
+                </group>
+                <field name="reason" placeholder="Anything your approver should know..."/>
+                <field name="company_id" invisible="1"/>
+                <footer>
+                    <button name="action_submit" type="object" string="Submit Request" class="btn-primary"/>
+                    <button string="Save as Draft" class="btn-secondary" special="save"/>
+                    <button string="Discard" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="rostering_leave_view_calendar" model="ir.ui.view">
+        <field name="name">rostering.leave.calendar</field>
+        <field name="model">rostering.leave</field>
+        <field name="arch" type="xml">
+            <calendar string="Leave Requests" date_start="date_from" date_stop="date_to" color="leave_type_id"
+                      mode="month" all_day="1" event_open_popup="1" quick_create="0">
+                <field name="person_name"/>
+                <field name="leave_type_id" filters="1"/>
+                <field name="state"/>
+                <field name="duration_days"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="rostering_leave_view_search" model="ir.ui.view">
+        <field name="name">rostering.leave.search</field>
+        <field name="model">rostering.leave</field>
+        <field name="arch" type="xml">
+            <search string="Leave Requests">
+                <field name="person_name"/>
+                <field name="user_id"/>
+                <field name="leave_type_id"/>
+                <field name="date_from" options="{'numeric': True}"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="my_leave" string="My Leave" domain="[('is_mine', '=', True)]"/>
+                <filter name="to_approve" string="To Approve" domain="[('can_approve', '=', True)]"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="submitted" string="Waiting for Approval" domain="[('state', '=', 'submitted')]"/>
+                <filter name="approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="refused" string="Refused" domain="[('state', '=', 'refused')]"/>
+                <filter name="active_requests" string="Not Cancelled or Refused"
+                        domain="[('state', 'not in', ('refused', 'cancelled'))]"/>
+                <separator/>
+                <filter name="upcoming" string="Upcoming" domain="[('date_to', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_date_from" string="Date" date="date_from"/>
+                <group>
+                    <filter name="group_person" string="Person" context="{'group_by': 'person_name'}"/>
+                    <filter name="group_type" string="Leave Type" context="{'group_by': 'leave_type_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_date_from" string="Month" context="{'group_by': 'date_from:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rostering_leave_my" model="ir.actions.act_window">
+        <field name="name">My Leave Requests</field>
+        <field name="res_model">rostering.leave</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="search_view_id" ref="rostering_leave_view_search"/>
+        <field name="domain">[('is_mine', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Request some leave</p>
+            <p>Your leave requests and their approval status show here.</p>
+        </field>
+    </record>
+
+    <record id="action_rostering_leave_to_approve" model="ir.actions.act_window">
+        <field name="name">To Approve</field>
+        <field name="res_model">rostering.leave</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="search_view_id" ref="rostering_leave_view_search"/>
+        <field name="context">{'search_default_to_approve': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing waiting for you</p>
+            <p>Leave requests waiting for your approval show here.</p>
+        </field>
+    </record>
+
+    <record id="action_rostering_leave" model="ir.actions.act_window">
+        <field name="name">All Leave Requests</field>
+        <field name="res_model">rostering.leave</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="search_view_id" ref="rostering_leave_view_search"/>
+        <field name="context">{'search_default_active_requests': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No leave requests yet</p>
+            <p>Everyone can request leave from My Roster and Leave; managers can request it for their team.</p>
+        </field>
+    </record>
+
+    <record id="action_rostering_leave_request" model="ir.actions.act_window">
+        <field name="name">Request Leave</field>
+        <field name="res_model">rostering.leave</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="rostering_leave_view_form_request"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

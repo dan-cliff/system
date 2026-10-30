@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_my_roster" model="ir.actions.client">
+        <field name="name">My Roster and Leave</field>
+        <field name="tag">advanced_rostering.my_roster</field>
+    </record>
+
+    <menuitem id="menu_rostering_root"
+              name="Rostering"
+              sequence="47"
+              web_icon="advanced_rostering,static/description/icon.png"
+              groups="advanced_rostering.group_rostering_user"/>
+
+    <menuitem id="menu_my_roster"
+              name="My Roster and Leave"
+              parent="menu_rostering_root"
+              action="action_my_roster"
+              sequence="10"
+              groups="advanced_rostering.group_roster_own"/>
+
+    <!-- My Team's Rosters (sequence 20) comes with Personnel: advanced_rostering_hr. -->
+
+    <menuitem id="menu_manage_rostering"
+              name="Manage Rostering"
+              parent="menu_rostering_root"
+              sequence="30"
+              groups="advanced_rostering.group_roster_view_all,advanced_rostering.group_roster_edit_draft,advanced_rostering.group_roster_edit_published,advanced_rostering.group_roster_publish,advanced_rostering.group_roster_unpublish,advanced_rostering.group_roster_delete_own,advanced_rostering.group_roster_delete_all"/>
+    <menuitem id="menu_rostering_rosters"
+              name="Rosters"
+              parent="menu_manage_rostering"
+              action="action_rostering_roster"
+              sequence="10"/>
+    <menuitem id="menu_rostering_shifts"
+              name="Shifts"
+              parent="menu_manage_rostering"
+              action="action_rostering_shift"
+              sequence="20"/>
+
+    <menuitem id="menu_rostering_leave"
+              name="Leave Requests"
+              parent="menu_rostering_root"
+              sequence="40"
+              groups="advanced_rostering.group_leave_create_only,advanced_rostering.group_leave_edit_own,advanced_rostering.group_leave_edit_team,advanced_rostering.group_leave_edit_all,advanced_rostering.group_leave_view_all,advanced_rostering.group_leave_approve"/>
+    <menuitem id="menu_rostering_leave_my"
+              name="My Leave Requests"
+              parent="menu_rostering_leave"
+              action="action_rostering_leave_my"
+              sequence="10"/>
+    <menuitem id="menu_rostering_leave_to_approve"
+              name="To Approve"
+              parent="menu_rostering_leave"
+              action="action_rostering_leave_to_approve"
+              sequence="20"/>
+    <menuitem id="menu_rostering_leave_all"
+              name="All Leave Requests"
+              parent="menu_rostering_leave"
+              action="action_rostering_leave"
+              sequence="30"
+              groups="advanced_rostering.group_leave_edit_team,advanced_rostering.group_leave_edit_all,advanced_rostering.group_leave_view_all,advanced_rostering.group_leave_approve"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_rostering_reports" name="Reports" parent="menu_rostering_root" sequence="99"/>
+
+    <!-- Configuration: the libraries are kept by roster editors too; Settings
+         and Leave Types are for the Rostering Administrator. -->
+    <menuitem id="menu_rostering_config"
+              name="Configuration"
+              parent="menu_rostering_root"
+              sequence="100"
+              groups="advanced_rostering.group_rostering_admin,advanced_rostering.group_roster_edit_draft"/>
+    <menuitem id="menu_rostering_settings"
+              name="Settings"
+              parent="menu_rostering_config"
+              action="advanced_rostering_config_settings_action"
+              sequence="0"
+              groups="base.group_system"/>
+    <menuitem id="menu_rostering_duties"
+              name="Duties"
+              parent="menu_rostering_config"
+              action="action_rostering_duty"
+              sequence="10"/>
+    <menuitem id="menu_rostering_standard_shifts"
+              name="Standard Shifts"
+              parent="menu_rostering_config"
+              action="action_rostering_standard_shift"
+              sequence="20"/>
+    <menuitem id="menu_rostering_templates"
+              name="Roster Templates"
+              parent="menu_rostering_config"
+              action="action_rostering_template"
+              sequence="30"/>
+    <menuitem id="menu_rostering_leave_types"
+              name="Leave Types"
+              parent="menu_rostering_config"
+              action="action_rostering_leave_type"
+              sequence="40"
+              groups="advanced_rostering.group_rostering_admin"/>
+</odoo>
