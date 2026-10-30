@@ -47,10 +47,11 @@ OM_MODULES = (
 )
 
 VERSIONS_PARAM = 'advanced_accounting.takeover_versions'
+VIEWS_PARAM = 'advanced_accounting.takeover_views'
 SNAPSHOT_TABLE = 'advanced_accounting_takeover_snapshot'
 # models whose records the takeover never snapshots: Odoo reflects them itself
 UNSNAPSHOT_MODELS = ('ir.model', 'ir.model.fields', 'ir.model.fields.selection', 'ir.model.constraint',
-                     'ir.model.relation', 'ir.module.module')
+                     'ir.model.relation', 'ir.module.module', 'ir.ui.view')
 
 
 def _installed_om_modules(cr):
@@ -181,6 +182,41 @@ def _restore_noupdate(cr):
     cr.execute(f"DROP TABLE {SNAPSHOT_TABLE}")
 
 
+def _set_param(cr, key, value):
+    cr.execute("""
+        INSERT INTO ir_config_parameter (key, value, create_uid, write_uid, create_date, write_date)
+        VALUES (%s, %s, 1, 1, now() at time zone 'UTC', now() at time zone 'UTC')
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+    """, [key, json.dumps(value)])
+
+
+def _deactivate_views(cr):
+    """ Switch off the views taken over while Accounting loads its own. The
+    Odoo Mates versions are older and some have other names than Accounting's
+    (e.g. their settings views): left active, an old view that already
+    changed a parent view stops a new one from finding what it changes.
+    ``_reactivate_views`` switches back on the ones Accounting loaded; the
+    others are removed at the end of the install. """
+    cr.execute("""
+        UPDATE ir_ui_view view SET active = false
+          FROM ir_model_data data
+         WHERE data.module = %s AND data.model = 'ir.ui.view' AND data.res_id = view.id AND view.active
+     RETURNING view.id
+    """, [MODULE])
+    _set_param(cr, VIEWS_PARAM, [view_id for (view_id,) in cr.fetchall()])
+
+
+def _reactivate_views(env):
+    param = env['ir.config_parameter'].sudo().search([('key', '=', VIEWS_PARAM)])
+    if not param:
+        return
+    view_ids = json.loads(param.value)
+    param.unlink()
+    loaded = env.registry.loaded_xmlids
+    views = env['ir.ui.view'].with_context(active_test=False).browse(view_ids).exists()
+    views.filtered(lambda view: view.xml_id in loaded).write({'active': True})
+
+
 def _pre_migrate(cr, versions):
     """ The upgrades of the Odoo Mates modules that must run before the models
     are loaded (their migrations/*/pre-migrate.py). """
@@ -252,6 +288,7 @@ def pre_init_hook(env):
         if om_module in versions:
             _claim_xmlids(cr, module_id, om_module)
     _snapshot_noupdate(env)
+    _deactivate_views(cr)
 
     # uninstalled without their uninstall: their tables now belong to Accounting
     cr.execute("""
@@ -261,11 +298,7 @@ def pre_init_hook(env):
     # accounting_pdf_reports dropped this table on install: a wizard relation it replaced
     cr.execute("DROP TABLE IF EXISTS account_journal_account_report_partner_ledger_rel")
 
-    cr.execute("""
-        INSERT INTO ir_config_parameter (key, value, create_uid, write_uid, create_date, write_date)
-        VALUES (%s, %s, 1, 1, now() at time zone 'UTC', now() at time zone 'UTC')
-        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-    """, [VERSIONS_PARAM, json.dumps(versions)])
+    _set_param(cr, VERSIONS_PARAM, versions)
 
 
 def _post_migrate(env, versions):
@@ -337,6 +370,7 @@ def post_init_hook(env):
     param.unlink()
     _restore_noupdate(env.cr)
     env.invalidate_all()
+    _reactivate_views(env)
     _post_migrate(env, versions)
     _grant_permissions(env)
     _logger.info("Accounting: took over %s", sorted(versions))
