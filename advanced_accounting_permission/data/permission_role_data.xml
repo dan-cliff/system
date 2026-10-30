@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_accounting_admin" model="permission.role">
+            <field name="name">Accounting – Administrator</field>
+            <field name="description">Everything in Accounting: create, edit and delete any asset, budget, recurring payment and period closing, every workflow action, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_accounting_admin'), 'group_id': ref('advanced_accounting.group_accounting_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_create_only'), 'group_id': ref('advanced_accounting.group_asset_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_edit_own'), 'group_id': ref('advanced_accounting.group_asset_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_edit_team'), 'group_id': ref('advanced_accounting.group_asset_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_edit_all'), 'group_id': ref('advanced_accounting.group_asset_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_view_all'), 'group_id': ref('advanced_accounting.group_asset_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_delete_own'), 'group_id': ref('advanced_accounting.group_asset_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_delete_all'), 'group_id': ref('advanced_accounting.group_asset_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_post'), 'group_id': ref('advanced_accounting.group_asset_post')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_create_only'), 'group_id': ref('advanced_accounting.group_budget_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_edit_own'), 'group_id': ref('advanced_accounting.group_budget_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_edit_team'), 'group_id': ref('advanced_accounting.group_budget_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_edit_all'), 'group_id': ref('advanced_accounting.group_budget_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_view_all'), 'group_id': ref('advanced_accounting.group_budget_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_delete_own'), 'group_id': ref('advanced_accounting.group_budget_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_delete_all'), 'group_id': ref('advanced_accounting.group_budget_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_approve'), 'group_id': ref('advanced_accounting.group_budget_approve')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_create_only'), 'group_id': ref('advanced_accounting.group_recurring_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_edit_own'), 'group_id': ref('advanced_accounting.group_recurring_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_edit_team'), 'group_id': ref('advanced_accounting.group_recurring_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_edit_all'), 'group_id': ref('advanced_accounting.group_recurring_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_view_all'), 'group_id': ref('advanced_accounting.group_recurring_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_delete_own'), 'group_id': ref('advanced_accounting.group_recurring_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_delete_all'), 'group_id': ref('advanced_accounting.group_recurring_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_confirm'), 'group_id': ref('advanced_accounting.group_recurring_confirm')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_create_only'), 'group_id': ref('advanced_accounting.group_closing_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_edit_own'), 'group_id': ref('advanced_accounting.group_closing_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_edit_team'), 'group_id': ref('advanced_accounting.group_closing_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_edit_all'), 'group_id': ref('advanced_accounting.group_closing_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_view_all'), 'group_id': ref('advanced_accounting.group_closing_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_delete_own'), 'group_id': ref('advanced_accounting.group_closing_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_delete_all'), 'group_id': ref('advanced_accounting.group_closing_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_close'), 'group_id': ref('advanced_accounting.group_closing_close')})
+            ]"/>
+        </record>
+        <record id="role_accounting_manager" model="permission.role">
+            <field name="name">Accounting – Manager</field>
+            <field name="description">Create, view and edit their own and their team's assets, budgets, recurring payments and period closings. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_edit_team'), 'group_id': ref('advanced_accounting.group_asset_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_edit_team'), 'group_id': ref('advanced_accounting.group_budget_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_edit_team'), 'group_id': ref('advanced_accounting.group_recurring_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_edit_team'), 'group_id': ref('advanced_accounting.group_closing_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_accounting_employee" model="permission.role">
+            <field name="name">Accounting – Employee</field>
+            <field name="description">Create, view and edit their own assets, budgets, recurring payments and period closings. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_edit_own'), 'group_id': ref('advanced_accounting.group_asset_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_edit_own'), 'group_id': ref('advanced_accounting.group_budget_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_edit_own'), 'group_id': ref('advanced_accounting.group_recurring_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_edit_own'), 'group_id': ref('advanced_accounting.group_closing_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_accounting_approver" model="permission.role">
+            <field name="name">Accounting – Approver</field>
+            <field name="description">View every asset, budget, recurring payment and period closing; confirm and post assets, approve budgets, confirm and generate recurring payments, and close and reopen periods.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_view_all'), 'group_id': ref('advanced_accounting.group_asset_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_asset_post'), 'group_id': ref('advanced_accounting.group_asset_post')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_view_all'), 'group_id': ref('advanced_accounting.group_budget_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_budget_approve'), 'group_id': ref('advanced_accounting.group_budget_approve')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_view_all'), 'group_id': ref('advanced_accounting.group_recurring_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_recurring_confirm'), 'group_id': ref('advanced_accounting.group_recurring_confirm')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_view_all'), 'group_id': ref('advanced_accounting.group_closing_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounting.privilege_closing_close'), 'group_id': ref('advanced_accounting.group_closing_close')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

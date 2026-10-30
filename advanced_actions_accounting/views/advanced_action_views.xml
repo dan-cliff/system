@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advanced_action_form_accounting" model="ir.ui.view">
+        <field name="name">advanced.action.form.accounting</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_checklist_id']" position="after">
+                <field name="followup_partner_id" invisible="source_app != 'accounting' or recurring_payment_id"/>
+                <field name="recurring_payment_id" invisible="source_app != 'accounting' or followup_partner_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_search_accounting" model="ir.ui.view">
+        <field name="name">advanced.action.search.accounting</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='checklist_template_id']" position="after">
+                <field name="followup_partner_id"/>
+                <field name="recurring_payment_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='app_checklists']" position="after">
+                <filter name="app_accounting" string="Accounting" domain="[('source_app', '=', 'accounting')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_list_accounting" model="ir.ui.view">
+        <field name="name">advanced.action.list.accounting</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="followup_partner_id" optional="show"/>
+                <field name="recurring_payment_id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='source_app']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Accounting › Actions: filtered to Accounting, filter removable. -->
+    <record id="action_advanced_action_accounting" model="ir.actions.act_window">
+        <field name="name">Actions</field>
+        <field name="res_model">advanced.action</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_advanced_action_list_accounting')}),
+            (0, 0, {'view_mode': 'kanban'}),
+            (0, 0, {'view_mode': 'form'}),
+            (0, 0, {'view_mode': 'activity'})]"/>
+        <field name="context">{'search_default_app_accounting': 1, 'search_default_open': 1, 'default_source_app': 'accounting'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Accounting actions yet</p>
+            <p>Follow-up actions and the warnings of failed recurring payments appear here.
+                Remove the Accounting filter to see actions from every app.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_advanced_action_accounting" name="Actions" parent="account.menu_finance"
+              action="action_advanced_action_accounting" sequence="11"
+              groups="account.group_account_invoice,advanced_accounting.group_accounting_user"/>
+
+    <record id="view_partner_form_followup_actions" model="ir.ui.view">
+        <field name="name">res.partner.form.accounting.actions</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_followup_actions" type="object" class="oe_stat_button"
+                        icon="fa-check-square-o" groups="account.group_account_invoice"
+                        invisible="not followup_action_open_count">
+                    <field name="followup_action_open_count" widget="statinfo" string="Follow-up Actions"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_recurring_payment_form_actions" model="ir.ui.view">
+        <field name="name">recurring.payment.form.actions</field>
+        <field name="model">recurring.payment</field>
+        <field name="inherit_id" ref="advanced_accounting.view_recurring_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_actions" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                        <field name="action_open_count" widget="statinfo" string="Open Actions"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

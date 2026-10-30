@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The follow-up actions follow the customers: the billing users, who send
+         the follow-ups, work on them. The warnings of failed recurring payments
+         go to the users with an Accounting permission. What they may do with
+         them comes from the ACL, as for the app's own records. -->
+    <record id="rule_advanced_action_accounting_followup" model="ir.rule">
+        <field name="name">Actions: Accounting follow-up actions</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('account.group_account_invoice'))]"/>
+        <field name="domain_force">[('followup_partner_id', '!=', False)]</field>
+    </record>
+    <record id="rule_advanced_action_accounting_recurring" model="ir.rule">
+        <field name="name">Actions: Accounting recurring payment warnings</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_accounting.group_accounting_user'))]"/>
+        <field name="domain_force">[('recurring_payment_id', '!=', False)]</field>
+    </record>
+</odoo>

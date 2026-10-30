@@ -1,0 +1,1032 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every permission below is its
+         own privilege with one "Allowed" group, whose record rules give it its
+         meaning. All of them imply the technical Accounting user group, which
+         holds the ACLs and a deny rule per operation, so users can only do what
+         a permission opens. Lines and checks follow their record. -->
+    <record id="group_accounting_user" model="res.groups">
+        <field name="name">Accounting: User</field>
+        <field name="comment">Technical: given by every Accounting permission. Opens the Accounting records (assets, budgets, recurring payments, period closings) with Billing access to the journals they post to; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_invoice'))]"/>
+    </record>
+
+    <!-- ============ Assets ============ -->
+    <record id="privilege_asset_create_only" model="res.groups.privilege">
+        <field name="name">Assets: Create Only</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">101</field>
+        <field name="description">Create assets, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_asset_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_create_only"/>
+        <field name="comment">Create assets, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_asset_create_only" model="ir.rule">
+        <field name="name">Assets: Create Only</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_asset_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_asset_line_create_only" model="ir.rule">
+        <field name="name">Depreciation Lines: Create Only</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_asset_create_only'))]"/>
+        <field name="domain_force">[('asset_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_asset_edit_own" model="res.groups.privilege">
+        <field name="name">Assets: Create and Edit Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">102</field>
+        <field name="description">Create assets, and view and edit their own.</field>
+    </record>
+    <record id="group_asset_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_edit_own"/>
+        <field name="comment">Create assets, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_asset_edit_own" model="ir.rule">
+        <field name="name">Assets: Create and Edit Own</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_asset_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_asset_line_edit_own" model="ir.rule">
+        <field name="name">Depreciation Lines: Create and Edit Own</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_asset_edit_own'))]"/>
+        <field name="domain_force">[('asset_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_asset_edit_team" model="res.groups.privilege">
+        <field name="name">Assets: Create and Edit My Team</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">103</field>
+        <field name="description">Create assets, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_asset_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_edit_team"/>
+        <field name="comment">Create assets, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_asset_edit_team" model="ir.rule">
+        <field name="name">Assets: Create and Edit My Team</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_asset_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_asset_line_edit_team" model="ir.rule">
+        <field name="name">Depreciation Lines: Create and Edit My Team</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_asset_edit_team'))]"/>
+        <field name="domain_force">['|', ('asset_id.create_uid', '=', user.id), ('asset_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_asset_edit_all" model="res.groups.privilege">
+        <field name="name">Assets: Create and Edit All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">104</field>
+        <field name="description">Create, view and edit all assets.</field>
+    </record>
+    <record id="group_asset_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_edit_all"/>
+        <field name="comment">Create, view and edit all assets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_asset_edit_all" model="ir.rule">
+        <field name="name">Assets: Create and Edit All</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_asset_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_asset_line_edit_all" model="ir.rule">
+        <field name="name">Depreciation Lines: Create and Edit All</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_asset_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_asset_view_all" model="res.groups.privilege">
+        <field name="name">Assets: View All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">105</field>
+        <field name="description">View all assets.</field>
+    </record>
+    <record id="group_asset_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_view_all"/>
+        <field name="comment">View all assets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_asset_view_all" model="ir.rule">
+        <field name="name">Assets: View All</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_asset_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_asset_line_view_all" model="ir.rule">
+        <field name="name">Depreciation Lines: View All</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_asset_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_asset_delete_own" model="res.groups.privilege">
+        <field name="name">Assets: Delete Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">106</field>
+        <field name="description">Delete their own assets.</field>
+    </record>
+    <record id="group_asset_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_delete_own"/>
+        <field name="comment">Delete their own assets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_asset_delete_own" model="ir.rule">
+        <field name="name">Assets: Delete Own</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_asset_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_asset_line_delete_own" model="ir.rule">
+        <field name="name">Depreciation Lines: Delete Own</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_asset_delete_own'))]"/>
+        <field name="domain_force">[('asset_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_asset_delete_all" model="res.groups.privilege">
+        <field name="name">Assets: Delete All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">107</field>
+        <field name="description">Delete any assets.</field>
+    </record>
+    <record id="group_asset_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_delete_all"/>
+        <field name="comment">Delete any assets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_asset_delete_all" model="ir.rule">
+        <field name="name">Assets: Delete All</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_asset_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_asset_line_delete_all" model="ir.rule">
+        <field name="name">Depreciation Lines: Delete All</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_asset_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_asset_post" model="res.groups.privilege">
+        <field name="name">Assets: Confirm and Post</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">108</field>
+        <field name="description">Confirm assets, post, sell, dispose of and modify them, reset them to draft and generate the depreciation entries.</field>
+    </record>
+    <record id="group_asset_post" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_asset_post"/>
+        <field name="comment">Confirm assets, post, sell, dispose of and modify them, reset them to draft and generate the depreciation entries.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <!-- Without a permission, nothing -->
+    <record id="rule_account_asset_asset_deny" model="ir.rule">
+        <field name="name">Assets: only through a permission</field>
+        <field name="model_id" ref="model_account_asset_asset"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_account_asset_depreciation_line_deny" model="ir.rule">
+        <field name="name">Depreciation Lines: only through a permission</field>
+        <field name="model_id" ref="model_account_asset_depreciation_line"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <!-- ============ Budgets ============ -->
+    <record id="privilege_budget_create_only" model="res.groups.privilege">
+        <field name="name">Budgets: Create Only</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">109</field>
+        <field name="description">Create budgets, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_budget_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_create_only"/>
+        <field name="comment">Create budgets, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_budget_create_only" model="ir.rule">
+        <field name="name">Budgets: Create Only</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_budget_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_budget_lines_create_only" model="ir.rule">
+        <field name="name">Budget Lines: Create Only</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_budget_create_only'))]"/>
+        <field name="domain_force">['|', ('crossovered_budget_id.create_uid', '=', user.id), ('crossovered_budget_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_budget_edit_own" model="res.groups.privilege">
+        <field name="name">Budgets: Create and Edit Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">110</field>
+        <field name="description">Create budgets, and view and edit their own.</field>
+    </record>
+    <record id="group_budget_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_edit_own"/>
+        <field name="comment">Create budgets, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_budget_edit_own" model="ir.rule">
+        <field name="name">Budgets: Create and Edit Own</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_budget_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_budget_lines_edit_own" model="ir.rule">
+        <field name="name">Budget Lines: Create and Edit Own</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_budget_edit_own'))]"/>
+        <field name="domain_force">['|', ('crossovered_budget_id.create_uid', '=', user.id), ('crossovered_budget_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_budget_edit_team" model="res.groups.privilege">
+        <field name="name">Budgets: Create and Edit My Team</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">111</field>
+        <field name="description">Create budgets, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_budget_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_edit_team"/>
+        <field name="comment">Create budgets, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_budget_edit_team" model="ir.rule">
+        <field name="name">Budgets: Create and Edit My Team</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_budget_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_budget_lines_edit_team" model="ir.rule">
+        <field name="name">Budget Lines: Create and Edit My Team</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_budget_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('crossovered_budget_id.create_uid', '=', user.id), ('crossovered_budget_id.user_id', '=', user.id), ('crossovered_budget_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_budget_edit_all" model="res.groups.privilege">
+        <field name="name">Budgets: Create and Edit All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">112</field>
+        <field name="description">Create, view and edit all budgets.</field>
+    </record>
+    <record id="group_budget_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_edit_all"/>
+        <field name="comment">Create, view and edit all budgets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_budget_edit_all" model="ir.rule">
+        <field name="name">Budgets: Create and Edit All</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_budget_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_budget_lines_edit_all" model="ir.rule">
+        <field name="name">Budget Lines: Create and Edit All</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_budget_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_budget_view_all" model="res.groups.privilege">
+        <field name="name">Budgets: View All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">113</field>
+        <field name="description">View all budgets.</field>
+    </record>
+    <record id="group_budget_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_view_all"/>
+        <field name="comment">View all budgets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_budget_view_all" model="ir.rule">
+        <field name="name">Budgets: View All</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_budget_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_budget_lines_view_all" model="ir.rule">
+        <field name="name">Budget Lines: View All</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_budget_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_budget_delete_own" model="res.groups.privilege">
+        <field name="name">Budgets: Delete Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">114</field>
+        <field name="description">Delete their own budgets.</field>
+    </record>
+    <record id="group_budget_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_delete_own"/>
+        <field name="comment">Delete their own budgets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_budget_delete_own" model="ir.rule">
+        <field name="name">Budgets: Delete Own</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_budget_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_budget_lines_delete_own" model="ir.rule">
+        <field name="name">Budget Lines: Delete Own</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_budget_delete_own'))]"/>
+        <field name="domain_force">['|', ('crossovered_budget_id.create_uid', '=', user.id), ('crossovered_budget_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_budget_delete_all" model="res.groups.privilege">
+        <field name="name">Budgets: Delete All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">115</field>
+        <field name="description">Delete any budgets.</field>
+    </record>
+    <record id="group_budget_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_delete_all"/>
+        <field name="comment">Delete any budgets.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_budget_delete_all" model="ir.rule">
+        <field name="name">Budgets: Delete All</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_budget_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_budget_lines_delete_all" model="ir.rule">
+        <field name="name">Budget Lines: Delete All</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_budget_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_budget_approve" model="res.groups.privilege">
+        <field name="name">Budgets: Approve</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">116</field>
+        <field name="description">Confirm, approve, cancel and close budgets, and reset them to draft.</field>
+    </record>
+    <record id="group_budget_approve" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_budget_approve"/>
+        <field name="comment">Confirm, approve, cancel and close budgets, and reset them to draft.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <!-- Without a permission, nothing -->
+    <record id="rule_crossovered_budget_deny" model="ir.rule">
+        <field name="name">Budgets: only through a permission</field>
+        <field name="model_id" ref="model_crossovered_budget"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_crossovered_budget_lines_deny" model="ir.rule">
+        <field name="name">Budget Lines: only through a permission</field>
+        <field name="model_id" ref="model_crossovered_budget_lines"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <!-- ============ Recurring Payments ============ -->
+    <record id="privilege_recurring_create_only" model="res.groups.privilege">
+        <field name="name">Recurring Payments: Create Only</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">117</field>
+        <field name="description">Create recurring payments, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_recurring_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_create_only"/>
+        <field name="comment">Create recurring payments, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_recurring_create_only" model="ir.rule">
+        <field name="name">Recurring Payments: Create Only</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_recurring_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_recurring_line_create_only" model="ir.rule">
+        <field name="name">Recurring Payment Lines: Create Only</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_recurring_create_only'))]"/>
+        <field name="domain_force">['|', ('recurring_payment_id.create_uid', '=', user.id), ('recurring_payment_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_recurring_edit_own" model="res.groups.privilege">
+        <field name="name">Recurring Payments: Create and Edit Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">118</field>
+        <field name="description">Create recurring payments, and view and edit their own.</field>
+    </record>
+    <record id="group_recurring_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_edit_own"/>
+        <field name="comment">Create recurring payments, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_recurring_edit_own" model="ir.rule">
+        <field name="name">Recurring Payments: Create and Edit Own</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_recurring_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_recurring_line_edit_own" model="ir.rule">
+        <field name="name">Recurring Payment Lines: Create and Edit Own</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_recurring_edit_own'))]"/>
+        <field name="domain_force">['|', ('recurring_payment_id.create_uid', '=', user.id), ('recurring_payment_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_recurring_edit_team" model="res.groups.privilege">
+        <field name="name">Recurring Payments: Create and Edit My Team</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">119</field>
+        <field name="description">Create recurring payments, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_recurring_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_edit_team"/>
+        <field name="comment">Create recurring payments, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_recurring_edit_team" model="ir.rule">
+        <field name="name">Recurring Payments: Create and Edit My Team</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_recurring_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_recurring_line_edit_team" model="ir.rule">
+        <field name="name">Recurring Payment Lines: Create and Edit My Team</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_recurring_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('recurring_payment_id.create_uid', '=', user.id), ('recurring_payment_id.user_id', '=', user.id), ('recurring_payment_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_recurring_edit_all" model="res.groups.privilege">
+        <field name="name">Recurring Payments: Create and Edit All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">120</field>
+        <field name="description">Create, view and edit all recurring payments.</field>
+    </record>
+    <record id="group_recurring_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_edit_all"/>
+        <field name="comment">Create, view and edit all recurring payments.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_recurring_edit_all" model="ir.rule">
+        <field name="name">Recurring Payments: Create and Edit All</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_recurring_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_recurring_line_edit_all" model="ir.rule">
+        <field name="name">Recurring Payment Lines: Create and Edit All</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_recurring_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_recurring_view_all" model="res.groups.privilege">
+        <field name="name">Recurring Payments: View All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">121</field>
+        <field name="description">View all recurring payments.</field>
+    </record>
+    <record id="group_recurring_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_view_all"/>
+        <field name="comment">View all recurring payments.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_recurring_view_all" model="ir.rule">
+        <field name="name">Recurring Payments: View All</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_recurring_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_recurring_line_view_all" model="ir.rule">
+        <field name="name">Recurring Payment Lines: View All</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_recurring_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_recurring_delete_own" model="res.groups.privilege">
+        <field name="name">Recurring Payments: Delete Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">122</field>
+        <field name="description">Delete their own recurring payments.</field>
+    </record>
+    <record id="group_recurring_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_delete_own"/>
+        <field name="comment">Delete their own recurring payments.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_recurring_delete_own" model="ir.rule">
+        <field name="name">Recurring Payments: Delete Own</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_recurring_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_recurring_line_delete_own" model="ir.rule">
+        <field name="name">Recurring Payment Lines: Delete Own</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_recurring_delete_own'))]"/>
+        <field name="domain_force">['|', ('recurring_payment_id.create_uid', '=', user.id), ('recurring_payment_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_recurring_delete_all" model="res.groups.privilege">
+        <field name="name">Recurring Payments: Delete All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">123</field>
+        <field name="description">Delete any recurring payments.</field>
+    </record>
+    <record id="group_recurring_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_delete_all"/>
+        <field name="comment">Delete any recurring payments.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_recurring_delete_all" model="ir.rule">
+        <field name="name">Recurring Payments: Delete All</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_recurring_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_recurring_line_delete_all" model="ir.rule">
+        <field name="name">Recurring Payment Lines: Delete All</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_recurring_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_recurring_confirm" model="res.groups.privilege">
+        <field name="name">Recurring Payments: Confirm and Generate</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">124</field>
+        <field name="description">Confirm, stop and reset recurring payments, and generate, skip and reset their payments.</field>
+    </record>
+    <record id="group_recurring_confirm" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_recurring_confirm"/>
+        <field name="comment">Confirm, stop and reset recurring payments, and generate, skip and reset their payments.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <!-- Without a permission, nothing -->
+    <record id="rule_recurring_payment_deny" model="ir.rule">
+        <field name="name">Recurring Payments: only through a permission</field>
+        <field name="model_id" ref="model_recurring_payment"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_recurring_payment_line_deny" model="ir.rule">
+        <field name="name">Recurring Payment Lines: only through a permission</field>
+        <field name="model_id" ref="model_recurring_payment_line"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <!-- ============ Period Closings ============ -->
+    <record id="privilege_closing_create_only" model="res.groups.privilege">
+        <field name="name">Period Closings: Create Only</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">125</field>
+        <field name="description">Create period closings, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_closing_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_create_only"/>
+        <field name="comment">Create period closings, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_closing_create_only" model="ir.rule">
+        <field name="name">Period Closings: Create Only</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_closing_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_closing_check_create_only" model="ir.rule">
+        <field name="name">Closing Checks: Create Only</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_closing_create_only'))]"/>
+        <field name="domain_force">[('closing_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_closing_edit_own" model="res.groups.privilege">
+        <field name="name">Period Closings: Create and Edit Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">126</field>
+        <field name="description">Create period closings, and view and edit their own.</field>
+    </record>
+    <record id="group_closing_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_edit_own"/>
+        <field name="comment">Create period closings, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_closing_edit_own" model="ir.rule">
+        <field name="name">Period Closings: Create and Edit Own</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_closing_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_closing_check_edit_own" model="ir.rule">
+        <field name="name">Closing Checks: Create and Edit Own</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_closing_edit_own'))]"/>
+        <field name="domain_force">[('closing_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_closing_edit_team" model="res.groups.privilege">
+        <field name="name">Period Closings: Create and Edit My Team</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">127</field>
+        <field name="description">Create period closings, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_closing_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_edit_team"/>
+        <field name="comment">Create period closings, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_closing_edit_team" model="ir.rule">
+        <field name="name">Period Closings: Create and Edit My Team</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_closing_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_closing_check_edit_team" model="ir.rule">
+        <field name="name">Closing Checks: Create and Edit My Team</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_closing_edit_team'))]"/>
+        <field name="domain_force">['|', ('closing_id.create_uid', '=', user.id), ('closing_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_closing_edit_all" model="res.groups.privilege">
+        <field name="name">Period Closings: Create and Edit All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">128</field>
+        <field name="description">Create, view and edit all period closings.</field>
+    </record>
+    <record id="group_closing_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_edit_all"/>
+        <field name="comment">Create, view and edit all period closings.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_closing_edit_all" model="ir.rule">
+        <field name="name">Period Closings: Create and Edit All</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_closing_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_closing_check_edit_all" model="ir.rule">
+        <field name="name">Closing Checks: Create and Edit All</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_closing_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_closing_view_all" model="res.groups.privilege">
+        <field name="name">Period Closings: View All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">129</field>
+        <field name="description">View all period closings.</field>
+    </record>
+    <record id="group_closing_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_view_all"/>
+        <field name="comment">View all period closings.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_closing_view_all" model="ir.rule">
+        <field name="name">Period Closings: View All</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_closing_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_closing_check_view_all" model="ir.rule">
+        <field name="name">Closing Checks: View All</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_closing_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_closing_delete_own" model="res.groups.privilege">
+        <field name="name">Period Closings: Delete Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">130</field>
+        <field name="description">Delete their own period closings.</field>
+    </record>
+    <record id="group_closing_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_delete_own"/>
+        <field name="comment">Delete their own period closings.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_closing_delete_own" model="ir.rule">
+        <field name="name">Period Closings: Delete Own</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_closing_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_closing_check_delete_own" model="ir.rule">
+        <field name="name">Closing Checks: Delete Own</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_closing_delete_own'))]"/>
+        <field name="domain_force">[('closing_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_closing_delete_all" model="res.groups.privilege">
+        <field name="name">Period Closings: Delete All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">131</field>
+        <field name="description">Delete any period closings.</field>
+    </record>
+    <record id="group_closing_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_delete_all"/>
+        <field name="comment">Delete any period closings.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <record id="rule_closing_delete_all" model="ir.rule">
+        <field name="name">Period Closings: Delete All</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_closing_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_closing_check_delete_all" model="ir.rule">
+        <field name="name">Closing Checks: Delete All</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_closing_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_closing_close" model="res.groups.privilege">
+        <field name="name">Period Closings: Close and Reopen</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">132</field>
+        <field name="description">Close a period (locking its dates) and reopen it.</field>
+    </record>
+    <record id="group_closing_close" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_closing_close"/>
+        <field name="comment">Close a period (locking its dates) and reopen it.</field>
+        <field name="implied_ids" eval="[(4, ref('group_accounting_user'))]"/>
+    </record>
+    <!-- Without a permission, nothing -->
+    <record id="rule_account_period_closing_deny" model="ir.rule">
+        <field name="name">Period Closings: only through a permission</field>
+        <field name="model_id" ref="model_account_period_closing"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_account_period_closing_check_deny" model="ir.rule">
+        <field name="name">Closing Checks: only through a permission</field>
+        <field name="model_id" ref="model_account_period_closing_check"/>
+        <field name="groups" eval="[(4, ref('group_accounting_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <!-- ============ Administrator ============ -->
+    <record id="privilege_accounting_admin" model="res.groups.privilege">
+        <field name="name">Accounting Administration</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">133</field>
+        <field name="description">Every Accounting permission, plus the Accounting Configuration (asset categories, budgetary positions, recurring templates, fiscal years, closing tasks, follow-up plans and financial reports).</field>
+    </record>
+    <record id="group_accounting_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_accounting_admin"/>
+        <field name="comment">Every Accounting permission, including deleting any record and every workflow action, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_asset_create_only')), (4, ref('group_asset_edit_own')), (4, ref('group_asset_edit_team')), (4, ref('group_asset_edit_all')), (4, ref('group_asset_view_all')), (4, ref('group_asset_delete_own')), (4, ref('group_asset_delete_all')), (4, ref('group_asset_post')), (4, ref('group_budget_create_only')), (4, ref('group_budget_edit_own')), (4, ref('group_budget_edit_team')), (4, ref('group_budget_edit_all')), (4, ref('group_budget_view_all')), (4, ref('group_budget_delete_own')), (4, ref('group_budget_delete_all')), (4, ref('group_budget_approve')), (4, ref('group_recurring_create_only')), (4, ref('group_recurring_edit_own')), (4, ref('group_recurring_edit_team')), (4, ref('group_recurring_edit_all')), (4, ref('group_recurring_view_all')), (4, ref('group_recurring_delete_own')), (4, ref('group_recurring_delete_all')), (4, ref('group_recurring_confirm')), (4, ref('group_closing_create_only')), (4, ref('group_closing_edit_own')), (4, ref('group_closing_edit_team')), (4, ref('group_closing_edit_all')), (4, ref('group_closing_view_all')), (4, ref('group_closing_delete_own')), (4, ref('group_closing_delete_all')), (4, ref('group_closing_close'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>
