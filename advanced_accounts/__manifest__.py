@@ -1,6 +1,6 @@
 {
     'name': 'Advanced Accounts',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Sales/CRM',
     'summary': 'Accounts and Contacts, modelled on Salesforce and HubSpot, in place of the Contacts app',
     'description': """
