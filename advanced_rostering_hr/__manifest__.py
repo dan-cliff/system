@@ -22,7 +22,7 @@
         - Public Holiday Jurisdictions on Employees (Settings › Rostering, with
           Import Public Holidays on): each employee's Payroll tab lists the
           jurisdictions whose public holidays apply to them, filled from the
-          Country and State of their private address; their shifts show those
+          Country and State of their Work Address; their shifts show those
           holidays
     """,
     'author': "Cliff's Country Crafts",

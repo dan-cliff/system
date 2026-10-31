@@ -91,11 +91,14 @@ class TestRosteringHr(TransactionCase):
         params = self.env['ir.config_parameter'].sudo()
         params.set_param('advanced_rostering.holiday_import', 'True')
         params.set_param('advanced_rostering.employee_jurisdictions', 'True')
-        self.worker.write({'private_country_id': au.id, 'private_state_id': vic.id})
+        # Filled from the Work Address, not the private address.
+        melbourne = self.env['res.partner'].create({'name': 'Melbourne Shop', 'country_id': au.id,
+                                                    'state_id': vic.id})
+        self.worker.write({'private_country_id': False, 'private_state_id': False, 'address_id': melbourne.id})
         self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | state)
         # Picked by hand: kept when the address changes.
         self.worker.rostering_holiday_jurisdiction_ids |= religion
-        self.worker.write({'private_state_id': False})
+        melbourne.state_id = False
         self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | religion)
 
         holiday = self.env['rostering.public.holiday'].create({

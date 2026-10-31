@@ -27,7 +27,7 @@ class HrEmployee(models.Model):
         compute='_compute_rostering_holiday_jurisdiction_ids', store=True, readonly=False,
         groups='hr.group_hr_user',
         help='Which public holidays apply to the employee in Rostering. The Country and State of their '
-             'private address are picked automatically; add religions or others by hand.',
+             'Work Address are picked automatically; add religions or others by hand.',
     )
     # Fields only on hr.employee need an HR group (see hr's hr.employee.public).
     rostering_jurisdictions_enabled = fields.Boolean(compute='_compute_rostering_jurisdictions_enabled',
@@ -42,7 +42,7 @@ class HrEmployee(models.Model):
     def _compute_rostering_jurisdictions_enabled(self):
         self.rostering_jurisdictions_enabled = self._rostering_jurisdictions_switched_on()
 
-    @api.depends('private_country_id', 'private_state_id')
+    @api.depends('address_id', 'address_id.country_id', 'address_id.state_id')
     def _compute_rostering_holiday_jurisdiction_ids(self):
         if not self._rostering_jurisdictions_switched_on():
             for employee in self:
@@ -53,11 +53,11 @@ class HrEmployee(models.Model):
 
     def _rostering_address_jurisdictions(self):
         """The jurisdictions picked by hand (religion, other) plus the Country
-        and State jurisdictions of the private address."""
+        and State jurisdictions of the Work Address."""
         self.ensure_one()
         kept = self.rostering_holiday_jurisdiction_ids.filtered(lambda j: j.kind not in ('country', 'state'))
         address = self.env['rostering.holiday.jurisdiction']._for_address(
-            self.private_country_id, self.private_state_id)
+            self.address_id.country_id, self.address_id.state_id)
         return kept | address
 
     @api.model
