@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_pay_frequency_view_list" model="ir.ui.view">
+        <field name="name">payroll.pay.frequency.list</field>
+        <field name="model">payroll.pay.frequency</field>
+        <field name="arch" type="xml">
+            <list string="Pay Frequencies">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="interval_count" optional="show"/>
+                <field name="interval_unit" optional="show"/>
+                <field name="periods_per_year"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_pay_frequency_view_form" model="ir.ui.view">
+        <field name="name">payroll.pay.frequency.form</field>
+        <field name="model">payroll.pay.frequency</field>
+        <field name="arch" type="xml">
+            <form string="Pay Frequency">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Fortnightly"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <label for="interval_count" string="Each Period Covers"/>
+                            <div class="o_row">
+                                <field name="interval_count" class="oe_inline" invisible="interval_unit == 'semi_month'"/>
+                                <field name="interval_unit" class="oe_inline"/>
+                            </div>
+                            <field name="periods_per_year"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_pay_frequency_view_search" model="ir.ui.view">
+        <field name="name">payroll.pay.frequency.search</field>
+        <field name="model">payroll.pay.frequency</field>
+        <field name="arch" type="xml">
+            <search string="Pay Frequencies">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_payroll_pay_frequency" model="ir.actions.act_window">
+        <field name="name">Pay Frequencies</field>
+        <field name="res_model">payroll.pay.frequency</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a pay frequency</p>
+            <p>How often employees are paid: weekly, fortnightly, semi-monthly, monthly, ...</p>
+        </field>
+    </record>
+</odoo>

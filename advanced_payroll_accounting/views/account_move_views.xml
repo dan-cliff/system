@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_payroll" model="ir.ui.view">
+        <field name="name">account.move.form.payroll</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <field name="ref" position="after">
+                <field name="payroll_run_id" invisible="not payroll_run_id"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Payroll › Reporting › Payroll Journal Items -->
+    <record id="action_payroll_move_lines" model="ir.actions.act_window">
+        <field name="name">Payroll Journal Items</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="domain">[('move_id.payroll_run_id', '!=', False), ('parent_state', '=', 'posted')]</field>
+        <field name="context">{'pivot_row_groupby': ['account_id'], 'pivot_column_groupby': ['date:month'], 'pivot_measures': ['balance'], 'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No payroll entries yet</p>
+            <p>Approved pay runs post their journal entries here: wages and contributions by account and month.</p>
+        </field>
+    </record>
+</odoo>

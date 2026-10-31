@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- New Zealand payroll, 2026–27 tax year. Shipped as noupdate data so
+         administrators can update the rates each year. -->
+    <data noupdate="1">
+        <record id="payroll_country_nz" model="payroll.country">
+            <field name="name">New Zealand</field>
+            <field name="code">NZ</field>
+            <field name="country_id" ref="base.nz"/>
+            <field name="sequence">20</field>
+            <field name="tax_year_start_month">4</field>
+            <field name="tax_year_start_day">1</field>
+            <field name="default_pay_frequency_id" ref="advanced_payroll.pay_frequency_fortnightly"/>
+            <field name="standard_hours_per_week">40</field>
+            <field name="ordinary_pay_item_id" ref="advanced_payroll.pay_item_ordinary"/>
+            <field name="note">&lt;p&gt;Tax year 1 April – 31 March. Check the rates against Inland Revenue's current figures each year.&lt;/p&gt;</field>
+        </record>
+
+        <!-- Pay items -->
+        <record id="pay_item_nz_annual_holidays" model="payroll.pay.item">
+            <field name="name">Annual Holidays</field>
+            <field name="code">NZ_AH</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">30</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+        <record id="pay_item_nz_sick_leave" model="payroll.pay.item">
+            <field name="name">Sick Leave</field>
+            <field name="code">NZ_SICK</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">31</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+        <record id="pay_item_nz_public_holiday_worked" model="payroll.pay.item">
+            <field name="name">Public Holiday Worked (Time and a Half)</field>
+            <field name="code">NZ_PHW</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">36</field>
+            <field name="category">earning</field>
+            <field name="calculation">hours</field>
+            <field name="rate_multiplier">1.5</field>
+        </record>
+        <record id="pay_item_nz_alternative_holiday" model="payroll.pay.item">
+            <field name="name">Alternative Holiday</field>
+            <field name="code">NZ_ALT</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">37</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+
+        <!-- Tax tables -->
+        <record id="tax_table_nz_main" model="payroll.tax.table">
+            <field name="name">Main Income (M)</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">10</field>
+            <field name="note">Income tax rates from 31 July 2024: 10.5% to $15,600, 17.5% to $53,500, 30% to $78,100, 33% to $180,000, then 39%.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 10.5}),
+                (0, 0, {'threshold': 15600, 'rate': 17.5}),
+                (0, 0, {'threshold': 53500, 'rate': 30}),
+                (0, 0, {'threshold': 78100, 'rate': 33}),
+                (0, 0, {'threshold': 180000, 'rate': 39})]"/>
+        </record>
+        <record id="tax_table_nz_sb" model="payroll.tax.table">
+            <field name="name">Secondary – SB (10.5%)</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">20</field>
+            <field name="bracket_ids" eval="[(0, 0, {'threshold': 0, 'rate': 10.5})]"/>
+        </record>
+        <record id="tax_table_nz_s" model="payroll.tax.table">
+            <field name="name">Secondary – S (17.5%)</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">21</field>
+            <field name="bracket_ids" eval="[(0, 0, {'threshold': 0, 'rate': 17.5})]"/>
+        </record>
+        <record id="tax_table_nz_sh" model="payroll.tax.table">
+            <field name="name">Secondary – SH (30%)</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">22</field>
+            <field name="bracket_ids" eval="[(0, 0, {'threshold': 0, 'rate': 30})]"/>
+        </record>
+        <record id="tax_table_nz_st" model="payroll.tax.table">
+            <field name="name">Secondary – ST (33%)</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">23</field>
+            <field name="bracket_ids" eval="[(0, 0, {'threshold': 0, 'rate': 33})]"/>
+        </record>
+        <record id="tax_table_nz_sa" model="payroll.tax.table">
+            <field name="name">Secondary – SA (39%)</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">24</field>
+            <field name="bracket_ids" eval="[(0, 0, {'threshold': 0, 'rate': 39})]"/>
+        </record>
+        <record id="tax_table_nz_nd" model="payroll.tax.table">
+            <field name="name">No Declaration – ND (45%)</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">30</field>
+            <field name="bracket_ids" eval="[(0, 0, {'threshold': 0, 'rate': 45})]"/>
+        </record>
+
+        <!-- Tax codes -->
+        <record id="tax_code_m" model="payroll.nz.tax.code">
+            <field name="name">M</field>
+            <field name="sequence">10</field>
+            <field name="tax_table_id" ref="tax_table_nz_main"/>
+            <field name="description">Main income, no student loan.</field>
+        </record>
+        <record id="tax_code_m_sl" model="payroll.nz.tax.code">
+            <field name="name">M SL</field>
+            <field name="sequence">11</field>
+            <field name="tax_table_id" ref="tax_table_nz_main"/>
+            <field name="student_loan" eval="True"/>
+            <field name="description">Main income with a student loan.</field>
+        </record>
+        <record id="tax_code_sb" model="payroll.nz.tax.code">
+            <field name="name">SB</field>
+            <field name="sequence">20</field>
+            <field name="tax_table_id" ref="tax_table_nz_sb"/>
+        </record>
+        <record id="tax_code_s" model="payroll.nz.tax.code">
+            <field name="name">S</field>
+            <field name="sequence">21</field>
+            <field name="tax_table_id" ref="tax_table_nz_s"/>
+        </record>
+        <record id="tax_code_sh" model="payroll.nz.tax.code">
+            <field name="name">SH</field>
+            <field name="sequence">22</field>
+            <field name="tax_table_id" ref="tax_table_nz_sh"/>
+        </record>
+        <record id="tax_code_st" model="payroll.nz.tax.code">
+            <field name="name">ST</field>
+            <field name="sequence">23</field>
+            <field name="tax_table_id" ref="tax_table_nz_st"/>
+        </record>
+        <record id="tax_code_sa" model="payroll.nz.tax.code">
+            <field name="name">SA</field>
+            <field name="sequence">24</field>
+            <field name="tax_table_id" ref="tax_table_nz_sa"/>
+        </record>
+        <record id="tax_code_nd" model="payroll.nz.tax.code">
+            <field name="name">ND</field>
+            <field name="sequence">30</field>
+            <field name="tax_table_id" ref="tax_table_nz_nd"/>
+            <field name="description">No IR330 or IRD number given.</field>
+        </record>
+
+        <!-- Rules -->
+        <record id="rule_nz_paye" model="payroll.rule">
+            <field name="name">PAYE</field>
+            <field name="code">NZ_PAYE</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">10</field>
+            <field name="category">tax</field>
+            <field name="compute_method">brackets</field>
+            <field name="base">taxable</field>
+            <field name="tax_table_id" ref="tax_table_nz_main"/>
+            <field name="description">Income tax at the employee's tax code, on annualised taxable pay.</field>
+        </record>
+        <record id="rule_nz_acc" model="payroll.rule">
+            <field name="name">ACC Earners' Levy</field>
+            <field name="code">NZ_ACC</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">20</field>
+            <field name="category">tax</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">taxable</field>
+            <field name="rate">1.75</field>
+            <field name="annual_cap">156641</field>
+            <field name="description">1.75% of liable earnings up to the maximum ($156,641) for 2026–27.</field>
+        </record>
+        <record id="rule_nz_student_loan" model="payroll.rule">
+            <field name="name">Student Loan Repayment</field>
+            <field name="code">NZ_SL</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">30</field>
+            <field name="category">deduction</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">taxable</field>
+            <field name="rate">12</field>
+            <field name="annual_exemption">24128</field>
+            <field name="description">12% of pay above the repayment threshold ($24,128 a year, spread over the pay periods), for tax codes with SL.</field>
+        </record>
+        <record id="rule_nz_kiwisaver_employee" model="payroll.rule">
+            <field name="name">KiwiSaver Employee Contribution</field>
+            <field name="code">NZ_KS_EE</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">40</field>
+            <field name="category">deduction</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">retirement</field>
+            <field name="rate">3.5</field>
+            <field name="description">The employee's KiwiSaver rate of gross pay, for members.</field>
+        </record>
+        <record id="rule_nz_kiwisaver_employer" model="payroll.rule">
+            <field name="name">KiwiSaver Employer Contribution</field>
+            <field name="code">NZ_KS_ER</field>
+            <field name="country_id" ref="payroll_country_nz"/>
+            <field name="sequence">50</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">retirement</field>
+            <field name="rate">3.5</field>
+            <field name="description">The employer's KiwiSaver contribution, for members (before ESCT).</field>
+        </record>
+    </data>
+</odoo>

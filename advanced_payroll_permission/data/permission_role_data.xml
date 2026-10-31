@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_payroll_admin" model="permission.role">
+            <field name="name">Payroll – Administrator</field>
+            <field name="description">Everything in Payroll: every pay run, payslip and payroll employee permission, including deleting, approving and marking pay runs as paid, plus Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_advanced_payroll'), 'group_id': ref('advanced_payroll.group_payroll_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_create_only'), 'group_id': ref('advanced_payroll.group_run_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_edit_own'), 'group_id': ref('advanced_payroll.group_run_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_edit_team'), 'group_id': ref('advanced_payroll.group_run_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_edit_all'), 'group_id': ref('advanced_payroll.group_run_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_view_all'), 'group_id': ref('advanced_payroll.group_run_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_delete_own'), 'group_id': ref('advanced_payroll.group_run_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_delete_all'), 'group_id': ref('advanced_payroll.group_run_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_create_only'), 'group_id': ref('advanced_payroll.group_slip_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_edit_own'), 'group_id': ref('advanced_payroll.group_slip_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_edit_team'), 'group_id': ref('advanced_payroll.group_slip_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_edit_all'), 'group_id': ref('advanced_payroll.group_slip_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_view_all'), 'group_id': ref('advanced_payroll.group_slip_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_delete_own'), 'group_id': ref('advanced_payroll.group_slip_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_delete_all'), 'group_id': ref('advanced_payroll.group_slip_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_create_only'), 'group_id': ref('advanced_payroll.group_employee_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_edit_own'), 'group_id': ref('advanced_payroll.group_employee_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_edit_team'), 'group_id': ref('advanced_payroll.group_employee_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_edit_all'), 'group_id': ref('advanced_payroll.group_employee_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_view_all'), 'group_id': ref('advanced_payroll.group_employee_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_delete_own'), 'group_id': ref('advanced_payroll.group_employee_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_delete_all'), 'group_id': ref('advanced_payroll.group_employee_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_approve'), 'group_id': ref('advanced_payroll.group_run_approve')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_pay'), 'group_id': ref('advanced_payroll.group_run_pay')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_my'), 'group_id': ref('advanced_payroll.group_slip_my')})
+            ]"/>
+        </record>
+        <record id="role_payroll_manager" model="permission.role">
+            <field name="name">Payroll – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s pay runs, payslips and payroll employees, and view their own payslips. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_edit_team'), 'group_id': ref('advanced_payroll.group_run_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_edit_team'), 'group_id': ref('advanced_payroll.group_slip_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_employee_edit_team'), 'group_id': ref('advanced_payroll.group_employee_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_my'), 'group_id': ref('advanced_payroll.group_slip_my')})
+            ]"/>
+        </record>
+        <record id="role_payroll_employee" model="permission.role">
+            <field name="name">Payroll – Employee</field>
+            <field name="description">View and print their own payslips once the pay run is approved.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_my'), 'group_id': ref('advanced_payroll.group_slip_my')})
+            ]"/>
+        </record>
+        <record id="role_payroll_approver" model="permission.role">
+            <field name="name">Payroll – Approver</field>
+            <field name="description">See every pay run and payslip, approve pay runs and mark them as paid.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_view_all'), 'group_id': ref('advanced_payroll.group_run_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_slip_view_all'), 'group_id': ref('advanced_payroll.group_slip_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_approve'), 'group_id': ref('advanced_payroll.group_run_approve')}),
+                (0, 0, {'privilege_id': ref('advanced_payroll.privilege_run_pay'), 'group_id': ref('advanced_payroll.group_run_pay')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_employee_view_form_accounting" model="ir.ui.view">
+        <field name="name">payroll.employee.form.accounting</field>
+        <field name="model">payroll.employee</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_employee_view_form"/>
+        <field name="arch" type="xml">
+            <group name="pay_rate" position="after">
+                <group name="accounting" string="Accounting">
+                    <field name="analytic_distribution" widget="analytic_distribution" string="Cost Centres"
+                           groups="analytic.group_analytic_accounting"/>
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>

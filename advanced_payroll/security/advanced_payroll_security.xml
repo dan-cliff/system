@@ -1,0 +1,694 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every permission below is its
+         own privilege with one "Allowed" group, whose record rules give it its
+         meaning. All of them imply the technical Payroll user group, which holds
+         the ACLs and a deny rule per operation, so users can only do what a
+         permission opens. Payslip lines follow their payslip. "Own" is what they
+         created; "My Team" adds what the people under them in the org chart
+         created. Approving, marking as paid and resetting pay runs are checked in
+         code and write with sudo(). View My Payslips shows employees their own
+         approved payslips. -->
+    <data noupdate="1">
+        <record id="module_category_advanced_payroll" model="ir.module.category">
+            <field name="name">Payroll</field>
+            <field name="description">Pay runs, payslips and payroll employees.</field>
+            <field name="sequence">48</field>
+        </record>
+    </data>
+
+    <record id="group_payroll_user" model="res.groups">
+        <field name="name">Payroll: User</field>
+        <field name="comment">Technical: given by every Payroll permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="privilege_run_create_only" model="res.groups.privilege">
+        <field name="name">Pay Runs: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">100</field>
+        <field name="description">Create pay runs, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_run_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_create_only"/>
+        <field name="comment">Create pay runs, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_edit_own" model="res.groups.privilege">
+        <field name="name">Pay Runs: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">110</field>
+        <field name="description">Create pay runs, and view and edit their own.</field>
+    </record>
+    <record id="group_run_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_edit_own"/>
+        <field name="comment">Create pay runs, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_edit_team" model="res.groups.privilege">
+        <field name="name">Pay Runs: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">120</field>
+        <field name="description">Create pay runs, and view and edit their own and their team&apos;s (everyone under them in the org chart).</field>
+    </record>
+    <record id="group_run_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_edit_team"/>
+        <field name="comment">Create pay runs, and view and edit their own and their team&apos;s (everyone under them in the org chart).</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_edit_all" model="res.groups.privilege">
+        <field name="name">Pay Runs: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">130</field>
+        <field name="description">Create pay runs, and view and edit all of them.</field>
+    </record>
+    <record id="group_run_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_edit_all"/>
+        <field name="comment">Create pay runs, and view and edit all of them.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_view_all" model="res.groups.privilege">
+        <field name="name">Pay Runs: View All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">140</field>
+        <field name="description">View all pay runs.</field>
+    </record>
+    <record id="group_run_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_view_all"/>
+        <field name="comment">View all pay runs.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_delete_own" model="res.groups.privilege">
+        <field name="name">Pay Runs: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">150</field>
+        <field name="description">Delete their own pay runs.</field>
+    </record>
+    <record id="group_run_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_delete_own"/>
+        <field name="comment">Delete their own pay runs.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_delete_all" model="res.groups.privilege">
+        <field name="name">Pay Runs: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">160</field>
+        <field name="description">Delete any pay runs.</field>
+    </record>
+    <record id="group_run_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_delete_all"/>
+        <field name="comment">Delete any pay runs.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_create_only" model="res.groups.privilege">
+        <field name="name">Payslips: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">200</field>
+        <field name="description">Create payslips, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_slip_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_create_only"/>
+        <field name="comment">Create payslips, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_edit_own" model="res.groups.privilege">
+        <field name="name">Payslips: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">210</field>
+        <field name="description">Create payslips, and view and edit their own.</field>
+    </record>
+    <record id="group_slip_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_edit_own"/>
+        <field name="comment">Create payslips, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_edit_team" model="res.groups.privilege">
+        <field name="name">Payslips: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">220</field>
+        <field name="description">Create payslips, and view and edit their own and their team&apos;s (everyone under them in the org chart).</field>
+    </record>
+    <record id="group_slip_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_edit_team"/>
+        <field name="comment">Create payslips, and view and edit their own and their team&apos;s (everyone under them in the org chart).</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_edit_all" model="res.groups.privilege">
+        <field name="name">Payslips: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">230</field>
+        <field name="description">Create payslips, and view and edit all of them.</field>
+    </record>
+    <record id="group_slip_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_edit_all"/>
+        <field name="comment">Create payslips, and view and edit all of them.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_view_all" model="res.groups.privilege">
+        <field name="name">Payslips: View All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">240</field>
+        <field name="description">View all payslips.</field>
+    </record>
+    <record id="group_slip_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_view_all"/>
+        <field name="comment">View all payslips.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_delete_own" model="res.groups.privilege">
+        <field name="name">Payslips: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">250</field>
+        <field name="description">Delete their own payslips.</field>
+    </record>
+    <record id="group_slip_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_delete_own"/>
+        <field name="comment">Delete their own payslips.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_delete_all" model="res.groups.privilege">
+        <field name="name">Payslips: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">260</field>
+        <field name="description">Delete any payslips.</field>
+    </record>
+    <record id="group_slip_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_delete_all"/>
+        <field name="comment">Delete any payslips.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_employee_create_only" model="res.groups.privilege">
+        <field name="name">Payroll Employees: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">300</field>
+        <field name="description">Create payroll employees, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_employee_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_employee_create_only"/>
+        <field name="comment">Create payroll employees, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_employee_edit_own" model="res.groups.privilege">
+        <field name="name">Payroll Employees: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">310</field>
+        <field name="description">Create payroll employees, and view and edit their own.</field>
+    </record>
+    <record id="group_employee_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_employee_edit_own"/>
+        <field name="comment">Create payroll employees, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_employee_edit_team" model="res.groups.privilege">
+        <field name="name">Payroll Employees: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">320</field>
+        <field name="description">Create payroll employees, and view and edit their own and their team&apos;s (everyone under them in the org chart).</field>
+    </record>
+    <record id="group_employee_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_employee_edit_team"/>
+        <field name="comment">Create payroll employees, and view and edit their own and their team&apos;s (everyone under them in the org chart).</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_employee_edit_all" model="res.groups.privilege">
+        <field name="name">Payroll Employees: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">330</field>
+        <field name="description">Create payroll employees, and view and edit all of them.</field>
+    </record>
+    <record id="group_employee_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_employee_edit_all"/>
+        <field name="comment">Create payroll employees, and view and edit all of them.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_employee_view_all" model="res.groups.privilege">
+        <field name="name">Payroll Employees: View All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">340</field>
+        <field name="description">View all payroll employees.</field>
+    </record>
+    <record id="group_employee_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_employee_view_all"/>
+        <field name="comment">View all payroll employees.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_employee_delete_own" model="res.groups.privilege">
+        <field name="name">Payroll Employees: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">350</field>
+        <field name="description">Delete their own payroll employees.</field>
+    </record>
+    <record id="group_employee_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_employee_delete_own"/>
+        <field name="comment">Delete their own payroll employees.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_employee_delete_all" model="res.groups.privilege">
+        <field name="name">Payroll Employees: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">360</field>
+        <field name="description">Delete any payroll employees.</field>
+    </record>
+    <record id="group_employee_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_employee_delete_all"/>
+        <field name="comment">Delete any payroll employees.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_approve" model="res.groups.privilege">
+        <field name="name">Pay Runs: Approve</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">410</field>
+        <field name="description">Approve pay runs (locking their payslips) and reset approved pay runs to draft. Sees every pay run and payslip.</field>
+    </record>
+    <record id="group_run_approve" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_approve"/>
+        <field name="comment">Approve pay runs (locking their payslips) and reset approved pay runs to draft. Sees every pay run and payslip.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_run_pay" model="res.groups.privilege">
+        <field name="name">Pay Runs: Mark as Paid</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">420</field>
+        <field name="description">Mark approved pay runs as paid. Sees every pay run and payslip.</field>
+    </record>
+    <record id="group_run_pay" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_run_pay"/>
+        <field name="comment">Mark approved pay runs as paid. Sees every pay run and payslip.</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_slip_my" model="res.groups.privilege">
+        <field name="name">Payslips: View My Payslips</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">430</field>
+        <field name="description">View and print their own payslips once the pay run is approved (My Payslips).</field>
+    </record>
+    <record id="group_slip_my" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_slip_my"/>
+        <field name="comment">View and print their own payslips once the pay run is approved (My Payslips).</field>
+        <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_payroll" model="res.groups.privilege">
+        <field name="name">Payroll</field>
+        <field name="category_id" ref="module_category_advanced_payroll"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Payroll app.</field>
+    </record>
+    <record id="group_payroll_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_advanced_payroll"/>
+        <field name="comment">Every Payroll permission, including deleting, approving, marking as paid and reopening paid pay runs, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_run_create_only')), (4, ref('group_run_edit_own')), (4, ref('group_run_edit_team')), (4, ref('group_run_edit_all')), (4, ref('group_run_view_all')), (4, ref('group_run_delete_own')), (4, ref('group_run_delete_all')), (4, ref('group_slip_create_only')), (4, ref('group_slip_edit_own')), (4, ref('group_slip_edit_team')), (4, ref('group_slip_edit_all')), (4, ref('group_slip_view_all')), (4, ref('group_slip_delete_own')), (4, ref('group_slip_delete_all')), (4, ref('group_employee_create_only')), (4, ref('group_employee_edit_own')), (4, ref('group_employee_edit_team')), (4, ref('group_employee_edit_all')), (4, ref('group_employee_view_all')), (4, ref('group_employee_delete_own')), (4, ref('group_employee_delete_all')), (4, ref('group_run_approve')), (4, ref('group_run_pay')), (4, ref('group_slip_my'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing -->
+    <record id="rule_payroll_run_deny" model="ir.rule">
+        <field name="name">Pay Runs: only through a permission</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_payroll_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+    <record id="rule_payroll_slip_deny" model="ir.rule">
+        <field name="name">Payslips: only through a permission</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_payroll_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+    <record id="rule_payroll_slip_line_deny" model="ir.rule">
+        <field name="name">Payslip Lines: only through a permission</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_payroll_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+    <record id="rule_payroll_employee_deny" model="ir.rule">
+        <field name="name">Payroll Employees: only through a permission</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_payroll_user'))]"/>
+        <field name="domain_force">[(0, &apos;=&apos;, 1)]</field>
+    </record>
+
+    <!-- Pay Runs -->
+    <record id="rule_payroll_run_create_only" model="ir.rule">
+        <field name="name">Pay Runs: Create Only</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_create_only'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_edit_own" model="ir.rule">
+        <field name="name">Pay Runs: Create and Edit Own</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_edit_own'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_edit_team" model="ir.rule">
+        <field name="name">Pay Runs: Create and Edit My Team</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_edit_team'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;create_uid&apos;, &apos;=&apos;, user.id), (&apos;create_uid.employee_ids&apos;, &apos;child_of&apos;, user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_edit_all" model="ir.rule">
+        <field name="name">Pay Runs: Create and Edit All</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_edit_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_view_all" model="ir.rule">
+        <field name="name">Pay Runs: View All</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_view_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_delete_own" model="ir.rule">
+        <field name="name">Pay Runs: Delete Own</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_delete_own'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_delete_all" model="ir.rule">
+        <field name="name">Pay Runs: Delete All</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_workflow" model="ir.rule">
+        <field name="name">Pay Runs: approvers and payers see them all</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_run_approve')), (4, ref('group_run_pay'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_run_my" model="ir.rule">
+        <field name="name">Pay Runs: View My Payslips (their pay runs)</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="groups" eval="[(4, ref('group_slip_my'))]"/>
+        <field name="domain_force">[(&apos;slip_ids.user_id&apos;, &apos;=&apos;, user.id), (&apos;state&apos;, &apos;in&apos;, (&apos;approved&apos;, &apos;paid&apos;))]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Payslips -->
+    <record id="rule_payroll_slip_create_only" model="ir.rule">
+        <field name="name">Payslips: Create Only</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_create_only'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_edit_own" model="ir.rule">
+        <field name="name">Payslips: Create and Edit Own</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_edit_own'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_edit_team" model="ir.rule">
+        <field name="name">Payslips: Create and Edit My Team</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_edit_team'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;create_uid&apos;, &apos;=&apos;, user.id), (&apos;create_uid.employee_ids&apos;, &apos;child_of&apos;, user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_edit_all" model="ir.rule">
+        <field name="name">Payslips: Create and Edit All</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_edit_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_view_all" model="ir.rule">
+        <field name="name">Payslips: View All</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_view_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_delete_own" model="ir.rule">
+        <field name="name">Payslips: Delete Own</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_delete_own'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_delete_all" model="ir.rule">
+        <field name="name">Payslips: Delete All</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_workflow" model="ir.rule">
+        <field name="name">Payslips: approvers and payers see them all</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_run_approve')), (4, ref('group_run_pay'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_my" model="ir.rule">
+        <field name="name">Payslips: View My Payslips</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="groups" eval="[(4, ref('group_slip_my'))]"/>
+        <field name="domain_force">[(&apos;user_id&apos;, &apos;=&apos;, user.id), (&apos;state&apos;, &apos;in&apos;, (&apos;approved&apos;, &apos;paid&apos;))]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Payslip Lines -->
+    <record id="rule_payroll_slip_line_create_only" model="ir.rule">
+        <field name="name">Payslip Lines: Create Only</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_create_only'))]"/>
+        <field name="domain_force">[(&apos;slip_id.create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_edit_own" model="ir.rule">
+        <field name="name">Payslip Lines: Create and Edit Own</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_edit_own'))]"/>
+        <field name="domain_force">[(&apos;slip_id.create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_edit_team" model="ir.rule">
+        <field name="name">Payslip Lines: Create and Edit My Team</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_edit_team'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;slip_id.create_uid&apos;, &apos;=&apos;, user.id), (&apos;slip_id.create_uid.employee_ids&apos;, &apos;child_of&apos;, user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_edit_all" model="ir.rule">
+        <field name="name">Payslip Lines: Create and Edit All</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_edit_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_view_all" model="ir.rule">
+        <field name="name">Payslip Lines: View All</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_view_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_delete_own" model="ir.rule">
+        <field name="name">Payslip Lines: Delete Own</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_delete_own'))]"/>
+        <field name="domain_force">[(&apos;slip_id.create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_delete_all" model="ir.rule">
+        <field name="name">Payslip Lines: Delete All</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_workflow" model="ir.rule">
+        <field name="name">Payslip Lines: approvers and payers see them all</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_run_approve')), (4, ref('group_run_pay'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_slip_line_my" model="ir.rule">
+        <field name="name">Payslip Lines: View My Payslips</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="groups" eval="[(4, ref('group_slip_my'))]"/>
+        <field name="domain_force">[(&apos;slip_id.user_id&apos;, &apos;=&apos;, user.id), (&apos;slip_id.state&apos;, &apos;in&apos;, (&apos;approved&apos;, &apos;paid&apos;))]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Payroll Employees -->
+    <record id="rule_payroll_employee_create_only" model="ir.rule">
+        <field name="name">Payroll Employees: Create Only</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_employee_create_only'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_edit_own" model="ir.rule">
+        <field name="name">Payroll Employees: Create and Edit Own</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_employee_edit_own'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_edit_team" model="ir.rule">
+        <field name="name">Payroll Employees: Create and Edit My Team</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_employee_edit_team'))]"/>
+        <field name="domain_force">[&apos;|&apos;, (&apos;create_uid&apos;, &apos;=&apos;, user.id), (&apos;create_uid.employee_ids&apos;, &apos;child_of&apos;, user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_edit_all" model="ir.rule">
+        <field name="name">Payroll Employees: Create and Edit All</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_employee_edit_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_view_all" model="ir.rule">
+        <field name="name">Payroll Employees: View All</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_employee_view_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_delete_own" model="ir.rule">
+        <field name="name">Payroll Employees: Delete Own</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_employee_delete_own'))]"/>
+        <field name="domain_force">[(&apos;create_uid&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_delete_all" model="ir.rule">
+        <field name="name">Payroll Employees: Delete All</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_employee_delete_all'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_my" model="ir.rule">
+        <field name="name">Payroll Employees: View My Payslips (their own profile)</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_slip_my'))]"/>
+        <field name="domain_force">[(&apos;user_id&apos;, &apos;=&apos;, user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Multi-company -->
+    <record id="rule_payroll_run_company" model="ir.rule">
+        <field name="name">Pay Runs: multi-company</field>
+        <field name="model_id" ref="model_payroll_run"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_payroll_slip_company" model="ir.rule">
+        <field name="name">Payslips: multi-company</field>
+        <field name="model_id" ref="model_payroll_slip"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_payroll_slip_line_company" model="ir.rule">
+        <field name="name">Payslip Lines: multi-company</field>
+        <field name="model_id" ref="model_payroll_slip_line"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+    <record id="rule_payroll_employee_company" model="ir.rule">
+        <field name="name">Payroll Employees: multi-company</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="domain_force">[(&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
+    </record>
+</odoo>

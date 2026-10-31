@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_pay_item_view_form_accounting" model="ir.ui.view">
+        <field name="name">payroll.pay.item.form.accounting</field>
+        <field name="model">payroll.pay.item</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_pay_item_view_form"/>
+        <field name="arch" type="xml">
+            <group name="flags" position="inside">
+                <field name="account_id" options="{'no_create': True}" placeholder="Company default"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="payroll_pay_item_view_list_accounting" model="ir.ui.view">
+        <field name="name">payroll.pay.item.list.accounting</field>
+        <field name="model">payroll.pay.item</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_pay_item_view_list"/>
+        <field name="arch" type="xml">
+            <field name="retirement_eligible" position="after">
+                <field name="account_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

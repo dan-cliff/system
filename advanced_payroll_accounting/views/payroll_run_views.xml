@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_run_view_form_accounting" model="ir.ui.view">
+        <field name="name">payroll.run.form.accounting</field>
+        <field name="model">payroll.run</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_run_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_open_account_moves" type="object" class="oe_stat_button" icon="fa-book"
+                        invisible="not account_move_count" groups="account.group_account_readonly">
+                    <field name="account_move_count" widget="statinfo" string="Journal Entries"/>
+                </button>
+            </div>
+            <page name="approval" position="inside">
+                <group string="Accounting" name="accounting">
+                    <field name="move_id" groups="account.group_account_readonly"/>
+                    <field name="payment_move_id" groups="account.group_account_readonly"/>
+                </group>
+            </page>
+        </field>
+    </record>
+</odoo>

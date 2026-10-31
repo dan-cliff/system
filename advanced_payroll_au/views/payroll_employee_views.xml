@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_employee_view_form_au" model="ir.ui.view">
+        <field name="name">payroll.employee.form.au</field>
+        <field name="model">payroll.employee</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_employee_view_form"/>
+        <field name="arch" type="xml">
+            <page name="pay" position="after">
+                <page string="Australia" name="payroll_au" invisible="country_code != 'AU'">
+                    <group>
+                        <group string="Tax" name="au_tax">
+                            <field name="au_tfn"/>
+                            <field name="au_tax_scale_id" options="{'no_create': True}"
+                                   required="country_code == 'AU'"/>
+                            <field name="au_extra_withholding"/>
+                        </group>
+                        <group string="Superannuation" name="au_super">
+                            <field name="au_super_fund"/>
+                            <field name="au_super_usi"/>
+                            <field name="au_super_member"/>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

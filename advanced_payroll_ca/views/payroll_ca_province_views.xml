@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_ca_province_view_list" model="ir.ui.view">
+        <field name="name">payroll.ca.province.list</field>
+        <field name="model">payroll.ca.province</field>
+        <field name="arch" type="xml">
+            <list string="Canadian Provinces">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="state_id" optional="show"/>
+                <field name="tax_table_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_ca_province_view_form" model="ir.ui.view">
+        <field name="name">payroll.ca.province.form</field>
+        <field name="model">payroll.ca.province</field>
+        <field name="arch" type="xml">
+            <form string="Canadian Province">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Manitoba"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="state_id" options="{'no_create': True}"/>
+                            <field name="tax_table_id" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Notes..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_ca_province_view_search" model="ir.ui.view">
+        <field name="name">payroll.ca.province.search</field>
+        <field name="model">payroll.ca.province</field>
+        <field name="arch" type="xml">
+            <search string="Canadian Provinces">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_payroll_ca_province" model="ir.actions.act_window">
+        <field name="name">Canadian Provinces</field>
+        <field name="res_model">payroll.ca.province</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a province</p>
+            <p>Provinces and territories of employment, each with its income tax table.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_payroll_ca_provinces"
+              name="Canadian Provinces"
+              parent="advanced_payroll.menu_payroll_config"
+              action="action_payroll_ca_province"
+              sequence="140"/>
+</odoo>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_payroll</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="48"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Payroll" id="advanced_payroll" string="Payroll"
+                     name="advanced_payroll" groups="advanced_payroll.group_payroll_admin">
+                    <block title="Payroll Countries" id="advanced_payroll_countries">
+                        <setting id="advanced_payroll_country_au" string="Australia"
+                                 help="PAYG withholding (tax scales), Medicare levy and the Superannuation Guarantee, with TFNs and super funds on employees.">
+                            <field name="module_advanced_payroll_au"/>
+                        </setting>
+                        <setting id="advanced_payroll_country_nz" string="New Zealand"
+                                 help="PAYE by tax code, ACC earners' levy, student loan repayments and KiwiSaver, with IRD numbers on employees.">
+                            <field name="module_advanced_payroll_nz"/>
+                        </setting>
+                        <setting id="advanced_payroll_country_us" string="USA"
+                                 help="Federal income tax withholding from the W-4 (filing status, dependents, extra withholding), Social Security, Medicare and FUTA, with SSNs on employees.">
+                            <field name="module_advanced_payroll_us"/>
+                        </setting>
+                        <setting id="advanced_payroll_country_ca" string="Canada"
+                                 help="Federal and provincial income tax with TD1 claim amounts, CPP, CPP2 and EI, with SINs and the province of employment on employees.">
+                            <field name="module_advanced_payroll_ca"/>
+                        </setting>
+                    </block>
+                    <block title="Pay Periods and Hours" id="advanced_payroll_periods">
+                        <setting id="advanced_payroll_period_start" string="Weekly Periods Count From"
+                                 help="Weekly and fortnightly pay periods start on this date and every week or fortnight after (and before) it. Semi-monthly and monthly periods follow the calendar.">
+                            <field name="payroll_period_start" options="{'numeric': True}" required="1"/>
+                        </setting>
+                        <setting id="advanced_payroll_hours_source" string="Pay Hours From"
+                                 help="Where the hours of hourly employees come from. Salaried employees are paid their salary. Switch on Advanced Timesheets, On Site or Rostering below to pay the hours they record.">
+                            <field name="payroll_hours_source" widget="radio" required="1"/>
+                        </setting>
+                    </block>
+                    <block title="Works With" id="advanced_payroll_features">
+                        <setting id="advanced_payroll_feature_accounting" string="Accounting"
+                                 invisible="not payroll_advanced_accounting_installed"
+                                 help="Post a journal entry for each approved pay run (wages, tax and contributions payable, net wages) and its payment, with accounts on pay items and rules and cost centres on employees, so payroll shows in the financial reports.">
+                            <field name="module_advanced_payroll_accounting"/>
+                        </setting>
+                        <setting id="advanced_payroll_feature_hr" string="Personnel"
+                                 invisible="not payroll_advanced_hr_installed"
+                                 help="Set each employee's Payroll Country from the country of their Work Address, and show their payroll on the employee's Payroll tab.">
+                            <field name="module_advanced_payroll_hr"/>
+                        </setting>
+                        <setting id="advanced_payroll_feature_attendance" string="On Site"
+                                 invisible="not payroll_advanced_attendance_installed"
+                                 help="Pay hourly employees for the hours of their attendances, with approved extra hours at their overtime rate.">
+                            <field name="module_advanced_payroll_attendance"/>
+                        </setting>
+                        <setting id="advanced_payroll_feature_timesheet" string="Advanced Timesheets"
+                                 invisible="not payroll_advanced_timesheet_installed"
+                                 help="Fill payslips from approved timesheets, each Work Type paid as its Pay Item. Payslips are refreshed when a timesheet is approved.">
+                            <field name="module_advanced_payroll_timesheet"/>
+                        </setting>
+                        <setting id="advanced_payroll_feature_rostering" string="Rostering"
+                                 invisible="not payroll_advanced_rostering_installed"
+                                 help="Pay the published roster: shifts as their Duty's Pay Item, approved leave as its Leave Type's Pay Item, and public holidays at their pay multiplier.">
+                            <field name="module_advanced_payroll_rostering"/>
+                        </setting>
+                        <setting id="advanced_payroll_feature_none" string="No other apps yet"
+                                 invisible="payroll_advanced_accounting_installed or payroll_advanced_hr_installed or payroll_advanced_attendance_installed or payroll_advanced_timesheet_installed or payroll_advanced_rostering_installed"
+                                 help="Install Personnel, On Site, Advanced Timesheets or Rostering to switch on what Payroll can do with them here.">
+                            <field name="payroll_advanced_accounting_installed" invisible="1"/>
+                            <field name="payroll_advanced_hr_installed" invisible="1"/>
+                            <field name="payroll_advanced_attendance_installed" invisible="1"/>
+                            <field name="payroll_advanced_timesheet_installed" invisible="1"/>
+                            <field name="payroll_advanced_rostering_installed" invisible="1"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_payroll_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'advanced_payroll', 'bin_size': False}</field>
+    </record>
+</odoo>

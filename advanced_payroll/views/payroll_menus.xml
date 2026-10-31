@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_payroll_root"
+              name="Payroll"
+              sequence="48"
+              web_icon="advanced_payroll,static/description/icon.png"
+              groups="advanced_payroll.group_payroll_user"/>
+
+    <menuitem id="menu_payroll_my_slips"
+              name="My Payslips"
+              parent="menu_payroll_root"
+              action="action_payroll_slip_my"
+              sequence="5"
+              groups="advanced_payroll.group_slip_my"/>
+
+    <menuitem id="menu_payroll_runs"
+              name="Pay Runs"
+              parent="menu_payroll_root"
+              action="action_payroll_run"
+              sequence="10"
+              groups="advanced_payroll.group_run_create_only,advanced_payroll.group_run_edit_own,advanced_payroll.group_run_edit_team,advanced_payroll.group_run_edit_all,advanced_payroll.group_run_view_all,advanced_payroll.group_run_delete_own,advanced_payroll.group_run_delete_all,advanced_payroll.group_run_approve,advanced_payroll.group_run_pay"/>
+    <menuitem id="menu_payroll_slips"
+              name="Payslips"
+              parent="menu_payroll_root"
+              action="action_payroll_slip"
+              sequence="20"
+              groups="advanced_payroll.group_slip_create_only,advanced_payroll.group_slip_edit_own,advanced_payroll.group_slip_edit_team,advanced_payroll.group_slip_edit_all,advanced_payroll.group_slip_view_all,advanced_payroll.group_slip_delete_own,advanced_payroll.group_slip_delete_all,advanced_payroll.group_run_approve,advanced_payroll.group_run_pay"/>
+    <menuitem id="menu_payroll_employees"
+              name="Employees"
+              parent="menu_payroll_root"
+              action="action_payroll_employee"
+              sequence="30"
+              groups="advanced_payroll.group_employee_create_only,advanced_payroll.group_employee_edit_own,advanced_payroll.group_employee_edit_team,advanced_payroll.group_employee_edit_all,advanced_payroll.group_employee_view_all,advanced_payroll.group_employee_delete_own,advanced_payroll.group_employee_delete_all"/>
+
+    <menuitem id="menu_payroll_reporting"
+              name="Reporting"
+              parent="menu_payroll_root"
+              sequence="80"
+              groups="advanced_payroll.group_slip_view_all,advanced_payroll.group_slip_edit_all,advanced_payroll.group_run_approve,advanced_payroll.group_run_pay"/>
+    <menuitem id="menu_payroll_slip_analysis"
+              name="Payslip Analysis"
+              parent="menu_payroll_reporting"
+              action="action_payroll_slip_analysis"
+              sequence="10"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_payroll_reports" name="Reports" parent="menu_payroll_root" sequence="99"/>
+
+    <menuitem id="menu_payroll_config"
+              name="Configuration"
+              parent="menu_payroll_root"
+              sequence="100"
+              groups="advanced_payroll.group_payroll_admin"/>
+    <menuitem id="menu_payroll_settings"
+              name="Settings"
+              parent="menu_payroll_config"
+              action="advanced_payroll_config_settings_action"
+              sequence="0"
+              groups="base.group_system"/>
+    <menuitem id="menu_payroll_countries"
+              name="Payroll Countries"
+              parent="menu_payroll_config"
+              action="action_payroll_country"
+              sequence="10"/>
+    <menuitem id="menu_payroll_pay_frequencies"
+              name="Pay Frequencies"
+              parent="menu_payroll_config"
+              action="action_payroll_pay_frequency"
+              sequence="20"/>
+    <menuitem id="menu_payroll_pay_items"
+              name="Pay Items"
+              parent="menu_payroll_config"
+              action="action_payroll_pay_item"
+              sequence="30"/>
+    <menuitem id="menu_payroll_rules"
+              name="Payroll Rules"
+              parent="menu_payroll_config"
+              action="action_payroll_rule"
+              sequence="40"/>
+    <menuitem id="menu_payroll_tax_tables"
+              name="Tax Tables"
+              parent="menu_payroll_config"
+              action="action_payroll_tax_table"
+              sequence="50"/>
+    <!-- Country apps add their option lists from sequence 100. -->
+</odoo>

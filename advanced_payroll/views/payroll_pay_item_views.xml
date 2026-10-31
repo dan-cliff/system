@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_pay_item_view_list" model="ir.ui.view">
+        <field name="name">payroll.pay.item.list</field>
+        <field name="model">payroll.pay.item</field>
+        <field name="arch" type="xml">
+            <list string="Pay Items">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="country_id" optional="show"/>
+                <field name="category"/>
+                <field name="calculation" optional="show"/>
+                <field name="rate_multiplier" optional="show"/>
+                <field name="is_taxable" optional="show"/>
+                <field name="retirement_eligible" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_pay_item_view_form" model="ir.ui.view">
+        <field name="name">payroll.pay.item.form</field>
+        <field name="model">payroll.pay.item</field>
+        <field name="arch" type="xml">
+            <form string="Pay Item">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Overtime (Time and a Half)"/></h1>
+                    </div>
+                    <group>
+                        <group name="item">
+                            <field name="code"/>
+                            <field name="country_id" options="{'no_create': True}" placeholder="Every country"/>
+                            <field name="category"/>
+                            <field name="calculation"/>
+                            <field name="rate_multiplier" invisible="calculation != 'hours'"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group name="flags">
+                            <field name="is_taxable"/>
+                            <field name="retirement_eligible"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="When this pay item is used..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_pay_item_view_search" model="ir.ui.view">
+        <field name="name">payroll.pay.item.search</field>
+        <field name="model">payroll.pay.item</field>
+        <field name="arch" type="xml">
+            <search string="Pay Items">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="country_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_country" string="Payroll Country" context="{'group_by': 'country_id'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_payroll_pay_item" model="ir.actions.act_window">
+        <field name="name">Pay Items</field>
+        <field name="res_model">payroll.pay.item</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a pay item</p>
+            <p>What employees are paid for or have taken off their pay: ordinary hours, overtime, leave, allowances, reimbursements, deductions.</p>
+        </field>
+    </record>
+</odoo>
