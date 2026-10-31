@@ -38,6 +38,11 @@ class CalendarEvent(models.Model):
     def _is_rostering_leave_event(self):
         return any(event.res_model == 'rostering.leave' for event in self)
 
+    @api.model
+    def _get_activity_excluded_models(self):
+        # Leave events must not add a "Meeting" activity to the leave request.
+        return super()._get_activity_excluded_models() + ['rostering.leave']
+
     def _skip_send_mail_status_update(self):
         # Leave events never send invitations or cancellations.
         if self._is_rostering_leave_event():
