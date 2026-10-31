@@ -120,3 +120,20 @@ class TestRosteringHr(TransactionCase):
         expected = calendar.full_time_required_hours * calendar.hours_per_day / calendar.hours_per_week
         self.assertAlmostEqual(leave._full_day_hours(), expected, places=2)
         self.assertAlmostEqual(leave.hours, 2 * expected, places=2)
+
+    def test_leave_organisation_follows_employee(self):
+        Leave = self.env['rostering.leave']
+        if 'org_division_id' not in Leave._fields or 'org_division_id' not in self.env['hr.employee']._fields:
+            self.skipTest('Organisation Structure is not installed')
+        north, south = self.env['org.division'].create([{'name': 'North'}, {'name': 'South'}])
+        self.worker.org_division_id = north
+        self.other.org_division_id = south
+        leave = Leave.create({
+            'employee_id': self.worker.id, 'leave_type_id': self.leave_type.id,
+            'date_from': date(2026, 12, 14), 'date_to': date(2026, 12, 14),
+        })
+        self.assertEqual(leave.org_division_id, north)
+        leave.employee_id = self.other
+        self.assertEqual(leave.org_division_id, south)
+        arch = Leave.get_view(self.env.ref('advanced_rostering.rostering_leave_view_form').id)['arch']
+        self.assertNotIn('org_division_id', arch)

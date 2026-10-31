@@ -6,8 +6,10 @@ from odoo.addons.advanced_rostering.models.rostering_tools import search_positiv
 
 class RosteringLeave(models.Model):
     _inherit = 'rostering.leave'
-    # The request takes its Organisation units from the employee (org_structure).
+    # The request takes its Organisation units from the employee (org_structure),
+    # follows them when the employee changes, and keeps them off the form.
     _org_parent_field = 'employee_id'
+    _org_form_section = False
 
     employee_id = fields.Many2one(
         'hr.employee', string='Employee', index=True, tracking=True,
@@ -29,6 +31,27 @@ class RosteringLeave(models.Model):
                 company = self.env['res.company'].browse(vals.get('company_id')) or self.env.company
                 vals['employee_id'] = self.env['res.users'].browse(vals['user_id']).with_company(company).employee_id.id
         return super().create(vals_list)
+
+    def write(self, vals):
+        if 'employee_id' in vals:
+            vals = dict(vals, **self._org_values_from_employee(vals['employee_id']))
+        return super().write(vals)
+
+    @api.model
+    def _org_values_from_employee(self, employee_id):
+        """The employee's Organisation units, for the leave to follow
+        (nothing when Organisation Structure is not installed)."""
+        if 'org_division_id' not in self._fields or not hasattr(self, '_org_values_from_parent'):
+            return {}
+        if not employee_id:
+            return {}
+        return self._org_values_from_parent(employee_id)
+
+    def _sync_org_from_employee(self):
+        for leave in self.filtered('employee_id'):
+            values = self._org_values_from_employee(leave.employee_id.id)
+            if values and any(leave[name].id != value for name, value in values.items()):
+                super(RosteringLeave, leave).write(values)
 
     @api.model
     def _person_field(self):
