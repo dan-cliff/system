@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Rostering',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.1.0',
     'category': 'Human Resources/Rostering',
     'sequence': 96,
     'summary': 'Rosters built from duties, standard shifts and templates, plus leave requests',
@@ -21,6 +21,12 @@ Planning and Time Off in one app.
 * Libraries (Configuration): Duties, Standard Shifts (start time, end time and
   paid / unpaid breaks), Roster Templates (a standard roster for the cycle in
   Settings, applied to a draft roster in one click) and Leave Types.
+* Public Holidays (Configuration): each with the jurisdictions it applies to
+  (country, state, religion, ...) and a pay multiplier (standard pay × e.g.
+  2.5). Settings › Rostering › Import Public Holidays fills the library
+  weekly from Nager.Date (date.nager.at) for the chosen countries, with
+  their Country and State jurisdictions. Rosters, shifts and My Roster and
+  Leave show the holidays that apply to each person.
 * My Roster and Leave: the logged-in user's published roster, their upcoming
   leave and a Request Leave button.
 * Leave Requests: everyone can request their own leave; managers (Create and
@@ -46,6 +52,7 @@ Planning and Time Off in one app.
         'security/ir.model.access.csv',
         'data/res_lang_data.xml',
         'data/rostering_data.xml',
+        'data/rostering_holiday_cron.xml',
         'views/rostering_duty_views.xml',
         'views/rostering_standard_shift_views.xml',
         'views/rostering_template_views.xml',
@@ -53,6 +60,7 @@ Planning and Time Off in one app.
         'views/rostering_roster_views.xml',
         'views/rostering_leave_type_views.xml',
         'views/rostering_leave_views.xml',
+        'views/rostering_public_holiday_views.xml',
         'wizard/rostering_apply_template_wizard_views.xml',
         'wizard/rostering_leave_refuse_wizard_views.xml',
         'views/res_config_settings_views.xml',

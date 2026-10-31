@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Public Holidays -->
+    <record id="rostering_public_holiday_view_list" model="ir.ui.view">
+        <field name="name">rostering.public.holiday.list</field>
+        <field name="model">rostering.public.holiday</field>
+        <field name="arch" type="xml">
+            <list string="Public Holidays" editable="bottom">
+                <field name="id" optional="show"/>
+                <field name="date" options="{'numeric': True}"/>
+                <field name="name"/>
+                <field name="local_name" optional="hide"/>
+                <field name="jurisdiction_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="pay_multiplier"/>
+                <field name="holiday_types" optional="hide"/>
+                <field name="source" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="rostering_public_holiday_view_form" model="ir.ui.view">
+        <field name="name">rostering.public.holiday.form</field>
+        <field name="model">rostering.public.holiday</field>
+        <field name="arch" type="xml">
+            <form string="Public Holiday">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Christmas Day"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="jurisdiction_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   placeholder="Everyone"/>
+                            <label for="pay_multiplier"/>
+                            <div class="o_row">
+                                <span>Standard Pay ×</span>
+                                <field name="pay_multiplier" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="local_name" invisible="not local_name"/>
+                            <field name="holiday_types" invisible="not holiday_types"/>
+                            <field name="source"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Notes, e.g. how the penalty rate applies..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="rostering_public_holiday_view_calendar" model="ir.ui.view">
+        <field name="name">rostering.public.holiday.calendar</field>
+        <field name="model">rostering.public.holiday</field>
+        <field name="arch" type="xml">
+            <calendar string="Public Holidays" date_start="date" mode="year" quick_create="0" event_open_popup="1">
+                <field name="name"/>
+                <field name="jurisdiction_ids" widget="many2many_tags"/>
+                <field name="pay_multiplier"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="rostering_public_holiday_view_search" model="ir.ui.view">
+        <field name="name">rostering.public.holiday.search</field>
+        <field name="model">rostering.public.holiday</field>
+        <field name="arch" type="xml">
+            <search string="Public Holidays">
+                <field name="name"/>
+                <field name="jurisdiction_ids"/>
+                <field name="date" options="{'numeric': True}"/>
+                <filter name="upcoming" string="Upcoming"
+                        domain="[('date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_date" string="Date" date="date"/>
+                <separator/>
+                <filter name="manual" string="Added by Hand" domain="[('source', '=', 'manual')]"/>
+                <filter name="imported" string="Imported" domain="[('source', '!=', 'manual')]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_year" string="Year" context="{'group_by': 'date:year'}"/>
+                    <filter name="group_month" string="Month" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_jurisdiction" string="Jurisdiction" context="{'group_by': 'jurisdiction_ids'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rostering_public_holiday" model="ir.actions.act_window">
+        <field name="name">Public Holidays</field>
+        <field name="res_model">rostering.public.holiday</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="search_view_id" ref="rostering_public_holiday_view_search"/>
+        <field name="context">{'search_default_upcoming': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a public holiday</p>
+            <p>Public holidays show on rosters with their pay multiplier. Switch on Settings › Rostering ›
+                Import Public Holidays to fill this list automatically.</p>
+        </field>
+    </record>
+
+    <!-- Jurisdictions -->
+    <record id="rostering_holiday_jurisdiction_view_list" model="ir.ui.view">
+        <field name="name">rostering.holiday.jurisdiction.list</field>
+        <field name="model">rostering.holiday.jurisdiction</field>
+        <field name="arch" type="xml">
+            <list string="Public Holiday Jurisdictions">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="kind"/>
+                <field name="code" optional="show"/>
+                <field name="country_id" optional="show"/>
+                <field name="state_id" optional="show"/>
+                <field name="holiday_count" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="rostering_holiday_jurisdiction_view_form" model="ir.ui.view">
+        <field name="name">rostering.holiday.jurisdiction.form</field>
+        <field name="model">rostering.holiday.jurisdiction</field>
+        <field name="arch" type="xml">
+            <form string="Public Holiday Jurisdiction">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. New South Wales, or Catholic"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="kind"/>
+                            <field name="code"/>
+                        </group>
+                        <group>
+                            <field name="country_id" required="kind == 'country'" options="{'no_create': True}"/>
+                            <field name="state_id" invisible="kind != 'state'" required="kind == 'state'"
+                                   options="{'no_create': True}"/>
+                            <field name="holiday_count"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="rostering_holiday_jurisdiction_view_search" model="ir.ui.view">
+        <field name="name">rostering.holiday.jurisdiction.search</field>
+        <field name="model">rostering.holiday.jurisdiction</field>
+        <field name="arch" type="xml">
+            <search string="Public Holiday Jurisdictions">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="country_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_kind" string="Type" context="{'group_by': 'kind'}"/>
+                    <filter name="group_country" string="Country" context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rostering_holiday_jurisdiction" model="ir.actions.act_window">
+        <field name="name">Public Holiday Jurisdictions</field>
+        <field name="res_model">rostering.holiday.jurisdiction</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a jurisdiction</p>
+            <p>Where public holidays apply: countries and states are added by the import; add religions or
+                other groups by hand and pick them on holidays (and on employees, with Personnel).</p>
+        </field>
+    </record>
+</odoo>

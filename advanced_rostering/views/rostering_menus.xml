@@ -90,6 +90,17 @@
               parent="menu_rostering_config"
               action="action_rostering_template"
               sequence="30"/>
+    <menuitem id="menu_rostering_public_holidays"
+              name="Public Holidays"
+              parent="menu_rostering_config"
+              action="action_rostering_public_holiday"
+              sequence="50"/>
+    <menuitem id="menu_rostering_holiday_jurisdictions"
+              name="Public Holiday Jurisdictions"
+              parent="menu_rostering_config"
+              action="action_rostering_holiday_jurisdiction"
+              sequence="60"
+              groups="advanced_rostering.group_rostering_admin"/>
     <menuitem id="menu_rostering_leave_types"
               name="Leave Types"
               parent="menu_rostering_config"

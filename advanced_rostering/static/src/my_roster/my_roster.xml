@@ -58,12 +58,18 @@
                         </div>
                         <div class="o_rmr_grid">
                             <t t-foreach="data.days" t-as="day" t-key="day.date">
-                                <div t-attf-class="o_rmr_day {{ day.is_today ? 'o_rmr_today' : '' }} {{ day.is_past ? 'o_rmr_past' : '' }}">
+                                <div t-attf-class="o_rmr_day {{ day.is_today ? 'o_rmr_today' : '' }} {{ day.is_past ? 'o_rmr_past' : '' }} {{ day.holidays.length ? 'o_rmr_holiday_day' : '' }}">
                                     <div class="o_rmr_day_head">
                                         <span class="fw-bold" t-esc="day.weekday"/>
                                         <span class="text-muted small" t-esc="day.label"/>
                                     </div>
                                     <div class="o_rmr_day_body">
+                                        <t t-foreach="day.holidays" t-as="holiday" t-key="holiday_index">
+                                            <div class="o_rmr_holiday">
+                                                <i class="fa fa-star me-1"/><t t-esc="holiday.name"/>
+                                                <div class="small fw-normal">Standard pay × <t t-esc="holiday.multiplier"/></div>
+                                            </div>
+                                        </t>
                                         <t t-foreach="day.leave" t-as="leaveName" t-key="leaveName_index">
                                             <div class="o_rmr_leave"><i class="fa fa-plane me-1"/><t t-esc="leaveName"/></div>
                                         </t>
