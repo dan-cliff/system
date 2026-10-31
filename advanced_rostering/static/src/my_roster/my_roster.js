@@ -15,7 +15,7 @@ export class MyRoster extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.state = useState({ offset: 0, data: null, loading: true });
+        this.state = useState({ offset: 0, data: null, loading: true, tab: "roster" });
         onWillStart(() => this.load());
     }
 
@@ -52,6 +52,10 @@ export class MyRoster extends Component {
             submitted: "text-bg-info",
             approved: "text-bg-success",
         }[state] || "text-bg-light";
+    }
+
+    setTab(tab) {
+        this.state.tab = tab;
     }
 
     async move(step) {

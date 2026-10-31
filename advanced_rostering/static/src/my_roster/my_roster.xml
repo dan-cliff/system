@@ -1,123 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="advanced_rostering.MyRoster">
-        <Layout display="{ controlPanel: {} }">
-            <t t-set-slot="control-panel-create-button">
-                <button t-if="state.data and state.data.can_request" class="btn btn-primary"
-                        t-on-click="requestLeave">Request Leave</button>
-            </t>
-            <div class="o_rostering_my_roster container-fluid py-3">
+        <Layout display="{}">
+            <div class="o_rmr">
                 <t t-if="state.data">
                     <t t-set="data" t-value="state.data"/>
-                    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-                        <div class="me-auto">
-                            <h3 class="mb-0" t-esc="data.person"/>
-                            <div t-if="data.manager" class="text-muted">
-                                <i class="fa fa-user-circle-o me-1"/>Manager: <span t-esc="data.manager"/>
-                            </div>
+                    <div class="o_rmr_header">
+                        <div class="o_rmr_person">
+                            <h4 class="mb-0" t-esc="data.person"/>
+                            <span t-if="data.manager" class="text-muted">
+                                <i class="fa fa-user-circle-o me-1"/>Manager: <t t-esc="data.manager"/>
+                            </span>
                         </div>
-                        <div class="btn-group">
-                            <button class="btn btn-secondary" title="Previous period" t-on-click="() => this.move(-1)">
-                                <i class="fa fa-chevron-left"/>
-                            </button>
-                            <button class="btn btn-secondary" t-on-click="today">Today</button>
-                            <button class="btn btn-secondary" title="Next period" t-on-click="() => this.move(1)">
-                                <i class="fa fa-chevron-right"/>
+                        <ul class="nav nav-tabs o_rmr_tabs">
+                            <li class="nav-item">
+                                <a href="#" t-attf-class="nav-link {{ state.tab === 'roster' ? 'active' : '' }}"
+                                   t-on-click.prevent="() => this.setTab('roster')">
+                                    <i class="fa fa-calendar me-1"/>My Roster
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" t-attf-class="nav-link {{ state.tab === 'leave' ? 'active' : '' }}"
+                                   t-on-click.prevent="() => this.setTab('leave')">
+                                    <i class="fa fa-plane me-1"/>My Leave
+                                    <span t-if="data.leaves.length" class="badge rounded-pill text-bg-secondary ms-1"
+                                          t-esc="data.leaves.length"/>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="o_rmr_actions">
+                            <button t-if="data.can_request" class="btn btn-primary" t-on-click="requestLeave">
+                                <i class="fa fa-plus me-1"/>Request Leave
                             </button>
                         </div>
                     </div>
 
-                    <div class="row g-3">
-                        <div class="col-lg-8">
-                            <div class="card">
-                                <div class="card-header d-flex flex-wrap align-items-baseline gap-2">
-                                    <strong class="me-auto">
-                                        <t t-esc="periodLabel"/>: <t t-esc="data.start"/> – <t t-esc="data.end"/>
-                                    </strong>
-                                    <span class="text-muted">
-                                        <t t-esc="data.shift_count"/> shifts ·
-                                        <t t-esc="formatHours(data.total_hours)"/> paid hours
-                                    </span>
-                                </div>
-                                <ul class="list-group list-group-flush">
-                                    <t t-foreach="data.days" t-as="day" t-key="day.date">
-                                        <li t-attf-class="list-group-item d-flex gap-3 {{ day.is_today ? 'bg-info-subtle' : '' }} {{ day.is_past ? 'text-muted' : '' }}">
-                                            <div style="min-width: 7.5rem;">
-                                                <div class="fw-bold" t-esc="day.weekday"/>
-                                                <div class="small" t-esc="day.label"/>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <t t-foreach="day.leave" t-as="leaveName" t-key="leaveName_index">
-                                                    <span class="badge text-bg-warning me-1">
-                                                        <i class="fa fa-plane me-1"/><t t-esc="leaveName"/>
-                                                    </span>
-                                                </t>
-                                                <t t-if="!day.shifts.length and !day.leave.length">
-                                                    <span class="text-muted fst-italic">Not rostered</span>
-                                                </t>
-                                                <t t-foreach="day.shifts" t-as="shift" t-key="shift.id">
-                                                    <div t-attf-class="d-flex flex-wrap align-items-baseline gap-2 {{ shift_index ? 'mt-2' : '' }}">
-                                                        <span class="fw-bold">
-                                                            <t t-esc="shift.start"/> – <t t-esc="shift.end"/>
-                                                            <small t-if="shift.overnight" class="text-muted">(next day)</small>
-                                                        </span>
-                                                        <span t-if="shift.duty"
-                                                              t-attf-class="badge o_tag_color_{{ shift.duty_color }}" t-esc="shift.duty"/>
-                                                        <span t-if="shift.standard_shift" class="text-muted" t-esc="shift.standard_shift"/>
-                                                        <span class="text-muted">· <t t-esc="formatHours(shift.paid_hours)"/> h</span>
-                                                        <t t-foreach="shift.extra" t-as="extra" t-key="extra_index">
-                                                            <span t-attf-class="badge {{ extra.class or 'text-bg-light' }}" t-esc="extra.label"/>
-                                                        </t>
-                                                        <div t-if="shift.breaks" class="w-100 small text-muted">
-                                                            <i class="fa fa-coffee me-1"/><t t-esc="shift.breaks"/>
-                                                        </div>
-                                                        <div t-if="shift.note" class="w-100 small">
-                                                            <i class="fa fa-sticky-note-o me-1"/><t t-esc="shift.note"/>
-                                                        </div>
-                                                    </div>
-                                                </t>
-                                            </div>
-                                        </li>
-                                    </t>
-                                </ul>
-                                <div t-if="!data.shift_count" class="card-footer text-muted">
-                                    No published roster has shifts for you in this period yet.
-                                </div>
+                    <!-- Roster tab -->
+                    <t t-if="state.tab === 'roster'">
+                        <div class="o_rmr_summary">
+                            <div class="btn-group">
+                                <button class="btn btn-secondary" title="Previous period" t-on-click="() => this.move(-1)">
+                                    <i class="fa fa-chevron-left"/>
+                                </button>
+                                <button class="btn btn-secondary" t-att-disabled="data.offset === 0" t-on-click="today">Today</button>
+                                <button class="btn btn-secondary" title="Next period" t-on-click="() => this.move(1)">
+                                    <i class="fa fa-chevron-right"/>
+                                </button>
                             </div>
+                            <strong><t t-esc="periodLabel"/>: <t t-esc="data.start"/> – <t t-esc="data.end"/></strong>
+                            <span class="text-muted">
+                                <t t-esc="data.shift_count"/> shift<t t-if="data.shift_count !== 1">s</t> ·
+                                <t t-esc="formatHours(data.total_hours)"/> paid hours
+                            </span>
                         </div>
-                        <div class="col-lg-4">
-                            <div class="card">
-                                <div class="card-header d-flex align-items-center">
-                                    <strong class="me-auto">My Upcoming Leave</strong>
-                                    <button t-if="data.can_request" class="btn btn-sm btn-primary" t-on-click="requestLeave">
-                                        <i class="fa fa-plus me-1"/>Request Leave
-                                    </button>
+                        <div t-if="!data.shift_count" class="alert alert-info mb-0">
+                            No published roster has shifts for you in this period yet.
+                        </div>
+                        <div class="o_rmr_grid">
+                            <t t-foreach="data.days" t-as="day" t-key="day.date">
+                                <div t-attf-class="o_rmr_day {{ day.is_today ? 'o_rmr_today' : '' }} {{ day.is_past ? 'o_rmr_past' : '' }}">
+                                    <div class="o_rmr_day_head">
+                                        <span class="fw-bold" t-esc="day.weekday"/>
+                                        <span class="text-muted small" t-esc="day.label"/>
+                                    </div>
+                                    <div class="o_rmr_day_body">
+                                        <t t-foreach="day.leave" t-as="leaveName" t-key="leaveName_index">
+                                            <div class="o_rmr_leave"><i class="fa fa-plane me-1"/><t t-esc="leaveName"/></div>
+                                        </t>
+                                        <t t-foreach="day.shifts" t-as="shift" t-key="shift.id">
+                                            <div t-attf-class="o_rmr_shift o_rmr_color_{{ shift.duty_color }}">
+                                                <div class="fw-bold">
+                                                    <t t-esc="shift.start"/> – <t t-esc="shift.end"/>
+                                                    <small t-if="shift.overnight" class="text-muted fw-normal">(+1)</small>
+                                                </div>
+                                                <div t-if="shift.duty" t-esc="shift.duty"/>
+                                                <div class="small text-muted">
+                                                    <t t-if="shift.standard_shift"><t t-esc="shift.standard_shift"/> · </t>
+                                                    <t t-esc="formatHours(shift.paid_hours)"/> h
+                                                </div>
+                                                <div t-if="shift.breaks" class="small text-muted">
+                                                    <i class="fa fa-coffee me-1"/><t t-esc="shift.breaks"/>
+                                                </div>
+                                                <div t-if="shift.note" class="small">
+                                                    <i class="fa fa-sticky-note-o me-1"/><t t-esc="shift.note"/>
+                                                </div>
+                                                <div t-if="shift.extra.length">
+                                                    <t t-foreach="shift.extra" t-as="extra" t-key="extra_index">
+                                                        <span t-attf-class="badge {{ extra.class or 'text-bg-light' }} me-1" t-esc="extra.label"/>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </t>
+                                        <div t-if="!day.shifts.length and !day.leave.length" class="o_rmr_off">Off</div>
+                                    </div>
                                 </div>
-                                <ul class="list-group list-group-flush">
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- Leave tab -->
+                    <t t-else="">
+                        <div class="o_rmr_leave_list">
+                            <table t-if="data.leaves.length" class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Leave Type</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th class="text-end">Days</th>
+                                        <th>Status</th>
+                                        <th>Approver</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     <t t-foreach="data.leaves" t-as="leave" t-key="leave.id">
-                                        <li class="list-group-item list-group-item-action" role="button"
-                                            t-on-click="() => this.openLeave(leave.id)">
-                                            <div class="d-flex align-items-baseline gap-2">
-                                                <span class="fw-bold me-auto" t-esc="leave.type"/>
-                                                <span t-attf-class="badge {{ stateBadge(leave.state) }}" t-esc="leave.state_label"/>
-                                            </div>
-                                            <div class="small">
-                                                <t t-esc="leave.from"/>
-                                                <t t-if="leave.to !== leave.from"> – <t t-esc="leave.to"/></t>
-                                                · <t t-esc="leave.days"/> day<t t-if="leave.days !== 1">s</t>
-                                            </div>
-                                            <div t-if="leave.state === 'submitted' and leave.approver" class="small text-muted">
-                                                Waiting for <t t-esc="leave.approver"/>
-                                            </div>
-                                        </li>
+                                        <tr role="button" t-on-click="() => this.openLeave(leave.id)">
+                                            <td class="fw-bold" t-esc="leave.type"/>
+                                            <td t-esc="leave.from"/>
+                                            <td t-esc="leave.to"/>
+                                            <td class="text-end" t-esc="leave.days"/>
+                                            <td><span t-attf-class="badge {{ stateBadge(leave.state) }}" t-esc="leave.state_label"/></td>
+                                            <td t-esc="leave.approver"/>
+                                        </tr>
                                     </t>
-                                    <li t-if="!data.leaves.length" class="list-group-item text-muted fst-italic">
-                                        No upcoming leave.
-                                    </li>
-                                </ul>
+                                </tbody>
+                            </table>
+                            <div t-else="" class="text-center text-muted py-5">
+                                <p class="mb-3">You have no upcoming leave.</p>
+                                <button t-if="data.can_request" class="btn btn-primary" t-on-click="requestLeave">
+                                    <i class="fa fa-plus me-1"/>Request Leave
+                                </button>
                             </div>
                         </div>
-                    </div>
+                    </t>
                 </t>
                 <div t-elif="state.loading" class="text-center text-muted py-5">
                     <i class="fa fa-spinner fa-spin me-2"/>Loading your roster...
