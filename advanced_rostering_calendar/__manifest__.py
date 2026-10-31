@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Rostering - Calendar',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Human Resources/Rostering',
     'summary': 'Leave requests in the Calendar app, with a shared Leave Requests calendar',
     'description': """
-        Installs automatically when both Rostering and Calendar are installed.
+        Installs automatically with Rostering and Calendar (and when Rostering
+        is upgraded on a database that has Calendar); switch it on or off in
+        Settings › Rostering › Works With › Calendar.
 
         - Every leave request (draft, waiting for approval or approved) is an
           event in the person's calendar, named with the leave type and its
