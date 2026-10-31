@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting Spend Levels, shared by every company and in each company's own
+         currency. noupdate: administrators adjust them in Configuration › Spend Levels. -->
+    <data noupdate="1">
+        <record id="spend_level_1" model="advanced.purchasing.spend.level">
+            <field name="name">Level 1</field>
+            <field name="sequence">10</field>
+            <field name="amount_limit">1000</field>
+            <field name="approver_level">0</field>
+            <field name="description">Everyday purchases. No approval needed unless the order is above the buyer's own spend delegation.</field>
+        </record>
+        <record id="spend_level_2" model="advanced.purchasing.spend.level">
+            <field name="name">Level 2</field>
+            <field name="sequence">20</field>
+            <field name="amount_limit">5000</field>
+            <field name="approver_level">1</field>
+        </record>
+        <record id="spend_level_3" model="advanced.purchasing.spend.level">
+            <field name="name">Level 3</field>
+            <field name="sequence">30</field>
+            <field name="amount_limit">25000</field>
+            <field name="approver_level">2</field>
+        </record>
+        <record id="spend_level_4" model="advanced.purchasing.spend.level">
+            <field name="name">Level 4</field>
+            <field name="sequence">40</field>
+            <field name="amount_limit">100000</field>
+            <field name="approver_level">3</field>
+        </record>
+        <record id="spend_level_5" model="advanced.purchasing.spend.level">
+            <field name="name">Level 5</field>
+            <field name="sequence">50</field>
+            <field name="unlimited" eval="True"/>
+            <field name="approver_level">4</field>
+        </record>
+    </data>
+</odoo>

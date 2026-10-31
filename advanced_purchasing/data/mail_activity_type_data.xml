@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_activity_purchasing_approval" model="mail.activity.type">
+            <field name="name">Purchase Approval</field>
+            <field name="summary">Approve purchase order</field>
+            <field name="res_model">purchase.order</field>
+            <field name="icon">fa-check-square-o</field>
+            <field name="delay_count">2</field>
+        </record>
+    </data>
+</odoo>

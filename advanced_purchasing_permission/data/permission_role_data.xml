@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_purchasing_admin" model="permission.role">
+            <field name="name">Purchasing – Administrator</field>
+            <field name="description">Everything in Purchasing: create, edit and delete any purchase order, approve any order, set spend delegations, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchasing'), 'group_id': ref('advanced_purchasing.group_purchasing_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_create_only'), 'group_id': ref('advanced_purchasing.group_purchase_order_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_edit_own'), 'group_id': ref('advanced_purchasing.group_purchase_order_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_edit_team'), 'group_id': ref('advanced_purchasing.group_purchase_order_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_edit_all'), 'group_id': ref('advanced_purchasing.group_purchase_order_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_view_all'), 'group_id': ref('advanced_purchasing.group_purchase_order_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_delete_own'), 'group_id': ref('advanced_purchasing.group_purchase_order_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_delete_all'), 'group_id': ref('advanced_purchasing.group_purchase_order_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_approve'), 'group_id': ref('advanced_purchasing.group_purchase_order_approve')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_approve_any'), 'group_id': ref('advanced_purchasing.group_purchase_order_approve_any')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_spend_delegation_manage'), 'group_id': ref('advanced_purchasing.group_spend_delegation_manage')})
+            ]"/>
+        </record>
+        <record id="role_purchasing_manager" model="permission.role">
+            <field name="name">Purchasing – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s purchase orders. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_edit_team'), 'group_id': ref('advanced_purchasing.group_purchase_order_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_purchasing_employee" model="permission.role">
+            <field name="name">Purchasing – Employee</field>
+            <field name="description">Create, view and edit their own purchase orders. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_edit_own'), 'group_id': ref('advanced_purchasing.group_purchase_order_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_purchasing_approver" model="permission.role">
+            <field name="name">Purchasing – Approver</field>
+            <field name="description">Approve or send back the purchase orders their Spend Levels route to them (as the buyer&apos;s 1st to 4th Up Manager).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_approve'), 'group_id': ref('advanced_purchasing.group_purchase_order_approve')})
+            ]"/>
+        </record>
+        <record id="role_purchasing_central_approver" model="permission.role">
+            <field name="name">Purchasing – Central Approver</field>
+            <field name="description">Approve or send back any purchase order waiting for approval, including those no manager can approve.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_approve_any'), 'group_id': ref('advanced_purchasing.group_purchase_order_approve_any')}),
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_purchase_order_view_all'), 'group_id': ref('advanced_purchasing.group_purchase_order_view_all')})
+            ]"/>
+        </record>
+        <record id="role_purchasing_delegation_manager" model="permission.role">
+            <field name="name">Purchasing – Delegation Manager</field>
+            <field name="description">Set employees&apos; spend delegations (Purchases Rules on Personnel employees).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_purchasing.privilege_spend_delegation_manage'), 'group_id': ref('advanced_purchasing.group_spend_delegation_manage')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="basket" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Soft shadow below -->
+  <ellipse cx="512" cy="922" rx="400" ry="34" fill="url(#shadow)"/>
+
+  <!-- Purchase order document -->
+  <g filter="url(#soft)">
+    <rect x="100" y="96" width="620" height="760" rx="64" fill="url(#panel)"/>
+    <path d="M164 96 H656 A64 64 0 0 1 720 160 V236 H100 V160 A64 64 0 0 1 164 96 Z" fill="url(#header)"/>
+  </g>
+  <rect x="150" y="114" width="520" height="16" rx="8" fill="#FFFFFF" opacity="0.2"/>
+  <rect x="160" y="156" width="210" height="30" rx="15" fill="#FFFFFF" opacity="0.9"/>
+  <rect x="530" y="156" width="130" height="30" rx="15" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- Column headings -->
+  <rect x="160" y="272" width="90" height="16" rx="8" fill="#A9ABDC" opacity="0.55"/>
+  <rect x="560" y="272" width="100" height="16" rx="8" fill="#A9ABDC" opacity="0.55"/>
+
+  <!-- Order lines: item chip, description and price -->
+  <rect x="160" y="318" width="64" height="64" rx="16" fill="url(#coral)"/>
+  <rect x="172" y="328" width="40" height="11" rx="5.5" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="252" y="328" width="220" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="252" y="360" width="130" height="16" rx="8" fill="#A9ABDC" opacity="0.55"/>
+  <rect x="560" y="336" width="100" height="24" rx="12" fill="#A9ABDC"/>
+
+  <rect x="160" y="414" width="64" height="64" rx="16" fill="url(#yellow)"/>
+  <rect x="172" y="424" width="40" height="11" rx="5.5" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="252" y="424" width="190" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="252" y="456" width="150" height="16" rx="8" fill="#A9ABDC" opacity="0.55"/>
+  <rect x="560" y="432" width="100" height="24" rx="12" fill="#A9ABDC"/>
+
+  <rect x="160" y="510" width="64" height="64" rx="16" fill="url(#teal)"/>
+  <rect x="172" y="520" width="40" height="11" rx="5.5" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="252" y="520" width="170" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="252" y="552" width="110" height="16" rx="8" fill="#A9ABDC" opacity="0.55"/>
+
+  <rect x="160" y="606" width="64" height="64" rx="16" fill="url(#blue)"/>
+  <rect x="172" y="616" width="40" height="11" rx="5.5" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="252" y="616" width="150" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="252" y="648" width="100" height="16" rx="8" fill="#A9ABDC" opacity="0.55"/>
+
+  <!-- Total -->
+  <rect x="160" y="714" width="300" height="6" rx="3" fill="#E3E3F3"/>
+  <rect x="160" y="752" width="110" height="18" rx="9" fill="#A9ABDC" opacity="0.55"/>
+  <rect x="300" y="746" width="150" height="30" rx="15" fill="url(#header)"/>
+
+  <!-- Shopping cart (accent over the lower right corner) -->
+  <g filter="url(#soft)">
+    <!-- White outline separating the cart from the document -->
+    <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="40" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M498 512 H560 Q588 512 596 540 L614 604" fill="none" stroke-width="64"/>
+      <rect x="652" y="470" width="116" height="140" rx="20"/>
+      <rect x="772" y="440" width="104" height="170" rx="20"/>
+      <path d="M608 604 H912 Q940 604 934 632 L898 776 Q892 800 866 800 H660 Q634 800 628 776 L592 632 Q586 604 608 604 Z"/>
+      <rect x="640" y="818" width="250" height="26" rx="13"/>
+      <circle cx="680" cy="872" r="36"/>
+      <circle cx="850" cy="872" r="36"/>
+    </g>
+    <!-- Handle -->
+    <path d="M498 512 H560 Q588 512 596 540 L614 604" fill="none" stroke="#2A3F8F" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Goods -->
+    <rect x="652" y="470" width="116" height="140" rx="20" fill="url(#yellow)"/>
+    <rect x="700" y="470" width="20" height="140" fill="#FF9F1C" opacity="0.6"/>
+    <rect x="772" y="440" width="104" height="170" rx="20" fill="url(#coral)"/>
+    <rect x="786" y="452" width="56" height="14" rx="7" fill="#FFFFFF" opacity="0.35"/>
+    <!-- Basket -->
+    <path d="M608 604 H912 Q940 604 934 632 L898 776 Q892 800 866 800 H660 Q634 800 628 776 L592 632 Q586 604 608 604 Z" fill="url(#basket)"/>
+    <rect x="620" y="620" width="290" height="16" rx="8" fill="#FFFFFF" opacity="0.28"/>
+    <rect x="662" y="658" width="26" height="104" rx="13" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="726" y="658" width="26" height="104" rx="13" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="790" y="658" width="26" height="104" rx="13" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="854" y="658" width="26" height="104" rx="13" fill="#FFFFFF" opacity="0.85"/>
+    <!-- Base and wheels -->
+    <rect x="640" y="818" width="250" height="26" rx="13" fill="#2A3F8F"/>
+    <circle cx="680" cy="872" r="34" fill="#2A3F8F"/>
+    <circle cx="680" cy="872" r="13" fill="#F2F2FA"/>
+    <circle cx="850" cy="872" r="34" fill="#2A3F8F"/>
+    <circle cx="850" cy="872" r="13" fill="#F2F2FA"/>
+  </g>
+</svg>

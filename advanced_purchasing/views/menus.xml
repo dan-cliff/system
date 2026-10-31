@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Purchasing's menus live in the Purchase app's root (renamed Purchasing in
+         data/purchasing_titles.xml), so other apps' menus there stay. -->
+    <menuitem id="menu_purchasing_to_approve"
+              name="To Approve"
+              parent="purchase.menu_procurement_management"
+              action="action_purchasing_to_approve"
+              groups="group_purchase_order_approve,group_purchase_order_approve_any"
+              sequence="3"/>
+
+    <!-- Reporting (Odoo's analysis menu) stays; Report Builder's Reports folder
+         sits directly before Configuration. -->
+    <record id="purchase.purchase_report_main" model="ir.ui.menu">
+        <field name="sequence">90</field>
+    </record>
+    <menuitem id="menu_purchasing_reports" name="Reports" parent="purchase.menu_purchase_root" sequence="95"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_purchasing_spend_levels"
+              name="Spend Levels"
+              parent="purchase.menu_purchase_config"
+              action="action_spend_level"
+              groups="group_purchasing_admin"
+              sequence="5"/>
+</odoo>

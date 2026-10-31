@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The Purchase Order PDF sent to suppliers. web.external_layout takes the
+         order's company (o.company_id), so each order carries its own company's
+         logo, colours, address and footer. Printed from the form with
+         action_print_purchasing_order (no layout wizard) or attached to the
+         "Send PO" email. -->
+    <record id="action_report_purchasing_order" model="ir.actions.report">
+        <field name="name">Purchase Order</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">advanced_purchasing.report_purchasing_order</field>
+        <field name="report_file">advanced_purchasing.report_purchasing_order</field>
+        <field name="print_report_name">'Purchase Order - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_purchasing_order_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+            <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/>
+            <t t-set="address">
+                <strong class="d-block">Supplier</strong>
+                <div t-field="o.partner_id"
+                     t-options='{"widget": "contact", "fields": ["address", "name", "phone", "email", "vat"], "no_marker": True, "phone_icons": True}'/>
+            </t>
+            <t t-set="information_block">
+                <strong class="d-block">Deliver to</strong>
+                <t t-set="ship_to" t-value="o.dest_address_id or o.company_id.partner_id"/>
+                <div t-out="ship_to"
+                     t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+            </t>
+            <div class="page o_purchasing_order">
+                <div class="oe_structure"/>
+                <t t-set="layout_document_title">
+                    <t t-if="o.state == 'purchase'">Purchase Order <span t-field="o.name"/></t>
+                    <t t-elif="o.state == 'cancel'">Cancelled Purchase Order <span t-field="o.name"/></t>
+                    <t t-else="">Draft Purchase Order <span t-field="o.name"/> (not yet approved)</t>
+                </t>
+
+                <div id="informations" class="row mb-4">
+                    <div class="col-auto mb-2">
+                        <strong>Order Date</strong>
+                        <div t-if="o.date_approve" t-out="context_timestamp(o.date_approve).strftime('%d/%m/%Y')"/>
+                        <div t-elif="o.date_order" t-out="context_timestamp(o.date_order).strftime('%d/%m/%Y')"/>
+                    </div>
+                    <div t-if="o.date_planned" class="col-auto mb-2">
+                        <strong>Expected Delivery</strong>
+                        <div t-out="context_timestamp(o.date_planned).strftime('%d/%m/%Y')"/>
+                    </div>
+                    <div t-if="o.partner_ref" class="col-auto mb-2">
+                        <strong>Your Reference</strong>
+                        <div t-field="o.partner_ref"/>
+                    </div>
+                    <div t-if="o.user_id" class="col-auto mb-2">
+                        <strong>Buyer</strong>
+                        <div t-field="o.user_id"/>
+                        <div t-if="o.user_id.email" class="small" t-field="o.user_id.email"/>
+                    </div>
+                    <div t-if="o.payment_term_id" class="col-auto mb-2">
+                        <strong>Payment Terms</strong>
+                        <div t-field="o.payment_term_id"/>
+                    </div>
+                    <div t-if="o.incoterm_id" class="col-auto mb-2">
+                        <strong>Incoterm</strong>
+                        <div t-field="o.incoterm_id.code"/>
+                    </div>
+                </div>
+
+                <table class="o_has_total_table table o_main_table table-borderless">
+                    <thead style="display: table-row-group">
+                        <tr>
+                            <th name="th_code" class="text-start">Code</th>
+                            <th name="th_description" class="text-start">Description</th>
+                            <th name="th_date_planned" class="text-start">Delivery</th>
+                            <th name="th_quantity" class="text-end">Qty</th>
+                            <th name="th_price_unit" class="text-end">Unit Price</th>
+                            <th name="th_discount" class="text-end" t-if="any(o.order_line.mapped('discount'))">Disc.</th>
+                            <th name="th_taxes" class="text-end">Taxes</th>
+                            <th name="th_subtotal" class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="show_discount" t-value="any(o.order_line.mapped('discount'))"/>
+                        <t t-foreach="o.order_line.filtered(lambda l: l.display_type or l.product_qty)" t-as="line">
+                            <tr t-if="not line.display_type">
+                                <td class="text-start"><span t-out="line.product_id.default_code or ''"/></td>
+                                <td class="text-start"><span t-field="line.name"/></td>
+                                <td class="text-start">
+                                    <span t-if="line.date_planned" t-out="context_timestamp(line.date_planned).strftime('%d/%m/%Y')"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-field="line.product_qty"/>
+                                    <span t-field="line.product_uom_id.name" groups="uom.group_uom"/>
+                                </td>
+                                <td class="text-end"><span t-field="line.price_unit"/></td>
+                                <td class="text-end" t-if="show_discount"><span t-field="line.discount"/>%</td>
+                                <td class="text-end">
+                                    <span t-out="', '.join(tax.tax_label for tax in line.tax_ids if tax.tax_label)"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-field="line.price_subtotal"
+                                          t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                </td>
+                            </tr>
+                            <tr t-elif="line.display_type in ('line_section', 'line_subsection')" class="fw-bold o_line_section">
+                                <td colspan="99"><span t-field="line.name"/></td>
+                            </tr>
+                            <tr t-else="" class="fst-italic o_line_note">
+                                <td colspan="99"><span t-field="line.name"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+
+                <div id="total" class="row justify-content-end">
+                    <div class="col-5">
+                        <table class="o_total_table table table-borderless">
+                            <t t-call="purchase.document_tax_totals">
+                                <t t-set="tax_totals" t-value="o.tax_totals"/>
+                                <t t-set="currency" t-value="o.currency_id"/>
+                            </t>
+                        </table>
+                    </div>
+                </div>
+
+                <div t-if="not is_html_empty(o.note)" class="mt-4">
+                    <strong>Terms and Conditions</strong>
+                    <div t-field="o.note"/>
+                </div>
+
+                <div class="row mt-5" name="authorisation">
+                    <div class="col-6">
+                        <strong>Authorised by</strong>
+                        <div t-if="o.purchasing_approved_by_id" t-field="o.purchasing_approved_by_id"/>
+                        <div t-elif="o.state == 'purchase'" t-field="o.user_id"/>
+                        <div t-if="o.date_approve" class="small text-muted">
+                            on <t t-out="context_timestamp(o.date_approve).strftime('%d/%m/%Y')"/>
+                        </div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="mb-0">Please quote <strong t-field="o.name"/> on all delivery dockets and invoices.</p>
+                    </div>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_purchasing_order">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="advanced_purchasing.report_purchasing_order_document" t-lang="o.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+</odoo>

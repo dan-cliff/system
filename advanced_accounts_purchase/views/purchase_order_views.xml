@@ -6,15 +6,38 @@
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet/group/group/field[@name='partner_id']" position="before">
-                <field name="adv_account_id" readonly="state in ['cancel', 'purchase']"
+                <field name="adv_purchase_account_type_ids" invisible="1"/>
+                <!-- Settings > Purchasing > Account Types to Purchase From limits both pickers. -->
+                <field name="adv_account_id" string="Supplier" readonly="state in ['cancel', 'purchase']"
                        required="not adv_contact_id and not partner_id" options="{'no_quick_create': True}"
-                       placeholder="Type to find a vendor Account..."/>
+                       domain="[('account_type_id', 'in', adv_purchase_account_type_ids)] if adv_purchase_account_type_ids else []"
+                       placeholder="Type to find a supplier Account..."/>
                 <field name="adv_contact_id" readonly="state in ['cancel', 'purchase']"
-                       options="{'no_quick_create': True}" context="{'default_account_id': adv_account_id}"/>
+                       options="{'no_quick_create': True}" context="{'default_account_id': adv_account_id}"
+                       domain="[('account_id', '=', adv_account_id)] if adv_account_id else ([('account_id.account_type_id', 'in', adv_purchase_account_type_ids)] if adv_purchase_account_type_ids else [])"/>
             </xpath>
             <xpath expr="//sheet/group/group/field[@name='partner_id']" position="attributes">
                 <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
             </xpath>
+        </field>
+    </record>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_accounts_purchase</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <block name="purchase_setting_container" position="inside">
+                <setting id="purchase_account_types" string="Account Types to Purchase From" company_dependent="1"
+                         help="Which Account Types are considered Suppliers and can be selected in the Suppliers field?">
+                    <field name="purchase_account_type_ids" widget="many2many_tags" options="{'no_create': True}"
+                           placeholder="Every Account Type"/>
+                    <div class="text-muted small mt-1">
+                        When set, the Supplier and Contact fields of purchase orders only list Accounts with one of
+                        these types (and their Contacts).
+                    </div>
+                </setting>
+            </block>
         </field>
     </record>
 

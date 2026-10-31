@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spend_level_view_form" model="ir.ui.view">
+        <field name="name">advanced.purchasing.spend.level.form.hr</field>
+        <field name="model">advanced.purchasing.spend.level</field>
+        <field name="inherit_id" ref="advanced_purchasing.spend_level_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_open_employees" type="object" class="oe_stat_button" icon="fa-users"
+                        groups="hr.group_hr_user">
+                    <field name="employee_count" widget="statinfo" string="Employees"/>
+                </button>
+            </div>
+        </field>
+    </record>
+
+    <record id="spend_level_view_list" model="ir.ui.view">
+        <field name="name">advanced.purchasing.spend.level.list.hr</field>
+        <field name="model">advanced.purchasing.spend.level</field>
+        <field name="inherit_id" ref="advanced_purchasing.spend_level_view_list"/>
+        <field name="arch" type="xml">
+            <field name="approver_level" position="after">
+                <field name="employee_count" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

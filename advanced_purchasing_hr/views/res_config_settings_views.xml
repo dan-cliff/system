@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_purchasing_hr</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="advanced_purchasing.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <setting id="purchasing_spend_levels" position="after">
+                <setting id="purchasing_escalate_delegation" company_dependent="1"
+                         help="Skip Up Managers whose own spend delegation (Purchases Rules on the employee) is below the order total: the order goes to the first manager above them, up to the 4th Up Manager, who can spend that much.">
+                    <field name="purchasing_escalate_delegation"/>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>
