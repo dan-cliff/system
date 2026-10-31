@@ -12,7 +12,7 @@ class RosteringLeave(models.Model):
     employee_id = fields.Many2one(
         'hr.employee', string='Employee', index=True, tracking=True,
         default=lambda self: self.env.user.employee_id,
-        domain="['|', ('company_id', '=', False), ('company_id', 'in', allowed_company_ids)]",
+        domain="[('company_id', 'in', [company_id, False])]",
         context={'rostering_employee_picker': True},
     )
     manager_id = fields.Many2one(related='employee_id.parent_id', string='Manager')
