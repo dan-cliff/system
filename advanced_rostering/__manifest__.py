@@ -33,6 +33,10 @@ Planning and Time Off in one app.
   Edit My Team) and above can request it for others. Without Personnel the
   submitted requests wait in the To Approve queue for the Leave Requests:
   Approve team; with Personnel they go to the employee's Manager.
+* With Calendar installed (advanced_rostering_calendar, installed
+  automatically): leave requests show in the person's calendar with their
+  status, and in a shared Leave Requests calendar that only shows the
+  requests each user can see.
 * Feature switches (Settings › Rostering, each shown only when that app is
   installed):
   - Personnel (advanced_rostering_hr): people are Personnel employees, the
