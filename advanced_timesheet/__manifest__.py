@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Advanced Timesheets',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.1.1',
     'category': 'Services/Timesheets',
     'summary': 'Weekly, fortnightly or monthly timesheets filled in on a grid, with optional manager approval',
     'description': """
