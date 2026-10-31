@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_duty_view_form_payroll" model="ir.ui.view">
+        <field name="name">rostering.duty.form.payroll</field>
+        <field name="model">rostering.duty</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_duty_view_form"/>
+        <field name="arch" type="xml">
+            <field name="color" position="before">
+                <field name="payroll_pay_item_id" options="{'no_create': True}" placeholder="Ordinary Hours"
+                       groups="advanced_payroll.group_payroll_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="rostering_duty_view_list_payroll" model="ir.ui.view">
+        <field name="name">rostering.duty.list.payroll</field>
+        <field name="model">rostering.duty</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_duty_view_list"/>
+        <field name="arch" type="xml">
+            <field name="description" position="before">
+                <field name="payroll_pay_item_id" optional="show" groups="advanced_payroll.group_payroll_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="rostering_leave_type_view_form_payroll" model="ir.ui.view">
+        <field name="name">rostering.leave.type.form.payroll</field>
+        <field name="model">rostering.leave.type</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_type_view_form"/>
+        <field name="arch" type="xml">
+            <field name="color" position="before">
+                <field name="payroll_unpaid" groups="advanced_payroll.group_payroll_user"/>
+                <field name="payroll_pay_item_id" options="{'no_create': True}" placeholder="Paid Leave"
+                       invisible="payroll_unpaid" groups="advanced_payroll.group_payroll_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="rostering_leave_type_view_list_payroll" model="ir.ui.view">
+        <field name="name">rostering.leave.type.list.payroll</field>
+        <field name="model">rostering.leave.type</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_type_view_list"/>
+        <field name="arch" type="xml">
+            <field name="description" position="before">
+                <field name="payroll_pay_item_id" optional="show" groups="advanced_payroll.group_payroll_user"/>
+                <field name="payroll_unpaid" optional="show" groups="advanced_payroll.group_payroll_user"/>
+            </field>
+        </field>
+    </record>
+</odoo>

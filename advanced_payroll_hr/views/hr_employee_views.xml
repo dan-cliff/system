@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Employee > Payroll: the Payroll Country (from the Work Address) and the
+         payroll profile. -->
+    <record id="hr_employee_view_form_payroll" model="ir.ui.view">
+        <field name="name">hr.employee.form.payroll</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='payroll_information']/group[@name='payroll_group']" position="before">
+                <group name="advanced_payroll" string="Payroll">
+                    <field name="payroll_country_id" options="{'no_create': True}"/>
+                    <label for="payroll_employee_count" string="Payroll Profile"
+                           groups="advanced_payroll.group_payroll_user"/>
+                    <div groups="advanced_payroll.group_payroll_user">
+                        <field name="payroll_employee_count" invisible="1"/>
+                        <button name="action_open_payroll_employee" type="object" class="btn-link p-0"
+                                icon="oi-arrow-right" string="Open Payroll Profile"
+                                invisible="not payroll_employee_count"/>
+                        <button name="action_open_payroll_employee" type="object" class="btn-link p-0"
+                                icon="fa-plus" string="Add to Payroll"
+                                invisible="payroll_employee_count"/>
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_country_view_list" model="ir.ui.view">
+        <field name="name">payroll.country.list</field>
+        <field name="model">payroll.country</field>
+        <field name="arch" type="xml">
+            <list string="Payroll Countries">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="country_id" optional="show"/>
+                <field name="default_pay_frequency_id" optional="show"/>
+                <field name="standard_hours_per_week" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_country_view_form" model="ir.ui.view">
+        <field name="name">payroll.country.form</field>
+        <field name="model">payroll.country</field>
+        <field name="arch" type="xml">
+            <form string="Payroll Country">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Australia"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="country_id" options="{'no_create': True}"/>
+                            <field name="code"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <label for="tax_year_start_day" string="Tax Year Starts"/>
+                            <div class="o_row">
+                                <span>Day</span>
+                                <field name="tax_year_start_day" class="oe_inline"/>
+                                <span>of month</span>
+                                <field name="tax_year_start_month" class="oe_inline"/>
+                            </div>
+                            <field name="default_pay_frequency_id" options="{'no_create': True}"/>
+                            <field name="standard_hours_per_week"/>
+                            <field name="ordinary_pay_item_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pay Items" name="pay_items">
+                            <field name="pay_item_ids" readonly="1">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="code"/>
+                                    <field name="category"/>
+                                    <field name="calculation"/>
+                                    <field name="rate_multiplier"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Payroll Rules" name="rules">
+                            <field name="rule_ids" readonly="1">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="code"/>
+                                    <field name="category"/>
+                                    <field name="compute_method"/>
+                                    <field name="rate"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Tax Tables" name="tax_tables">
+                            <field name="tax_table_ids" readonly="1">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="annual_deduction"/>
+                                    <field name="credit_base"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_country_view_search" model="ir.ui.view">
+        <field name="name">payroll.country.search</field>
+        <field name="model">payroll.country</field>
+        <field name="arch" type="xml">
+            <search string="Payroll Countries">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_payroll_country" model="ir.actions.act_window">
+        <field name="name">Payroll Countries</field>
+        <field name="res_model">payroll.country</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Switch on a Payroll Country</p>
+            <p>Payroll Countries come with their country's Payroll app: switch them on in Settings › Payroll › Payroll Countries.</p>
+        </field>
+    </record>
+</odoo>

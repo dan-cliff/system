@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_employee_view_form_us" model="ir.ui.view">
+        <field name="name">payroll.employee.form.us</field>
+        <field name="model">payroll.employee</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_employee_view_form"/>
+        <field name="arch" type="xml">
+            <page name="pay" position="after">
+                <page string="USA" name="payroll_us" invisible="country_code != 'US'">
+                    <group>
+                        <group string="Employee" name="us_employee">
+                            <field name="us_ssn"/>
+                            <field name="us_state_id" options="{'no_create': True}"/>
+                            <field name="us_exempt"/>
+                        </group>
+                        <group string="Form W-4" name="us_w4" invisible="us_exempt">
+                            <field name="us_filing_status_id" options="{'no_create': True}"
+                                   required="country_code == 'US' and not us_exempt"/>
+                            <field name="us_w4_step2"/>
+                            <field name="us_w4_dependents"/>
+                            <field name="us_w4_other_income"/>
+                            <field name="us_w4_deductions"/>
+                            <field name="us_w4_extra_withholding"/>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_employee_view_form_nz" model="ir.ui.view">
+        <field name="name">payroll.employee.form.nz</field>
+        <field name="model">payroll.employee</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_employee_view_form"/>
+        <field name="arch" type="xml">
+            <page name="pay" position="after">
+                <page string="New Zealand" name="payroll_nz" invisible="country_code != 'NZ'">
+                    <group>
+                        <group string="Tax" name="nz_tax">
+                            <field name="nz_ird_number"/>
+                            <field name="nz_tax_code_id" options="{'no_create': True}"
+                                   required="country_code == 'NZ'"/>
+                        </group>
+                        <group string="KiwiSaver" name="nz_kiwisaver">
+                            <field name="nz_kiwisaver_member"/>
+                            <field name="nz_kiwisaver_rate" invisible="not nz_kiwisaver_member"/>
+                            <field name="nz_kiwisaver_employer_rate" invisible="not nz_kiwisaver_member"/>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>
