@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Rostering - Calendar',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'category': 'Human Resources/Rostering',
     'summary': 'Leave requests in the Calendar app, with a shared Leave Requests calendar',
     'description': """
@@ -26,6 +26,7 @@
     'data': [
         'data/rostering_calendar_data.xml',
         'security/rostering_calendar_security.xml',
+        'views/rostering_leave_views.xml',
     ],
     'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',

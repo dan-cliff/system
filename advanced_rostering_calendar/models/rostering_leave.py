@@ -3,7 +3,7 @@ from datetime import datetime, time
 
 from markupsafe import Markup, escape
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 # Requests shown in Calendar; refused and cancelled ones are taken out.
 CALENDAR_STATES = ('draft', 'submitted', 'approved')
@@ -11,7 +11,6 @@ CALENDAR_STATES = ('draft', 'submitted', 'approved')
 CALENDAR_FIELDS = {
     'state', 'leave_type_id', 'date_from', 'date_to', 'request_unit', 'datetime_from', 'datetime_to',
     'user_id', 'employee_id', 'reason', 'company_id',
-    'org_division_id', 'org_business_unit_id', 'org_location_id', 'org_department_id',
 }
 
 
@@ -68,12 +67,13 @@ class RosteringLeave(models.Model):
             'privacy': 'public',
             'description': Markup('<p>%s</p>') % description if description else False,
         }
-        # Same Organisation as the request (org_structure), not the units of
-        # whoever happened to create it, so scoping treats both alike.
+        # No Organisation units on leave events (org_structure): who sees them
+        # is decided by the leave request's visibility (see calendar_event.py),
+        # and records without units are never hidden by Organisation scoping.
         event_fields = self.env['calendar.event']._fields
         for name in ('org_division_id', 'org_business_unit_id', 'org_location_id', 'org_department_id'):
-            if name in event_fields and name in self._fields:
-                values[name] = self[name].id
+            if name in event_fields:
+                values[name] = False
         if self.request_unit == 'partial' and self.datetime_from and self.datetime_to:
             values.update(allday=False, start=self.datetime_from, stop=self.datetime_to)
         else:
@@ -82,6 +82,22 @@ class RosteringLeave(models.Model):
                           start=datetime.combine(self.date_from, time(8, 0)),
                           stop=datetime.combine(self.date_to, time(18, 0)))
         return values
+
+    def action_open_calendar_event(self):
+        self.ensure_one()
+        event = self.sudo().calendar_event_id
+        if not event:
+            self._sync_calendar_event()
+            event = self.sudo().calendar_event_id
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Calendar'),
+            'res_model': 'calendar.event',
+            'view_mode': 'calendar,list,form',
+            'views': [(False, 'calendar'), (False, 'list'), (False, 'form')],
+            'domain': [('id', '=', event.id)],
+            'context': {'initial_date': fields.Date.to_string(self.date_from), 'default_mode': 'month'},
+        }
 
     def _sync_calendar_event(self):
         """Create, update or remove each request's calendar event."""
