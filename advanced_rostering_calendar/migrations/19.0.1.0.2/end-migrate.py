@@ -8,7 +8,11 @@ _logger = logging.getLogger(__name__)
 
 def migrate(cr, version):
     """Resync every leave event (no Organisation units, no Meeting activity)
-    and log what Calendar holds, to check the shared Leave Requests calendar."""
+    and log what Calendar holds, to check the shared Leave Requests calendar.
+
+    An end- script: it runs once every module is loaded, so Rostering -
+    Personnel's employee fields and record rules are there for the resync
+    and the visibility check."""
     env = api.Environment(cr, SUPERUSER_ID, {})
     # Calendar added a "Meeting" activity to each leave request: remove them.
     activities = env['mail.activity'].search([
