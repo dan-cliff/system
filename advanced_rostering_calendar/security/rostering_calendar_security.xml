@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A leave event is only visible to the users who can see its leave request
+         in Rostering. Global rule (AND-ed with Calendar's own rules); other
+         events are untouched. -->
+    <record id="rule_calendar_event_rostering_leave" model="ir.rule">
+        <field name="name">Calendar: leave events follow the leave request's visibility</field>
+        <field name="model_id" ref="calendar.model_calendar_event"/>
+        <field name="domain_force">['|', ('res_model', '!=', 'rostering.leave'), ('rostering_leave_visible', '=', True)]</field>
+    </record>
+</odoo>
