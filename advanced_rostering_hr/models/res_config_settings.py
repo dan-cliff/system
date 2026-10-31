@@ -9,7 +9,7 @@ class ResConfigSettings(models.TransientModel):
         string='Public Holiday Jurisdictions on Employees',
         config_parameter='advanced_rostering.employee_jurisdictions',
         help='Choose on each employee (Payroll tab) which public holiday jurisdictions apply to them. The '
-             'Country and State of their private address are picked automatically.',
+             'Country and State of their Work Address are picked automatically.',
     )
 
     def set_values(self):

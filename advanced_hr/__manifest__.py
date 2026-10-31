@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Personnel',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Human Resources/Employees',
     'sequence': 95,
     'summary': 'A modern Employees app: people, departments, ID badges and an audit trail',
@@ -34,6 +34,7 @@ place on the home screen.
   and barcodes for any field). A badge with a company is only offered to
   that company's employees; without one it is offered to everyone. Each
   badge is listed on the employee's Print menu.
+* Every employee needs a Work Address (Work Information tab).
 * Lists start with the ID, dates show as dd/mm/yyyy, a Reports menu for
   Report Builder sits before Configuration.
 """,

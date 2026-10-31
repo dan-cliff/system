@@ -91,11 +91,14 @@ class TestRosteringHr(TransactionCase):
         params = self.env['ir.config_parameter'].sudo()
         params.set_param('advanced_rostering.holiday_import', 'True')
         params.set_param('advanced_rostering.employee_jurisdictions', 'True')
-        self.worker.write({'private_country_id': au.id, 'private_state_id': vic.id})
+        # Filled from the Work Address, not the private address.
+        melbourne = self.env['res.partner'].create({'name': 'Melbourne Shop', 'country_id': au.id,
+                                                    'state_id': vic.id})
+        self.worker.write({'private_country_id': False, 'private_state_id': False, 'address_id': melbourne.id})
         self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | state)
         # Picked by hand: kept when the address changes.
         self.worker.rostering_holiday_jurisdiction_ids |= religion
-        self.worker.write({'private_state_id': False})
+        melbourne.state_id = False
         self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | religion)
 
         holiday = self.env['rostering.public.holiday'].create({
@@ -120,3 +123,20 @@ class TestRosteringHr(TransactionCase):
         expected = calendar.full_time_required_hours * calendar.hours_per_day / calendar.hours_per_week
         self.assertAlmostEqual(leave._full_day_hours(), expected, places=2)
         self.assertAlmostEqual(leave.hours, 2 * expected, places=2)
+
+    def test_leave_organisation_follows_employee(self):
+        Leave = self.env['rostering.leave']
+        if 'org_division_id' not in Leave._fields or 'org_division_id' not in self.env['hr.employee']._fields:
+            self.skipTest('Organisation Structure is not installed')
+        north, south = self.env['org.division'].create([{'name': 'North'}, {'name': 'South'}])
+        self.worker.org_division_id = north
+        self.other.org_division_id = south
+        leave = Leave.create({
+            'employee_id': self.worker.id, 'leave_type_id': self.leave_type.id,
+            'date_from': date(2026, 12, 14), 'date_to': date(2026, 12, 14),
+        })
+        self.assertEqual(leave.org_division_id, north)
+        leave.employee_id = self.other
+        self.assertEqual(leave.org_division_id, south)
+        arch = Leave.get_view(self.env.ref('advanced_rostering.rostering_leave_view_form').id)['arch']
+        self.assertNotIn('org_division_id', arch)
