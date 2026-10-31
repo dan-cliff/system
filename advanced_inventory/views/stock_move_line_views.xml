@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pick and Put Away lists: what to fetch and store, in walk order. -->
+    <record id="view_move_line_walk_list" model="ir.ui.view">
+        <field name="name">stock.move.line.list.walk</field>
+        <field name="model">stock.move.line</field>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <list string="Walk List" create="0" editable="bottom" decoration-muted="picked"
+                  default_order="walk_sequence, picking_id, id">
+                <field name="id" optional="show"/>
+                <field name="walk_sequence" string="Walk" optional="show"/>
+                <field name="walk_location_id" string="Go To" readonly="1"/>
+                <field name="picking_id" readonly="1"/>
+                <field name="product_id" readonly="1"/>
+                <field name="lot_id" groups="stock.group_production_lot" optional="show" readonly="1"/>
+                <field name="location_id" string="From" optional="show" readonly="1"/>
+                <field name="location_dest_id" string="To" optional="show" readonly="1"/>
+                <field name="quantity"/>
+                <field name="product_uom_id" groups="uom.group_uom" readonly="1"/>
+                <field name="picked" widget="boolean_toggle"/>
+                <field name="company_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_move_line_walk_search" model="ir.ui.view">
+        <field name="name">stock.move.line.search.walk</field>
+        <field name="model">stock.move.line</field>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <search string="Walk List">
+                <field name="product_id"/>
+                <field name="picking_id"/>
+                <field name="walk_location_id" string="Location"/>
+                <filter name="not_picked" string="To Do" domain="[('picked', '=', False)]"/>
+                <filter name="picked" string="Done" domain="[('picked', '=', True)]"/>
+                <group>
+                    <filter name="group_picking" string="Transfer" context="{'group_by': 'picking_id'}"/>
+                    <filter name="group_location" string="Location" context="{'group_by': 'walk_location_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_walk_pick" model="ir.actions.act_window">
+        <field name="name">Pick List</field>
+        <field name="res_model">stock.move.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_move_line_walk_list"/>
+        <field name="search_view_id" ref="view_move_line_walk_search"/>
+        <field name="domain">[('picking_id.state', '=', 'assigned'), ('picking_code', 'in', ('outgoing', 'internal')), ('location_id.usage', '=', 'internal')]</field>
+        <field name="context">{'search_default_not_picked': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing to pick</p>
+            <p>Products to fetch for ready deliveries and internal transfers show here in walk order:
+               one pass through the warehouse picks them all.</p>
+        </field>
+    </record>
+
+    <record id="action_walk_putaway" model="ir.actions.act_window">
+        <field name="name">Put Away List</field>
+        <field name="res_model">stock.move.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_move_line_walk_list"/>
+        <field name="search_view_id" ref="view_move_line_walk_search"/>
+        <field name="domain">[('picking_id.state', '=', 'assigned'), ('location_dest_id.usage', '=', 'internal'), '|', ('picking_code', '=', 'incoming'), ('location_dest_id.storage_level', '!=', False)]</field>
+        <field name="context">{'search_default_not_picked': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing to put away</p>
+            <p>Products arriving from receipts show here in the same walk order as picking, each going to its
+               storage slot.</p>
+        </field>
+    </record>
+</odoo>

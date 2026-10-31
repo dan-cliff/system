@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_warehouse_form_inventory" model="ir.ui.view">
+        <field name="name">stock.warehouse.form.advanced_inventory</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_open_layout_designer" type="object" class="oe_stat_button" icon="fa-map-o"
+                        invisible="not id">
+                    <field name="layout_location_count" widget="statinfo" string="Layout"/>
+                </button>
+            </div>
+            <field name="code" position="after">
+                <field name="inventory_barcode"/>
+                <label for="layout_floor_width" string="Floor Plan"/>
+                <div class="o_row">
+                    <field name="layout_floor_width" nolabel="1" class="oe_inline"/>
+                    <span>×</span>
+                    <field name="layout_floor_depth" nolabel="1" class="oe_inline"/>
+                    <span>m</span>
+                </div>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_warehouse_tree_inventory" model="ir.ui.view">
+        <field name="name">stock.warehouse.list.advanced_inventory</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="id" optional="show"/>
+            </field>
+            <field name="name" position="after">
+                <field name="code" optional="show"/>
+                <field name="inventory_barcode" optional="show"/>
+                <field name="layout_location_count" string="Layout Locations" optional="show"/>
+            </field>
+            <field name="company_id" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_warehouse_layout_kanban" model="ir.ui.view">
+        <field name="name">stock.warehouse.kanban.layout</field>
+        <field name="model">stock.warehouse</field>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <kanban action="action_open_layout_designer" type="object" class="o_inventory_layout_kanban">
+                <field name="layout_location_count"/>
+                <templates>
+                    <t t-name="card" class="flex-row align-items-center gap-3">
+                        <i class="fa fa-map-o fa-2x text-primary" title="Layout"/>
+                        <div class="flex-grow-1">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <div class="text-muted">
+                                <field name="code"/> ·
+                                <t t-esc="record.layout_location_count.raw_value"/> layout locations
+                            </div>
+                            <field name="company_id" groups="base.group_multi_company" class="small text-muted"/>
+                        </div>
+                        <span class="badge rounded-pill text-bg-secondary">Open Designer</span>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Configuration › Warehouse Layout: pick a warehouse, then design it. -->
+    <record id="action_warehouse_layout" model="ir.actions.act_window">
+        <field name="name">Warehouse Layout</field>
+        <field name="res_model">stock.warehouse</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_id" ref="view_warehouse_layout_kanban"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a warehouse to lay out</p>
+            <p>Draw its rooms, aisles and shelves on a floor plan, list its totes and number the walk
+               that picking and put-away follow.</p>
+        </field>
+    </record>
+</odoo>

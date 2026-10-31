@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="inventory_sign_view_list" model="ir.ui.view">
+        <field name="name">advanced.inventory.sign.list</field>
+        <field name="model">advanced.inventory.sign</field>
+        <field name="arch" type="xml">
+            <list string="Digital Signs">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="target" optional="show"/>
+                <field name="warehouse_id" optional="show"/>
+                <field name="location_id" optional="show"/>
+                <field name="product_id" optional="hide"/>
+                <field name="last_seen" optional="show" options="{'numeric': True}"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="inventory_sign_view_form" model="ir.ui.view">
+        <field name="name">advanced.inventory.sign.form</field>
+        <field name="model">advanced.inventory.sign</field>
+        <field name="arch" type="xml">
+            <form string="Digital Sign">
+                <header>
+                    <button name="action_open_sign" type="object" string="Open Sign" class="btn-primary" invisible="not id"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Aisle 3 screen"/></h1>
+                    </div>
+                    <group>
+                        <group name="sign">
+                            <field name="template_id" options="{'no_create': True}"/>
+                            <field name="target" invisible="not template_id"/>
+                            <field name="warehouse_id" invisible="target != 'warehouse'" required="target == 'warehouse'"
+                                   options="{'no_create': True}"/>
+                            <field name="location_id" invisible="target not in ('room', 'aisle', 'shelf', 'tote')"
+                                   required="target in ('room', 'aisle', 'shelf', 'tote')" options="{'no_create': True}"/>
+                            <field name="product_id" invisible="target != 'product'" required="target == 'product'"
+                                   options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group name="screen">
+                            <field name="refresh_seconds"/>
+                            <field name="signage_url" widget="CopyClipboardChar" invisible="not id"/>
+                            <field name="last_seen" options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status" invisible="not id">
+                        <strong>Showing the sign on a screen:</strong> open the Screen Address on the screen's browser,
+                        logged in to Odoo, and press F11 for full screen. To install it as an app, open
+                        <code>/inventory/signage</code> and choose <em>Install</em> (or <em>Add to Home Screen</em>):
+                        it opens straight onto your signs and keeps the last sign on screen if the network drops.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="inventory_sign_view_search" model="ir.ui.view">
+        <field name="name">advanced.inventory.sign.search</field>
+        <field name="model">advanced.inventory.sign</field>
+        <field name="arch" type="xml">
+            <search string="Digital Signs">
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="location_id"/>
+                <field name="warehouse_id"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_template" string="Sign Design" context="{'group_by': 'template_id'}"/>
+                    <filter name="group_warehouse" string="Warehouse" context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_inventory_sign" model="ir.actions.act_window">
+        <field name="name">Digital Signs</field>
+        <field name="res_model">advanced.inventory.sign</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="inventory_sign_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Put a sign on a screen</p>
+            <p>A digital sign shows a sign design for one warehouse, room, aisle, shelf, tote or product, full screen,
+               on any screen through the Inventory Signage app.</p>
+        </field>
+    </record>
+</odoo>

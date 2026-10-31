@@ -1,0 +1,74 @@
+// Pick / put-away walk screen. Colours from the app icon palette (CLAUDE.md "Icon style").
+.o_scanner_root {
+    .o_inventory_walk_step {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+        margin: 12px 0;
+
+        > div {
+            padding: 16px;
+            border-radius: 16px;
+            background: #FFFFFF;
+            box-shadow: 0 8px 20px rgba(#2A3F8F, 0.12);
+        }
+
+        &.o_at_location .o_inventory_walk_where {
+            background: linear-gradient(135deg, #14C9A5, #14A3A3);
+            color: #FFFFFF;
+
+            .o_inventory_walk_label, .o_inventory_walk_path {
+                color: rgba(#FFFFFF, 0.9);
+            }
+        }
+    }
+
+    .o_inventory_walk_label {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #5B3DB8;
+    }
+
+    .o_inventory_walk_code {
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1.05;
+    }
+
+    .o_inventory_walk_path {
+        font-size: 14px;
+        color: #5B3DB8;
+    }
+
+    .o_inventory_walk_product {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .o_inventory_walk_qty {
+        margin-top: 8px;
+        font-size: 40px;
+        font-weight: 800;
+
+        small {
+            font-size: 16px;
+            font-weight: 400;
+        }
+    }
+
+    .o_inventory_lookup {
+        margin-top: 12px;
+        padding: 16px;
+        border-radius: 16px;
+        background: #FFFFFF;
+        box-shadow: 0 8px 20px rgba(#2A3F8F, 0.12);
+    }
+}
+
+@media (max-width: 640px) {
+    .o_scanner_root .o_inventory_walk_step {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

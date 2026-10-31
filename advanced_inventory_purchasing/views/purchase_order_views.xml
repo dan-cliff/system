@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_inventory" model="ir.ui.view">
+        <field name="name">purchase.order.form.advanced_inventory</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_view_picking']" position="after">
+                <button name="action_print_putaway_list" type="object" string="Put-Away List" icon="fa-map-signs"
+                        invisible="not inventory_putaway_count"/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button name="action_view_inventory_received" type="object" class="oe_stat_button" icon="fa-cubes"
+                        invisible="not inventory_received_count">
+                    <field name="inventory_received_count" widget="statinfo" string="Received"/>
+                </button>
+                <field name="inventory_putaway_count" invisible="1"/>
+            </xpath>
+            <xpath expr="//page/field[@name='order_line']/list/field[@name='product_qty']" position="after">
+                <field name="inventory_putaway_location_id" optional="show" invisible="not is_storable"/>
+                <field name="inventory_received_location_ids" widget="many2many_tags" optional="hide"
+                       invisible="not is_storable"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Received into Inventory" name="inventory_received" invisible="not inventory_received_count">
+                    <field name="inventory_received_line_ids" readonly="1">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="picking_id"/>
+                            <field name="product_id"/>
+                            <field name="lot_id" groups="stock.group_production_lot" optional="show"/>
+                            <field name="quantity"/>
+                            <field name="product_uom_id" groups="uom.group_uom"/>
+                            <field name="location_dest_id" string="Put Away To"/>
+                            <field name="company_id" column_invisible="True"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_move_line_received_list" model="ir.ui.view">
+        <field name="name">stock.move.line.list.received</field>
+        <field name="model">stock.move.line</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list string="Received into Inventory" create="0" edit="0">
+                <field name="id" optional="show"/>
+                <field name="date" options="{'numeric': True}"/>
+                <field name="picking_id"/>
+                <field name="product_id"/>
+                <field name="lot_id" groups="stock.group_production_lot" optional="show"/>
+                <field name="quantity" sum="Total"/>
+                <field name="product_uom_id" groups="uom.group_uom"/>
+                <field name="location_dest_id" string="Put Away To"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inventory's own home screen app. Odoo's Inventory root (stock.menu_stock_root)
+         is archived and everything under it moves here (see models/ir_ui_menu.py). -->
+    <record id="action_inventory_overview" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">advanced_inventory.overview</field>
+        <field name="path">inventory-overview</field>
+    </record>
+
+    <menuitem id="menu_inventory_root"
+              name="Inventory"
+              web_icon="advanced_inventory,static/description/icon.png"
+              action="action_inventory_overview"
+              groups="stock.group_stock_user,stock.group_stock_manager"
+              sequence="30"/>
+</odoo>

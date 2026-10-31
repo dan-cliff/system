@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cost analyses inside Inventory: they set product Costs, read component
+         stock and track break-even from deliveries. -->
+    <record id="view_product_cost_analysis_form_inventory" model="ir.ui.view">
+        <field name="name">product.cost.analysis.form.advanced_inventory</field>
+        <field name="model">product.cost.analysis</field>
+        <field name="inherit_id" ref="product_cost_analysis.view_product_cost_analysis_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_use_as_product_cost" type="object" string="Use as Product Cost"
+                            class="btn-primary" invisible="not id or is_product_cost"/>
+                    <button name="action_refresh_material_costs" type="object" string="Refresh Material Costs"
+                            invisible="not id or not outdated_line_count"/>
+                    <field name="is_product_cost" invisible="1"/>
+                </header>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_components" type="object" class="oe_stat_button" icon="fa-cubes"
+                            invisible="not can_build_qty and not limiting_component_id">
+                        <field name="can_build_qty" widget="statinfo" string="Can Make"/>
+                    </button>
+                    <button class="oe_stat_button" icon="fa-truck" disabled="1">
+                        <field name="units_delivered" widget="statinfo" string="Delivered"/>
+                    </button>
+                </div>
+                <widget name="web_ribbon" title="Product Cost" bg_color="text-bg-success" invisible="not is_product_cost"/>
+            </xpath>
+            <xpath expr="//sheet/group[1]/group[1]" position="inside">
+                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//sheet/group[1]/group[2]" position="after">
+                <group string="Inventory" name="inventory">
+                    <field name="qty_on_hand"/>
+                    <field name="stock_value"/>
+                    <field name="stock_margin"/>
+                    <field name="limiting_component_id" invisible="not limiting_component_id"/>
+                    <field name="break_even_progress" widget="progressbar" invisible="not break_even_units"/>
+                    <field name="units_to_break_even" invisible="not break_even_units"/>
+                    <field name="outdated_line_count" invisible="not outdated_line_count"
+                           decoration-warning="outdated_line_count"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='cost_line_ids']/list/field[@name='material_product_id']" position="after">
+                <field name="material_qty_on_hand" optional="hide"/>
+                <field name="material_current_cost" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_cost_analysis_list_inventory" model="ir.ui.view">
+        <field name="name">product.cost.analysis.list.advanced_inventory</field>
+        <field name="model">product.cost.analysis</field>
+        <field name="inherit_id" ref="product_cost_analysis.view_product_cost_analysis_list"/>
+        <field name="arch" type="xml">
+            <field name="id" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+            <field name="is_viable" position="after">
+                <field name="qty_on_hand" optional="hide"/>
+                <field name="stock_value" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_product_cost_analysis_search_inventory" model="ir.ui.view">
+        <field name="name">product.cost.analysis.search.advanced_inventory</field>
+        <field name="model">product.cost.analysis</field>
+        <field name="inherit_id" ref="product_cost_analysis.view_product_cost_analysis_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="inside">
+                <filter string="Company" name="by_company" context="{'group_by': 'company_id'}"
+                        groups="base.group_multi_company"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

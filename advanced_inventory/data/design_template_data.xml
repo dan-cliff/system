@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting label and sign designs; administrators adjust or add their own. -->
+    <data noupdate="1">
+        <record id="label_product" model="advanced.inventory.label.template">
+            <field name="name">Product Label</field>
+            <field name="target">product</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="label_warehouse" model="advanced.inventory.label.template">
+            <field name="name">Warehouse Label</field>
+            <field name="target">warehouse</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="label_room" model="advanced.inventory.label.template">
+            <field name="name">Room Label</field>
+            <field name="target">room</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="label_aisle" model="advanced.inventory.label.template">
+            <field name="name">Aisle Label</field>
+            <field name="target">aisle</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="label_shelf" model="advanced.inventory.label.template">
+            <field name="name">Shelf Label</field>
+            <field name="target">shelf</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="label_tote" model="advanced.inventory.label.template">
+            <field name="name">Tote Label</field>
+            <field name="target">tote</field>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="sign_warehouse" model="advanced.inventory.sign.template">
+            <field name="name">Warehouse Sign</field>
+            <field name="target">warehouse</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="sign_room" model="advanced.inventory.sign.template">
+            <field name="name">Room Sign</field>
+            <field name="target">room</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="sign_aisle" model="advanced.inventory.sign.template">
+            <field name="name">Aisle Sign</field>
+            <field name="target">aisle</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="sign_shelf" model="advanced.inventory.sign.template">
+            <field name="name">Shelf Sign</field>
+            <field name="target">shelf</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="sign_tote" model="advanced.inventory.sign.template">
+            <field name="name">Tote Sign</field>
+            <field name="target">tote</field>
+            <field name="page_width">1080</field>
+            <field name="page_height">1080</field>
+            <field name="sequence">50</field>
+        </record>
+    </data>
+</odoo>
