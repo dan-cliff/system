@@ -36,6 +36,11 @@ class RosteringRoster(models.Model):
     person_count = fields.Integer(string='People', compute='_compute_totals')
     unassigned_count = fields.Integer(string='Unassigned Shifts', compute='_compute_totals')
     leave_conflict_count = fields.Integer(string='Shifts on Leave', compute='_compute_leave_conflict_count')
+    public_holiday_ids = fields.Many2many(
+        'rostering.public.holiday', string='Public Holidays', compute='_compute_public_holiday_ids',
+        help='Public holidays in the roster\'s period that apply to the company or anyone on the roster.',
+    )
+    public_holiday_count = fields.Integer(string='Public Holiday Count', compute='_compute_public_holiday_ids')
     published_date = fields.Datetime(string='Published On', readonly=True, copy=False)
     published_by_id = fields.Many2one('res.users', string='Published By', readonly=True, copy=False)
     note = fields.Html(string='Notes')
@@ -67,6 +72,19 @@ class RosteringRoster(models.Model):
     def _compute_leave_conflict_count(self):
         for roster in self:
             roster.leave_conflict_count = len(roster.shift_ids.filtered('on_leave'))
+
+    @api.depends('date_start', 'date_end', 'company_id', 'shift_ids.date')
+    def _compute_public_holiday_ids(self):
+        Jurisdiction = self.env['rostering.holiday.jurisdiction']
+        for roster in self:
+            holidays = self.env['rostering.public.holiday']
+            if roster.date_start and roster.date_end:
+                jurisdictions = Jurisdiction._for_company(roster.company_id or self.env.company)
+                jurisdictions |= roster.shift_ids._all_holiday_jurisdictions()
+                holidays = holidays._in_range(roster.date_start, roster.date_end)._applying_to(
+                    jurisdictions, roster.company_id)
+            roster.public_holiday_ids = holidays
+            roster.public_holiday_count = len(holidays)
 
     @api.depends('state')
     @api.depends_context('uid')

@@ -4,7 +4,8 @@
         <field name="name">rostering.shift.list</field>
         <field name="model">rostering.shift</field>
         <field name="arch" type="xml">
-            <list string="Shifts" decoration-danger="on_leave" decoration-muted="not is_assigned">
+            <list string="Shifts" decoration-danger="on_leave" decoration-muted="not is_assigned"
+                  decoration-warning="public_holiday_name and not on_leave">
                 <field name="id" optional="show"/>
                 <field name="person_name"/>
                 <field name="user_id" optional="hide"/>
@@ -19,6 +20,9 @@
                 <field name="roster_id" optional="show"/>
                 <field name="roster_state" widget="badge" decoration-success="roster_state == 'published'" optional="show"/>
                 <field name="on_leave" optional="show"/>
+                <field name="public_holiday_name" optional="show"/>
+                <field name="holiday_pay_multiplier" optional="show" string="Holiday Pay ×"
+                       invisible="not public_holiday_name"/>
                 <field name="is_assigned" column_invisible="1"/>
                 <field name="company_id" optional="show" groups="base.group_multi_company"/>
             </list>
@@ -34,6 +38,10 @@
                     <div class="alert alert-danger" role="alert" invisible="not on_leave">
                         <field name="person_name" class="oe_inline" readonly="1"/> has approved leave on this day
                         (<field name="leave_id" class="oe_inline" readonly="1"/>).
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not public_holiday_name">
+                        <i class="fa fa-star me-1"/>Public holiday: <field name="public_holiday_name" class="oe_inline" readonly="1"/>
+                        (standard pay × <field name="holiday_pay_multiplier" class="oe_inline" readonly="1"/>)
                     </div>
                     <group>
                         <group name="person">
@@ -78,6 +86,7 @@
             <calendar string="Shifts" date_start="start_datetime" date_stop="end_datetime" color="duty_id"
                       mode="week" event_open_popup="1" quick_create="0">
                 <field name="person_name"/>
+                <field name="public_holiday_name" invisible="not public_holiday_name"/>
                 <field name="duty_id" filters="1"/>
                 <field name="standard_shift_id"/>
                 <field name="paid_hours" widget="float_time"/>

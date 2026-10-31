@@ -519,4 +519,9 @@
         <field name="model_id" ref="model_rostering_leave_type"/>
         <field name="domain_force">[&apos;|&apos;, (&apos;company_id&apos;, &apos;=&apos;, False), (&apos;company_id&apos;, &apos;in&apos;, company_ids)]</field>
     </record>
+    <record id="rule_public_holiday_company" model="ir.rule">
+        <field name="name">Public Holidays: multi-company</field>
+        <field name="model_id" ref="model_rostering_public_holiday"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

@@ -19,9 +19,37 @@
                                        required="rostering_cycle not in ('monthly', 'quarterly')"/>
                             </div>
                         </setting>
+                        <setting id="advanced_rostering_full_day_hours" string="Full Day Hours"
+                                 invisible="module_advanced_rostering_hr"
+                                 help="Hours off for each whole day of leave. With Personnel switched on, the Full Time Equivalent of the company's working hours (Personnel settings) is used instead.">
+                            <field name="rostering_leave_hours_per_day" widget="float_time" class="oe_inline"/>
+                            <span class="ms-1">hours a day</span>
+                        </setting>
                         <setting id="advanced_rostering_notify" string="Notify Staff on Publishing"
                                  help="When a roster is published, everyone on it gets a notification to check their shifts.">
                             <field name="rostering_notify_publish"/>
+                        </setting>
+                    </block>
+                    <block title="Public Holidays" id="advanced_rostering_holidays">
+                        <setting id="advanced_rostering_holiday_multiplier" string="Default Pay Multiplier"
+                                 help="Penalty rate given to new public holidays: standard pay × this factor. Change it on each holiday in Configuration › Public Holidays.">
+                            <div class="o_row">
+                                <span>Standard Pay ×</span>
+                                <field name="rostering_holiday_pay_multiplier" class="oe_inline"/>
+                            </div>
+                        </setting>
+                        <setting id="advanced_rostering_holiday_import" string="Import Public Holidays"
+                                 help="Fill the Public Holidays library automatically from Nager.Date (date.nager.at), a free public holiday service, with the country and states each holiday applies to. Checked every week for this year and next; pay multipliers you set are kept.">
+                            <field name="rostering_holiday_import"/>
+                            <div class="mt-2" invisible="not rostering_holiday_import">
+                                <label for="rostering_holiday_country_ids" class="o_light_label me-2"/>
+                                <field name="rostering_holiday_country_ids" widget="many2many_tags"
+                                       options="{'no_create': True}" placeholder="The company's country"/>
+                                <div>
+                                    <button name="action_rostering_import_holidays" type="object"
+                                            string="Import Now" icon="oi-arrow-right" class="btn-link"/>
+                                </div>
+                            </div>
                         </setting>
                     </block>
                     <block title="Works With" id="advanced_rostering_features">

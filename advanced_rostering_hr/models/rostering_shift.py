@@ -61,6 +61,33 @@ class RosteringShift(models.Model):
             return domain
         return [('id', 'not in', self.search(domain).ids)]
 
+    def _holiday_jurisdictions(self):
+        # The employee's own jurisdictions when Settings › Rostering gives
+        # employees theirs; otherwise (or when they have none) the company's.
+        self.ensure_one()
+        if self.employee_id.rostering_holiday_jurisdiction_ids and \
+                self.env['hr.employee']._rostering_jurisdictions_switched_on():
+            return self.employee_id.sudo().rostering_holiday_jurisdiction_ids
+        return super()._holiday_jurisdictions()
+
+    def _all_holiday_jurisdictions(self):
+        jurisdictions = super()._all_holiday_jurisdictions()
+        if self.env['hr.employee']._rostering_jurisdictions_switched_on():
+            jurisdictions |= self.employee_id.sudo().rostering_holiday_jurisdiction_ids
+        return jurisdictions
+
+    @api.model
+    def _my_holiday_jurisdictions(self):
+        employee = self.env.user.employee_id
+        if employee and self.env['hr.employee']._rostering_jurisdictions_switched_on() \
+                and employee.sudo().rostering_holiday_jurisdiction_ids:
+            return employee.sudo().rostering_holiday_jurisdiction_ids
+        return super()._my_holiday_jurisdictions()
+
+    @api.depends('employee_id')
+    def _compute_public_holiday(self):
+        return super()._compute_public_holiday()
+
     @api.model
     def _my_person_name(self):
         return self.env.user.employee_id.name or super()._my_person_name()

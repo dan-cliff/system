@@ -7,4 +7,5 @@ from . import rostering_roster
 from . import rostering_shift
 from . import rostering_leave_type
 from . import rostering_leave
+from . import rostering_public_holiday
 from . import res_config_settings

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_rostering_hr</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="advanced_rostering.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <setting id="advanced_rostering_holiday_import" position="after">
+                <setting id="advanced_rostering_employee_jurisdictions" string="Public Holiday Jurisdictions on Employees"
+                         invisible="not rostering_holiday_import"
+                         help="Choose on each employee (Personnel › Employee › Payroll) which public holiday jurisdictions apply to them, e.g. their state, country or religion. The Country and State of their private address are picked automatically. Without it, rosters use the company's country and state.">
+                    <field name="rostering_employee_jurisdictions"/>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

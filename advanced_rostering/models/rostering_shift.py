@@ -40,6 +40,13 @@ class RosteringShift(models.Model):
                                help='Approved leave of the person on this day.')
     on_leave = fields.Boolean(string='On Leave', compute='_compute_leave_id', search='_search_on_leave')
     is_mine = fields.Boolean(string='My Shifts', compute='_compute_is_mine', search='_search_is_mine')
+    public_holiday_ids = fields.Many2many('rostering.public.holiday', string='Public Holidays',
+                                          compute='_compute_public_holiday')
+    public_holiday_name = fields.Char(string='Public Holiday', compute='_compute_public_holiday')
+    holiday_pay_multiplier = fields.Float(
+        string='Holiday Pay Multiplier', digits=(16, 2), compute='_compute_public_holiday',
+        help='The highest pay multiplier of the public holidays on this shift\'s day (standard pay × this).',
+    )
 
     # ------------------------------------------------------------------
     # Whose shift it is. Personnel (advanced_rostering_hr) extends these.
@@ -56,6 +63,24 @@ class RosteringShift(models.Model):
     def _get_tz(self):
         self.ensure_one()
         return self.user_id.tz or self.env.user.tz or 'UTC'
+
+    def _holiday_jurisdictions(self):
+        """Public holiday jurisdictions of the person on the shift: the
+        roster company's address (Personnel can use the employee's own)."""
+        self.ensure_one()
+        return self.env['rostering.holiday.jurisdiction']._for_company(self.company_id or self.env.company)
+
+    def _all_holiday_jurisdictions(self):
+        """Every jurisdiction of the people on the shifts in ``self``."""
+        Jurisdiction = self.env['rostering.holiday.jurisdiction']
+        jurisdictions = Jurisdiction.browse()
+        for company in self.company_id:
+            jurisdictions |= Jurisdiction._for_company(company)
+        return jurisdictions
+
+    @api.model
+    def _my_holiday_jurisdictions(self):
+        return self.env['rostering.holiday.jurisdiction']._for_company(self.env.company)
 
     @api.depends('user_id.name')
     def _compute_person_name(self):
@@ -117,10 +142,26 @@ class RosteringShift(models.Model):
         for shift in self:
             shift.leave_id = next(
                 (leave.id for leave in by_person.get(shift[field], [])
-                 if shift in assigned and leave.date_from <= shift.date <= leave.date_to),
+                 if shift in assigned and leave.date_from <= shift.date <= leave.date_to
+                 and leave._covers_shift(shift)),
                 False,
             )
             shift.on_leave = bool(shift.leave_id)
+
+    @api.depends('date', 'company_id')
+    def _compute_public_holiday(self):
+        dated = self.filtered('date')
+        holidays = self.env['rostering.public.holiday']
+        if dated:
+            holidays = holidays._in_range(min(dated.mapped('date')), max(dated.mapped('date')))
+        by_date = holidays.grouped('date')
+        for shift in self:
+            day_holidays = by_date.get(shift.date) if shift.date else None
+            if day_holidays:
+                day_holidays = day_holidays._applying_to(shift._holiday_jurisdictions(), shift.company_id)
+            shift.public_holiday_ids = day_holidays or False
+            shift.public_holiday_name = ', '.join(day_holidays.mapped('name')) if day_holidays else False
+            shift.holiday_pay_multiplier = max(day_holidays.mapped('pay_multiplier')) if day_holidays else 0.0
 
     def _search_on_leave(self, operator, value):
         positive = search_positive(operator, value)
@@ -134,7 +175,7 @@ class RosteringShift(models.Model):
                 (field, '=', leave[field].id),
                 ('date', '>=', leave.date_from),
                 ('date', '<=', leave.date_to),
-            ]).ids
+            ]).filtered(leave._covers_shift).ids
         return [('id', 'in' if positive else 'not in', ids)]
 
     @api.depends_context('uid')
@@ -233,6 +274,7 @@ class RosteringShift(models.Model):
             'roster': self.roster_id.display_name,
             'note': self.note or '',
             'on_leave': self.on_leave,
+            'holiday_multiplier': self.holiday_pay_multiplier,
             'extra': [],
         }
 
@@ -255,6 +297,9 @@ class RosteringShift(models.Model):
         period_leaves = Leave.search(Leave._my_domain() + [
             ('state', '=', 'approved'), ('date_from', '<=', end), ('date_to', '>=', start),
         ])
+        holidays = self.env['rostering.public.holiday']._in_range(start, end)._applying_to(
+            self._my_holiday_jurisdictions(), self.env.company)
+        holidays_by_day = holidays.grouped('date')
         days = []
         day = start
         while day <= end:
@@ -268,6 +313,8 @@ class RosteringShift(models.Model):
                 'shifts': [shift._my_roster_values() for shift in day_shifts],
                 'leave': [leave.leave_type_id.name for leave in period_leaves
                           if leave.date_from <= day <= leave.date_to],
+                'holidays': [{'name': holiday.name, 'multiplier': holiday.pay_multiplier}
+                             for holiday in holidays_by_day.get(day, [])],
             })
             day += timedelta(days=1)
 
@@ -290,7 +337,12 @@ class RosteringShift(models.Model):
                 'type_color': leave.leave_type_id.color or 0,
                 'from': leave.date_from.strftime('%d/%m/%Y'),
                 'to': leave.date_to.strftime('%d/%m/%Y'),
-                'days': leave.duration_days,
+                'days': round(leave.duration_days, 2),
+                'hours': leave.hours,
+                'times': '%s – %s' % tuple(
+                    fields.Datetime.context_timestamp(leave, value).strftime('%H:%M')
+                    for value in (leave.datetime_from, leave.datetime_to)
+                ) if leave.request_unit == 'partial' and leave.datetime_from and leave.datetime_to else '',
                 'state': leave.state,
                 'state_label': states.get(leave.state, leave.state),
                 'approver': leave.approver_user_id.name or '',

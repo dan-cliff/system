@@ -58,12 +58,18 @@
                         </div>
                         <div class="o_rmr_grid">
                             <t t-foreach="data.days" t-as="day" t-key="day.date">
-                                <div t-attf-class="o_rmr_day {{ day.is_today ? 'o_rmr_today' : '' }} {{ day.is_past ? 'o_rmr_past' : '' }}">
+                                <div t-attf-class="o_rmr_day {{ day.is_today ? 'o_rmr_today' : '' }} {{ day.is_past ? 'o_rmr_past' : '' }} {{ day.holidays.length ? 'o_rmr_holiday_day' : '' }}">
                                     <div class="o_rmr_day_head">
                                         <span class="fw-bold" t-esc="day.weekday"/>
                                         <span class="text-muted small" t-esc="day.label"/>
                                     </div>
                                     <div class="o_rmr_day_body">
+                                        <t t-foreach="day.holidays" t-as="holiday" t-key="holiday_index">
+                                            <div class="o_rmr_holiday">
+                                                <i class="fa fa-star me-1"/><t t-esc="holiday.name"/>
+                                                <div class="small fw-normal">Standard pay × <t t-esc="holiday.multiplier"/></div>
+                                            </div>
+                                        </t>
                                         <t t-foreach="day.leave" t-as="leaveName" t-key="leaveName_index">
                                             <div class="o_rmr_leave"><i class="fa fa-plane me-1"/><t t-esc="leaveName"/></div>
                                         </t>
@@ -108,6 +114,7 @@
                                         <th>From</th>
                                         <th>To</th>
                                         <th class="text-end">Days</th>
+                                        <th class="text-end">Hours</th>
                                         <th>Status</th>
                                         <th>Approver</th>
                                     </tr>
@@ -116,9 +123,13 @@
                                     <t t-foreach="data.leaves" t-as="leave" t-key="leave.id">
                                         <tr role="button" t-on-click="() => this.openLeave(leave.id)">
                                             <td class="fw-bold" t-esc="leave.type"/>
-                                            <td t-esc="leave.from"/>
+                                            <td>
+                                                <t t-esc="leave.from"/>
+                                                <span t-if="leave.times" class="text-muted ms-1" t-esc="leave.times"/>
+                                            </td>
                                             <td t-esc="leave.to"/>
-                                            <td class="text-end" t-esc="leave.days"/>
+                                            <td class="text-end" t-esc="leave.times ? '' : leave.days"/>
+                                            <td class="text-end" t-esc="formatHours(leave.hours)"/>
                                             <td><span t-attf-class="badge {{ stateBadge(leave.state) }}" t-esc="leave.state_label"/></td>
                                             <td t-esc="leave.approver"/>
                                         </tr>

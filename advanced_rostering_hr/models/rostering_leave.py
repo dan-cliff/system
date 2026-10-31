@@ -72,6 +72,31 @@ class RosteringLeave(models.Model):
         for leave in self:
             leave.approver_user_id = leave.employee_id.parent_id.user_id
 
+    def _get_tz(self):
+        self.ensure_one()
+        return self.employee_id.tz or super()._get_tz()
+
+    def _full_day_hours(self):
+        """A whole day off is a full-time day of the company's working hours
+        (Personnel settings): its Full Time Equivalent hours per week, over the
+        days the schedule works (e.g. 38 hours / 5 days = 7.6)."""
+        self.ensure_one()
+        calendar = (self.company_id or self.env.company).sudo().resource_calendar_id
+        if calendar.full_time_required_hours and calendar.hours_per_week and calendar.hours_per_day:
+            return calendar.full_time_required_hours * calendar.hours_per_day / calendar.hours_per_week
+        return calendar.hours_per_day or super()._full_day_hours()
+
+    def _holiday_jurisdictions(self):
+        self.ensure_one()
+        jurisdictions = self.employee_id.sudo().rostering_holiday_jurisdiction_ids
+        if jurisdictions and self.env['hr.employee']._rostering_jurisdictions_switched_on():
+            return jurisdictions
+        return super()._holiday_jurisdictions()
+
+    @api.depends('employee_id')
+    def _compute_hours(self):
+        return super()._compute_hours()
+
     @api.depends('date_from', 'date_to', 'employee_id')
     def _compute_shift_ids(self):
         return super()._compute_shift_ids()

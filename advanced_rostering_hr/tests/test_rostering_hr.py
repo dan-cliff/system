@@ -79,3 +79,44 @@ class TestRosteringHr(TransactionCase):
         self.assertEqual([emp_id for emp_id, _name in picker.name_search('Olly')], [self.other.id])
         field_context = self.env['rostering.shift']._fields['employee_id'].context
         self.assertTrue(field_context.get('rostering_employee_picker'))
+
+    def test_employee_holiday_jurisdictions(self):
+        au = self.env.ref('base.au')
+        vic = self.env['res.country.state'].search([('country_id', '=', au.id), ('code', '=', 'VIC')])
+        Jurisdiction = self.env['rostering.holiday.jurisdiction']
+        country = Jurisdiction.create({'name': 'Australia', 'kind': 'country', 'code': 'AU', 'country_id': au.id})
+        state = Jurisdiction.create({'name': 'Victoria', 'kind': 'state', 'code': 'AU-VIC',
+                                     'country_id': au.id, 'state_id': vic.id})
+        religion = Jurisdiction.create({'name': 'Orthodox', 'kind': 'religion'})
+        params = self.env['ir.config_parameter'].sudo()
+        params.set_param('advanced_rostering.holiday_import', 'True')
+        params.set_param('advanced_rostering.employee_jurisdictions', 'True')
+        self.worker.write({'private_country_id': au.id, 'private_state_id': vic.id})
+        self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | state)
+        # Picked by hand: kept when the address changes.
+        self.worker.rostering_holiday_jurisdiction_ids |= religion
+        self.worker.write({'private_state_id': False})
+        self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | religion)
+
+        holiday = self.env['rostering.public.holiday'].create({
+            'name': 'Orthodox Easter', 'date': date(2026, 11, 4), 'jurisdiction_ids': [(6, 0, religion.ids)],
+            'pay_multiplier': 2.0,
+        })
+        roster = self.env['rostering.roster'].create({'name': 'Shop', 'date_start': date(2026, 11, 4)})
+        shifts = self.env['rostering.shift'].create([
+            {'roster_id': roster.id, 'employee_id': self.worker.id, 'date': date(2026, 11, 4)},
+            {'roster_id': roster.id, 'employee_id': self.other.id, 'date': date(2026, 11, 4)},
+        ])
+        self.assertEqual(shifts[0].public_holiday_ids, holiday)
+        self.assertEqual(shifts[0].holiday_pay_multiplier, 2.0)
+        self.assertFalse(shifts[1].public_holiday_ids)
+
+    def test_full_day_hours_from_working_hours(self):
+        calendar = self.env.company.resource_calendar_id
+        leave = self.env['rostering.leave'].create({
+            'employee_id': self.worker.id, 'leave_type_id': self.leave_type.id,
+            'date_from': date(2026, 12, 7), 'date_to': date(2026, 12, 8),
+        })
+        expected = calendar.full_time_required_hours * calendar.hours_per_day / calendar.hours_per_week
+        self.assertAlmostEqual(leave._full_day_hours(), expected, places=2)
+        self.assertAlmostEqual(leave.hours, 2 * expected, places=2)

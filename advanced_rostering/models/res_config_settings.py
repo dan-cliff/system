@@ -30,6 +30,26 @@ class ResConfigSettings(models.TransientModel):
         help='When a roster is published, send everyone on it a notification.',
     )
 
+    rostering_leave_hours_per_day = fields.Float(
+        string='Full Day Hours', default=7.6, config_parameter='advanced_rostering.leave_hours_per_day',
+        help='Hours of a whole day of leave (with Personnel, the Full Time Equivalent of the company\'s '
+             'working hours is used instead).',
+    )
+
+    # Public holidays
+    rostering_holiday_import = fields.Boolean(
+        string='Import Public Holidays', config_parameter='advanced_rostering.holiday_import',
+        help='Fill the Public Holidays library automatically from Nager.Date (date.nager.at), with the '
+             'country and states each holiday applies to. Checked weekly for this year and next.',
+    )
+    rostering_holiday_country_ids = fields.Many2many(
+        related='company_id.rostering_holiday_country_ids', readonly=False)
+    rostering_holiday_pay_multiplier = fields.Float(
+        string='Default Pay Multiplier', digits=(16, 2), default=1.0,
+        config_parameter='advanced_rostering.holiday_pay_multiplier',
+        help='Pay multiplier given to new public holidays (standard pay × this). Each holiday can be changed.',
+    )
+
     # Cross-module feature switches, each shown only when its app is installed.
     module_advanced_rostering_hr = fields.Boolean(string='Personnel')
     module_advanced_rostering_attendance = fields.Boolean(string='On Site')
@@ -59,3 +79,7 @@ class ResConfigSettings(models.TransientModel):
             'advanced_rostering.period_start',
             fields.Date.to_string(self.rostering_period_start or DEFAULT_PERIOD_START),
         )
+
+    def action_rostering_import_holidays(self):
+        self.ensure_one()
+        return self.env['rostering.public.holiday'].action_import_now()
