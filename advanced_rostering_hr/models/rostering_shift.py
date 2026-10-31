@@ -9,7 +9,8 @@ class RosteringShift(models.Model):
 
     employee_id = fields.Many2one(
         'hr.employee', string='Employee', index=True,
-        domain="[('company_id', 'in', [company_id, False])]",
+        domain="['|', ('company_id', '=', False), ('company_id', 'in', allowed_company_ids)]",
+        context={'rostering_employee_picker': True},
         help='Leave empty for an open shift to assign later.',
     )
     manager_id = fields.Many2one(related='employee_id.parent_id', string='Manager')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Rostering - Personnel',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Human Resources/Rostering',
     'summary': 'Roster Personnel employees, show their Manager and send leave to the Manager for approval',
     'description': """
