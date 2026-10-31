@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Payslips name the Personnel employee; their payroll details stay behind it. -->
+    <record id="payroll_slip_view_form_hr" model="ir.ui.view">
+        <field name="name">payroll.slip.form.hr</field>
+        <field name="model">payroll.slip</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_slip_view_form"/>
+        <field name="arch" type="xml">
+            <field name="payroll_employee_id" position="attributes">
+                <attribute name="string">Employee</attribute>
+            </field>
+            <field name="employee_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="payroll_employee_view_form_hr" model="ir.ui.view">
+        <field name="name">payroll.employee.form.hr</field>
+        <field name="model">payroll.employee</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_employee_view_form"/>
+        <field name="arch" type="xml">
+            <!-- The Payroll Country follows the employee's (Pay tab, from their Work Address). -->
+            <field name="country_id" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="employee_id" position="attributes">
+                <attribute name="readonly">id</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

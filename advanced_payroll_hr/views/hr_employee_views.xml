@@ -1,28 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Employee > Payroll: the Payroll Country (from the Work Address) and the
-         payroll profile. -->
+    <!-- Employee form: the Pay tab keeps the employee's payroll details, and a
+         Payslips button. Personnel's form extends this one, so it shows there.
+         Only for the Payroll roles' permissions (Payroll Employees, Approve and
+         Mark as Paid), not for View My Payslips alone (Payroll – Employee);
+         payroll_readonly locks it for those who can only see it. -->
     <record id="hr_employee_view_form_payroll" model="ir.ui.view">
         <field name="name">hr.employee.form.payroll</field>
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='payroll_information']/group[@name='payroll_group']" position="before">
-                <group name="advanced_payroll" string="Payroll">
-                    <field name="payroll_country_id" options="{'no_create': True}"/>
-                    <label for="payroll_employee_count" string="Payroll Profile"
-                           groups="advanced_payroll.group_payroll_user"/>
-                    <div groups="advanced_payroll.group_payroll_user">
-                        <field name="payroll_employee_count" invisible="1"/>
-                        <button name="action_open_payroll_employee" type="object" class="btn-link p-0"
-                                icon="oi-arrow-right" string="Open Payroll Profile"
-                                invisible="not payroll_employee_count"/>
-                        <button name="action_open_payroll_employee" type="object" class="btn-link p-0"
-                                icon="fa-plus" string="Add to Payroll"
-                                invisible="payroll_employee_count"/>
-                    </div>
-                </group>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_payroll_slips" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                        invisible="not payroll_slip_count" groups="advanced_payroll.group_employee_create_only,advanced_payroll.group_employee_edit_own,advanced_payroll.group_employee_edit_team,advanced_payroll.group_employee_edit_all,advanced_payroll.group_employee_view_all,advanced_payroll.group_employee_delete_own,advanced_payroll.group_employee_delete_all,advanced_payroll.group_run_approve,advanced_payroll.group_run_pay">
+                    <field name="payroll_slip_count" widget="statinfo" string="Payslips"/>
+                </button>
             </xpath>
+            <xpath expr="//page[@name='payroll_information']" position="after">
+                <page name="advanced_payroll" string="Pay"
+                      groups="advanced_payroll.group_employee_create_only,advanced_payroll.group_employee_edit_own,advanced_payroll.group_employee_edit_team,advanced_payroll.group_employee_edit_all,advanced_payroll.group_employee_view_all,advanced_payroll.group_employee_delete_own,advanced_payroll.group_employee_delete_all,advanced_payroll.group_run_approve,advanced_payroll.group_run_pay">
+                    <field name="payroll_readonly" invisible="1"/>
+                    <group>
+                        <group name="payroll_main" string="Payroll">
+                            <field name="payroll_active" readonly="payroll_readonly"/>
+                            <field name="payroll_country_id" options="{'no_create': True}"
+                                   required="payroll_active" readonly="payroll_readonly"/>
+                            <field name="payroll_pay_frequency_id" options="{'no_create': True}"
+                                   invisible="not payroll_active" required="payroll_active"
+                                   readonly="payroll_readonly"/>
+                            <field name="payroll_employee_id" invisible="1"/>
+                            <field name="payroll_currency_id" invisible="1"/>
+                        </group>
+                        <group name="payroll_dates" string="Dates" invisible="not payroll_active">
+                            <field name="payroll_date_start" options="{'numeric': True}" readonly="payroll_readonly"/>
+                            <field name="payroll_date_end" options="{'numeric': True}" readonly="payroll_readonly"/>
+                        </group>
+                        <group name="payroll_rate" string="Pay Rate" invisible="not payroll_active">
+                            <field name="payroll_pay_basis" widget="radio" required="payroll_active" readonly="payroll_readonly"/>
+                            <field name="payroll_annual_salary" invisible="payroll_pay_basis != 'salary'"
+                                   readonly="payroll_readonly"/>
+                            <field name="payroll_hourly_rate" readonly="payroll_readonly or payroll_pay_basis == 'salary'"/>
+                            <field name="payroll_hours_per_week" readonly="payroll_readonly"/>
+                        </group>
+                        <group name="payroll_details" string="Tax and Country Details" invisible="not payroll_active">
+                            <div colspan="2" class="text-muted">
+                                Tax numbers, tax codes and retirement contributions of the Payroll Country.
+                            </div>
+                            <button name="action_open_payroll_employee" type="object" class="btn-link p-0"
+                                    icon="oi-arrow-right" string="Open Tax and Country Details"
+                                    invisible="not id or not payroll_employee_id"/>
+                            <div colspan="2" class="text-muted" invisible="payroll_employee_id">
+                                Save the employee to add them.
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Payroll › Employees: Personnel employees with their pay -->
+    <record id="hr_employee_view_list_payroll" model="ir.ui.view">
+        <field name="name">hr.employee.list.payroll</field>
+        <field name="model">hr.employee</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list string="Employees">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="department_id" optional="show"/>
+                <field name="job_title" optional="hide"/>
+                <field name="payroll_active" optional="show" widget="boolean_toggle" readonly="1"/>
+                <field name="payroll_country_id" optional="show"/>
+                <field name="payroll_pay_frequency_id" optional="show"/>
+                <field name="payroll_pay_basis" optional="show"/>
+                <field name="payroll_annual_salary" optional="show"/>
+                <field name="payroll_hourly_rate" optional="show"/>
+                <field name="payroll_hours_per_week" optional="hide"/>
+                <field name="payroll_currency_id" column_invisible="1"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_employee_view_search_payroll" model="ir.ui.view">
+        <field name="name">hr.employee.search.payroll</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="payroll_active" string="In Payroll" domain="[('payroll_active', '=', True)]"
+                        groups="advanced_payroll.group_employee_create_only,advanced_payroll.group_employee_edit_own,advanced_payroll.group_employee_edit_team,advanced_payroll.group_employee_edit_all,advanced_payroll.group_employee_view_all,advanced_payroll.group_employee_delete_own,advanced_payroll.group_employee_delete_all,advanced_payroll.group_run_approve,advanced_payroll.group_run_pay"/>
+                <filter name="group_payroll_country" string="Payroll Country"
+                        context="{'group_by': 'payroll_country_id'}" groups="hr.group_hr_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_payroll_hr_employee" model="ir.actions.act_window">
+        <field name="name">Employees</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', 'in', allowed_company_ids)]</field>
+        <field name="context">{'search_default_payroll_active': 1, 'personnel_app': True}</field>
+        <field name="search_view_id" ref="advanced_hr.personnel_employee_view_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'sequence': 10, 'view_id': ref('hr_employee_view_list_payroll')}),
+            (0, 0, {'view_mode': 'form', 'sequence': 20, 'view_id': ref('advanced_hr.personnel_employee_view_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add an employee to Payroll</p>
+            <p>Open a Personnel employee and switch on In Payroll on their Pay tab.</p>
         </field>
     </record>
 </odoo>

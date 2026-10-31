@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Payroll',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Human Resources/Payroll',
     'sequence': 97,
     'summary': 'Pay runs, payslips, pay items and statutory rules, with country-specific Payroll apps',
