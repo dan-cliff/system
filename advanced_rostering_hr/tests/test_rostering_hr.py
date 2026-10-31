@@ -68,3 +68,14 @@ class TestRosteringHr(TransactionCase):
         self.assertEqual(Shift.with_user(self.worker_user).search([]).employee_id, self.worker)
         self.assertEqual(self.env['rostering.shift'].with_user(self.boss_user)._my_manager_name(), False)
         self.assertEqual(self.env['rostering.shift'].with_user(self.worker_user)._my_manager_name(), 'Bea Boss')
+
+    def test_employee_picker_lists_public_profiles(self):
+        """A Personnel user whose Employees permissions cover nobody still
+        finds everyone when picking a rostering employee."""
+        self.worker_user.group_ids = [(4, self.env.ref('advanced_hr.group_personnel_user').id)]
+        Employee = self.env['hr.employee'].with_user(self.worker_user)
+        self.assertFalse(Employee.name_search('Olly'))
+        picker = Employee.with_context(rostering_employee_picker=True)
+        self.assertEqual([emp_id for emp_id, _name in picker.name_search('Olly')], [self.other.id])
+        field_context = self.env['rostering.shift']._fields['employee_id'].context
+        self.assertTrue(field_context.get('rostering_employee_picker'))
