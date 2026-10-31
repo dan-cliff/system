@@ -8,6 +8,7 @@ FEATURE_APPS = {
     'advanced_hr': 'module_advanced_rostering_hr',
     'advanced_attendance': 'module_advanced_rostering_attendance',
     'advanced_timesheet': 'module_advanced_rostering_timesheet',
+    'calendar': 'module_advanced_rostering_calendar',
 }
 
 
@@ -54,9 +55,11 @@ class ResConfigSettings(models.TransientModel):
     module_advanced_rostering_hr = fields.Boolean(string='Personnel')
     module_advanced_rostering_attendance = fields.Boolean(string='On Site')
     module_advanced_rostering_timesheet = fields.Boolean(string='Advanced Timesheets')
+    module_advanced_rostering_calendar = fields.Boolean(string='Calendar')
     rostering_advanced_hr_installed = fields.Boolean(compute='_compute_rostering_apps_installed')
     rostering_advanced_attendance_installed = fields.Boolean(compute='_compute_rostering_apps_installed')
     rostering_advanced_timesheet_installed = fields.Boolean(compute='_compute_rostering_apps_installed')
+    rostering_calendar_installed = fields.Boolean(compute='_compute_rostering_apps_installed')
 
     def _compute_rostering_apps_installed(self):
         installed = set(self.env['ir.module.module'].sudo().search([

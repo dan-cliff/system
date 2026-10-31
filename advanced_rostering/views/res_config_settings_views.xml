@@ -72,12 +72,18 @@
                                  help="Fill timesheets from the published roster and approved leave, booked to the Work Types of their Duties and Leave Types.">
                             <field name="module_advanced_rostering_timesheet"/>
                         </setting>
+                        <setting id="advanced_rostering_feature_calendar" string="Calendar"
+                                 invisible="not rostering_calendar_installed"
+                                 help="Show leave requests in the Calendar app: in each person's calendar with their status, and in a shared Leave Requests calendar that only shows the requests each user can see in Rostering.">
+                            <field name="module_advanced_rostering_calendar"/>
+                        </setting>
                         <setting id="advanced_rostering_feature_none" string="No other apps yet"
-                                 invisible="rostering_advanced_hr_installed or rostering_advanced_attendance_installed or rostering_advanced_timesheet_installed"
-                                 help="Install Personnel, On Site or Advanced Timesheets to switch on what Rostering can do with them here.">
+                                 invisible="rostering_advanced_hr_installed or rostering_advanced_attendance_installed or rostering_advanced_timesheet_installed or rostering_calendar_installed"
+                                 help="Install Personnel, On Site, Advanced Timesheets or Calendar to switch on what Rostering can do with them here.">
                             <field name="rostering_advanced_hr_installed" invisible="1"/>
                             <field name="rostering_advanced_attendance_installed" invisible="1"/>
                             <field name="rostering_advanced_timesheet_installed" invisible="1"/>
+                            <field name="rostering_calendar_installed" invisible="1"/>
                         </setting>
                     </block>
                 </app>

@@ -11,6 +11,7 @@ CALENDAR_STATES = ('draft', 'submitted', 'approved')
 CALENDAR_FIELDS = {
     'state', 'leave_type_id', 'date_from', 'date_to', 'request_unit', 'datetime_from', 'datetime_to',
     'user_id', 'employee_id', 'reason', 'company_id',
+    'org_division_id', 'org_business_unit_id', 'org_location_id', 'org_department_id',
 }
 
 
@@ -67,6 +68,12 @@ class RosteringLeave(models.Model):
             'privacy': 'public',
             'description': Markup('<p>%s</p>') % description if description else False,
         }
+        # Same Organisation as the request (org_structure), not the units of
+        # whoever happened to create it, so scoping treats both alike.
+        event_fields = self.env['calendar.event']._fields
+        for name in ('org_division_id', 'org_business_unit_id', 'org_location_id', 'org_department_id'):
+            if name in event_fields and name in self._fields:
+                values[name] = self[name].id
         if self.request_unit == 'partial' and self.datetime_from and self.datetime_to:
             values.update(allday=False, start=self.datetime_from, stop=self.datetime_to)
         else:
