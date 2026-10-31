@@ -112,7 +112,7 @@
         <field name="model">rostering.leave</field>
         <field name="arch" type="xml">
             <calendar string="Leave Requests" date_start="date_from" date_stop="date_to" color="leave_type_id"
-                      mode="month" all_day="1" event_open_popup="1" quick_create="0">
+                      mode="month" event_open_popup="1" quick_create="0">
                 <field name="person_name"/>
                 <field name="leave_type_id" filters="1"/>
                 <field name="state"/>
