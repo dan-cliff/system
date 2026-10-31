@@ -15,7 +15,7 @@
                 <attribute name="class" add="o_personnel_employee_form" separator=" "/>
             </xpath>
             <!-- Every employee has a Work Address (e.g. Rostering's public holidays follow its state). -->
-            <xpath expr="//group[@string='Location']/field[@name='address_id']" position="attributes">
+            <xpath expr="//page[@name='work_information']//field[@name='address_id']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
             <!-- Odoo's "History" is the employee's versions; the change log is the Audit Trail. -->
