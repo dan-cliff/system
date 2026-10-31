@@ -66,3 +66,45 @@ class TestPublicHolidays(TransactionCase):
         self.Holiday.create({'name': 'Company Picnic', 'date': date(2026, 3, 20)})
         roster_march.invalidate_recordset(['public_holiday_ids'])
         self.assertEqual(roster_march.public_holiday_ids.mapped('name'), ['Company Picnic'])
+
+    def test_leave_hours(self):
+        from datetime import datetime
+        from odoo.exceptions import ValidationError
+        self.env['ir.config_parameter'].sudo().set_param('advanced_rostering.leave_hours_per_day', '7.6')
+        self.env.user.tz = 'UTC'
+        leave_type = self.env['rostering.leave.type'].create({'name': 'Annual'})
+        Leave = self.env['rostering.leave']
+        whole = Leave.create({'leave_type_id': leave_type.id, 'date_from': date(2026, 1, 19),
+                              'date_to': date(2026, 1, 23)})
+        self.assertEqual(whole.duration_days, 5)
+        self.assertAlmostEqual(whole.hours, 38.0)
+        self.assertFalse(whole.holiday_days)
+        # Australia Day (26/01) is a public holiday for the company: not counted.
+        self._import()
+        over_holiday = Leave.create({'leave_type_id': leave_type.id, 'date_from': date(2026, 1, 26),
+                                     'date_to': date(2026, 1, 28)})
+        self.assertEqual(over_holiday.duration_days, 2)
+        self.assertAlmostEqual(over_holiday.hours, 15.2)
+        self.assertEqual(over_holiday.holiday_days, 1)
+        self.assertAlmostEqual(over_holiday.holiday_hours, 7.6)
+        # A part day: the hours between From and To, dated on that day.
+        partial = Leave.create({'leave_type_id': leave_type.id, 'request_unit': 'partial',
+                                'datetime_from': datetime(2026, 2, 2, 9, 0),
+                                'datetime_to': datetime(2026, 2, 2, 12, 30)})
+        self.assertEqual((partial.date_from, partial.date_to), (date(2026, 2, 2), date(2026, 2, 2)))
+        self.assertAlmostEqual(partial.hours, 3.5)
+        # Another part day the same afternoon is fine; an overlapping one is not.
+        Leave.create({'leave_type_id': leave_type.id, 'request_unit': 'partial',
+                      'datetime_from': datetime(2026, 2, 2, 13, 0), 'datetime_to': datetime(2026, 2, 2, 15, 0)})
+        with self.assertRaises(ValidationError):
+            Leave.create({'leave_type_id': leave_type.id, 'request_unit': 'partial',
+                          'datetime_from': datetime(2026, 2, 2, 12, 0), 'datetime_to': datetime(2026, 2, 2, 14, 0)})
+        # A part day stays on one day.
+        with self.assertRaises(ValidationError):
+            Leave.create({'leave_type_id': leave_type.id, 'request_unit': 'partial',
+                          'datetime_from': datetime(2026, 2, 3, 9, 0), 'datetime_to': datetime(2026, 2, 4, 9, 0)})
+        # A holiday added later is taken out of existing requests.
+        self.Holiday.create({'name': 'Picnic Day', 'date': date(2026, 1, 21)})
+        whole.invalidate_recordset(['hours', 'duration_days'])
+        self.assertEqual(whole.duration_days, 4)
+        self.assertAlmostEqual(whole.hours, 30.4)

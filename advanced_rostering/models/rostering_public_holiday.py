@@ -142,6 +142,34 @@ class RosteringPublicHoliday(models.Model):
             holiday.display_name = '%s (%s)' % (holiday.name or '', holiday.date.strftime('%d/%m/%Y')) \
                 if holiday.date else holiday.name
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        holidays = super().create(vals_list)
+        holidays._recompute_leave_hours()
+        return holidays
+
+    def write(self, vals):
+        if {'date', 'jurisdiction_ids', 'company_id', 'active'} & set(vals):
+            self._recompute_leave_hours()
+            res = super().write(vals)
+            self._recompute_leave_hours()
+            return res
+        return super().write(vals)
+
+    def unlink(self):
+        self._recompute_leave_hours()
+        return super().unlink()
+
+    def _recompute_leave_hours(self):
+        """Leave requests leave out public holidays: recount those around these days."""
+        dates = [day for day in self.mapped('date') if day]
+        if not dates:
+            return
+        Leave = self.env['rostering.leave']
+        leaves = Leave.sudo().search([('date_from', '<=', max(dates)), ('date_to', '>=', min(dates))])
+        for name in ('hours', 'duration_days'):
+            self.env.add_to_compute(Leave._fields[name], leaves)
+
     # ------------------------------------------------------------------
     # Who a holiday applies to
     # ------------------------------------------------------------------

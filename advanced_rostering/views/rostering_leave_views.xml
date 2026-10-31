@@ -12,7 +12,9 @@
                 <field name="leave_type_id"/>
                 <field name="date_from" options="{'numeric': True}"/>
                 <field name="date_to" options="{'numeric': True}"/>
+                <field name="request_unit" optional="hide"/>
                 <field name="duration_days" sum="Total"/>
+                <field name="hours" widget="float_time" sum="Total" optional="show"/>
                 <field name="approver_user_id" optional="show"/>
                 <field name="submitted_date" options="{'numeric': True}" optional="hide"/>
                 <field name="state" widget="badge" decoration-info="state == 'submitted'"
@@ -56,9 +58,20 @@
                         <group name="person">
                             <field name="user_id" options="{'no_create': True}" readonly="state != 'draft'"/>
                             <field name="leave_type_id" options="{'no_create': True}" readonly="state != 'draft'"/>
-                            <field name="date_from" options="{'numeric': True}" readonly="state != 'draft'"/>
-                            <field name="date_to" options="{'numeric': True}" readonly="state != 'draft'"/>
-                            <field name="duration_days"/>
+                            <field name="request_unit" widget="radio" options="{'horizontal': true}"
+                                   readonly="state != 'draft'"/>
+                            <field name="date_from" options="{'numeric': True}" readonly="state != 'draft'"
+                                   invisible="request_unit == 'partial'"/>
+                            <field name="date_to" options="{'numeric': True}" readonly="state != 'draft'"
+                                   invisible="request_unit == 'partial'"/>
+                            <field name="datetime_from" string="From" options="{'numeric': True}"
+                                   readonly="state != 'draft'" invisible="request_unit != 'partial'"
+                                   required="request_unit == 'partial'"/>
+                            <field name="datetime_to" string="To" options="{'numeric': True}"
+                                   readonly="state != 'draft'" invisible="request_unit != 'partial'"
+                                   required="request_unit == 'partial'"/>
+                            <field name="duration_days" invisible="request_unit == 'partial'"/>
+                            <field name="hours" widget="float_time"/>
                         </group>
                         <group name="approval">
                             <field name="approver_user_id" invisible="not approver_user_id"/>
@@ -71,6 +84,12 @@
                                    options="{'no_create': True}"/>
                         </group>
                     </group>
+                    <div class="alert alert-info mb-3" role="alert" invisible="not holiday_days">
+                        <i class="fa fa-star me-1"/>Public holidays are not counted as leave:
+                        <field name="holiday_days" class="oe_inline" readonly="1"/> day(s),
+                        <field name="holiday_hours" widget="float_time" class="oe_inline" readonly="1"/> hours
+                        (<field name="public_holiday_ids" widget="many2many_tags" class="oe_inline" readonly="1"/>).
+                    </div>
                     <field name="reason" placeholder="Anything your approver should know..." readonly="state != 'draft'"/>
                 </sheet>
                 <chatter/>
@@ -91,11 +110,23 @@
                         <field name="leave_type_id" options="{'no_create': True}"/>
                     </group>
                     <group name="dates">
-                        <field name="date_from" options="{'numeric': True}"/>
-                        <field name="date_to" options="{'numeric': True}"/>
-                        <field name="duration_days"/>
+                        <field name="request_unit" widget="radio" options="{'horizontal': true}"/>
+                        <field name="date_from" options="{'numeric': True}" invisible="request_unit == 'partial'"/>
+                        <field name="date_to" options="{'numeric': True}" invisible="request_unit == 'partial'"/>
+                        <field name="datetime_from" string="From" options="{'numeric': True}"
+                               invisible="request_unit != 'partial'" required="request_unit == 'partial'"/>
+                        <field name="datetime_to" string="To" options="{'numeric': True}"
+                               invisible="request_unit != 'partial'" required="request_unit == 'partial'"/>
+                        <field name="duration_days" invisible="request_unit == 'partial'"/>
+                        <field name="hours" widget="float_time"/>
                     </group>
                 </group>
+                <div class="alert alert-info" role="alert" invisible="not holiday_days">
+                    <i class="fa fa-star me-1"/>Public holidays are not counted as leave:
+                    <field name="holiday_days" class="oe_inline" readonly="1"/> day(s),
+                    <field name="holiday_hours" widget="float_time" class="oe_inline" readonly="1"/> hours
+                    (<field name="public_holiday_ids" widget="many2many_tags" class="oe_inline" readonly="1"/>).
+                </div>
                 <field name="reason" placeholder="Anything your approver should know..."/>
                 <field name="company_id" invisible="1"/>
                 <footer>
@@ -117,6 +148,7 @@
                 <field name="leave_type_id" filters="1"/>
                 <field name="state"/>
                 <field name="duration_days"/>
+                <field name="hours" widget="float_time"/>
             </calendar>
         </field>
     </record>

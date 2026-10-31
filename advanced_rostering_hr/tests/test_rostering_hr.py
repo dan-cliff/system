@@ -110,3 +110,13 @@ class TestRosteringHr(TransactionCase):
         self.assertEqual(shifts[0].public_holiday_ids, holiday)
         self.assertEqual(shifts[0].holiday_pay_multiplier, 2.0)
         self.assertFalse(shifts[1].public_holiday_ids)
+
+    def test_full_day_hours_from_working_hours(self):
+        calendar = self.env.company.resource_calendar_id
+        leave = self.env['rostering.leave'].create({
+            'employee_id': self.worker.id, 'leave_type_id': self.leave_type.id,
+            'date_from': date(2026, 12, 7), 'date_to': date(2026, 12, 8),
+        })
+        expected = calendar.full_time_required_hours * calendar.hours_per_day / calendar.hours_per_week
+        self.assertAlmostEqual(leave._full_day_hours(), expected, places=2)
+        self.assertAlmostEqual(leave.hours, 2 * expected, places=2)

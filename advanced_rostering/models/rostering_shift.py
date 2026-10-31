@@ -142,7 +142,8 @@ class RosteringShift(models.Model):
         for shift in self:
             shift.leave_id = next(
                 (leave.id for leave in by_person.get(shift[field], [])
-                 if shift in assigned and leave.date_from <= shift.date <= leave.date_to),
+                 if shift in assigned and leave.date_from <= shift.date <= leave.date_to
+                 and leave._covers_shift(shift)),
                 False,
             )
             shift.on_leave = bool(shift.leave_id)
@@ -174,7 +175,7 @@ class RosteringShift(models.Model):
                 (field, '=', leave[field].id),
                 ('date', '>=', leave.date_from),
                 ('date', '<=', leave.date_to),
-            ]).ids
+            ]).filtered(leave._covers_shift).ids
         return [('id', 'in' if positive else 'not in', ids)]
 
     @api.depends_context('uid')
@@ -336,7 +337,12 @@ class RosteringShift(models.Model):
                 'type_color': leave.leave_type_id.color or 0,
                 'from': leave.date_from.strftime('%d/%m/%Y'),
                 'to': leave.date_to.strftime('%d/%m/%Y'),
-                'days': leave.duration_days,
+                'days': round(leave.duration_days, 2),
+                'hours': leave.hours,
+                'times': '%s – %s' % tuple(
+                    fields.Datetime.context_timestamp(leave, value).strftime('%H:%M')
+                    for value in (leave.datetime_from, leave.datetime_to)
+                ) if leave.request_unit == 'partial' and leave.datetime_from and leave.datetime_to else '',
                 'state': leave.state,
                 'state_label': states.get(leave.state, leave.state),
                 'approver': leave.approver_user_id.name or '',

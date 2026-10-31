@@ -30,6 +30,12 @@ class ResConfigSettings(models.TransientModel):
         help='When a roster is published, send everyone on it a notification.',
     )
 
+    rostering_leave_hours_per_day = fields.Float(
+        string='Full Day Hours', default=7.6, config_parameter='advanced_rostering.leave_hours_per_day',
+        help='Hours of a whole day of leave (with Personnel, the Full Time Equivalent of the company\'s '
+             'working hours is used instead).',
+    )
+
     # Public holidays
     rostering_holiday_import = fields.Boolean(
         string='Import Public Holidays', config_parameter='advanced_rostering.holiday_import',

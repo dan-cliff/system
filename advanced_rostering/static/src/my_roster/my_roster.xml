@@ -114,6 +114,7 @@
                                         <th>From</th>
                                         <th>To</th>
                                         <th class="text-end">Days</th>
+                                        <th class="text-end">Hours</th>
                                         <th>Status</th>
                                         <th>Approver</th>
                                     </tr>
@@ -122,9 +123,13 @@
                                     <t t-foreach="data.leaves" t-as="leave" t-key="leave.id">
                                         <tr role="button" t-on-click="() => this.openLeave(leave.id)">
                                             <td class="fw-bold" t-esc="leave.type"/>
-                                            <td t-esc="leave.from"/>
+                                            <td>
+                                                <t t-esc="leave.from"/>
+                                                <span t-if="leave.times" class="text-muted ms-1" t-esc="leave.times"/>
+                                            </td>
                                             <td t-esc="leave.to"/>
-                                            <td class="text-end" t-esc="leave.days"/>
+                                            <td class="text-end" t-esc="leave.times ? '' : leave.days"/>
+                                            <td class="text-end" t-esc="formatHours(leave.hours)"/>
                                             <td><span t-attf-class="badge {{ stateBadge(leave.state) }}" t-esc="leave.state_label"/></td>
                                             <td t-esc="leave.approver"/>
                                         </tr>
