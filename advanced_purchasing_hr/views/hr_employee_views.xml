@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Purchases Rules: the employee's spend delegation. Extends Odoo's employee
+         form, so it shows in Personnel's form too. -->
+    <record id="hr_employee_view_form" model="ir.ui.view">
+        <field name="name">hr.employee.form.purchasing</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="purchases_rules" string="Purchases Rules" groups="hr.group_hr_user">
+                    <field name="purchase_can_edit_rules" invisible="1"/>
+                    <field name="purchase_currency_id" invisible="1"/>
+                    <div class="alert alert-info" role="status" invisible="purchase_can_edit_rules">
+                        Only users with the Spend Delegations: Manage permission can change Purchases Rules.
+                    </div>
+                    <group>
+                        <group string="Spend Delegation" name="purchase_delegation">
+                            <field name="purchase_spend_level_id" readonly="not purchase_can_edit_rules"
+                                   options="{'no_create': True}"/>
+                            <field name="purchase_custom_limit_enabled" readonly="not purchase_can_edit_rules"/>
+                            <field name="purchase_custom_limit" invisible="not purchase_custom_limit_enabled"
+                                   readonly="not purchase_can_edit_rules"/>
+                            <field name="purchase_delegation_date_from" options="{'numeric': True}"
+                                   readonly="not purchase_can_edit_rules"/>
+                            <field name="purchase_delegation_date_to" options="{'numeric': True}"
+                                   readonly="not purchase_can_edit_rules"/>
+                            <field name="purchase_delegation_in_force"/>
+                            <field name="purchase_spend_unlimited" invisible="not purchase_spend_unlimited"/>
+                            <field name="purchase_spend_limit" invisible="purchase_spend_unlimited"/>
+                        </group>
+                        <group string="Approvals Go To" name="purchase_managers">
+                            <field name="purchase_manager_1_id" widget="many2one_avatar_employee"/>
+                            <field name="purchase_manager_2_id" widget="many2one_avatar_employee"/>
+                            <field name="purchase_manager_3_id" widget="many2one_avatar_employee"/>
+                            <field name="purchase_manager_4_id" widget="many2one_avatar_employee"/>
+                        </group>
+                    </group>
+                    <p class="text-muted">
+                        Orders up to the Spend Limit need no approval. Above it, an order goes to the Up Manager
+                        its Spend Level names (at least the 1st Up Manager), following the Manager set on each
+                        employee.
+                    </p>
+                    <label for="purchase_delegation_notes"/>
+                    <field name="purchase_delegation_notes" readonly="not purchase_can_edit_rules"
+                           placeholder="e.g. Board resolution, conditions of the delegation, categories excluded..."/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

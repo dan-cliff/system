@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.purchasing.hr</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="advanced_purchasing.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <group name="purchasing_approval_route" position="inside">
+                <field name="purchasing_buyer_employee_id" invisible="not purchasing_buyer_employee_id"/>
+                <field name="purchasing_buyer_unlimited" invisible="not purchasing_buyer_unlimited"/>
+                <field name="purchasing_buyer_limit"
+                       invisible="not purchasing_buyer_employee_id or purchasing_buyer_unlimited"/>
+            </group>
+        </field>
+    </record>
+</odoo>
