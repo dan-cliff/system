@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- People are Personnel employees: Employee (and their Manager) instead of User. -->
+    <record id="rostering_shift_view_list" model="ir.ui.view">
+        <field name="name">rostering.shift.list.hr</field>
+        <field name="model">rostering.shift</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_shift_view_list"/>
+        <field name="arch" type="xml">
+            <field name="person_name" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </field>
+            <field name="user_id" position="before">
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="manager_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="rostering_shift_view_form" model="ir.ui.view">
+        <field name="name">rostering.shift.form.hr</field>
+        <field name="model">rostering.shift</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_shift_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='person']/field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='person']/field[@name='user_id']" position="before">
+                <field name="employee_id" widget="many2one_avatar_employee" options="{'no_create': True}"/>
+                <field name="manager_id" invisible="not manager_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="rostering_shift_view_calendar" model="ir.ui.view">
+        <field name="name">rostering.shift.calendar.hr</field>
+        <field name="model">rostering.shift</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_shift_view_calendar"/>
+        <field name="arch" type="xml">
+            <field name="person_name" position="after">
+                <field name="employee_id" filters="1" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="rostering_shift_view_search" model="ir.ui.view">
+        <field name="name">rostering.shift.search.hr</field>
+        <field name="model">rostering.shift</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_shift_view_search"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="replace">
+                <field name="employee_id"/>
+                <field name="manager_id"/>
+            </field>
+            <filter name="my_shifts" position="after">
+                <filter name="my_team" string="My Team" domain="[('in_my_team', '=', True)]"/>
+            </filter>
+            <filter name="group_person" position="after">
+                <filter name="group_manager" string="Manager" context="{'group_by': 'manager_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="rostering_roster_view_form" model="ir.ui.view">
+        <field name="name">rostering.roster.form.hr</field>
+        <field name="model">rostering.roster</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_roster_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='shift_ids']/list/field[@name='user_id']" position="replace">
+                <field name="employee_id" widget="many2one_avatar_employee" options="{'no_create': True}"/>
+                <field name="company_id" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- My Team's Rosters: published shifts of everyone under the user in the org chart. -->
+    <record id="action_rostering_shift_my_team" model="ir.actions.act_window">
+        <field name="name">My Team&apos;s Rosters</field>
+        <field name="res_model">rostering.shift</field>
+        <field name="view_mode">calendar,list,pivot</field>
+        <field name="search_view_id" ref="advanced_rostering.rostering_shift_view_search"/>
+        <field name="domain">[('in_my_team', '=', True), ('roster_state', '=', 'published')]</field>
+        <field name="context">{'search_default_group_person': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No published shifts for your team</p>
+            <p>Published rosters of the people under you in the org chart (and yours) show here.</p>
+        </field>
+    </record>
+</odoo>

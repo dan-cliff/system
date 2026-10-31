@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_apply_template_wizard_view_form" model="ir.ui.view">
+        <field name="name">rostering.apply.template.wizard.form</field>
+        <field name="model">rostering.apply.template.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Apply Roster Template">
+                <field name="roster_id" invisible="1"/>
+                <field name="company_id" invisible="1"/>
+                <p class="text-muted">
+                    The template's shifts are added to every day of the roster: week 1 of the template is the
+                    first 7 days of the roster, week 2 the next 7, and so on.
+                </p>
+                <group>
+                    <field name="template_id" options="{'no_create': True}"/>
+                    <field name="replace" invisible="not shift_count"/>
+                </group>
+                <div class="alert alert-warning" role="alert" invisible="not cycle_mismatch">
+                    This template was made for another publishing cycle. Its weeks repeat (or stop) to fit
+                    the roster's period.
+                </div>
+                <div class="alert alert-info" role="alert" invisible="not shift_count or replace">
+                    The roster already has <field name="shift_count" class="oe_inline" readonly="1"/> shifts.
+                    The template's shifts are added to them.
+                </div>
+                <footer>
+                    <button name="action_apply" type="object" string="Apply Template" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_rostering</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="47"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Rostering" id="advanced_rostering" string="Rostering"
+                     name="advanced_rostering" groups="advanced_rostering.group_rostering_admin">
+                    <block title="Rosters" id="advanced_rostering_block">
+                        <setting id="advanced_rostering_cycle" string="Publish Rosters"
+                                 help="How often rosters are published. Each roster covers one week, fortnight, calendar month or calendar quarter, and new Roster Templates are designed for the same cycle.">
+                            <field name="rostering_cycle" widget="radio"/>
+                            <div class="mt-2" invisible="rostering_cycle in ('monthly', 'quarterly')">
+                                <label for="rostering_period_start" class="o_light_label me-2"/>
+                                <field name="rostering_period_start" options="{'numeric': True}"
+                                       required="rostering_cycle not in ('monthly', 'quarterly')"/>
+                            </div>
+                        </setting>
+                        <setting id="advanced_rostering_notify" string="Notify Staff on Publishing"
+                                 help="When a roster is published, everyone on it gets a notification to check their shifts.">
+                            <field name="rostering_notify_publish"/>
+                        </setting>
+                    </block>
+                    <block title="Works With" id="advanced_rostering_features">
+                        <setting id="advanced_rostering_feature_hr" string="Personnel"
+                                 invisible="not rostering_advanced_hr_installed"
+                                 help="Roster and grant leave to Personnel employees, show each person's Manager, send leave requests to the Manager for approval and add My Team's Rosters.">
+                            <field name="module_advanced_rostering_hr"/>
+                            <div class="text-muted mt-1" invisible="module_advanced_rostering_hr">
+                                Without it, people are users and submitted leave waits in Leave Requests › To Approve
+                                for everyone with Leave Requests: Approve.
+                            </div>
+                        </setting>
+                        <setting id="advanced_rostering_feature_attendance" string="On Site"
+                                 invisible="not rostering_advanced_attendance_installed"
+                                 help="Compare rostered shifts with On Site attendances: who attended, who was late and who was absent. Also switches on Personnel.">
+                            <field name="module_advanced_rostering_attendance"/>
+                        </setting>
+                        <setting id="advanced_rostering_feature_timesheet" string="Advanced Timesheets"
+                                 invisible="not rostering_advanced_timesheet_installed"
+                                 help="Fill timesheets from the published roster and approved leave, booked to the Work Types of their Duties and Leave Types.">
+                            <field name="module_advanced_rostering_timesheet"/>
+                        </setting>
+                        <setting id="advanced_rostering_feature_none" string="No other apps yet"
+                                 invisible="rostering_advanced_hr_installed or rostering_advanced_attendance_installed or rostering_advanced_timesheet_installed"
+                                 help="Install Personnel, On Site or Advanced Timesheets to switch on what Rostering can do with them here.">
+                            <field name="rostering_advanced_hr_installed" invisible="1"/>
+                            <field name="rostering_advanced_attendance_installed" invisible="1"/>
+                            <field name="rostering_advanced_timesheet_installed" invisible="1"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_rostering_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'advanced_rostering', 'bin_size': False}</field>
+    </record>
+</odoo>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- With Personnel, "my team" is everyone under the user's employee in the
+         org chart (and themselves), and the employee's Manager can read the
+         leave requests they approve. Rules of different groups are OR-ed, so
+         these add to advanced_rostering's rules. -->
+
+    <!-- Rosters: Can View Team's Roster -->
+    <record id="rule_roster_team" model="ir.rule">
+        <field name="name">Rosters: Can View Team&apos;s Roster</field>
+        <field name="model_id" ref="advanced_rostering.model_rostering_roster"/>
+        <field name="groups" eval="[(4, ref('advanced_rostering.group_roster_team'))]"/>
+        <field name="domain_force">[('state', '=', 'published'), ('shift_ids.employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_shift_team" model="ir.rule">
+        <field name="name">Shifts: Can View Team&apos;s Roster</field>
+        <field name="model_id" ref="advanced_rostering.model_rostering_shift"/>
+        <field name="groups" eval="[(4, ref('advanced_rostering.group_roster_team'))]"/>
+        <field name="domain_force">[('roster_id.state', '=', 'published'), ('employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_break_team" model="ir.rule">
+        <field name="name">Shift Breaks: Can View Team&apos;s Roster</field>
+        <field name="model_id" ref="advanced_rostering.model_rostering_shift_break"/>
+        <field name="groups" eval="[(4, ref('advanced_rostering.group_roster_team'))]"/>
+        <field name="domain_force">[('shift_id.roster_id.state', '=', 'published'), ('shift_id.employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Leave Requests: Create and Edit My Team (org chart) -->
+    <record id="rule_leave_edit_team_org_chart" model="ir.rule">
+        <field name="name">Leave Requests: Create and Edit My Team (org chart)</field>
+        <field name="model_id" ref="advanced_rostering.model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('advanced_rostering.group_leave_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids), ('employee_id', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- The employee's Manager sees the requests they approve -->
+    <record id="rule_leave_approver" model="ir.rule">
+        <field name="name">Leave Requests: the requests they approve (employee&apos;s Manager)</field>
+        <field name="model_id" ref="advanced_rostering.model_rostering_leave"/>
+        <field name="groups" eval="[(4, ref('advanced_rostering.group_leave_create_only')), (4, ref('advanced_rostering.group_leave_edit_own')), (4, ref('advanced_rostering.group_leave_edit_team'))]"/>
+        <field name="domain_force">[('approver_user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

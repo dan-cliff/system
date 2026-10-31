@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_shift_view_list" model="ir.ui.view">
+        <field name="name">rostering.shift.list</field>
+        <field name="model">rostering.shift</field>
+        <field name="arch" type="xml">
+            <list string="Shifts" decoration-danger="on_leave" decoration-muted="not is_assigned">
+                <field name="id" optional="show"/>
+                <field name="person_name"/>
+                <field name="user_id" optional="hide"/>
+                <field name="date" options="{'numeric': True}"/>
+                <field name="standard_shift_id" optional="show"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="break_hours" widget="float_time" optional="show"/>
+                <field name="paid_hours" widget="float_time" sum="Total"/>
+                <field name="duty_id" widget="badge" optional="show"/>
+                <field name="note" optional="hide"/>
+                <field name="roster_id" optional="show"/>
+                <field name="roster_state" widget="badge" decoration-success="roster_state == 'published'" optional="show"/>
+                <field name="on_leave" optional="show"/>
+                <field name="is_assigned" column_invisible="1"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="rostering_shift_view_form" model="ir.ui.view">
+        <field name="name">rostering.shift.form</field>
+        <field name="model">rostering.shift</field>
+        <field name="arch" type="xml">
+            <form string="Shift">
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="not on_leave">
+                        <field name="person_name" class="oe_inline" readonly="1"/> has approved leave on this day
+                        (<field name="leave_id" class="oe_inline" readonly="1"/>).
+                    </div>
+                    <group>
+                        <group name="person">
+                            <field name="roster_id" options="{'no_create': True}" readonly="id"/>
+                            <field name="user_id" options="{'no_create': True}"/>
+                            <field name="date" options="{'numeric': True}"/>
+                            <field name="standard_shift_id" options="{'no_create': True}"/>
+                            <field name="duty_id" options="{'no_create': True}"/>
+                        </group>
+                        <group name="times">
+                            <field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="break_hours" widget="float_time"/>
+                            <field name="paid_hours" widget="float_time"/>
+                            <field name="start_datetime" options="{'numeric': True}" invisible="1"/>
+                            <field name="end_datetime" options="{'numeric': True}" invisible="1"/>
+                            <field name="on_leave" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Note for the person on this shift..."/>
+                    <separator string="Breaks"/>
+                    <field name="break_ids">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="paid"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="rostering_shift_view_calendar" model="ir.ui.view">
+        <field name="name">rostering.shift.calendar</field>
+        <field name="model">rostering.shift</field>
+        <field name="arch" type="xml">
+            <calendar string="Shifts" date_start="start_datetime" date_stop="end_datetime" color="duty_id"
+                      mode="week" event_open_popup="1" quick_create="0">
+                <field name="person_name"/>
+                <field name="duty_id" filters="1"/>
+                <field name="standard_shift_id"/>
+                <field name="paid_hours" widget="float_time"/>
+                <field name="roster_state"/>
+                <field name="note"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="rostering_shift_view_pivot" model="ir.ui.view">
+        <field name="name">rostering.shift.pivot</field>
+        <field name="model">rostering.shift</field>
+        <field name="arch" type="xml">
+            <pivot string="Shifts" sample="1">
+                <field name="person_name" type="row"/>
+                <field name="date" interval="day" type="col"/>
+                <field name="paid_hours" type="measure" widget="float_time"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="rostering_shift_view_search" model="ir.ui.view">
+        <field name="name">rostering.shift.search</field>
+        <field name="model">rostering.shift</field>
+        <field name="arch" type="xml">
+            <search string="Shifts">
+                <field name="person_name"/>
+                <field name="user_id"/>
+                <field name="roster_id"/>
+                <field name="duty_id"/>
+                <field name="standard_shift_id"/>
+                <field name="date" options="{'numeric': True}"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="my_shifts" string="My Shifts" domain="[('is_mine', '=', True)]"/>
+                <filter name="unassigned" string="Unassigned" domain="[('is_assigned', '=', False)]"/>
+                <filter name="on_leave" string="On Leave" domain="[('on_leave', '=', True)]"/>
+                <separator/>
+                <filter name="draft" string="Unpublished" domain="[('roster_state', '=', 'draft')]"/>
+                <filter name="published" string="Published" domain="[('roster_state', '=', 'published')]"/>
+                <separator/>
+                <filter name="filter_date" string="Date" date="date"/>
+                <group>
+                    <filter name="group_person" string="Person" context="{'group_by': 'person_name'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date:day'}"/>
+                    <filter name="group_duty" string="Duty" context="{'group_by': 'duty_id'}"/>
+                    <filter name="group_roster" string="Roster" context="{'group_by': 'roster_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rostering_shift" model="ir.actions.act_window">
+        <field name="name">Shifts</field>
+        <field name="res_model">rostering.shift</field>
+        <field name="view_mode">list,calendar,pivot,form</field>
+        <field name="search_view_id" ref="rostering_shift_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No shifts yet</p>
+            <p>Shifts are added on a roster, one by one or from a Roster Template.</p>
+        </field>
+    </record>
+</odoo>

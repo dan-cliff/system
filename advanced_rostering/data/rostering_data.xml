@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Settings › Rostering › Notify Staff on Publishing starts switched on. -->
+        <record id="config_notify_publish" model="ir.config_parameter">
+            <field name="key">advanced_rostering.notify_publish</field>
+            <field name="value">True</field>
+        </record>
+
+        <!-- Starting libraries; admins can rename, add and archive them. -->
+        <record id="leave_type_annual" model="rostering.leave.type">
+            <field name="name">Annual Leave</field>
+            <field name="sequence">10</field>
+            <field name="color">10</field>
+        </record>
+        <record id="leave_type_personal" model="rostering.leave.type">
+            <field name="name">Personal / Carer's Leave</field>
+            <field name="sequence">20</field>
+            <field name="color">2</field>
+        </record>
+        <record id="leave_type_long_service" model="rostering.leave.type">
+            <field name="name">Long Service Leave</field>
+            <field name="sequence">30</field>
+            <field name="color">4</field>
+        </record>
+        <record id="leave_type_compassionate" model="rostering.leave.type">
+            <field name="name">Compassionate Leave</field>
+            <field name="sequence">40</field>
+            <field name="color">8</field>
+        </record>
+        <record id="leave_type_unpaid" model="rostering.leave.type">
+            <field name="name">Unpaid Leave</field>
+            <field name="sequence">50</field>
+            <field name="color">1</field>
+        </record>
+
+        <record id="duty_general" model="rostering.duty">
+            <field name="name">General Duties</field>
+            <field name="sequence">10</field>
+            <field name="color">4</field>
+        </record>
+
+        <record id="standard_shift_day" model="rostering.standard.shift">
+            <field name="name">Day Shift</field>
+            <field name="sequence">10</field>
+            <field name="start_time">9.0</field>
+            <field name="end_time">17.5</field>
+            <field name="duty_id" ref="duty_general"/>
+            <field name="break_ids" eval="[
+                (0, 0, {'name': 'Morning Tea', 'start_time': 10.5, 'end_time': 10.75, 'paid': True}),
+                (0, 0, {'name': 'Lunch', 'start_time': 12.5, 'end_time': 13.0, 'paid': False}),
+            ]"/>
+        </record>
+    </data>
+</odoo>
