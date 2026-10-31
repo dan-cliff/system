@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="scanner_app.ScannerRoot" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_scanner_body')]" position="inside">
+            <InventoryWalkPicker t-if="state.screen === 'inventory_pick_picker'" kind="'pick'"
+                onSelect="(id) => this.openWalk(id)"/>
+            <InventoryWalkPicker t-if="state.screen === 'inventory_putaway_picker'" kind="'putaway'"
+                onSelect="(id) => this.openWalk(id)"/>
+            <InventoryWalkScreen t-if="state.screen === 'inventory_walk'" pickingId="state.inventoryPickingId"
+                onBack.bind="goHome"/>
+            <InventoryLookupScreen t-if="state.screen === 'inventory_lookup'" onOpenPicking="(id) => this.openWalk(id)"/>
+        </xpath>
+    </t>
+
+    <t t-name="advanced_inventory_scanner.WalkPicker">
+        <div class="o_scanner_screen">
+            <ScanInput placeholder="'Scan a transfer, or pick one below…'" onSubmit.bind="onScan"/>
+            <div class="o_scanner_picker">
+                <p class="o_scanner_subtitle" t-if="!state.loading and !state.pickings.length">
+                    <t t-if="props.kind === 'pick'">Nothing is ready to pick.</t>
+                    <t t-else="">Nothing is ready to put away.</t>
+                </p>
+                <t t-foreach="state.pickings" t-as="picking" t-key="picking.id">
+                    <button class="o_scanner_picker_row" t-on-click="() => this.props.onSelect(picking.id)">
+                        <span class="o_scanner_picker_title">
+                            <t t-esc="picking.name"/>
+                            <span t-if="picking.late" class="badge text-bg-danger ms-2">Late</span>
+                        </span>
+                        <span class="o_scanner_picker_subtitle">
+                            <t t-esc="picking.partner or picking.type"/> · <t t-esc="picking.lines"/> lines
+                            <t t-if="picking.scheduled"> · <t t-esc="picking.scheduled"/></t>
+                        </span>
+                    </button>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="advanced_inventory_scanner.WalkScreen">
+        <div class="o_scanner_screen o_inventory_walk">
+            <p class="o_scanner_subtitle" t-if="!state.loading">
+                <t t-esc="state.name"/> ·
+                <t t-if="state.kind === 'putaway'">Put Away</t><t t-else="">Pick</t> ·
+                <t t-esc="progress"/>/<t t-esc="state.lines.length"/> done
+            </p>
+            <ScanInput placeholder="placeholder" onSubmit.bind="onScan" disabled="!line"/>
+
+            <div t-if="line" t-attf-class="o_inventory_walk_step {{ state.atLocation ? 'o_at_location' : '' }}">
+                <div class="o_inventory_walk_where">
+                    <div class="o_inventory_walk_label">
+                        <t t-if="state.atLocation"><i class="fa fa-check-circle me-1"/>At</t>
+                        <t t-else=""><i class="fa fa-map-marker me-1"/>Go to</t>
+                    </div>
+                    <div class="o_inventory_walk_code" t-esc="line.location_code"/>
+                    <div class="o_inventory_walk_path" t-esc="line.location"/>
+                    <button t-if="!state.atLocation" class="btn btn-light btn-sm mt-2" t-on-click="confirmLocation">
+                        I'm here (no label)
+                    </button>
+                </div>
+                <div class="o_inventory_walk_what">
+                    <div class="o_inventory_walk_label">
+                        <t t-if="state.kind === 'putaway'">Put away</t><t t-else="">Pick</t>
+                    </div>
+                    <div class="o_inventory_walk_product" t-esc="line.product"/>
+                    <div class="o_inventory_walk_lot" t-if="line.lot">Lot/Serial: <t t-esc="line.lot"/></div>
+                    <div class="o_inventory_walk_qty">
+                        <span t-attf-class="{{ lineDone ? 'text-success' : '' }}" t-esc="counted"/> / <t t-esc="line.qty"/>
+                        <small t-esc="line.uom"/>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2 my-2" t-if="line">
+                <button class="btn btn-light btn-lg flex-fill" t-on-click="previous" t-att-disabled="state.index === 0">
+                    <i class="fa fa-chevron-left me-1"/>Back
+                </button>
+                <button class="btn btn-light btn-lg flex-fill" t-on-click="next">
+                    Next<i class="fa fa-chevron-right ms-1"/>
+                </button>
+            </div>
+
+            <div class="o_scanner_lines" t-if="!state.loading">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Location</th>
+                            <th>Product</th>
+                            <th class="text-end">Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.lines" t-as="row" t-key="row.id" t-att-class="lineClass(row, row_index)"
+                            t-on-click="() => this.goTo(row_index)">
+                            <td t-esc="row_index + 1"/>
+                            <td t-esc="row.location_code"/>
+                            <td t-esc="row.product"/>
+                            <td class="text-end"><t t-esc="state.counted[row.id] || 0"/> / <t t-esc="row.qty"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="o_scanner_footer">
+                <button class="btn btn-primary btn-lg" t-on-click="onValidate" t-att-disabled="state.validating or !anyCounted">
+                    <t t-if="allDone">Validate</t><t t-else="">Validate What's Done</t>
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="advanced_inventory_scanner.LookupScreen">
+        <div class="o_scanner_screen">
+            <ScanInput placeholder="'Scan a product, location, warehouse or transfer label…'" onSubmit.bind="onScan"/>
+            <t t-set="r" t-value="state.result"/>
+            <p t-if="r and !r.type" class="o_scanner_subtitle">Nothing found for "<t t-esc="state.scanned"/>".</p>
+            <div t-if="r and r.type" class="o_inventory_lookup">
+                <div class="o_inventory_walk_label">
+                    <t t-if="r.type === 'product'">Product</t>
+                    <t t-elif="r.type === 'location'">Location<t t-if="r.level"> (<t t-esc="r.level"/>)</t></t>
+                    <t t-elif="r.type === 'warehouse'">Warehouse</t>
+                    <t t-else="">Transfer</t>
+                </div>
+                <h3 t-esc="r.name"/>
+                <p t-if="r.type === 'product'">
+                    On hand: <b t-esc="r.on_hand"/> <t t-esc="r.uom"/> · Forecast: <t t-esc="r.forecast"/>
+                </p>
+                <button t-if="r.type === 'picking' and r.state === 'assigned'" class="btn btn-primary btn-lg mb-2"
+                        t-on-click="() => this.props.onOpenPicking(r.id)">
+                    <t t-if="r.walk_kind === 'putaway'">Put Away</t><t t-else="">Pick</t>
+                </button>
+                <table t-if="r.rows.length" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th><t t-if="r.type === 'product'">Where</t><t t-else="">Product</t></th>
+                            <th class="text-end">Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="r.rows" t-as="row" t-key="row_index">
+                            <td t-esc="row[0]"/>
+                            <td class="text-end" t-esc="row[1]"/>
+                        </tr>
+                    </tbody>
+                </table>
+                <p t-elif="r.type === 'product' or r.type === 'location'" class="text-muted">No stock here.</p>
+                <t t-if="r.slots.length">
+                    <h5>Storage slots</h5>
+                    <ul>
+                        <li t-foreach="r.slots" t-as="slot" t-key="slot_index">
+                            <t t-esc="slot[0]"/><t t-if="slot[1]"> (main)</t> · <t t-esc="slot[2]"/> in slot
+                        </li>
+                    </ul>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

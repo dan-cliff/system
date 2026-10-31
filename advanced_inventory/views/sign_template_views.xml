@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_template_view_list" model="ir.ui.view">
+        <field name="name">advanced.inventory.sign.template.list</field>
+        <field name="model">advanced.inventory.sign.template</field>
+        <field name="arch" type="xml">
+            <list string="Sign Designs">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="target"/>
+                <field name="page_width" optional="show"/>
+                <field name="page_height" optional="show"/>
+                <field name="sign_count" string="Signs" optional="show"/>
+                <field name="element_count" string="Elements" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show" placeholder="Every company"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sign_template_view_form" model="ir.ui.view">
+        <field name="name">advanced.inventory.sign.template.form</field>
+        <field name="model">advanced.inventory.sign.template</field>
+        <field name="arch" type="xml">
+            <form string="Sign Design" class="o_inventory_design_form">
+                <header>
+                    <button name="action_open_preview" type="object" string="Preview Full Screen" class="btn-secondary" invisible="not id"/>
+                    <button name="action_view_signs" type="object" string="Signs" invisible="not id"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Aisle Sign"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="target" readonly="id"/>
+                            <field name="company_id" groups="base.group_multi_company" placeholder="Every company"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="preview_product_id" invisible="target != 'product'" options="{'no_create': True}"/>
+                            <field name="preview_warehouse_id" invisible="target != 'warehouse'" options="{'no_create': True}"/>
+                            <field name="preview_location_id" invisible="target not in ('room', 'aisle', 'shelf', 'tote')"
+                                   options="{'no_create': True}"/>
+                            <field name="background_image" widget="image" options="{'size': [0, 48]}"/>
+                            <field name="page_width" invisible="1"/>
+                            <field name="page_height" invisible="1"/>
+                            <field name="background_color" invisible="1"/>
+                            <field name="target_model" invisible="1"/>
+                            <field name="preview_res_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="layout" widget="inventory_designer" nolabel="1" class="w-100"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_template_view_search" model="ir.ui.view">
+        <field name="name">advanced.inventory.sign.template.search</field>
+        <field name="model">advanced.inventory.sign.template</field>
+        <field name="arch" type="xml">
+            <search string="Sign Designs">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="for_product" string="Products" domain="[('target', '=', 'product')]"/>
+                <filter name="for_warehouse" string="Warehouses" domain="[('target', '=', 'warehouse')]"/>
+                <filter name="for_location" string="Rooms, Aisles, Shelves and Totes"
+                        domain="[('target', 'in', ('room', 'aisle', 'shelf', 'tote'))]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_target" string="For" context="{'group_by': 'target'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sign_template" model="ir.actions.act_window">
+        <field name="name">Sign Designs</field>
+        <field name="res_model">advanced.inventory.sign.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="sign_template_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Design a sign design</p>
+            <p>Lay out digital signs for warehouses, rooms, aisles, shelves, totes and products in pixels: names, codes, live stock lists, a clock, logos and QR codes. Then add Digital Signs that show a design for one place on a screen.</p>
+        </field>
+    </record>
+</odoo>

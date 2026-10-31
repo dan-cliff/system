@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_inventory.Overview">
+        <div class="o_inventory_overview">
+            <div t-if="state.loading" class="p-5 text-center text-muted"><i class="fa fa-spinner fa-spin me-2"/>Loading…</div>
+            <t t-else="">
+                <t t-set="k" t-value="state.data.kpis"/>
+                <div class="o_iov_header d-flex flex-wrap align-items-center gap-2">
+                    <h2 class="mb-0 me-auto">Inventory</h2>
+                    <button class="btn btn-light btn-sm" t-on-click="() => this.open('advanced_inventory.action_walk_pick')">
+                        <i class="fa fa-shopping-basket me-1"/>Pick List <span class="badge text-bg-secondary ms-1" t-esc="k.to_pick"/>
+                    </button>
+                    <button class="btn btn-light btn-sm" t-on-click="() => this.open('advanced_inventory.action_walk_putaway')">
+                        <i class="fa fa-inbox me-1"/>Put Away List <span class="badge text-bg-secondary ms-1" t-esc="k.to_put_away"/>
+                    </button>
+                    <button class="btn btn-light btn-sm" t-on-click="() => this.open('product_cost_analysis.action_product_cost_analysis')">
+                        <i class="fa fa-calculator me-1"/>Cost Analyses
+                    </button>
+                    <button class="btn btn-light btn-sm" t-on-click="load" title="Refresh"><i class="fa fa-refresh"/></button>
+                </div>
+
+                <!-- What the stock is worth (costs from Product Cost Analysis) -->
+                <div class="o_iov_kpis">
+                    <div class="o_iov_kpi o_iov_blue">
+                        <div class="o_iov_kpi_label">Stock Value (at cost)</div>
+                        <div class="o_iov_kpi_value" t-esc="k.stock_value"/>
+                    </div>
+                    <div class="o_iov_kpi o_iov_teal">
+                        <div class="o_iov_kpi_label">Potential Revenue</div>
+                        <div class="o_iov_kpi_value" t-esc="k.potential_revenue"/>
+                    </div>
+                    <div class="o_iov_kpi o_iov_violet">
+                        <div class="o_iov_kpi_label">Potential Margin</div>
+                        <div class="o_iov_kpi_value"><t t-esc="k.potential_margin"/> <small>(<t t-esc="k.margin_percent"/>%)</small></div>
+                    </div>
+                    <div class="o_iov_kpi o_iov_yellow">
+                        <div class="o_iov_kpi_label">Received Today</div>
+                        <div class="o_iov_kpi_value"><t t-esc="k.received_today"/> <small>receipts</small></div>
+                    </div>
+                </div>
+
+                <div class="o_iov_columns">
+                    <!-- What needs doing -->
+                    <div class="o_iov_panel o_iov_operations">
+                        <h4>To Do</h4>
+                        <div t-if="!state.data.operations.length" class="text-muted">Nothing waiting. Well done.</div>
+                        <div t-foreach="state.data.operations" t-as="op" t-key="op.id" class="o_iov_operation">
+                            <i t-attf-class="fa fa-fw {{ kindIcons[op.code] }} o_iov_op_icon"/>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-bold text-truncate" t-esc="op.name"/>
+                                <div class="small text-muted" t-esc="op.warehouse"/>
+                            </div>
+                            <button class="btn btn-primary btn-sm" t-on-click="() => this.openTransfers(op, 'ready')" t-att-disabled="!op.ready">
+                                <t t-esc="op.ready"/> Ready
+                            </button>
+                            <button class="btn btn-light btn-sm" t-on-click="() => this.openTransfers(op, 'waiting')" t-att-disabled="!op.waiting">
+                                <t t-esc="op.waiting"/> Waiting
+                            </button>
+                            <button t-attf-class="btn btn-sm {{ op.late ? 'btn-danger' : 'btn-light' }}" t-on-click="() => this.openTransfers(op, 'late')" t-att-disabled="!op.late">
+                                <t t-esc="op.late"/> Late
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="o_iov_side">
+                        <!-- Costing health -->
+                        <div class="o_iov_panel">
+                            <h4>Costing</h4>
+                            <div class="o_iov_stat"><span>Cost analyses</span><b t-esc="k.analyses"/></div>
+                            <div class="o_iov_stat"><span>Products costed from an analysis</span><b t-esc="k.costed"/></div>
+                            <div t-attf-class="o_iov_stat {{ k.not_viable ? 'text-danger' : '' }}"><span>Analyses that can't break even</span><b t-esc="k.not_viable"/></div>
+                            <div t-attf-class="o_iov_stat {{ k.outdated ? 'text-warning' : '' }}"><span>Material costs out of date</span><b t-esc="k.outdated"/></div>
+                        </div>
+                        <!-- Stock health -->
+                        <div class="o_iov_panel">
+                            <h4>Stock</h4>
+                            <div t-attf-class="o_iov_stat {{ k.refill ? 'text-warning' : '' }}"><span>Slots to refill</span><b t-esc="k.refill"/></div>
+                            <div t-attf-class="o_iov_stat {{ k.negative ? 'text-danger' : '' }}"><span>Negative stock records</span><b t-esc="k.negative"/></div>
+                        </div>
+                        <!-- Warehouses -->
+                        <div class="o_iov_panel">
+                            <h4>Warehouse Layouts</h4>
+                            <div t-foreach="state.data.warehouses" t-as="wh" t-key="wh.id" class="o_iov_stat">
+                                <span><t t-esc="wh.name"/> <small class="text-muted">(<t t-esc="wh.locations"/> locations)</small></span>
+                                <button t-if="state.data.is_manager" class="btn btn-link btn-sm p-0" t-on-click="() => this.openLayout(wh)">
+                                    <i class="fa fa-map-o me-1"/>Design
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

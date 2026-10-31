@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Costing and storage on every product: the costing analysis that sets its
+         Cost, what its stock is worth, and the shelves and totes it lives in. -->
+    <record id="product_template_form_inventory" model="ir.ui.view">
+        <field name="name">product.template.form.advanced_inventory</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_product_slots" type="object" class="oe_stat_button" icon="fa-map-marker"
+                        groups="stock.group_stock_user" invisible="type != 'consu'">
+                    <field name="product_slot_count" widget="statinfo" string="Slots"/>
+                </button>
+            </div>
+            <xpath expr="//notebook" position="inside">
+                <page string="Costing &amp; Storage" name="inventory_costing" groups="stock.group_stock_user"
+                      invisible="type == 'combo'">
+                    <group>
+                        <group string="Costing" name="inventory_costing_analysis" groups="advanced_inventory.group_inventory_user">
+                            <field name="cost_analysis_id" options="{'no_create': True}"
+                                   context="{'default_product_tmpl_id': id}"/>
+                            <field name="cost_from_analysis" invisible="not cost_analysis_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="analysis_unit_cost" invisible="not cost_analysis_id"/>
+                            <field name="analysis_fixed_cost" invisible="not cost_analysis_id"/>
+                            <field name="analysis_sell_price" invisible="not cost_analysis_id"/>
+                            <field name="analysis_margin_percent" invisible="not cost_analysis_id"/>
+                            <field name="analysis_break_even_units" invisible="not cost_analysis_id"/>
+                            <field name="analysis_break_even_progress" widget="progressbar"
+                                   invisible="not cost_analysis_id or not analysis_break_even_units"/>
+                            <field name="analysis_can_build_qty" invisible="not cost_analysis_id"/>
+                            <div colspan="2" class="text-muted small" invisible="cost_analysis_id">
+                                Pick a cost analysis (Cost Analyses smart button) to cost this product from it:
+                                its variable cost per unit then becomes the product's Cost, used for stock valuation.
+                            </div>
+                        </group>
+                        <group string="Stock" name="inventory_stock" invisible="not is_storable">
+                            <field name="qty_available" string="On Hand"/>
+                            <field name="inventory_value"/>
+                            <field name="inventory_potential_revenue"/>
+                        </group>
+                    </group>
+                    <separator string="Storage Slots" invisible="not is_storable"/>
+                    <field name="product_slot_ids" invisible="not is_storable" groups="stock.group_stock_manager">
+                        <list editable="bottom">
+                            <field name="id" optional="show"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                            <field name="location_id" options="{'no_create': True}"/>
+                            <field name="warehouse_id" optional="show"/>
+                            <field name="is_primary"/>
+                            <field name="min_qty" optional="show"/>
+                            <field name="max_qty" optional="show"/>
+                            <field name="qty_on_hand"/>
+                            <field name="company_id" column_invisible="True"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_list_inventory" model="ir.ui.view">
+        <field name="name">product.template.list.advanced_inventory</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="currency_id" column_invisible="True"/>
+                <field name="inventory_value" optional="hide"/>
+                <field name="cost_from_analysis" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

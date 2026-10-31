@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- One page per label. Every label design has its own print action (made by
+         advanced.inventory.label.template) that renders this template with its
+         layout; the styles come from advanced.inventory.design.mixin._design_render. -->
+    <template id="report_label">
+        <t t-call="web.html_container">
+            <style>
+                html, body, body.container, body.container-fluid, #wrapwrap, main {
+                    margin: 0 !important; padding: 0 !important; max-width: none !important; width: auto !important;
+                }
+                .o_inventory_label_page { margin: 0; padding: 0; }
+            </style>
+            <t t-foreach="pages" t-as="page">
+                <div t-att-style="'' if page_last else 'page-break-after:always'">
+                    <t t-call="advanced_inventory.design_page">
+                        <t t-set="page_class" t-value="'o_inventory_label_page'"/>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

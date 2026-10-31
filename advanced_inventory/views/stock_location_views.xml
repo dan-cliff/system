@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_location_form_inventory" model="ir.ui.view">
+        <field name="name">stock.location.form.advanced_inventory</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_inventory_contents" type="object" class="oe_stat_button" icon="fa-cubes"
+                        invisible="usage != 'internal'">
+                    <field name="inventory_product_count" widget="statinfo" string="Products Stored"/>
+                </button>
+                <button name="action_open_layout_designer" type="object" class="oe_stat_button" icon="fa-map-o"
+                        string="Layout" invisible="not storage_level or not warehouse_id"
+                        groups="stock.group_stock_manager"/>
+            </div>
+            <xpath expr="//group[@name='additional_info']" position="after">
+                <group string="Warehouse Layout" name="warehouse_layout" invisible="usage != 'internal'">
+                    <field name="storage_level"/>
+                    <field name="layout_code" invisible="not storage_level"/>
+                    <field name="barcode"/>
+                    <field name="walk_sequence"/>
+                    <field name="layout_sequence" invisible="not storage_level"/>
+                    <field name="warehouse_id" invisible="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <notebook invisible="storage_level not in ('shelf', 'tote')">
+                    <page string="Assigned Products" name="assigned_products">
+                        <field name="product_slot_ids" context="{'default_location_id': id}">
+                            <list editable="bottom">
+                                <field name="id" optional="show"/>
+                                <field name="product_id"/>
+                                <field name="is_primary"/>
+                                <field name="min_qty" optional="show"/>
+                                <field name="max_qty" optional="show"/>
+                                <field name="qty_on_hand"/>
+                                <field name="needs_refill" optional="hide"/>
+                                <field name="company_id" column_invisible="True"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_location_tree_inventory" model="ir.ui.view">
+        <field name="name">stock.location.list.advanced_inventory</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_tree2"/>
+        <field name="arch" type="xml">
+            <field name="complete_name" position="before">
+                <field name="id" optional="show"/>
+                <field name="walk_sequence" optional="show"/>
+            </field>
+            <field name="usage" position="after">
+                <field name="storage_level" optional="show"/>
+                <field name="layout_code" optional="hide"/>
+                <field name="barcode" optional="show"/>
+            </field>
+            <field name="company_id" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_location_search_inventory" model="ir.ui.view">
+        <field name="name">stock.location.search.advanced_inventory</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="barcode"/>
+                <separator/>
+                <filter name="layout" string="In a Layout" domain="[('storage_level', '!=', False)]"/>
+                <filter name="level_room" string="Rooms" domain="[('storage_level', '=', 'room')]"/>
+                <filter name="level_aisle" string="Aisles" domain="[('storage_level', '=', 'aisle')]"/>
+                <filter name="level_shelf" string="Shelves" domain="[('storage_level', '=', 'shelf')]"/>
+                <filter name="level_tote" string="Totes" domain="[('storage_level', '=', 'tote')]"/>
+                <group>
+                    <filter name="group_level" string="Layout Level" context="{'group_by': 'storage_level'}"/>
+                    <filter name="group_warehouse" string="Warehouse" context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_inventory_overview" name="Dashboard" parent="menu_inventory_root"
+              action="action_inventory_overview" sequence="1"/>
+
+    <!-- Operations › Pick & Put Away: what to fetch and store, in walk order. -->
+    <menuitem id="menu_inventory_walk" name="Pick &amp; Put Away" parent="stock.menu_stock_warehouse_mgmt" sequence="2"/>
+    <menuitem id="menu_inventory_walk_pick" name="Pick List" parent="menu_inventory_walk"
+              action="action_walk_pick" sequence="1"/>
+    <menuitem id="menu_inventory_walk_putaway" name="Put Away List" parent="menu_inventory_walk"
+              action="action_walk_putaway" sequence="2"/>
+
+    <!-- Products › Cost Analyses (Product Cost Analysis, part of Inventory). -->
+    <menuitem id="menu_inventory_cost_analyses" name="Cost Analyses" parent="stock.menu_stock_inventory_control"
+              action="product_cost_analysis.action_product_cost_analysis"
+              groups="advanced_inventory.group_inventory_user" sequence="40"/>
+
+    <!-- Reporting (Odoo's analysis menu) stays; Report Builder's Reports folder
+         sits directly before Configuration. -->
+    <record id="stock.menu_warehouse_report" model="ir.ui.menu">
+        <field name="sequence">90</field>
+    </record>
+    <menuitem id="menu_inventory_reports" name="Reports" parent="menu_inventory_root" sequence="95"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_inventory_layout" name="Warehouse Layout" parent="stock.menu_warehouse_config"
+              action="action_warehouse_layout" groups="stock.group_stock_manager" sequence="3"/>
+    <menuitem id="menu_inventory_slots" name="Storage Slots" parent="stock.menu_warehouse_config"
+              action="action_product_slot" groups="stock.group_stock_manager" sequence="4"/>
+    <menuitem id="menu_inventory_labels_signage" name="Labels &amp; Signage" parent="stock.menu_stock_config_settings"
+              groups="stock.group_stock_manager" sequence="3"/>
+    <menuitem id="menu_inventory_label_templates" name="Label Designs" parent="menu_inventory_labels_signage"
+              action="action_label_template" sequence="1"/>
+    <menuitem id="menu_inventory_sign_templates" name="Sign Designs" parent="menu_inventory_labels_signage"
+              action="action_sign_template" sequence="2"/>
+    <menuitem id="menu_inventory_signs" name="Digital Signs" parent="menu_inventory_labels_signage"
+              action="action_inventory_sign" sequence="3"/>
+</odoo>

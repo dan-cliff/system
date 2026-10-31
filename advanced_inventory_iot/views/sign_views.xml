@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="inventory_sign_view_form_iot" model="ir.ui.view">
+        <field name="name">advanced.inventory.sign.form.iot</field>
+        <field name="model">advanced.inventory.sign</field>
+        <field name="inherit_id" ref="advanced_inventory.inventory_sign_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_nodes" type="object" class="oe_stat_button" icon="fa-television"
+                        invisible="not id">
+                    <field name="node_count" widget="statinfo" string="Screens"/>
+                </button>
+            </div>
+            <xpath expr="//div[hasclass('alert')]" position="inside">
+                <br/><strong>On a Raspberry Pi:</strong> add a Node with the <em>Inventory Digital Sign</em> role
+                (Screens button), pick this sign, pair it and run the install command on the Pi. It needs no login.
+            </xpath>
+        </field>
+    </record>
+</odoo>
