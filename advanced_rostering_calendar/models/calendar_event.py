@@ -51,7 +51,7 @@ class CalendarEvent(models.Model):
                               'and the calendar follows.'))
         return super().write(vals)
 
-    @api.ondelete(at_uninstall=True)
+    @api.ondelete(at_uninstall=False)
     def _unlink_except_rostering_leave(self):
         if not self.env.context.get('rostering_calendar_sync') and self._is_rostering_leave_event():
             raise UserError(_('This event shows a leave request. Cancel or delete the leave request in '
