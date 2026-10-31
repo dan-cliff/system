@@ -204,6 +204,12 @@ class RosteringLeave(models.Model):
                 leave.holiday_days = len([day for day in leave._days() if day in holiday_dates])
                 leave.holiday_hours = leave.holiday_days * per_day
 
+    @api.onchange('date_from')
+    def _onchange_date_from(self):
+        # A new From date after the To date moves the To date with it.
+        if self.date_from and self.date_to and self.date_to < self.date_from:
+            self.date_to = self.date_from
+
     @api.onchange('request_unit')
     def _onchange_request_unit(self):
         if self.request_unit == 'partial' and self.date_from and not self.datetime_from:
