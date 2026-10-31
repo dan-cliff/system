@@ -300,12 +300,12 @@
         <field name="name">Pay Runs: Approve</field>
         <field name="category_id" ref="module_category_advanced_payroll"/>
         <field name="sequence">410</field>
-        <field name="description">Approve pay runs (locking their payslips) and reset approved pay runs to draft. Sees every pay run and payslip.</field>
+        <field name="description">Approve pay runs (locking their payslips) and reset approved pay runs to draft. Sees every pay run, payslip and payroll employee.</field>
     </record>
     <record id="group_run_approve" model="res.groups">
         <field name="name">Allowed</field>
         <field name="privilege_id" ref="privilege_run_approve"/>
-        <field name="comment">Approve pay runs (locking their payslips) and reset approved pay runs to draft. Sees every pay run and payslip.</field>
+        <field name="comment">Approve pay runs (locking their payslips) and reset approved pay runs to draft. Sees every pay run, payslip and payroll employee.</field>
         <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
     </record>
 
@@ -313,12 +313,12 @@
         <field name="name">Pay Runs: Mark as Paid</field>
         <field name="category_id" ref="module_category_advanced_payroll"/>
         <field name="sequence">420</field>
-        <field name="description">Mark approved pay runs as paid. Sees every pay run and payslip.</field>
+        <field name="description">Mark approved pay runs as paid. Sees every pay run, payslip and payroll employee.</field>
     </record>
     <record id="group_run_pay" model="res.groups">
         <field name="name">Allowed</field>
         <field name="privilege_id" ref="privilege_run_pay"/>
-        <field name="comment">Mark approved pay runs as paid. Sees every pay run and payslip.</field>
+        <field name="comment">Mark approved pay runs as paid. Sees every pay run, payslip and payroll employee.</field>
         <field name="implied_ids" eval="[(4, ref('group_payroll_user'))]"/>
     </record>
 
@@ -659,6 +659,15 @@
         <field name="perm_read" eval="False"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_payroll_employee_workflow" model="ir.rule">
+        <field name="name">Payroll Employees: approvers and payers see them all</field>
+        <field name="model_id" ref="model_payroll_employee"/>
+        <field name="groups" eval="[(4, ref('group_run_approve')), (4, ref('group_run_pay'))]"/>
+        <field name="domain_force">[(1, &apos;=&apos;, 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
     <record id="rule_payroll_employee_my" model="ir.rule">
         <field name="name">Payroll Employees: View My Payslips (their own profile)</field>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- With Personnel, Payroll › Employees opens Personnel employees (their pay
+         is on the Pay tab). The uninstall hook points it back at Payroll Employees. -->
+    <record id="advanced_payroll.menu_payroll_employees" model="ir.ui.menu">
+        <field name="action" ref="action_payroll_hr_employee"/>
+    </record>
+</odoo>
