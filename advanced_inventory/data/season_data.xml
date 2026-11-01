@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting seasons; users rename, add or archive them in Configuration › Seasons. -->
+    <data noupdate="1">
+        <record id="season_spring" model="advanced.inventory.season">
+            <field name="name">Spring</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="season_summer" model="advanced.inventory.season">
+            <field name="name">Summer</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="season_autumn" model="advanced.inventory.season">
+            <field name="name">Autumn</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="season_winter" model="advanced.inventory.season">
+            <field name="name">Winter</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="season_all_year" model="advanced.inventory.season">
+            <field name="name">All Year</field>
+            <field name="sequence">50</field>
+        </record>
+    </data>
+</odoo>

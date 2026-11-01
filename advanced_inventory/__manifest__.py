@@ -33,6 +33,11 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
   it, on screen, on the pick and put-away lists, and in the Scanner app.
   Products are assigned to their storage slots, and receipts put them away
   there automatically.
+* Collections (Configuration › Collections): name, description, year,
+  season (Configuration › Seasons) and the product categories a collection
+  is for. Products in those categories (or below them) show an optional
+  Collection field directly under their category; products can be filtered
+  and grouped by collection (and, with eCommerce, filtered in the shop).
 * Label designer: lay out product, warehouse, room, aisle, shelf and tote
   labels in a visual editor (like Personnel's ID badges), with fields, the
   product picture, the company logo, QR codes and barcodes (Code 128, EAN-13,
@@ -57,6 +62,7 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
         'security/ir.model.access.csv',
         'data/res_lang_data.xml',
         'data/inventory_data.xml',
+        'data/season_data.xml',
         'report/label_report.xml',
         'report/walk_list_report.xml',
         'views/inventory_menus.xml',
@@ -70,6 +76,7 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
         'views/label_template_views.xml',
         'views/sign_template_views.xml',
         'views/sign_views.xml',
+        'views/collection_views.xml',
         'views/signage_templates.xml',
         'views/menus.xml',
         'data/inventory_titles.xml',
