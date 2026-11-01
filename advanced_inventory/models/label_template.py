@@ -55,6 +55,9 @@ class AdvancedInventoryLabelTemplate(models.Model):
     copies = fields.Integer(string='Copies per Record', default=1,
                             help='How many labels to print for each record.')
     report_action_id = fields.Many2one('ir.actions.report', string='Print Action', readonly=True, copy=False)
+    report_template_action_id = fields.Many2one(
+        'ir.actions.report', string='Print Action (Products)', readonly=True, copy=False,
+        help='For product labels: the same label on the products\' Print menu, one label per variant.')
     paperformat_id = fields.Many2one('report.paperformat', string='Paper Format', readonly=True, copy=False)
 
     @api.onchange('target')
@@ -79,12 +82,17 @@ class AdvancedInventoryLabelTemplate(models.Model):
         return res
 
     def unlink(self):
-        actions = self.sudo().report_action_id
+        actions = self.sudo().report_action_id | self.sudo().report_template_action_id
         paperformats = self.sudo().paperformat_id
         res = super().unlink()
         actions.unlink()
         paperformats.unlink()
         return res
+
+    @api.model
+    def _sync_all_report_actions(self):
+        """Bring every label design's print actions up to date (run on each module update)."""
+        self.with_context(active_test=False).search([])._sync_report_action()
 
     def _sync_report_action(self):
         for template in self.sudo():
@@ -103,7 +111,7 @@ class AdvancedInventoryLabelTemplate(models.Model):
             else:
                 template.paperformat_id = self.env['report.paperformat'].sudo().create(paperformat_vals)
             model = target_model(template.target)
-            domain = template._design_target_domain()
+            domain = [('company_id', 'in', [template.company_id.id, False])] if template.company_id else []
             action_vals = {
                 'name': template.name,
                 'model': model,
@@ -121,6 +129,16 @@ class AdvancedInventoryLabelTemplate(models.Model):
                 template.report_action_id.write(action_vals)
             else:
                 template.report_action_id = self.env['ir.actions.report'].sudo().create(action_vals)
+            if template.target == 'product':
+                product_vals = dict(action_vals, model='product.template', domain=(
+                    repr([('company_id', 'in', [template.company_id.id, False])]) if template.company_id else False),
+                    binding_model_id=self.env['ir.model']._get('product.template').id if template.active else False)
+                if template.report_template_action_id:
+                    template.report_template_action_id.write(product_vals)
+                else:
+                    template.report_template_action_id = self.env['ir.actions.report'].sudo().create(product_vals)
+            elif template.report_template_action_id:
+                template.report_template_action_id.unlink()
 
     def action_print_preview(self):
         self.ensure_one()
@@ -142,20 +160,25 @@ class ReportInventoryLabel(models.AbstractModel):
             data.get('inventory_label_template_id')).exists()
         if not template:
             raise UserError(self.env._('This label design no longer exists.'))
-        records = self.env[template.target_model].browse(docids)
-        if template.target in LOCATION_TARGETS:
-            wrong = records.filtered(lambda r: r.storage_level != template.target)
-            if wrong:
-                raise UserError(self.env._(
-                    'The label "%(label)s" is for %(level)s locations. It can\'t be printed for %(names)s.',
-                    label=template.name, level=dict(TARGETS)[template.target].lower(),
-                    names=', '.join(wrong.mapped('display_name'))))
+        model = data.get('inventory_label_model') or template.target_model
+        records = self.env[model].browse(docids)
+        if model == 'product.template' and template.target_model == 'product.product':
+            # Printed from a product: one label per variant.
+            records = records.product_variant_ids
+        elif model != template.target_model:
+            raise UserError(self.env._('The label "%s" can\'t be printed for these records.', template.name))
+        # Copies per record: from the Print Labels wizard, else the design's own number.
+        copies = {int(k): v for k, v in (data.get('inventory_label_copies') or {}).items()}
         pages = []
         for record in records:
-            rendered = template._design_render(record)
-            pages += [rendered] * max(template.copies, 1)
+            count = copies.get(record.id, template.copies) if copies else template.copies
+            if count <= 0:
+                continue
+            pages += [template._design_render(record)] * int(count)
+        if not pages:
+            raise UserError(self.env._('There are no labels to print.'))
         return {
-            'doc_ids': docids,
+            'doc_ids': records.ids,
             'doc_model': template.target_model,
             'docs': records,
             'template': template,

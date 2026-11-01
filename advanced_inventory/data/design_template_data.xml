@@ -61,4 +61,8 @@
             <field name="sequence">50</field>
         </record>
     </data>
+
+    <!-- Each update: every label design gets its current print actions (e.g. product
+         labels also on the products' Print menu). -->
+    <function model="advanced.inventory.label.template" name="_sync_all_report_actions"/>
 </odoo>

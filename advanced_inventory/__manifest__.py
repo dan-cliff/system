@@ -44,7 +44,9 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
 * Label designer: lay out product, warehouse, room, aisle, shelf and tote
   labels in a visual editor (like Personnel's ID badges), with fields, the
   product picture, the company logo, QR codes and barcodes (Code 128, EAN-13,
-  QR) that the Scanner app reads. Each label is on its records' Print menu.
+  QR) that the Scanner app reads. Each label is on its records' Print menu
+  (product labels on both products and variants), and Print Labels on
+  products and transfers prints them (copies, or one per unit received).
 * Digital signage: design signs for warehouses, rooms, aisles, shelves and
   totes in the same visual editor (in pixels), including live stock lists
   and a clock, and show them full screen on any screen through the
@@ -81,6 +83,7 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
         'views/sign_views.xml',
         'views/collection_views.xml',
         'wizard/catalogue_import_views.xml',
+        'wizard/label_print_views.xml',
         'views/signage_templates.xml',
         'views/menus.xml',
         'data/inventory_titles.xml',
