@@ -29,7 +29,7 @@ class AdvancedInventorySign(models.Model):
                                    domain="[('company_id', '=', company_id)]")
     location_id = fields.Many2one(
         'stock.location', string='Location',
-        domain="[('storage_level', '=', target), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
+        domain="[('storage_level', '=', target != 'location' and target or False), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     product_id = fields.Many2one('product.product', string='Product')
     refresh_seconds = fields.Integer(
         string='Refresh Every (s)', default=60,
@@ -63,7 +63,8 @@ class AdvancedInventorySign(models.Model):
         if self.target == 'warehouse':
             return self.warehouse_id
         if self.target in LOCATION_TARGETS:
-            return self.location_id if self.location_id.storage_level == self.target else self.env['stock.location']
+            level = self.location_id.storage_level or 'location'
+            return self.location_id if self.location_id and level == self.target else self.env['stock.location']
         if self.target == 'product':
             return self.product_id
         return False

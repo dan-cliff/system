@@ -34,12 +34,21 @@ ELEMENT_TYPES = ('text', 'image', 'qr', 'barcode', 'shape', 'stock_list', 'clock
 TARGETS = [
     ('product', 'Product'),
     ('warehouse', 'Warehouse'),
+    ('location', 'Location'),
     ('room', 'Room'),
     ('aisle', 'Aisle'),
     ('shelf', 'Shelf'),
     ('tote', 'Tote'),
 ]
-LOCATION_TARGETS = ('room', 'aisle', 'shelf', 'tote')
+LOCATION_TARGETS = ('location', 'room', 'aisle', 'shelf', 'tote')
+
+
+def level_domain(target):
+    """The locations a location design is for: its layout level, or for
+    'location' the locations outside the layout (no room/aisle/shelf/tote)."""
+    if target == 'location':
+        return [('storage_level', '=', False)]
+    return [('storage_level', '=', target)]
 DEFAULT_PRIMARY = '#5B3DB8'
 DEFAULT_SECONDARY = '#14A3A3'
 CODE_DPI = 300
@@ -78,7 +87,7 @@ class AdvancedInventoryDesignMixin(models.AbstractModel):
     preview_product_id = fields.Many2one('product.product', string='Preview Product')
     preview_warehouse_id = fields.Many2one('stock.warehouse', string='Preview Warehouse')
     preview_location_id = fields.Many2one(
-        'stock.location', string='Preview Location', domain="[('storage_level', '=', target)]")
+        'stock.location', string='Preview Location', domain="[('storage_level', '=', target != 'location' and target or False)]")
     preview_res_id = fields.Integer(compute='_compute_preview_res_id')
     element_count = fields.Integer(compute='_compute_element_count')
 
@@ -152,7 +161,7 @@ class AdvancedInventoryDesignMixin(models.AbstractModel):
         self.ensure_one()
         domain = []
         if self.target in LOCATION_TARGETS:
-            domain.append(('storage_level', '=', self.target))
+            domain += level_domain(self.target)
         if self.company_id:
             domain.append(('company_id', 'in', [self.company_id.id, False]))
         return domain

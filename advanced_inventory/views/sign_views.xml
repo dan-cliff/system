@@ -42,8 +42,8 @@
                             <field name="target" invisible="not template_id"/>
                             <field name="warehouse_id" invisible="target != 'warehouse'" required="target == 'warehouse'"
                                    options="{'no_create': True}"/>
-                            <field name="location_id" invisible="target not in ('room', 'aisle', 'shelf', 'tote')"
-                                   required="target in ('room', 'aisle', 'shelf', 'tote')" options="{'no_create': True}"/>
+                            <field name="location_id" invisible="target not in ('location', 'room', 'aisle', 'shelf', 'tote')"
+                                   required="target in ('location', 'room', 'aisle', 'shelf', 'tote')" options="{'no_create': True}"/>
                             <field name="product_id" invisible="target != 'product'" required="target == 'product'"
                                    options="{'no_create': True}"/>
                             <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>

@@ -235,20 +235,53 @@ class TestInventoryDesigns(TransactionCase):
         self.assertEqual(label.report_action_id.model, 'product.product')
         self.assertEqual(label.report_action_id.binding_model_id.model, 'product.product')
         aisle = self.env.ref('advanced_inventory.label_aisle')
-        self.assertNotIn('storage_level', aisle.report_action_id.domain or '', 'Offered on every location')
+        self.assertIn("'storage_level', '=', 'aisle'", aisle.report_action_id.domain)
         html, _type = self.env['ir.actions.report']._render_qweb_html(label.report_action_id, self.product.ids)
         self.assertIn(b'Widget', html)
         self.assertIn(b'data:image/png;base64', html, 'barcode and QR images are drawn')
 
-    def test_location_label_prints_for_any_location(self):
-        """A location label design prints for any location, not only its own level."""
-        shelf_label = self.env.ref('advanced_inventory.label_shelf')
-        html, _type = self.env['ir.actions.report']._render_qweb_html(shelf_label.report_action_id, self.tote.ids)
-        self.assertIn(b'A9', html)
-        plain = self.env['stock.location'].create({'name': 'CSS', 'location_id': self.warehouse.lot_stock_id.id})
+    def test_each_design_prints_its_own_layout(self):
+        """The browser asks for a report by its name: every design must print its own layout."""
+        Report = self.env['ir.actions.report']
+        product_label = self.env.ref('advanced_inventory.label_product')
         aisle_label = self.env.ref('advanced_inventory.label_aisle')
-        html, _type = self.env['ir.actions.report']._render_qweb_html(aisle_label.report_action_id, plain.ids)
+        self.assertNotEqual(product_label.report_action_id.report_name, aisle_label.report_action_id.report_name)
+        product_label.layout = [{'id': 'm', 'type': 'text', 'text': 'PRODUCT-LAYOUT {{ name }}', 'x': 0, 'y': 0, 'w': 50, 'h': 10}]
+        aisle_label.layout = [{'id': 'm', 'type': 'text', 'text': 'AISLE-LAYOUT {{ name }}', 'x': 0, 'y': 0, 'w': 50, 'h': 10}]
+        html, _t = Report._render_qweb_html(product_label.report_action_id.report_name, self.product.ids)
+        self.assertIn(b'PRODUCT-LAYOUT', html)
+        self.assertNotIn(b'AISLE-LAYOUT', html)
+        html, _t = Report._render_qweb_html(product_label.report_template_action_id.report_name,
+                                            self.product.product_tmpl_id.ids)
+        self.assertIn(b'PRODUCT-LAYOUT', html)
+        html, _t = Report._render_qweb_html(aisle_label.report_action_id.report_name, self.tote.ids)
+        self.assertIn(b'AISLE-LAYOUT', html)
+        self.assertNotIn(b'PRODUCT-LAYOUT', html)
+
+    def test_print_menu_offers_the_right_labels(self):
+        """Each label shows on the Print menu of the records it is for."""
+        Report = self.env['ir.actions.report']
+        Location = self.env['stock.location']
+        stock = self.warehouse.lot_stock_id
+        records = {
+            'room': Location.create({'name': 'R', 'location_id': stock.id, 'storage_level': 'room'}),
+            'aisle': self.tote,  # the class's aisle-level location
+            'shelf': Location.create({'name': 'S', 'location_id': stock.id, 'storage_level': 'shelf'}),
+            'tote': Location.create({'name': 'T', 'location_id': stock.id, 'storage_level': 'tote'}),
+            'location': Location.create({'name': 'CSS', 'location_id': stock.id}),
+        }
+        labels = {target: self.env.ref('advanced_inventory.label_%s' % target).report_action_id
+                  for target in records}
+        for target, record in records.items():
+            actions = Report.browse([a.id for a in labels.values()])
+            valid = actions.get_valid_action_reports('stock.location', record.ids)
+            self.assertEqual(valid, [labels[target].id], 'only the %s label is offered for a %s' % (target, target))
+        html, _t = Report._render_qweb_html(labels['location'].report_name, records['location'].ids)
         self.assertIn(b'CSS', html)
+        warehouse_label = self.env.ref('advanced_inventory.label_warehouse').report_action_id
+        self.assertEqual(warehouse_label.binding_model_id.model, 'stock.warehouse')
+        html, _t = Report._render_qweb_html(warehouse_label.report_name, self.warehouse.ids)
+        self.assertIn(self.warehouse.name.encode(), html)
 
     def test_product_label_on_product_form(self):
         label = self.env.ref('advanced_inventory.label_product')
