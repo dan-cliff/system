@@ -19,6 +19,31 @@
                     <button class="btn btn-light btn-sm" t-on-click="load" title="Refresh"><i class="fa fa-refresh"/></button>
                 </div>
 
+                <!-- Filters: type of operation and company -->
+                <div class="o_iov_filters d-flex flex-wrap align-items-center gap-2">
+                    <span class="o_iov_filter_label">Type of Operation</span>
+                    <button t-attf-class="btn btn-sm {{ !state.codes.length ? 'btn-secondary' : 'btn-light' }}"
+                            t-on-click="clearCodes">All</button>
+                    <t t-foreach="filters.codes" t-as="code" t-key="code.key">
+                        <button t-attf-class="btn btn-sm {{ isCodeActive(code.key) ? 'btn-secondary' : 'btn-light' }}"
+                                t-on-click="() => this.toggleCode(code.key)">
+                            <i t-attf-class="fa {{ kindIcons[code.key] }} me-1"/><t t-esc="code.label"/>
+                        </button>
+                    </t>
+                    <t t-if="showCompanies">
+                        <span class="o_iov_filter_sep"/>
+                        <span class="o_iov_filter_label">Company</span>
+                        <button t-attf-class="btn btn-sm {{ !state.companyIds.length ? 'btn-secondary' : 'btn-light' }}"
+                                t-on-click="clearCompanies">All</button>
+                        <t t-foreach="filters.companies" t-as="company" t-key="company.id">
+                            <button t-attf-class="btn btn-sm {{ isCompanyActive(company.id) ? 'btn-secondary' : 'btn-light' }}"
+                                    t-on-click="() => this.toggleCompany(company.id)">
+                                <i class="fa fa-building-o me-1"/><t t-esc="company.name"/>
+                            </button>
+                        </t>
+                    </t>
+                </div>
+
                 <!-- What the stock is worth (costs from Product Cost Analysis) -->
                 <div class="o_iov_kpis">
                     <div class="o_iov_kpi o_iov_blue">
@@ -43,12 +68,17 @@
                     <!-- What needs doing -->
                     <div class="o_iov_panel o_iov_operations">
                         <h4>To Do</h4>
-                        <div t-if="!state.data.operations.length" class="text-muted">Nothing waiting. Well done.</div>
+                        <div t-if="!state.data.operations.length" class="text-muted">Nothing waiting for these filters.</div>
                         <div t-foreach="state.data.operations" t-as="op" t-key="op.id" class="o_iov_operation">
                             <i t-attf-class="fa fa-fw {{ kindIcons[op.code] }} o_iov_op_icon"/>
                             <div class="flex-grow-1 min-w-0">
-                                <div class="fw-bold text-truncate" t-esc="op.name"/>
-                                <div class="small text-muted" t-esc="op.warehouse"/>
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <span class="fw-bold text-truncate" t-esc="op.name"/>
+                                    <span class="o_iov_company badge rounded-pill" t-if="op.company" t-att-title="'Company: ' + op.company">
+                                        <i class="fa fa-building-o me-1"/><t t-esc="op.company"/>
+                                    </span>
+                                </div>
+                                <div class="small text-muted" t-if="op.warehouse and op.warehouse !== op.company" t-esc="op.warehouse"/>
                             </div>
                             <button class="btn btn-primary btn-sm" t-on-click="() => this.openTransfers(op, 'ready')" t-att-disabled="!op.ready">
                                 <t t-esc="op.ready"/> Ready
@@ -81,7 +111,7 @@
                         <div class="o_iov_panel">
                             <h4>Warehouse Layouts</h4>
                             <div t-foreach="state.data.warehouses" t-as="wh" t-key="wh.id" class="o_iov_stat">
-                                <span><t t-esc="wh.name"/> <small class="text-muted">(<t t-esc="wh.locations"/> locations)</small></span>
+                                <span><t t-esc="wh.name"/> <small class="text-muted">(<t t-if="showCompanies"><t t-esc="wh.company"/>, </t><t t-esc="wh.locations"/> locations)</small></span>
                                 <button t-if="state.data.is_manager" class="btn btn-link btn-sm p-0" t-on-click="() => this.openLayout(wh)">
                                     <i class="fa fa-map-o me-1"/>Design
                                 </button>

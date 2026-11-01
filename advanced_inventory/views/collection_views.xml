@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Seasons: an option list for collections. -->
+    <record id="season_view_list" model="ir.ui.view">
+        <field name="name">advanced.inventory.season.list</field>
+        <field name="model">advanced.inventory.season</field>
+        <field name="arch" type="xml">
+            <list string="Seasons" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="season_view_form" model="ir.ui.view">
+        <field name="name">advanced.inventory.season.form</field>
+        <field name="model">advanced.inventory.season</field>
+        <field name="arch" type="xml">
+            <form string="Season">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <group>
+                        <field name="name" placeholder="e.g. Winter"/>
+                        <field name="sequence"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_season" model="ir.actions.act_window">
+        <field name="name">Seasons</field>
+        <field name="res_model">advanced.inventory.season</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a season</p>
+            <p>Seasons a collection can belong to, such as Spring, Summer, Autumn and Winter.</p>
+        </field>
+    </record>
+
+    <!-- Collections -->
+    <record id="collection_view_list" model="ir.ui.view">
+        <field name="name">advanced.inventory.collection.list</field>
+        <field name="model">advanced.inventory.collection</field>
+        <field name="arch" type="xml">
+            <list string="Collections">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="year" options="{'format': false}"/>
+                <field name="season_id"/>
+                <field name="category_ids" widget="many2many_tags" optional="show"/>
+                <field name="product_count" string="Products" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show" placeholder="Every company"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="collection_view_form" model="ir.ui.view">
+        <field name="name">advanced.inventory.collection.form</field>
+        <field name="model">advanced.inventory.collection</field>
+        <field name="arch" type="xml">
+            <form string="Collection">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_products" type="object" class="oe_stat_button" icon="fa-cubes"
+                                invisible="not id">
+                            <field name="product_count" widget="statinfo" string="Products"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Lavender Fields"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="year" options="{'format': false}"/>
+                            <field name="season_id" options="{'no_quick_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="category_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   placeholder="Which product categories this collection is for"/>
+                            <field name="company_id" groups="base.group_multi_company" placeholder="Every company"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="What this collection is about..."/>
+                        </page>
+                        <page string="Products" name="products" invisible="not id">
+                            <field name="product_tmpl_ids" readonly="1">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="default_code" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="categ_id"/>
+                                    <field name="list_price" optional="show"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="collection_view_search" model="ir.ui.view">
+        <field name="name">advanced.inventory.collection.search</field>
+        <field name="model">advanced.inventory.collection</field>
+        <field name="arch" type="xml">
+            <search string="Collections">
+                <field name="name"/>
+                <field name="year"/>
+                <field name="season_id"/>
+                <field name="category_ids" filter_domain="[('category_ids', 'child_of', raw_value)]"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_year" string="Year" context="{'group_by': 'year'}"/>
+                    <filter name="group_season" string="Season" context="{'group_by': 'season_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_collection" model="ir.actions.act_window">
+        <field name="name">Collections</field>
+        <field name="res_model">advanced.inventory.collection</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="collection_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a collection</p>
+            <p>Group products into collections by year and season. Pick the product categories a collection is for:
+               products in those categories then show a Collection field under their category.</p>
+        </field>
+    </record>
+
+    <!-- Products: Collection directly under Category, filters and group-by. -->
+    <record id="product_template_form_collection" model="ir.ui.view">
+        <field name="name">product.template.form.collection</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="collection_available" invisible="1"/>
+                <field name="collection_id" invisible="not collection_available"
+                       options="{'no_create': True}" placeholder="Not in a collection"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_list_collection" model="ir.ui.view">
+        <field name="name">product.template.list.collection</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="collection_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_search_collection" model="ir.ui.view">
+        <field name="name">product.template.search.collection</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="collection_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_by_categ_id']" position="after">
+                <filter string="Collection" name="group_by_collection_id" context="{'group_by': 'collection_id'}"/>
+            </xpath>
+            <xpath expr="//search/group" position="before">
+                <separator/>
+                <filter string="In a Collection" name="in_collection" domain="[('collection_id', '!=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

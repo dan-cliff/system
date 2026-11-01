@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The collections to pick from (links, so the choice is kept with keep()). -->
+    <template id="filter_products_collections_list">
+        <a t-attf-class="o_wsale_collection_link d-block py-1 text-decoration-none {{ 'fw-bold' if not current_collection else 'text-body' }}"
+           t-att-href="keep(collection=0)">All collections</a>
+        <t t-foreach="all_collections" t-as="collection">
+            <a t-attf-class="o_wsale_collection_link d-block py-1 text-decoration-none {{ 'fw-bold' if collection.id == current_collection else 'text-body' }}"
+               t-att-href="keep(collection=collection.id)">
+                <span t-field="collection.name"/>
+                <small class="text-muted" t-if="collection.season_id or collection.year">
+                    <t t-esc="collection.season_id.name or ''"/> <t t-esc="collection.year or ''"/>
+                </small>
+            </a>
+        </t>
+    </template>
+
+    <!-- Shop sidebar: Filter by Collection (can be switched off in the shop's editor). -->
+    <template id="filter_products_collections" inherit_id="website_sale.products" active="True"
+              name="Filter by Collection">
+        <xpath expr="//div[contains(@t-attf-class, 'products_attributes_filters')]" position="inside">
+            <div t-if="all_collections" class="accordion-item o_wsale_collections_filter mb-3">
+                <div class="accordion-header h6 mb-0">
+                    <button class="accordion-button px-0 bg-transparent shadow-none" type="button"
+                            data-bs-toggle="collapse" aria-expanded="true"
+                            data-bs-target="#o_wsale_collections_inner" aria-controls="o_wsale_collections_inner">
+                        <b>Collection</b>
+                    </button>
+                </div>
+                <div id="o_wsale_collections_inner" class="accordion-collapse collapse show">
+                    <t t-call="advanced_inventory_website_sale.filter_products_collections_list"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- The same in the mobile filter panel. -->
+    <template id="filter_products_collections_offcanvas" inherit_id="website_sale.o_wsale_offcanvas"
+              name="Filter by Collection (mobile)">
+        <xpath expr="//div[@id='o_wsale_offcanvas_content']" position="inside">
+            <div t-if="all_collections and is_view_active('advanced_inventory_website_sale.filter_products_collections')"
+                 class="accordion-item px-4 pb-3">
+                <h2 class="accordion-header mb-0">
+                    <button class="o_wsale_offcanvas_title accordion-button rounded-0 px-0 bg-transparent shadow-none"
+                            type="button" data-bs-toggle="collapse" aria-expanded="true"
+                            data-bs-target="#o_wsale_offcanvas_collections" aria-controls="o_wsale_offcanvas_collections">
+                        <b>Collection</b>
+                    </button>
+                </h2>
+                <div id="o_wsale_offcanvas_collections" class="accordion-collapse collapse show">
+                    <t t-call="advanced_inventory_website_sale.filter_products_collections_list"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

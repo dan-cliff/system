@@ -6,6 +6,7 @@ from . import stock_quant
 from . import stock_picking
 from . import product_slot
 from . import product
+from . import collection
 from . import design_mixin
 from . import label_template
 from . import sign_template

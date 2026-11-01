@@ -15,13 +15,55 @@ export class InventoryOverview extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.kindIcons = KIND_ICONS;
-        this.state = useState({ loading: true, data: null });
+        // Filters: empty means every company selected in the switcher / every type of operation.
+        this.state = useState({ loading: true, data: null, companyIds: [], codes: [] });
         onWillStart(() => this.load());
     }
 
     async load() {
-        this.state.data = await this.orm.call("advanced.inventory.overview", "get_overview_data", []);
+        this.state.data = await this.orm.call("advanced.inventory.overview", "get_overview_data", [], {
+            company_ids: this.state.companyIds,
+            codes: this.state.codes,
+        });
         this.state.loading = false;
+    }
+
+    get filters() {
+        return this.state.data.filters;
+    }
+
+    get showCompanies() {
+        return this.filters.companies.length > 1;
+    }
+
+    isCodeActive(code) {
+        return this.state.codes.includes(code);
+    }
+
+    isCompanyActive(companyId) {
+        return this.state.companyIds.includes(companyId);
+    }
+
+    toggleCode(code) {
+        const codes = this.state.codes;
+        this.state.codes = codes.includes(code) ? codes.filter((c) => c !== code) : [...codes, code];
+        this.load();
+    }
+
+    toggleCompany(companyId) {
+        const ids = this.state.companyIds;
+        this.state.companyIds = ids.includes(companyId) ? ids.filter((id) => id !== companyId) : [...ids, companyId];
+        this.load();
+    }
+
+    clearCodes() {
+        this.state.codes = [];
+        this.load();
+    }
+
+    clearCompanies() {
+        this.state.companyIds = [];
+        this.load();
     }
 
     openTransfers(operation, filter) {

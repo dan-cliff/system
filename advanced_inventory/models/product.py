@@ -30,6 +30,14 @@ class ProductTemplate(models.Model):
     inventory_potential_revenue = fields.Monetary(
         string='Potential Revenue', compute='_compute_inventory_value', currency_field='currency_id',
         help='Units on hand at the anticipated sell price (or the Sales Price without an analysis).')
+    # ── Collection ────────────────────────────────────────────────────────
+    collection_id = fields.Many2one(
+        'advanced.inventory.collection', string='Collection', index=True, ondelete='set null', tracking=True,
+        domain="[('category_ids', 'parent_of', categ_id), '|', ('company_id', '=', False), ('company_id', '=', company_id or current_company_id)]",
+        help='The collection this product is part of. Offered when a collection covers the product\'s category.')
+    collection_available = fields.Boolean(
+        compute='_compute_collection_available',
+        help='A collection covers this product\'s category, so the Collection field shows.')
     # ── Storage ───────────────────────────────────────────────────────────
     product_slot_ids = fields.One2many('advanced.inventory.product.slot', 'product_tmpl_id', string='Storage Slots')
     product_slot_count = fields.Integer(compute='_compute_product_slot_count', string='Slots')
@@ -41,6 +49,19 @@ class ProductTemplate(models.Model):
             price = product.cost_analysis_id.sell_price or product.list_price
             product.inventory_value = qty * product.standard_price
             product.inventory_potential_revenue = qty * price
+
+    @api.depends('categ_id', 'company_id')
+    def _compute_collection_available(self):
+        Collection = self.env['advanced.inventory.collection']
+        for product in self:
+            product.collection_available = bool(product.collection_id) or bool(
+                Collection._for_category(product.categ_id, product.company_id or self.env.company))
+
+    @api.onchange('categ_id')
+    def _onchange_categ_id_collection(self):
+        if self.collection_id and self.collection_id not in self.env['advanced.inventory.collection']._for_category(
+                self.categ_id, self.company_id or self.env.company):
+            self.collection_id = False
 
     def _compute_product_slot_count(self):
         for product in self:

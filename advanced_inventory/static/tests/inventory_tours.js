@@ -4,6 +4,12 @@ import { registry } from "@web/core/registry";
 registry.category("web_tour.tours").add("advanced_inventory_overview", {
     steps: () => [
         { trigger: ".o_inventory_overview .o_iov_kpi_label:contains('Stock Value')" },
+        { trigger: ".o_iov_operation .o_iov_company" },
+        { trigger: ".o_iov_filters button:contains('Receipt')", run: "click" },
+        { trigger: ".o_iov_filters button.btn-secondary:contains('Receipt')" },
+        { trigger: ".o_iov_operations:not(:has(.fa-paper-plane))" },
+        { trigger: ".o_iov_filters button:contains('All'):first", run: "click" },
+        { trigger: ".o_iov_operations .fa-paper-plane" },
         { trigger: ".o_inventory_overview button:contains('Pick List')", run: "click" },
         { trigger: ".o_list_view, .o_view_nocontent" },
     ],

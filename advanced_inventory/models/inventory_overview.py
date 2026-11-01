@@ -6,21 +6,33 @@ from odoo.tools import formatLang
 
 
 class AdvancedInventoryOverview(models.AbstractModel):
-    """Figures for the Overview screen and barcode lookups for the Scanner app."""
+    """Figures for the Dashboard and barcode lookups for the Scanner app."""
     _name = 'advanced.inventory.overview'
     _description = 'Inventory Overview'
 
+    OPERATION_CODES = ('incoming', 'outgoing', 'internal')
+
     @api.model
-    def get_overview_data(self):
-        company = self.env.company
-        currency = company.currency_id
+    def get_overview_data(self, company_ids=None, codes=None):
+        """The Dashboard's figures.
+
+        ``company_ids``: the companies to show (default: every company selected in
+        the company switcher); only those the user has selected are allowed.
+        ``codes``: the types of operation to list (incoming, outgoing, internal);
+        default all."""
+        allowed = self.env.companies
+        companies = allowed.filtered(lambda c: c.id in company_ids) if company_ids else allowed
+        companies = companies or allowed
+        codes = [code for code in (codes or []) if code in self.OPERATION_CODES] or list(self.OPERATION_CODES)
+        currency = self.env.company.currency_id
+        today = fields.Date.context_today(self)
         now = fields.Datetime.now()
         Picking = self.env['stock.picking']
         open_states = ['assigned', 'waiting', 'confirmed']
 
         operations = []
         types = self.env['stock.picking.type'].search([
-            ('code', 'in', ('incoming', 'outgoing', 'internal')), ('company_id', '=', company.id)])
+            ('code', 'in', codes), ('company_id', 'in', companies.ids)])
         counts = {}
         for type_, state, count in Picking._read_group(
                 [('picking_type_id', 'in', types.ids), ('state', 'in', open_states)],
@@ -30,7 +42,7 @@ class AdvancedInventoryOverview(models.AbstractModel):
         late = dict(Picking._read_group(
             [('picking_type_id', 'in', types.ids), ('state', 'in', open_states), ('scheduled_date', '<', now)],
             ['picking_type_id'], ['__count']))
-        for type_ in types:
+        for type_ in types.sorted(lambda t: (t.company_id.name or '', t.warehouse_id.name or '', t.sequence, t.id)):
             by_state = counts.get(type_.id, {})
             ready = by_state.get('assigned', 0)
             waiting = by_state.get('waiting', 0) + by_state.get('confirmed', 0)
@@ -40,6 +52,7 @@ class AdvancedInventoryOverview(models.AbstractModel):
             operations.append({
                 'id': type_.id,
                 'name': type_.name,
+                'company': type_.company_id.name or '',
                 'warehouse': type_.warehouse_id.name or '',
                 'code': type_.code,
                 'kind': 'putaway' if type_.code == 'incoming' else 'pick',
@@ -48,36 +61,45 @@ class AdvancedInventoryOverview(models.AbstractModel):
                 'late': late_count,
             })
 
-        # Stock value at cost, and what it would sell for.
+        # Stock value at cost, and what it would sell for, in the current company's currency.
         quants = self.env['stock.quant']._read_group(
-            [('location_id.usage', '=', 'internal'), ('company_id', '=', company.id), ('quantity', '>', 0)],
-            ['product_id'], ['quantity:sum'])
+            [('location_id.usage', '=', 'internal'), ('company_id', 'in', companies.ids), ('quantity', '>', 0)],
+            ['company_id', 'product_id'], ['quantity:sum'])
         value = revenue = 0.0
-        negative = self.env['stock.quant'].search_count([
-            ('location_id.usage', '=', 'internal'), ('company_id', '=', company.id), ('quantity', '<', 0)])
-        for product, qty in quants:
+        for company, product, qty in quants:
+            product = product.with_company(company)
             template = product.product_tmpl_id
-            value += qty * product.standard_price
-            revenue += qty * (template.cost_analysis_id.sell_price or product.lst_price)
+            cost = qty * product.standard_price
+            sale = qty * (template.cost_analysis_id.sell_price or product.lst_price)
+            if company.currency_id != currency:
+                cost = company.currency_id._convert(cost, currency, self.env.company, today)
+                sale = company.currency_id._convert(sale, currency, self.env.company, today)
+            value += cost
+            revenue += sale
+        negative = self.env['stock.quant'].search_count([
+            ('location_id.usage', '=', 'internal'), ('company_id', 'in', companies.ids), ('quantity', '<', 0)])
 
-        analyses = self.env['product.cost.analysis'].search([('company_id', 'in', [company.id, False])])
-        costed = self.env['product.template'].search_count([('cost_from_analysis', '=', True)])
-        refill = self.env['advanced.inventory.product.slot'].search([('company_id', '=', company.id)]).filtered(
-            'needs_refill')
-        today = datetime.combine(fields.Date.context_today(self), time.min)
+        analyses = self.env['product.cost.analysis'].search(
+            ['|', ('company_id', '=', False), ('company_id', 'in', companies.ids)])
+        costed = self.env['product.template'].search_count([
+            ('cost_from_analysis', '=', True), '|', ('company_id', '=', False), ('company_id', 'in', companies.ids)])
+        refill = self.env['advanced.inventory.product.slot'].search(
+            [('company_id', 'in', companies.ids)]).filtered('needs_refill')
+        start_of_day = datetime.combine(today, time.min)
         received_today = Picking.search_count([
-            ('picking_type_code', '=', 'incoming'), ('state', '=', 'done'), ('date_done', '>=', today),
-            ('company_id', '=', company.id)])
+            ('picking_type_code', '=', 'incoming'), ('state', '=', 'done'), ('date_done', '>=', start_of_day),
+            ('company_id', 'in', companies.ids)])
         to_pick = self.env['stock.move.line'].search_count([
             ('picking_id.state', '=', 'assigned'), ('picking_code', 'in', ('outgoing', 'internal')),
-            ('picked', '=', False), ('company_id', '=', company.id)])
+            ('picked', '=', False), ('company_id', 'in', companies.ids)])
         to_put_away = self.env['stock.move.line'].search_count([
             ('picking_id.state', '=', 'assigned'), ('picking_code', '=', 'incoming'),
-            ('picked', '=', False), ('company_id', '=', company.id)])
+            ('picked', '=', False), ('company_id', 'in', companies.ids)])
 
         def money(amount):
             return formatLang(self.env, amount, currency_obj=currency)
 
+        code_labels = dict(self.env['stock.picking.type']._fields['code']._description_selection(self.env))
         return {
             'operations': operations,
             'kpis': {
@@ -98,8 +120,16 @@ class AdvancedInventoryOverview(models.AbstractModel):
             'warehouses': [{
                 'id': warehouse.id,
                 'name': warehouse.name,
+                'company': warehouse.company_id.name,
                 'locations': warehouse.layout_location_count,
-            } for warehouse in self.env['stock.warehouse'].search([('company_id', '=', company.id)])],
+            } for warehouse in self.env['stock.warehouse'].search([('company_id', 'in', companies.ids)])],
+            'filters': {
+                'companies': [{'id': c.id, 'name': c.name} for c in allowed],
+                'company_ids': companies.ids,
+                'codes': [{'key': code, 'label': code_labels.get(code, code)} for code in self.OPERATION_CODES],
+                'selected_codes': codes,
+                'currency': currency.name,
+            },
             'is_manager': self.env.user.has_group('stock.group_stock_manager'),
         }
 
