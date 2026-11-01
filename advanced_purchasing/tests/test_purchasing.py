@@ -58,6 +58,17 @@ class TestPurchasing(TransactionCase):
         self.assertEqual(order.state, 'purchase')
         self.assertEqual(order.purchasing_approved_by_id, self.approver)
 
+    def test_approver_not_on_route_cannot_approve(self):
+        other = new_test_user(self.env, 'pur_other_approver',
+                              groups='advanced_purchasing.group_purchase_order_approve')
+        order = self._order(500)
+        order.button_confirm()
+        self.assertNotIn(other, order.purchasing_approver_ids)
+        with self.assertRaises(UserError):
+            order.with_user(other).button_approve()
+        self.assertEqual(order.state, 'to approve')
+        self.assertFalse(order.purchasing_approved_by_id)
+
     def test_send_back(self):
         order = self._order(500)
         order.button_confirm()
