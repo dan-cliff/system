@@ -2,7 +2,7 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
-from .design_mixin import LOCATION_TARGETS, TARGETS, target_model
+from .design_mixin import LOCATION_TARGETS, TARGETS, level_domain, target_model
 
 LABEL_DEFAULTS = {
     # 62 x 29 mm: a common label printer roll.
@@ -25,6 +25,17 @@ LABEL_DEFAULTS = {
          'x': 10, 'y': 18, 'w': 32, 'h': 9},
         {'id': 'qr', 'type': 'qr', 'value': '{{ barcode }}', 'x': 44, 'y': 6, 'w': 17, 'h': 17},
     ],
+    # A location outside the layout: its name instead of a layout code.
+    'plain_location': [
+        {'id': 'band', 'type': 'shape', 'x': 0, 'y': 0, 'w': 8, 'h': 29, 'fill': 'company_primary'},
+        {'id': 'name', 'type': 'text', 'text': '{{ name }}', 'x': 10, 'y': 1.5, 'w': 32, 'h': 11,
+         'size': 16, 'bold': True, 'color': '#2A3F8F'},
+        {'id': 'path', 'type': 'text', 'text': '{{ complete_name }}', 'x': 10, 'y': 12.5, 'w': 32, 'h': 5,
+         'size': 6, 'color': '#5B3DB8'},
+        {'id': 'barcode', 'type': 'barcode', 'value': '{{ barcode }}', 'symbology': 'code128',
+         'x': 10, 'y': 18, 'w': 32, 'h': 9},
+        {'id': 'qr', 'type': 'qr', 'value': '{{ barcode }}', 'x': 44, 'y': 6, 'w': 17, 'h': 17},
+    ],
     'warehouse': [
         {'id': 'band', 'type': 'shape', 'x': 0, 'y': 0, 'w': 62, 'h': 8, 'fill': 'company_primary'},
         {'id': 'logo', 'type': 'image', 'source': 'company_logo', 'x': 2, 'y': 1, 'w': 20, 'h': 6, 'fit': 'contain'},
@@ -38,7 +49,10 @@ LABEL_DEFAULTS = {
 
 
 def default_label_layout(target):
-    key = 'location' if target in LOCATION_TARGETS else target
+    if target == 'location':
+        key = 'plain_location'
+    else:
+        key = 'location' if target in LOCATION_TARGETS else target
     return [dict(element) for element in LABEL_DEFAULTS.get(key, LABEL_DEFAULTS['product'])]
 
 
@@ -111,12 +125,18 @@ class AdvancedInventoryLabelTemplate(models.Model):
             else:
                 template.paperformat_id = self.env['report.paperformat'].sudo().create(paperformat_vals)
             model = target_model(template.target)
-            domain = [('company_id', 'in', [template.company_id.id, False])] if template.company_id else []
+            # Only offered on the records the design is for (the Print menu hides the
+            # others): a level's locations, or the locations outside the layout.
+            domain = level_domain(template.target) if template.target in LOCATION_TARGETS else []
+            if template.company_id:
+                domain += [('company_id', 'in', [template.company_id.id, False])]
             action_vals = {
                 'name': template.name,
                 'model': model,
                 'report_type': 'qweb-pdf',
-                'report_name': 'advanced_inventory.report_label',
+                # Each design has its own report name: Odoo finds a report to print by
+                # its name, so a shared name would print another design's layout.
+                'report_name': 'advanced_inventory.report_label_%s' % template.id,
                 'report_file': 'advanced_inventory.report_label',
                 'paperformat_id': template.paperformat_id.id,
                 'print_report_name': "'%s - %%s' %% (object.display_name or '')" % template.name.replace("'", ''),
@@ -130,7 +150,8 @@ class AdvancedInventoryLabelTemplate(models.Model):
             else:
                 template.report_action_id = self.env['ir.actions.report'].sudo().create(action_vals)
             if template.target == 'product':
-                product_vals = dict(action_vals, model='product.template', domain=(
+                product_vals = dict(action_vals, model='product.template',
+                                    report_name='advanced_inventory.report_label_%s_product' % template.id, domain=(
                     repr([('company_id', 'in', [template.company_id.id, False])]) if template.company_id else False),
                     binding_model_id=self.env['ir.model']._get('product.template').id if template.active else False)
                 if template.report_template_action_id:

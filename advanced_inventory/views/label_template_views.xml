@@ -44,7 +44,7 @@
                         <group>
                             <field name="preview_product_id" invisible="target != 'product'" options="{'no_create': True}"/>
                             <field name="preview_warehouse_id" invisible="target != 'warehouse'" options="{'no_create': True}"/>
-                            <field name="preview_location_id" invisible="target not in ('room', 'aisle', 'shelf', 'tote')"
+                            <field name="preview_location_id" invisible="target not in ('location', 'room', 'aisle', 'shelf', 'tote')"
                                    options="{'no_create': True}"/>
                             <field name="background_image" widget="image" options="{'size': [0, 48]}"/>
                             <field name="page_width" invisible="1"/>
@@ -69,8 +69,8 @@
                 <field name="company_id" groups="base.group_multi_company"/>
                 <filter name="for_product" string="Products" domain="[('target', '=', 'product')]"/>
                 <filter name="for_warehouse" string="Warehouses" domain="[('target', '=', 'warehouse')]"/>
-                <filter name="for_location" string="Rooms, Aisles, Shelves and Totes"
-                        domain="[('target', 'in', ('room', 'aisle', 'shelf', 'tote'))]"/>
+                <filter name="for_location" string="Locations, Rooms, Aisles, Shelves and Totes"
+                        domain="[('target', 'in', ('location', 'room', 'aisle', 'shelf', 'tote'))]"/>
                 <separator/>
                 <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
                 <group>

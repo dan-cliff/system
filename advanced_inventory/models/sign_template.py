@@ -53,6 +53,11 @@ def default_sign_layout(target, width=1920.0, height=1080.0):
     """The starting layout of a sign, scaled from 1920 x 1080 to the page."""
     if target in LOCATION_TARGETS:
         layout = _location_sign()
+        if target == 'location':
+            # Outside the layout there is no layout code: show the location's name.
+            for element in layout:
+                if element['id'] == 'code':
+                    element.update(text='{{ name }}', size=160)
     elif target == 'warehouse':
         layout = _warehouse_sign()
     else:
