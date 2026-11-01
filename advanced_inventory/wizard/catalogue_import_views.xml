@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="catalogue_import_view_form" model="ir.ui.view">
+        <field name="name">advanced.inventory.catalogue.import.form</field>
+        <field name="model">advanced.inventory.catalogue.import</field>
+        <field name="arch" type="xml">
+            <form string="Import Product Catalogue">
+                <field name="state" invisible="1"/>
+                <div invisible="state != 'upload'">
+                    <p>
+                        Upload a CSV or Excel file with <strong>one row per variant</strong>. Rows with the same
+                        <em>Product</em> become one product; each <em>Attribute: …</em> column (e.g.
+                        <code>Attribute: Colour</code>, <code>Attribute: Type</code>) becomes an attribute, so colours are
+                        managed as variants.
+                    </p>
+                    <p class="text-muted small">
+                        Columns: Product, Category (e.g. <code>Filament / PLA</code>), Description, Sales Price, Cost,
+                        Attribute: &lt;Name&gt;…, Variant Reference, Barcode, Weight (kg), Collection.
+                        The product's Sales Price is its cheapest variant; other prices become price extras on the
+                        attribute values. Products are matched by name, so importing again updates them.
+                    </p>
+                    <group>
+                        <field name="file" filename="filename"/>
+                        <field name="filename" invisible="1"/>
+                        <field name="archive_missing"/>
+                    </group>
+                </div>
+                <div invisible="state != 'done'">
+                    <field name="result" nolabel="1"/>
+                </div>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"
+                            invisible="state != 'upload'"/>
+                    <button name="action_view_products" type="object" string="View Products" class="btn-primary"
+                            invisible="state != 'done'"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_catalogue_import" model="ir.actions.act_window">
+        <field name="name">Import Catalogue</field>
+        <field name="res_model">advanced.inventory.catalogue.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

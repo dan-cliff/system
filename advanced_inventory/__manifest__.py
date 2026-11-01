@@ -38,6 +38,9 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
   is for. Products in those categories (or below them) show an optional
   Collection field directly under their category; products can be filtered
   and grouped by collection (and, with eCommerce, filtered in the shop).
+* Import Catalogue (Configuration › Products): a CSV or Excel file with one
+  row per variant creates products with their colours (and types or sizes)
+  as variants, variant references, barcodes and price extras.
 * Label designer: lay out product, warehouse, room, aisle, shelf and tote
   labels in a visual editor (like Personnel's ID badges), with fields, the
   product picture, the company logo, QR codes and barcodes (Code 128, EAN-13,
@@ -77,6 +80,7 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
         'views/sign_template_views.xml',
         'views/sign_views.xml',
         'views/collection_views.xml',
+        'wizard/catalogue_import_views.xml',
         'views/signage_templates.xml',
         'views/menus.xml',
         'data/inventory_titles.xml',
