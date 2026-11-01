@@ -235,15 +235,55 @@ class TestInventoryDesigns(TransactionCase):
         self.assertEqual(label.report_action_id.model, 'product.product')
         self.assertEqual(label.report_action_id.binding_model_id.model, 'product.product')
         aisle = self.env.ref('advanced_inventory.label_aisle')
-        self.assertIn("'storage_level', '=', 'aisle'", aisle.report_action_id.domain)
+        self.assertNotIn('storage_level', aisle.report_action_id.domain or '', 'Offered on every location')
         html, _type = self.env['ir.actions.report']._render_qweb_html(label.report_action_id, self.product.ids)
         self.assertIn(b'Widget', html)
         self.assertIn(b'data:image/png;base64', html, 'barcode and QR images are drawn')
 
-    def test_label_wrong_level(self):
+    def test_location_label_prints_for_any_location(self):
+        """A location label design prints for any location, not only its own level."""
         shelf_label = self.env.ref('advanced_inventory.label_shelf')
-        with self.assertRaises(UserError):
-            self.env['ir.actions.report']._render_qweb_html(shelf_label.report_action_id, self.tote.ids)
+        html, _type = self.env['ir.actions.report']._render_qweb_html(shelf_label.report_action_id, self.tote.ids)
+        self.assertIn(b'A9', html)
+        plain = self.env['stock.location'].create({'name': 'CSS', 'location_id': self.warehouse.lot_stock_id.id})
+        aisle_label = self.env.ref('advanced_inventory.label_aisle')
+        html, _type = self.env['ir.actions.report']._render_qweb_html(aisle_label.report_action_id, plain.ids)
+        self.assertIn(b'CSS', html)
+
+    def test_product_label_on_product_form(self):
+        label = self.env.ref('advanced_inventory.label_product')
+        action = label.report_template_action_id
+        self.assertEqual(action.model, 'product.template')
+        self.assertEqual(action.binding_model_id.model, 'product.template')
+        html, _type = self.env['ir.actions.report']._render_qweb_html(action, self.product.product_tmpl_id.ids)
+        self.assertIn(b'Widget', html)
+
+    def test_print_labels_wizard(self):
+        action = self.product.product_tmpl_id.action_open_label_layout()
+        self.assertEqual(action['res_model'], 'advanced.inventory.label.print')
+        wizard = self.env['advanced.inventory.label.print'].with_context(action['context']).create({'copies': 3})
+        self.assertEqual(wizard.label_template_id.target, 'product')
+        self.assertEqual(wizard.label_count, 3)
+        result = wizard.action_print()
+        self.assertEqual(result['data']['inventory_label_copies'], {self.product.id: 3})
+        html, _type = self.env['ir.actions.report']._render_qweb_html(
+            wizard.label_template_id.report_action_id, self.product.ids, data=result['data'])
+        self.assertEqual(html.count(b'o_inventory_label_page'), 3 + 1, 'three labels (plus the style rule)')
+
+    def test_print_labels_from_transfer(self):
+        warehouse = self.warehouse
+        receipt = self.env['stock.picking'].create({
+            'picking_type_id': warehouse.in_type_id.id,
+            'location_id': self.env.ref('stock.stock_location_suppliers').id,
+            'location_dest_id': warehouse.lot_stock_id.id,
+            'move_ids': [(0, 0, {'product_id': self.product.id, 'product_uom_qty': 5,
+                                 'location_id': self.env.ref('stock.stock_location_suppliers').id,
+                                 'location_dest_id': warehouse.lot_stock_id.id})],
+        })
+        action = receipt.action_open_label_layout()
+        wizard = self.env['advanced.inventory.label.print'].with_context(action['context']).create({})
+        self.assertEqual(wizard.quantity_mode, 'transfer')
+        self.assertEqual(wizard.label_count, 5, 'one label per unit')
 
     def test_ean13_and_fallback(self):
         design = self.env['advanced.inventory.label.template'].create({'name': 'EAN', 'target': 'product', 'layout': [

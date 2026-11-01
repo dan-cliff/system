@@ -11,5 +11,6 @@ class IrActionsReport(models.Model):
 
     def _get_rendering_context(self, report, docids, data):
         if report.inventory_label_template_id:
-            data = dict(data or {}, inventory_label_template_id=report.inventory_label_template_id.id)
+            data = dict(data or {}, inventory_label_template_id=report.inventory_label_template_id.id,
+                        inventory_label_model=report.model)
         return super()._get_rendering_context(report, docids, data)
