@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Inventory',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Inventory/Inventory',
     'sequence': 30,
     'summary': 'A modern Inventory app: visual warehouse layout, walk-ordered pick and put-away, '
@@ -61,7 +61,7 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
 """,
     'author': "Cliff's Country Crafts",
     'license': 'LGPL-3',
-    'depends': ['stock', 'product_cost_analysis', 'hr', 'mail', 'base_setup'],
+    'depends': ['stock', 'product_cost_analysis', 'hr', 'mail', 'base_setup', 'web_year_date'],
     'data': [
         'security/advanced_inventory_security.xml',
         'security/ir.model.access.csv',

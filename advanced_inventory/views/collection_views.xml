@@ -50,7 +50,7 @@
             <list string="Collections">
                 <field name="id" optional="show"/>
                 <field name="name"/>
-                <field name="year" options="{'format': false}"/>
+                <field name="year" widget="year_date"/>
                 <field name="season_id"/>
                 <field name="category_ids" widget="many2many_tags" optional="show"/>
                 <field name="product_count" string="Products" optional="show"/>
@@ -80,7 +80,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="year" options="{'format': false}"/>
+                            <field name="year" widget="year_date"/>
                             <field name="season_id" options="{'no_quick_create': True}"/>
                         </group>
                         <group>
@@ -118,14 +118,15 @@
         <field name="arch" type="xml">
             <search string="Collections">
                 <field name="name"/>
-                <field name="year"/>
                 <field name="season_id"/>
                 <field name="category_ids" filter_domain="[('category_ids', 'child_of', raw_value)]"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <separator/>
+                <filter name="year" string="Year" date="year"/>
+                <separator/>
                 <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
                 <group>
-                    <filter name="group_year" string="Year" context="{'group_by': 'year'}"/>
+                    <filter name="group_year" string="Year" context="{'group_by': 'year:year'}"/>
                     <filter name="group_season" string="Season" context="{'group_by': 'season_id'}"/>
                     <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>

@@ -10,7 +10,7 @@ class TestShopCollections(HttpCase):
         super().setUpClass()
         category = cls.env['product.category'].create({'name': 'Candles'})
         cls.collection = cls.env['advanced.inventory.collection'].create({
-            'name': 'Midwinter Glow', 'year': 2026, 'season_id': cls.env.ref('advanced_inventory.season_winter').id,
+            'name': 'Midwinter Glow', 'year': '2026-01-01', 'season_id': cls.env.ref('advanced_inventory.season_winter').id,
             'category_ids': [(6, 0, category.ids)]})
         cls.in_collection = cls.env['product.template'].create({
             'name': 'Glow Candle', 'categ_id': category.id, 'collection_id': cls.collection.id,
@@ -21,6 +21,7 @@ class TestShopCollections(HttpCase):
     def test_shop_filters_by_collection(self):
         page = self.url_open('/shop').text
         self.assertIn('Midwinter Glow', page, 'The collection is offered in the sidebar')
+        self.assertIn('Winter 2026', ' '.join(page.split()), 'with its season and year')
         self.assertIn('Plain Candle', page)
         filtered = self.url_open('/shop?collection=%s' % self.collection.id).text
         self.assertIn('Glow Candle', filtered)

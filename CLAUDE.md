@@ -18,6 +18,14 @@ for every module we create or edit.
   reports, exports, emails), use `%d/%m/%Y` / `%d/%m/%Y %H:%M`, never
   `%Y-%m-%d` or `%m/%d/%Y`.
 - Store dates as Odoo `Date` / `Datetime` fields, never as text.
+- Year selectors: store a year as a `Date` field holding 1 January of that
+  year (never an `Integer` or text), and show it with the `year_date`
+  widget from the `web_year_date` module (depend on it):
+  `<field name="year" widget="year_date"/>`. The picker offers years only,
+  the field shows just the year (e.g. 2026) and saves 1 January. Normalise
+  values written in code to 1 January (see
+  `advanced_inventory/models/collection.py`), group by `year:year`, and
+  use `<filter date="year"/>` in searches.
 
 ## List views
 

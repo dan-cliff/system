@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from datetime import date
+
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -25,7 +27,9 @@ class AdvancedInventoryCollection(models.Model):
 
     name = fields.Char(string='Name', required=True, translate=True)
     description = fields.Html(string='Description', translate=True)
-    year = fields.Integer(string='Year', default=lambda self: fields.Date.context_today(self).year)
+    year = fields.Date(
+        string='Year', default=lambda self: fields.Date.context_today(self).replace(month=1, day=1),
+        help='The collection\'s year (stored as 1 January of that year; the picker only offers years).')
     season_id = fields.Many2one('advanced.inventory.season', string='Season', ondelete='restrict')
     category_ids = fields.Many2many(
         'product.category', 'advanced_inventory_collection_category_rel', 'collection_id', 'category_id',
@@ -38,10 +42,31 @@ class AdvancedInventoryCollection(models.Model):
     product_tmpl_ids = fields.One2many('product.template', 'collection_id', string='Products')
     product_count = fields.Integer(compute='_compute_product_count', string='Products')
 
+    @api.model
+    def _year_start(self, value):
+        """1 January of the value's year (a date, a date string or a year number)."""
+        if not value:
+            return value
+        if isinstance(value, int):
+            return date(value, 1, 1)
+        return fields.Date.to_date(value).replace(month=1, day=1)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('year'):
+                vals['year'] = self._year_start(vals['year'])
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get('year'):
+            vals = dict(vals, year=self._year_start(vals['year']))
+        return super().write(vals)
+
     @api.constrains('year')
     def _check_year(self):
         for collection in self:
-            if collection.year and not 1900 <= collection.year <= 2999:
+            if collection.year and not 1900 <= collection.year.year <= 2999:
                 raise ValidationError(self.env._('The year must be a four-digit year, such as 2026.'))
 
     def _compute_product_count(self):
@@ -53,7 +78,8 @@ class AdvancedInventoryCollection(models.Model):
     @api.depends('name', 'season_id', 'year')
     def _compute_display_name(self):
         for collection in self:
-            extra = ' '.join(part for part in (collection.season_id.name, str(collection.year or '')) if part)
+            year = str(collection.year.year) if collection.year else ''
+            extra = ' '.join(part for part in (collection.season_id.name, year) if part)
             collection.display_name = '%s (%s)' % (collection.name, extra) if extra else collection.name
 
     @api.model

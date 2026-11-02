@@ -9,7 +9,7 @@
                t-att-href="keep(collection=collection.id)">
                 <span t-field="collection.name"/>
                 <small class="text-muted" t-if="collection.season_id or collection.year">
-                    <t t-esc="collection.season_id.name or ''"/> <t t-esc="collection.year or ''"/>
+                    <t t-esc="collection.season_id.name or ''"/> <t t-esc="collection.year.year if collection.year else ''"/>
                 </small>
             </a>
         </t>
