@@ -15,16 +15,22 @@ class TestCollections(TransactionCase):
         cls.candles = Category.create({'name': 'Candles', 'parent_id': cls.homewares.id})
         cls.soap = Category.create({'name': 'Soap'})
         cls.collection = cls.env['advanced.inventory.collection'].create({
-            'name': 'Midwinter Glow', 'description': '<p>Warm scents</p>', 'year': 2026,
+            'name': 'Midwinter Glow', 'description': '<p>Warm scents</p>', 'year': '2026-07-15',
             'season_id': cls.env.ref('advanced_inventory.season_winter').id,
             'category_ids': [(6, 0, cls.homewares.ids)]})
 
     def test_display_name(self):
         self.assertEqual(self.collection.display_name, 'Midwinter Glow (Winter 2026)')
 
-    def test_year_check(self):
+    def test_year_is_a_date_on_1_january(self):
+        self.assertEqual(str(self.collection.year), '2026-01-01', 'Any date in the year is stored as 1 January')
+        self.collection.year = '2027-03-09'
+        self.assertEqual(str(self.collection.year), '2027-01-01')
         with self.assertRaises(ValidationError):
-            self.collection.year = 26
+            self.collection.year = '0026-01-01'
+        groups = self.env['advanced.inventory.collection']._read_group(
+            [('id', '=', self.collection.id)], ['year:year'], ['__count'])
+        self.assertEqual(len(groups), 1)
 
     def test_available_for_category_and_below(self):
         Collection = self.env['advanced.inventory.collection']
