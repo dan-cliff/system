@@ -1,56 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- The collections to pick from (links, so the choice is kept with keep()). -->
-    <template id="filter_products_collections_list">
-        <a t-attf-class="o_wsale_collection_link d-block py-1 text-decoration-none {{ 'fw-bold' if not current_collection else 'text-body' }}"
-           t-att-href="keep(collection=0)">All collections</a>
-        <t t-foreach="all_collections" t-as="collection">
-            <a t-attf-class="o_wsale_collection_link d-block py-1 text-decoration-none {{ 'fw-bold' if collection.id == current_collection else 'text-body' }}"
-               t-att-href="keep(collection=collection.id)">
-                <span t-field="collection.name"/>
-                <small class="text-muted" t-if="collection.season_id or collection.year">
-                    <t t-esc="collection.season_id.name or ''"/> <t t-esc="collection.year.year if collection.year else ''"/>
-                </small>
+    <!-- The Collection filter: a dropdown in the shop's top bar, built like the
+         Sort By dropdown. Links keep the other filters (keep()). -->
+    <template id="collection_dropdown" name="Collection Dropdown">
+        <div t-if="all_collections" t-attf-class="o_wsale_collection_dropdown dropdown {{_classes}}">
+            <t t-set="_current" t-value="all_collections.filtered(lambda c: c.id == current_collection)[:1]"/>
+            <t t-set="_label">Collection</t>
+            <a role="button" href="#" t-attf-class="dropdown-toggle btn px-2 {{_current and 'text-primary'}}"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="d-md-none"><t t-out="_current.name if _current else _label"/></span>
+                <small class="d-none d-md-inline opacity-75"><t t-out="_label"/>:</small>
+                <span class="d-none d-md-inline">
+                    <t t-if="_current" t-out="_current.name"/>
+                    <t t-else="">All</t>
+                </span>
             </a>
-        </t>
+            <div class="dropdown-menu dropdown-menu-end" role="menu">
+                <a role="menuitem" rel="noindex,nofollow" t-att-href="keep(collection=0)"
+                   t-attf-class="dropdown-item {{not _current and 'active'}}">All collections</a>
+                <t t-foreach="all_collections" t-as="collection">
+                    <a role="menuitem" rel="noindex,nofollow" t-att-href="keep(collection=collection.id)"
+                       t-attf-class="dropdown-item d-flex justify-content-between gap-3 {{collection.id == current_collection and 'active'}}">
+                        <span t-field="collection.name"/>
+                        <small t-if="collection.season_id or collection.year" class="opacity-75">
+                            <t t-esc="collection.season_id.name or ''"/> <t t-esc="collection.year.year if collection.year else ''"/>
+                        </small>
+                    </a>
+                </t>
+            </div>
+        </div>
     </template>
 
-    <!-- Shop sidebar: Filter by Collection (can be switched off in the shop's editor). -->
+    <!-- Shop top bar: Collection before Sort By. Switch it
+         off in the shop's editor (Customize › Filter by Collection). -->
     <template id="filter_products_collections" inherit_id="website_sale.products" active="True"
               name="Filter by Collection">
-        <xpath expr="//div[contains(@t-attf-class, 'products_attributes_filters')]" position="inside">
-            <div t-if="all_collections" class="accordion-item o_wsale_collections_filter mb-3">
-                <div class="accordion-header h6 mb-0">
-                    <button class="accordion-button px-0 bg-transparent shadow-none" type="button"
-                            data-bs-toggle="collapse" aria-expanded="true"
-                            data-bs-target="#o_wsale_collections_inner" aria-controls="o_wsale_collections_inner">
-                        <b>Collection</b>
-                    </button>
-                </div>
-                <div id="o_wsale_collections_inner" class="accordion-collapse collapse show">
-                    <t t-call="advanced_inventory_website_sale.filter_products_collections_list"/>
-                </div>
-            </div>
+        <xpath expr="//t[@t-call='website_sale.sort']" position="before">
+            <t t-call="advanced_inventory_website_sale.collection_dropdown"/>
         </xpath>
     </template>
 
-    <!-- The same in the mobile filter panel. -->
-    <template id="filter_products_collections_offcanvas" inherit_id="website_sale.o_wsale_offcanvas"
-              name="Filter by Collection (mobile)">
-        <xpath expr="//div[@id='o_wsale_offcanvas_content']" position="inside">
-            <div t-if="all_collections and is_view_active('advanced_inventory_website_sale.filter_products_collections')"
-                 class="accordion-item px-4 pb-3">
-                <h2 class="accordion-header mb-0">
-                    <button class="o_wsale_offcanvas_title accordion-button rounded-0 px-0 bg-transparent shadow-none"
-                            type="button" data-bs-toggle="collapse" aria-expanded="true"
-                            data-bs-target="#o_wsale_offcanvas_collections" aria-controls="o_wsale_offcanvas_collections">
-                        <b>Collection</b>
-                    </button>
-                </h2>
-                <div id="o_wsale_offcanvas_collections" class="accordion-collapse collapse show">
-                    <t t-call="advanced_inventory_website_sale.filter_products_collections_list"/>
-                </div>
-            </div>
+    <!-- The same in the shop's optional floating bar. -->
+    <template id="filter_products_collections_floating" inherit_id="website_sale.floating_bar"
+              name="Filter by Collection (floating bar)">
+        <xpath expr="//t[@t-call='website_sale.sort']" position="before">
+            <t t-if="is_view_active('advanced_inventory_website_sale.filter_products_collections')"
+               t-call="advanced_inventory_website_sale.collection_dropdown"/>
         </xpath>
     </template>
 </odoo>
