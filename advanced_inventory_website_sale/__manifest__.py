@@ -8,10 +8,10 @@
         Installs automatically when both Inventory (advanced_inventory) and
         eCommerce (website_sale) are installed.
 
-        - A Collection filter in the shop's sidebar: the collections with
-          published products (name, season and year). Picking one shows only
-          its products; the choice is kept while browsing categories, other
-          filters and pages (?collection=<id>).
+        - A Collection dropdown in the shop's top bar, like Sort By: the
+          collections with published products (name, season and year).
+          Picking one shows only its products; the choice is kept while
+          browsing categories, other filters and pages (?collection=<id>).
         - The filter can be switched off in the shop's editor (Customize ›
           Filter by Collection).
         - eCommerce's product lists in the backend already filter and group by

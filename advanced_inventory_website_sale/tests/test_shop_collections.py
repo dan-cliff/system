@@ -20,13 +20,15 @@ class TestShopCollections(HttpCase):
 
     def test_shop_filters_by_collection(self):
         page = self.url_open('/shop').text
-        self.assertIn('Midwinter Glow', page, 'The collection is offered in the sidebar')
+        self.assertIn('o_wsale_collection_dropdown', page, 'The Collection filter is a dropdown')
+        self.assertIn('Midwinter Glow', page, 'The collection is offered in the dropdown')
         self.assertIn('Winter 2026', ' '.join(page.split()), 'with its season and year')
         self.assertIn('Plain Candle', page)
         filtered = self.url_open('/shop?collection=%s' % self.collection.id).text
         self.assertIn('Glow Candle', filtered)
         self.assertNotIn('Plain Candle', filtered)
         self.assertIn('collection=%s' % self.collection.id, filtered, 'Shop links keep the collection')
+        self.assertIn('Collection:', ' '.join(filtered.split()))
 
     def test_bad_collection_value_is_ignored(self):
         page = self.url_open('/shop?collection=abc')
