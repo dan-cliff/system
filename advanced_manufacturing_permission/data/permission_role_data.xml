@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_manufacturing_admin" model="permission.role">
+            <field name="name">Manufacturing – Administrator</field>
+            <field name="description">Everything in Manufacturing: create, edit and delete any manufacturing order, bill of materials or unbuild order, produce orders, and Configuration (work centres, the Work Centre app, settings).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_manufacturing'), 'group_id': ref('advanced_manufacturing.group_manufacturing_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_create_only'), 'group_id': ref('advanced_manufacturing.group_production_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_edit_own'), 'group_id': ref('advanced_manufacturing.group_production_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_edit_team'), 'group_id': ref('advanced_manufacturing.group_production_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_edit_all'), 'group_id': ref('advanced_manufacturing.group_production_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_view_all'), 'group_id': ref('advanced_manufacturing.group_production_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_delete_own'), 'group_id': ref('advanced_manufacturing.group_production_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_delete_all'), 'group_id': ref('advanced_manufacturing.group_production_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_create_only'), 'group_id': ref('advanced_manufacturing.group_bom_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_edit_own'), 'group_id': ref('advanced_manufacturing.group_bom_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_edit_team'), 'group_id': ref('advanced_manufacturing.group_bom_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_edit_all'), 'group_id': ref('advanced_manufacturing.group_bom_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_view_all'), 'group_id': ref('advanced_manufacturing.group_bom_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_delete_own'), 'group_id': ref('advanced_manufacturing.group_bom_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_delete_all'), 'group_id': ref('advanced_manufacturing.group_bom_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_create_only'), 'group_id': ref('advanced_manufacturing.group_unbuild_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_edit_own'), 'group_id': ref('advanced_manufacturing.group_unbuild_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_edit_team'), 'group_id': ref('advanced_manufacturing.group_unbuild_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_edit_all'), 'group_id': ref('advanced_manufacturing.group_unbuild_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_view_all'), 'group_id': ref('advanced_manufacturing.group_unbuild_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_delete_own'), 'group_id': ref('advanced_manufacturing.group_unbuild_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_delete_all'), 'group_id': ref('advanced_manufacturing.group_unbuild_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_produce'), 'group_id': ref('advanced_manufacturing.group_production_produce')})
+            ]"/>
+        </record>
+        <record id="role_manufacturing_manager" model="permission.role">
+            <field name="name">Manufacturing – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s manufacturing orders, bills of materials and unbuild orders. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_edit_team'), 'group_id': ref('advanced_manufacturing.group_production_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_edit_team'), 'group_id': ref('advanced_manufacturing.group_bom_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_edit_team'), 'group_id': ref('advanced_manufacturing.group_unbuild_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_manufacturing_employee" model="permission.role">
+            <field name="name">Manufacturing – Employee</field>
+            <field name="description">Create, view and edit their own manufacturing orders, bills of materials and unbuild orders. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_edit_own'), 'group_id': ref('advanced_manufacturing.group_production_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_bom_edit_own'), 'group_id': ref('advanced_manufacturing.group_bom_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_unbuild_edit_own'), 'group_id': ref('advanced_manufacturing.group_unbuild_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_manufacturing_production_lead" model="permission.role">
+            <field name="name">Manufacturing – Production Lead</field>
+            <field name="description">Create, view and edit every manufacturing order and produce them (mark them as done).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_edit_all'), 'group_id': ref('advanced_manufacturing.group_production_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_manufacturing.privilege_production_produce'), 'group_id': ref('advanced_manufacturing.group_production_produce')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

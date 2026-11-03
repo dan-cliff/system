@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Work Centre app (see controllers/terminal.py and static/src/terminal). -->
+    <template id="terminal_app" name="Work Centre App">
+        &lt;!DOCTYPE html&gt;
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+                <meta name="theme-color" content="#1e2a5e"/>
+                <meta name="mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+                <meta name="apple-mobile-web-app-title" t-att-content="workcenter.name"/>
+                <meta name="robots" content="noindex, nofollow"/>
+                <title t-out="workcenter.name + ' - Work Centre'"/>
+                <link rel="manifest" t-att-href="'/manufacturing/workcentre/%s/manifest.webmanifest' % token"/>
+                <link rel="icon" type="image/png" href="/advanced_manufacturing/static/src/img/icon-192.png"/>
+                <link rel="apple-touch-icon" href="/advanced_manufacturing/static/src/img/icon-192.png"/>
+                <link rel="stylesheet" t-att-href="'/advanced_manufacturing/static/src/terminal/terminal.css?v=%s' % asset_version"/>
+            </head>
+            <body t-att-data-token="token">
+                <header class="w-header">
+                    <div>
+                        <div class="w-name" id="w-name" t-out="workcenter.name"/>
+                        <div class="w-place" id="w-place" t-out="workcenter._terminal_company().name"/>
+                    </div>
+                    <div class="w-header-side">
+                        <div class="w-user" id="w-user" hidden="hidden">
+                            <span class="w-user-name" id="w-user-name"/>
+                            <button type="button" class="w-btn w-btn-small w-btn-light" id="w-signout">Sign Out</button>
+                        </div>
+                        <div>
+                            <div class="w-clock" id="w-clock"/>
+                            <div class="w-date" id="w-date"/>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="w-main">
+                    <!-- Sign in: a scan panel (camera or external reader) beside the name list -->
+                    <section class="w-screen" id="screen-home">
+                        <div class="w-message" id="w-message" hidden="hidden"/>
+                        <div class="w-home" id="w-home">
+                            <div class="w-scan" id="w-scan" hidden="hidden">
+                                <div id="w-scan-camera" hidden="hidden">
+                                    <div class="w-viewport">
+                                        <video id="w-camera-video" playsinline="playsinline" muted="muted" autoplay="autoplay"/>
+                                        <div class="w-viewport-frame" aria-hidden="true"/>
+                                        <div class="w-viewport-message" id="w-camera-message" hidden="hidden">
+                                            <span id="w-camera-message-text"/>
+                                            <button type="button" class="w-btn w-btn-light" id="w-camera-retry">Try again</button>
+                                        </div>
+                                    </div>
+                                    <div class="w-scan-prompt">Hold your ID badge up to the camera</div>
+                                </div>
+                                <div id="w-scan-reader" hidden="hidden">
+                                    <svg class="w-reader-icon" viewBox="0 0 240 200" role="img" aria-label="Badge reader">
+                                        <defs>
+                                            <linearGradient id="w-reader-card" x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0" stop-color="#3BB8FF"/>
+                                                <stop offset="1" stop-color="#0A6CF0"/>
+                                            </linearGradient>
+                                            <linearGradient id="w-reader-wave" x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0" stop-color="#14C9A5"/>
+                                                <stop offset="1" stop-color="#14A3A3"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <rect x="20" y="58" width="150" height="104" rx="18" fill="url(#w-reader-card)"/>
+                                        <rect x="34" y="70" width="70" height="10" rx="5" fill="#FFFFFF" opacity=".35"/>
+                                        <g fill="#FFFFFF">
+                                            <rect x="40" y="96" width="8" height="48" rx="2"/>
+                                            <rect x="54" y="96" width="4" height="48" rx="2"/>
+                                            <rect x="64" y="96" width="10" height="48" rx="2"/>
+                                            <rect x="80" y="96" width="4" height="48" rx="2"/>
+                                            <rect x="90" y="96" width="8" height="48" rx="2"/>
+                                            <rect x="104" y="96" width="4" height="48" rx="2"/>
+                                            <rect x="114" y="96" width="10" height="48" rx="2"/>
+                                            <rect x="130" y="96" width="4" height="48" rx="2"/>
+                                            <rect x="140" y="96" width="8" height="48" rx="2"/>
+                                        </g>
+                                        <g fill="none" stroke="url(#w-reader-wave)" stroke-linecap="round" stroke-width="12">
+                                            <path d="M184 84 A30 30 0 0 1 184 136"/>
+                                            <path d="M198 64 A56 56 0 0 1 198 156"/>
+                                        </g>
+                                    </svg>
+                                    <div class="w-scan-prompt">Scan your ID badge on the reader</div>
+                                </div>
+                            </div>
+                            <div class="w-name-select" id="w-name-select" hidden="hidden">
+                                <input type="search" class="w-search" id="w-search" autocomplete="off"
+                                       placeholder="Type your name" aria-label="Type your name"/>
+                                <div class="w-grid" id="w-grid"/>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- PIN -->
+                    <section class="w-screen" id="screen-pin">
+                        <div id="w-pin-person"/>
+                        <div class="w-pin-title">Enter your PIN</div>
+                        <div class="w-pin-dots" id="w-pin-dots"/>
+                        <div class="w-pin-message" id="w-pin-message"/>
+                        <div class="w-keypad" id="w-keypad"/>
+                        <button type="button" class="w-btn w-btn-light" id="w-pin-cancel">Cancel</button>
+                    </section>
+
+                    <!-- Work orders -->
+                    <section class="w-screen" id="screen-orders">
+                        <div class="w-toolbar">
+                            <h2>Work Orders</h2>
+                            <button type="button" class="w-btn w-btn-light w-btn-small" id="w-refresh">Refresh</button>
+                        </div>
+                        <div class="w-cards" id="w-orders"/>
+                    </section>
+
+                    <!-- One work order -->
+                    <section class="w-screen" id="screen-order">
+                        <div class="w-toolbar">
+                            <button type="button" class="w-btn w-btn-light w-btn-small" id="w-back-orders">‹ Work Orders</button>
+                        </div>
+                        <div id="w-order"/>
+                    </section>
+
+                    <!-- QA checklist -->
+                    <section class="w-screen" id="screen-qa">
+                        <div class="w-qa-head">
+                            <h2 id="w-qa-title"/>
+                            <div class="w-muted" id="w-qa-sub"/>
+                        </div>
+                        <div id="w-qa-questions"/>
+                        <div class="w-form-message" id="w-qa-message"/>
+                        <div class="w-actions w-actions-end">
+                            <button type="button" class="w-btn w-btn-light" id="w-qa-cancel">Discard</button>
+                            <button type="button" class="w-btn w-btn-secondary" id="w-qa-save">Save for Later</button>
+                            <button type="button" class="w-btn w-btn-success w-btn-lg" id="w-qa-complete">Complete</button>
+                        </div>
+                    </section>
+                </main>
+
+                <div class="w-toasts" id="w-toasts" aria-live="polite"/>
+
+                <footer class="w-footer">
+                    <span class="w-conn" id="w-conn">Connecting...</span>
+                    <span class="w-pending" id="w-pending" hidden="hidden"/>
+                    <span class="w-spacer"/>
+                    <button type="button" class="w-btn w-btn-link" id="w-install-btn" hidden="hidden">Install app</button>
+                </footer>
+
+                <script t-att-src="'/advanced_manufacturing/static/src/terminal/terminal.js?v=%s' % asset_version"/>
+            </body>
+        </html>
+    </template>
+</odoo>

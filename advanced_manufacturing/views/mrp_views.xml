@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- House rules on Odoo's Manufacturing views (see CLAUDE.md): lists start
+         with the record ID, dates show as numbers (dd/mm/yyyy). -->
+
+    <!-- ══ Manufacturing Orders ══ -->
+    <record id="mrp_production_list_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.production.list.advanced_manufacturing</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='priority']" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_production_form_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.production.form.advanced_manufacturing</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//div[@name='date_start']/field[@name='date_start']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//sheet//group/field[@name='date_deadline']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══ Work Orders ══ -->
+    <record id="mrp_workorder_list_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.workorder.list.advanced_manufacturing</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_tree_editable_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='date_start']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_finished']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_workorder_form_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.workorder.form.advanced_manufacturing</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_start']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_finished']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='time_ids']/list/field[@name='date_start']" position="before">
+                <field name="employee_id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='time_ids']/list/field[@name='date_start']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='time_ids']/list/field[@name='date_end']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══ Bills of Materials ══ -->
+    <record id="mrp_bom_list_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.bom.list.advanced_manufacturing</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sequence']" position="after">
+                <field name="id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══ Unbuild Orders ══ -->
+    <record id="mrp_unbuild_list_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.unbuild.list.advanced_manufacturing</field>
+        <field name="model">mrp.unbuild</field>
+        <field name="inherit_id" ref="mrp.mrp_unbuild_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══ Operations: instructions for the Work Centre app ══ -->
+    <record id="mrp_routing_workcenter_form_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.routing.workcenter.form.advanced_manufacturing</field>
+        <field name="model">mrp.routing.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_routing_workcenter_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <separator string="Instructions for the Work Centre App"/>
+                <field name="terminal_instructions" nolabel="1"
+                       placeholder="What workers need to know for this operation: steps, settings, safety notes..."/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══ Time logs ══ -->
+    <record id="oee_list_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.workcenter.productivity.list.advanced_manufacturing</field>
+        <field name="model">mrp.workcenter.productivity</field>
+        <field name="inherit_id" ref="mrp.oee_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_start']" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='date_start']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_end']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_end']" position="after">
+                <field name="employee_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="oee_form_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.workcenter.productivity.form.advanced_manufacturing</field>
+        <field name="model">mrp.workcenter.productivity</field>
+        <field name="inherit_id" ref="mrp.oee_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_start']" position="before">
+                <field name="employee_id"/>
+            </xpath>
+            <xpath expr="//field[@name='date_start']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_end']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="oee_search_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.workcenter.productivity.search.advanced_manufacturing</field>
+        <field name="model">mrp.workcenter.productivity</field>
+        <field name="inherit_id" ref="mrp.oee_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="employee_id"/>
+                <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══ Work Centres ══ -->
+    <record id="mrp_workcenter_list_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.workcenter.list.advanced_manufacturing</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sequence']" position="after">
+                <field name="id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══ Company (shown and grouped by when multi-company is on) ══ -->
+    <record id="mrp_production_search_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.production.search.advanced_manufacturing</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                        groups="base.group_multi_company"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_bom_search_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.bom.search.advanced_manufacturing</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.view_mrp_bom_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                        groups="base.group_multi_company"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_bom_form_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.bom.form.advanced_manufacturing</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_unbuild_search_manufacturing" model="ir.ui.view">
+        <field name="name">mrp.unbuild.search.advanced_manufacturing</field>
+        <field name="model">mrp.unbuild</field>
+        <field name="inherit_id" ref="mrp.mrp_unbuild_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                        groups="base.group_multi_company"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

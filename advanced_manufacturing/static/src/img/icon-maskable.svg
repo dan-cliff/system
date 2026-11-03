@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B65CCB"/>
+      <stop offset="0.45" stop-color="#5B2E9E"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#tile)"/>
+  <g transform="translate(143 143) scale(0.72)">
+  <!-- Manufacturing: a factory (main object) with a gear (accent) over its lower
+       right corner. House palette, clay shading, transparent background. -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="chimney" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a52a8"/>
+      <stop offset="1" stop-color="#2A3F8F"/>
+    </linearGradient>
+    <linearGradient id="gear" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="door" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="500" cy="905" rx="410" ry="40" fill="url(#shadow)"/>
+
+  <!-- Chimney -->
+  <rect x="690" y="120" width="96" height="330" rx="22" fill="url(#chimney)"/>
+  <rect x="680" y="112" width="116" height="40" rx="18" fill="#FF5A6E"/>
+  <circle cx="770" cy="70" r="30" fill="#A9ABDC" opacity="0.55"/>
+  <circle cx="820" cy="40" r="20" fill="#A9ABDC" opacity="0.4"/>
+
+  <g filter="url(#soft)">
+    <!-- Saw-tooth roof -->
+    <path d="M110 420 L110 330 Q110 300 138 312 L330 400 L330 330 Q330 300 358 312 L550 400 L550 330 Q550 300 578 312 L800 410 L800 430 Z"
+          fill="url(#roof)" stroke="url(#roof)" stroke-width="24" stroke-linejoin="round"/>
+    <!-- Building -->
+    <rect x="98" y="410" width="714" height="470" rx="40" fill="url(#wall)"/>
+    <rect x="98" y="410" width="714" height="70" rx="35" fill="#FFFFFF" opacity="0.18"/>
+    <!-- Windows -->
+    <rect x="160" y="520" width="150" height="110" rx="20" fill="#F2F2FA"/>
+    <rect x="350" y="520" width="150" height="110" rx="20" fill="#F2F2FA"/>
+    <rect x="182" y="548" width="90" height="16" rx="8" fill="#A9ABDC"/>
+    <rect x="182" y="580" width="60" height="16" rx="8" fill="#A9ABDC"/>
+    <rect x="372" y="548" width="90" height="16" rx="8" fill="#A9ABDC"/>
+    <rect x="372" y="580" width="60" height="16" rx="8" fill="#A9ABDC"/>
+    <!-- Door -->
+    <rect x="170" y="690" width="170" height="190" rx="22" fill="url(#door)"/>
+    <rect x="190" y="720" width="130" height="14" rx="7" fill="#FFFFFF" opacity="0.5"/>
+    <rect x="190" y="752" width="130" height="14" rx="7" fill="#FFFFFF" opacity="0.5"/>
+    <rect x="190" y="784" width="130" height="14" rx="7" fill="#FFFFFF" opacity="0.5"/>
+  </g>
+
+  <!-- Gear accent -->
+  <g filter="url(#soft)">
+    <circle cx="742" cy="742" r="222" fill="#FFFFFF"/>
+    <path d="M742.0 577.0 L773.3 544.5 L803.8 551.8 L816.9 595.0 L839.0 608.5 L883.4 600.6 L903.8 624.4 L889.0 667.1 L898.9 691.0 L939.5 710.7 L942.0 742.0 L905.0 767.8 L898.9 793.0 L920.2 832.8 L903.8 859.6 L858.7 858.7 L839.0 875.5 L832.8 920.2 L803.8 932.2 L767.8 905.0 L742.0 907.0 L710.7 939.5 L680.2 932.2 L667.1 889.0 L645.0 875.5 L600.6 883.4 L580.2 859.6 L595.0 816.9 L585.1 793.0 L544.5 773.3 L542.0 742.0 L579.0 716.2 L585.1 691.0 L563.8 651.2 L580.2 624.4 L625.3 625.3 L645.0 608.5 L651.2 563.8 L680.2 551.8 L716.2 579.0 Z" fill="url(#gear)" stroke="url(#gear)" stroke-width="22" stroke-linejoin="round"/>
+    <circle cx="742" cy="742" r="72" fill="#FFFFFF"/>
+    <path d="M622 682 A140 140 0 0 1 702 612" fill="none" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="20" stroke-linecap="round"/>
+  </g>
+</g>
+</svg>

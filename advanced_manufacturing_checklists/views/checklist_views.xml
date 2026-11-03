@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="checklist_view_form_manufacturing" model="ir.ui.view">
+        <field name="name">checklist.checklist.form.inherit.manufacturing</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklists.checklist_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="after">
+                <group string="Manufacturing" name="manufacturing" invisible="not production_id and not mrp_product_id">
+                    <group>
+                        <field name="production_id" readonly="state == 'done'" options="{'no_create': True}"/>
+                        <field name="mrp_product_id" readonly="state == 'done'" options="{'no_create': True}"/>
+                        <field name="mrp_lot_ids" widget="many2many_tags" readonly="state == 'done'"
+                               domain="[('product_id', '=', mrp_product_id)]" options="{'no_create': True}"
+                               invisible="not mrp_lot_ids and not mrp_product_id"/>
+                    </group>
+                    <group>
+                        <field name="workorder_id" readonly="1" invisible="not workorder_id"/>
+                        <field name="workcenter_id" readonly="1" invisible="not workcenter_id"/>
+                        <field name="mrp_employee_id" readonly="1" invisible="not mrp_employee_id"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="checklist_view_list_manufacturing" model="ir.ui.view">
+        <field name="name">checklist.checklist.list.inherit.manufacturing</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklists.checklist_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='template_id']" position="after">
+                <field name="production_id" optional="hide"/>
+                <field name="mrp_product_id" optional="hide"/>
+                <field name="mrp_lot_ids" widget="many2many_tags" optional="hide"/>
+                <field name="mrp_employee_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="checklist_view_search_manufacturing" model="ir.ui.view">
+        <field name="name">checklist.checklist.search.inherit.manufacturing</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklists.checklist_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='template_id']" position="after">
+                <field name="production_id"/>
+                <field name="mrp_product_id"/>
+                <field name="mrp_lot_ids"/>
+                <field name="mrp_employee_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='public']" position="after">
+                <filter name="manufacturing_qa" string="Manufacturing QA" domain="[('production_id', '!=', False)]"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_template']" position="after">
+                <filter name="group_production" string="Manufacturing Order" context="{'group_by': 'production_id'}"/>
+                <filter name="group_mrp_product" string="Product" context="{'group_by': 'mrp_product_id'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
