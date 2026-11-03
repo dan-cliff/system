@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="text_block_view_list" model="ir.ui.view">
+        <field name="name">text.block.list</field>
+        <field name="model">text.block</field>
+        <field name="arch" type="xml">
+            <list string="Text Blocks">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="category_id" optional="show"/>
+                <field name="preview" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show" placeholder="Every company"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="text_block_view_form" model="ir.ui.view">
+        <field name="name">text.block.form</field>
+        <field name="model">text.block</field>
+        <field name="arch" type="xml">
+            <form string="Text Block">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Merino Wool Care"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="category_id" options="{'no_quick_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" placeholder="Every company"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <field name="content" placeholder="Write the text block. Use '/' for headings, lists, tables and more."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="text_block_view_search" model="ir.ui.view">
+        <field name="name">text.block.search</field>
+        <field name="model">text.block</field>
+        <field name="arch" type="xml">
+            <search string="Text Blocks">
+                <field name="name"/>
+                <field name="content"/>
+                <field name="category_id"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_text_block" model="ir.actions.act_window">
+        <field name="name">Text Blocks</field>
+        <field name="res_model">text.block</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="text_block_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a text block</p>
+            <p>Write formatted text you use again and again (care instructions, materials, shipping and returns, ...).
+               "Insert Text Block" on a product's eCommerce or Quotation Description puts it in.</p>
+        </field>
+    </record>
+
+    <record id="text_block_category_view_list" model="ir.ui.view">
+        <field name="name">text.block.category.list</field>
+        <field name="model">text.block.category</field>
+        <field name="arch" type="xml">
+            <list string="Text Block Categories" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_text_block_category" model="ir.actions.act_window">
+        <field name="name">Text Block Categories</field>
+        <field name="res_model">text.block.category</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- Sales › Configuration › Products -->
+    <menuitem id="menu_text_block" name="Text Blocks" parent="sale.prod_config_main"
+              action="action_text_block" sequence="60"/>
+    <menuitem id="menu_text_block_category" name="Text Block Categories" parent="sale.prod_config_main"
+              action="action_text_block_category" sequence="61"/>
+</odoo>

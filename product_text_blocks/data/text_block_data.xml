@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting categories; managers rename, add or archive them. -->
+    <data noupdate="1">
+        <record id="category_product_details" model="text.block.category">
+            <field name="name">Product Details</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="category_care" model="text.block.category">
+            <field name="name">Care Instructions</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="category_shipping" model="text.block.category">
+            <field name="name">Shipping &amp; Returns</field>
+            <field name="sequence">30</field>
+        </record>
+    </data>
+</odoo>
