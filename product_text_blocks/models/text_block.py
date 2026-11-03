@@ -9,9 +9,20 @@ from odoo.tools import html2plaintext
 INLINE_TAGS = re.compile(r'</?(strong|b|em|i|u|span)(\s[^>]*)?>', re.I)
 
 
+HEADINGS = re.compile(r'<(/?)h[1-6](\s[^>]*)?>', re.I)
+LIST_ITEM = re.compile(r'<li(\s[^>]*)?>', re.I)
+
+
 def plain_text(html):
-    """The text of formatted content, without *asterisks* for bold or italics."""
-    return html2plaintext(INLINE_TAGS.sub('', html or '')).strip()
+    """The text of formatted content: headings and paragraphs on their own lines,
+    list items as "• " lines, and no *asterisks* for bold, italics or headings."""
+    html = INLINE_TAGS.sub('', html or '')
+    html = HEADINGS.sub(lambda m: '<%sp>' % m.group(1), html)
+    html = LIST_ITEM.sub('<p>• ', html)
+    html = re.sub(r'</li>', '</p>', html, flags=re.I)
+    html = re.sub(r'</?(ul|ol)(\s[^>]*)?>', '', html, flags=re.I)
+    text = html2plaintext(html)
+    return '\n'.join(line.rstrip() for line in text.splitlines()).strip()
 
 
 class TextBlockCategory(models.Model):

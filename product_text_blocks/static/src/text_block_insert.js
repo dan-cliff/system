@@ -89,7 +89,7 @@ export class TextBlockInsert extends Component {
         });
         if (!blocks.length) {
             this.notification.add(
-                _t("There are no text blocks yet. Add them in Sales › Configuration › Products › Text Blocks."),
+                _t("There are no text blocks yet. Add them in Inventory › Configuration › Products › Text Blocks."),
                 { type: "warning" }
             );
             return;

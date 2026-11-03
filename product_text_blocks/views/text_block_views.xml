@@ -94,9 +94,9 @@
         <field name="context">{'active_test': False}</field>
     </record>
 
-    <!-- Sales › Configuration › Products -->
-    <menuitem id="menu_text_block" name="Text Blocks" parent="sale.prod_config_main"
+    <!-- Inventory › Configuration › Products -->
+    <menuitem id="menu_text_block" name="Text Blocks" parent="stock.menu_product_in_config_stock"
               action="action_text_block" sequence="60"/>
-    <menuitem id="menu_text_block_category" name="Text Block Categories" parent="sale.prod_config_main"
+    <menuitem id="menu_text_block_category" name="Text Block Categories" parent="stock.menu_product_in_config_stock"
               action="action_text_block_category" sequence="61"/>
 </odoo>
