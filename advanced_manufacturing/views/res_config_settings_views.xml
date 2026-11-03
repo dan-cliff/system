@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_manufacturing" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_manufacturing</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="mrp.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='mrp']" position="inside">
+                <block title="Work Centre App: Signing In" id="mrp_terminal_sign_in">
+                    <div class="text-muted px-3 mb-2" colspan="2">
+                        Each work centre has its own Work Centre app (a link on its form, under Configuration › Work Centres)
+                        that installs on a tablet or computer. Choose how workers sign in to it, the same ways as On Site's sign in kiosks.
+                    </div>
+                    <setting id="mrp_terminal_identify_badge" string="Badge Scan (Camera)" company_dependent="1"
+                             help="The device's camera reads the QR code or barcode on workers' ID badges (their Badge ID in Personnel).">
+                        <field name="mrp_terminal_identify_badge"/>
+                    </setting>
+                    <setting id="mrp_terminal_identify_reader" string="External RFID / Barcode Reader" company_dependent="1"
+                             help="Workers scan their ID badge on a reader connected to the device (one that types the Badge ID, like a keyboard). Replaces the camera.">
+                        <field name="mrp_terminal_identify_reader"/>
+                    </setting>
+                    <setting id="mrp_terminal_identify_name" string="Select Name" company_dependent="1"
+                             help="Workers find and tap their name.">
+                        <field name="mrp_terminal_identify_name"/>
+                        <div class="mt-2" invisible="not mrp_terminal_identify_name">
+                            <field name="mrp_terminal_require_pin" class="oe_inline"/>
+                            <label for="mrp_terminal_require_pin" class="o_light_label ms-1"/>
+                            <div class="text-muted">Workers who select their name also enter their employee PIN.</div>
+                        </div>
+                    </setting>
+                    <setting id="mrp_terminal_idle" string="Automatic Sign Out" company_dependent="1"
+                             help="Sign the worker out after this many minutes without a tap, ready for the next one. 0 keeps them signed in until they sign out.">
+                        <field name="mrp_terminal_idle_minutes" class="oe_inline"/> minutes
+                    </setting>
+                </block>
+                <block title="Work Centre App: Offline and Finishing" id="mrp_terminal_offline_block">
+                    <setting id="mrp_terminal_offline" string="Allow Offline Use" company_dependent="1"
+                             help="The app keeps a copy of its workers and work orders, so work can be recorded without a connection. It syncs when the connection returns.">
+                        <field name="mrp_terminal_offline"/>
+                        <div class="mt-2" invisible="not mrp_terminal_offline">
+                            <label for="mrp_terminal_offline_hours" class="o_light_label me-2"/>
+                            <field name="mrp_terminal_offline_hours" class="oe_inline"/> hours
+                        </div>
+                    </setting>
+                    <setting id="mrp_terminal_refresh" string="Refresh Every" company_dependent="1"
+                             help="How often the app refreshes its copy of workers and work orders while online.">
+                        <field name="mrp_terminal_refresh_minutes" class="oe_inline"/> minutes
+                    </setting>
+                    <setting id="mrp_terminal_close_production" string="Produce When the Last Work Order Ends" company_dependent="1"
+                             help="Finishing an order's last work order in the app marks the order as done. Orders that need a decision are left for the office.">
+                        <field name="mrp_terminal_close_production"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
