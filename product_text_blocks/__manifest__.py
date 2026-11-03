@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Text Blocks',
-    'version': '19.0.1.0.0',
-    'category': 'Sales/Sales',
+    'version': '19.0.1.1.0',
+    'category': 'Inventory/Inventory',
     'summary': 'Reusable formatted text blocks, inserted into product descriptions with one click',
     'description': """
         Text Blocks keeps formatted text you use again and again (care
-        instructions, materials, shipping and returns, ...) in Sales ›
+        instructions, materials, shipping and returns, ...) in Inventory ›
         Configuration › Products › Text Blocks, grouped by Text Block
         Categories.
 
@@ -20,7 +20,7 @@
         - Blocks can be shared by every company or belong to one.
     """,
     'author': "Cliff's Country Crafts",
-    'depends': ['sale'],
+    'depends': ['advanced_inventory'],
     'data': [
         'security/ir.model.access.csv',
         'security/text_block_security.xml',
