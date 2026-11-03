@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="product_text_blocks.InsertButton">
+        <div t-if="!props.readonly" class="o_text_block_insert d-flex justify-content-end w-100" t-att-data-field="props.field">
+            <button type="button" class="btn btn-link btn-sm px-0" t-on-click="onClick"
+                    title="Insert a saved text block">
+                <i class="fa fa-file-text-o me-1"/>Insert Text Block
+            </button>
+        </div>
+    </t>
+
+    <t t-name="product_text_blocks.TextBlockDialog">
+        <Dialog title="'Insert a Text Block'" size="'lg'">
+            <div class="o_text_block_dialog d-flex flex-column flex-md-row gap-3">
+                <div class="o_text_block_list">
+                    <input type="search" class="form-control form-control-sm mb-2" placeholder="Search text blocks..."
+                           t-model="state.search"/>
+                    <div t-if="categories.length" class="d-flex flex-wrap gap-1 mb-2">
+                        <button type="button" t-attf-class="btn btn-sm rounded-pill {{ !state.categoryId ? 'btn-secondary' : 'btn-light' }}"
+                                t-on-click="() => { state.categoryId = false; }">All</button>
+                        <t t-foreach="categories" t-as="category" t-key="category.id">
+                            <button type="button"
+                                    t-attf-class="btn btn-sm rounded-pill {{ state.categoryId === category.id ? 'btn-secondary' : 'btn-light' }}"
+                                    t-on-click="() => { state.categoryId = category.id; }" t-esc="category.name"/>
+                        </t>
+                    </div>
+                    <div class="list-group">
+                        <button type="button" t-foreach="filtered" t-as="block" t-key="block.id"
+                                t-attf-class="list-group-item list-group-item-action {{ selected and selected.id === block.id ? 'active' : '' }}"
+                                t-on-click="() => { state.selectedId = block.id; }"
+                                t-on-dblclick="() => { state.selectedId = block.id; this.pick('append'); }">
+                            <div class="fw-semibold" t-esc="block.name"/>
+                            <div t-if="block.category" class="small opacity-75" t-esc="block.category"/>
+                        </button>
+                    </div>
+                    <div t-if="!filtered.length" class="text-muted small p-2">No text block matches.</div>
+                </div>
+                <div class="o_text_block_preview flex-grow-1 border rounded p-3">
+                    <t t-if="selected">
+                        <div class="small text-muted mb-2">Preview<t t-if="props.plainText"> (inserted as plain text, without formatting)</t></div>
+                        <div class="o_text_block_preview_content" t-out="previewHtml(selected)"/>
+                    </t>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="() => this.pick('append')" t-att-disabled="!selected">
+                    <i class="fa fa-plus me-1"/><t t-if="props.hasContent">Add to End</t><t t-else="">Insert</t>
+                </button>
+                <button t-if="props.hasContent" class="btn btn-secondary" t-on-click="() => this.pick('replace')"
+                        t-att-disabled="!selected">Replace the Description</button>
+                <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
