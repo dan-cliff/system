@@ -44,6 +44,18 @@ def iso_utc(dt):
 class MrpWorkcenter(models.Model):
     _inherit = 'mrp.workcenter'
 
+    # Working Hours may belong to the work centre's company or to any company
+    # above it (e.g. a group's shared hours), not only to its own company as
+    # Odoo's company check requires (see _check_resource_calendar_company).
+    resource_calendar_id = fields.Many2one(
+        check_company=False,
+        domain="['|', ('company_id', '=', False), ('company_id', 'in', calendar_company_ids)]",
+    )
+    calendar_company_ids = fields.Many2many(
+        'res.company', compute='_compute_calendar_company_ids',
+        help='Companies whose Working Hours this work centre can use: its company and the companies above it.',
+    )
+
     terminal_token = fields.Char(
         string='Work Centre App Token', copy=False, readonly=True, index=True, default=_new_token,
         groups='mrp.group_mrp_user',
@@ -73,6 +85,23 @@ class MrpWorkcenter(models.Model):
         'advanced.manufacturing.terminal.event', 'workcenter_id', string='Work Centre App Log',
     )
     terminal_failed_count = fields.Integer(compute='_compute_terminal_failed_count')
+
+    @api.depends('company_id')
+    def _compute_calendar_company_ids(self):
+        for workcenter in self:
+            workcenter.calendar_company_ids = workcenter.company_id.sudo().parent_ids
+
+    @api.constrains('resource_calendar_id', 'company_id')
+    def _check_resource_calendar_company(self):
+        for workcenter in self:
+            calendar_company = workcenter.resource_calendar_id.sudo().company_id
+            if calendar_company and calendar_company not in workcenter.company_id.sudo().parent_ids:
+                raise ValidationError(_(
+                    'The Working Hours "%(calendar)s" belong to %(calendar_company)s. Work centre "%(workcenter)s" '
+                    'can only use Working Hours of %(company)s or a company above it.',
+                    calendar=workcenter.resource_calendar_id.name, calendar_company=calendar_company.name,
+                    workcenter=workcenter.name, company=workcenter.company_id.name or _('no company'),
+                ))
 
     @api.depends('terminal_token')
     def _compute_terminal_url(self):
