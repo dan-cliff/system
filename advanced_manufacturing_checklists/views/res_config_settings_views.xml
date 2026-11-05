@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- QA Checklist Groups sit under the Quality setting (Settings › Manufacturing),
+         which installs this app. -->
     <record id="res_config_settings_view_form_mrp_qa" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit.advanced_manufacturing_checklists</field>
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="advanced_manufacturing.res_config_settings_view_form_manufacturing"/>
         <field name="arch" type="xml">
-            <xpath expr="//block[@id='mrp_terminal_offline_block']" position="after">
-                <block title="Quality Checks" id="mrp_qa_block">
-                    <setting id="mrp_qa_checklist_groups" string="QA Checklist Groups" company_dependent="1"
-                             help="Templates in these Checklist Groups can be started as QA checks on the Work Centre app. They are filled in with the work order's details and linked to the product and lot made.">
-                        <field name="mrp_qa_checklist_group_ids" widget="many2many_tags" options="{'no_create': True}"
-                               placeholder="No QA checks on the Work Centre app"/>
-                        <div class="mt-2">
-                            <button name="%(checklists.action_checklist_group)d" type="action" string="Checklist Groups" groups="checklists.group_checklist_admin"
-                                    icon="oi-arrow-right" class="btn-link"/>
-                        </div>
-                    </setting>
-                </block>
+            <xpath expr="//div[@id='mrp_qa_options']" position="inside">
+                <div class="mt-2" invisible="not module_advanced_manufacturing_checklists">
+                    <label for="mrp_qa_checklist_group_ids" class="o_light_label"/>
+                    <div class="text-muted">
+                        Templates in these Checklist Groups can be started as QA checks on the Work Centre app.
+                    </div>
+                    <field name="mrp_qa_checklist_group_ids" widget="many2many_tags" options="{'no_create': True}"
+                           placeholder="No QA checks on the Work Centre app"/>
+                    <div class="mt-1">
+                        <button name="%(checklists.action_checklist_group)d" type="action" string="Checklist Groups"
+                                icon="oi-arrow-right" class="btn-link" groups="checklists.group_checklist_admin"/>
+                    </div>
+                </div>
             </xpath>
         </field>
     </record>

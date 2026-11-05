@@ -5,6 +5,24 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="mrp.res_config_settings_view_form"/>
         <field name="arch" type="xml">
+            <!-- Odoo's Barcode Scanner (Enterprise) works with our Scanner app instead,
+                 and is only offered when the Scanner app is installed. -->
+            <xpath expr="//setting[@id='process_mrp_barcodes']" position="replace">
+                <field name="mrp_scanner_app_installed" invisible="1"/>
+                <setting id="process_mrp_barcodes" string="Barcode Scanner" invisible="not mrp_scanner_app_installed"
+                         help="Produce manufacturing orders from the Scanner app: scan components, record the quantity and lot, then produce.">
+                    <field name="module_advanced_manufacturing_scanner"/>
+                    <div id="mrp_scanner_options"/>
+                </setting>
+            </xpath>
+            <!-- Odoo's Quality (Enterprise) works with the Checklists app instead. -->
+            <xpath expr="//setting[@id='quality_control_mrp']" position="replace">
+                <setting id="quality_control_mrp" string="Quality"
+                         help="QA checklists from the Checklists app for manufacturing orders and work centres: filled in on the Work Centre app and linked to the product and lot made.">
+                    <field name="module_advanced_manufacturing_checklists"/>
+                    <div id="mrp_qa_options"/>
+                </setting>
+            </xpath>
             <xpath expr="//app[@name='mrp']" position="inside">
                 <block title="Work Centre App: Signing In" id="mrp_terminal_sign_in">
                     <div class="text-muted px-3 mb-2" colspan="2">

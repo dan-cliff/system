@@ -1,0 +1,37 @@
+// Manufacture tile and screens on the Scanner. House palette.
+.o_scanner_home .o_scanner_tile_purple {
+    --scanner-tone: linear-gradient(135deg, #8E5CF0 0%, #5B3DB8 100%);
+    --scanner-tone-shadow: #{rgba(#5B3DB8, 0.35)};
+}
+
+.o_scanner_mrp {
+    .o_scanner_mrp_produce {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 0.75rem 0;
+    }
+
+    .o_scanner_mrp_field {
+        flex: 1 1 220px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-weight: 600;
+    }
+
+    .o_scanner_lines tr {
+        cursor: pointer;
+    }
+
+    .o_scanner_mrp_note {
+        color: #FF5A6E;
+        font-weight: 600;
+        margin: 0.5rem 0;
+    }
+
+    .o_scanner_mrp_produce_btn {
+        margin-top: 0.75rem;
+        border-radius: 14px;
+    }
+}

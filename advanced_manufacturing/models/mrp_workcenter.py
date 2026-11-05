@@ -70,8 +70,14 @@ class MrpWorkcenter(models.Model):
     terminal_employee_ids = fields.Many2many(
         'hr.employee', 'mrp_workcenter_terminal_employee_rel', 'workcenter_id', 'employee_id',
         string='Operators',
+        domain="[('company_id', 'in', [False] + terminal_company_ids)]",
         help='Only these employees can sign in to this work centre. Leave empty to let every '
-             "employee of the work centre's company sign in.",
+             "employee of the work centre's company, and of the companies related to it (its group "
+             'and the group\'s other companies), sign in.',
+    )
+    terminal_company_ids = fields.Many2many(
+        'res.company', compute='_compute_terminal_company_ids',
+        help='Companies whose employees can sign in: the work centre\'s company family.',
     )
     terminal_message = fields.Text(
         string='Message for Workers',
@@ -85,6 +91,16 @@ class MrpWorkcenter(models.Model):
         'advanced.manufacturing.terminal.event', 'workcenter_id', string='Work Centre App Log',
     )
     terminal_failed_count = fields.Integer(compute='_compute_terminal_failed_count')
+
+    @api.depends('company_id')
+    def _compute_terminal_company_ids(self):
+        every_company = None
+        for workcenter in self:
+            companies = workcenter._terminal_related_companies()
+            if not companies:  # no company: any employee
+                every_company = every_company or self.env['res.company'].sudo().search([])
+                companies = every_company
+            workcenter.terminal_company_ids = companies
 
     @api.depends('company_id')
     def _compute_calendar_company_ids(self):
@@ -144,9 +160,21 @@ class MrpWorkcenter(models.Model):
         return action
 
     # ── Who can sign in ────────────────────────────────────────────────────
+    def _terminal_related_companies(self):
+        """The companies whose employees may work here: every company in the work
+        centre's company family (its parent group, the group's other companies
+        and their own subsidiaries). Empty for a work centre without a company,
+        which every employee can use."""
+        self.ensure_one()
+        root = self.company_id.sudo().root_id
+        if not root:
+            return self.env['res.company']
+        return self.env['res.company'].sudo().search([('id', 'child_of', root.id)])
+
     def _terminal_employee_domain(self):
         self.ensure_one()
-        domain = [('company_id', 'in', [False, self.company_id.id])] if self.company_id else []
+        companies = self._terminal_related_companies()
+        domain = [('company_id', 'in', [False] + companies.ids)] if companies else []
         if self.terminal_employee_ids:
             domain.append(('id', 'in', self.terminal_employee_ids.ids))
         return domain
