@@ -7,3 +7,4 @@ from . import test_working_hours
 from . import test_route
 from . import test_product_selection
 from . import test_capacity
+from . import test_product_company

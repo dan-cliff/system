@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Manufacturing',
-    'version': '19.0.1.4.0',
+    'version': '19.0.1.5.0',
     'category': 'Supply Chain/Manufacturing',
     'sequence': 40,
     'summary': 'A modern Manufacturing app: dashboard, permissions and a Work Centre app '
@@ -37,6 +37,9 @@ place on the home screen, opening on its Dashboard.
     did it. Offline use is limited to the hours set in Settings. What could
     not be synced is shown on the work centre and in the Work Centre App Log.
 * Operations get Instructions shown on the Work Centre app.
+* Products follow the company hierarchy both ways: a parent company also
+  sees and uses its child companies' products (product fields and the
+  Products views), as children already see their parents'.
 * Manufacture: Pick, Produce and Store, a route for Cliffs Country Crafts'
   warehouse, selectable on products and product categories: components are
   picked from stock to the Manufacturing Pick Area, the manufacturing order
@@ -78,6 +81,7 @@ Add-ons that install automatically: On Site sign in checks
         'views/menus.xml',
         'data/manufacturing_titles.xml',
         'data/manufacturing_route_data.xml',
+        'data/product_company_data.xml',
     ],
     'assets': {
         'web.assets_backend': [
