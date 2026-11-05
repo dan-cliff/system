@@ -171,6 +171,20 @@
         </field>
     </record>
 
+    <!-- ══ Operation types: the route that picks a manufacturing order's components ══ -->
+    <record id="stock_picking_type_form_manufacturing" model="ir.ui.view">
+        <field name="name">stock.picking.type.form.advanced_manufacturing</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="mrp.view_picking_type_form_inherit_mrp"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='stock_picking_type_lot']" position="after">
+                <group string="Components" invisible="code != 'mrp_operation'" groups="stock.group_adv_location">
+                    <field name="mrp_components_route_id" options="{'no_create': True}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
     <!-- ══ Company (shown and grouped by when multi-company is on) ══ -->
     <record id="mrp_production_search_manufacturing" model="ir.ui.view">
         <field name="name">mrp.production.search.advanced_manufacturing</field>
