@@ -14,6 +14,21 @@
                     </div>
                 </button>
             </xpath>
+            <!-- Product Capacities: a product (then optionally its variant) or a product category. -->
+            <xpath expr="//field[@name='capacity_ids']/list/field[@name='product_id']" position="replace">
+                <field name="product_tmpl_id" widget="stock.forced_placeholder" placeholder="All Products"
+                       decoration-it="not product_tmpl_id" invisible="product_categ_id"
+                       context="{'default_is_storable': True}" options="{'no_create': True}"/>
+                <field name="product_id" groups="product.group_product_variant" optional="show"
+                       placeholder="All Variants" options="{'no_create': True}"
+                       domain="[('product_tmpl_id', '=', product_tmpl_id)]" readonly="not product_tmpl_id"
+                       invisible="product_categ_id"/>
+                <field name="product_categ_id" placeholder="Any Category" readonly="product_tmpl_id"
+                       options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='capacity_ids']/list/field[@name='product_uom_id']" position="attributes">
+                <attribute name="readonly">product_id or product_tmpl_id</attribute>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Work Centre App" name="terminal">
                     <div class="text-muted mb-3">
