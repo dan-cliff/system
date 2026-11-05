@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Manufacturing',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Supply Chain/Manufacturing',
     'sequence': 40,
     'summary': 'A modern Manufacturing app: dashboard, permissions and a Work Centre app '
@@ -47,8 +47,15 @@ place on the home screen, opening on its Dashboard.
 * Lists start with the record ID and dates show as dd/mm/yyyy. Report
   Builder's Reports menu sits before Configuration.
 
-Add-ons (install automatically): Checklists QA checks in the Work Centre app
-(advanced_manufacturing_checklists), On Site sign in checks
+Settings › Manufacturing remaps Odoo's Enterprise options to our apps:
+
+* Barcode Scanner (shown when the Scanner app is installed) installs
+  advanced_manufacturing_scanner: a Manufacture tile on the Scanner to scan
+  components, record the quantity and lot, and produce.
+* Quality installs advanced_manufacturing_checklists: QA checklists from the
+  Checklists app, with the QA Checklist Groups chosen right under it.
+
+Add-ons that install automatically: On Site sign in checks
 (advanced_manufacturing_attendance) and Actions on manufacturing orders
 (advanced_actions_manufacturing).
 """,

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Manufacturing - Checklists',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Supply Chain/Manufacturing',
     'summary': 'QA checklists from the Work Centre app, linked to the product and lot produced',
     'description': """
-Installs automatically when both Manufacturing and Checklists are installed.
+Switched on from Settings › Manufacturing › Quality (installs Checklists if
+needed); switching Quality off removes it.
 
-- Settings › Manufacturing › Quality Checks: choose the Checklist Groups used
-  for QA checks.
+- Under Quality, choose the QA Checklist Groups used for QA checks.
 - When any are chosen, workers can start QA checklists from those groups'
   templates on the Work Centre app (QA, on each work order), online or offline.
 - Checklists created there are filled in with what the work order knows:
@@ -27,7 +27,6 @@ Installs automatically when both Manufacturing and Checklists are installed.
         'views/mrp_views.xml',
         'views/res_config_settings_views.xml',
     ],
-    'auto_install': True,
     'installable': True,
     'license': 'LGPL-3',
 }

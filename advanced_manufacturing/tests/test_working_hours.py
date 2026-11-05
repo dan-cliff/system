@@ -48,3 +48,30 @@ class TestWorkingHours(TransactionCase):
         workcenter = self._workcenter(self.child, self.group_hours)
         with self.assertRaises(ValidationError):
             workcenter.company_id = self.other
+
+
+@tagged('post_install', '-at_install')
+class TestRelatedCompanyWorkers(TransactionCase):
+
+    def test_related_company_employees_sign_in(self):
+        Company = self.env['res.company']
+        group = Company.create({'name': 'Test Group Co'})
+        crafts = Company.create({'name': 'Test Crafts Co', 'parent_id': group.id})
+        sister = Company.create({'name': 'Test Sister Co', 'parent_id': group.id})
+        unrelated = Company.create({'name': 'Test Other Co'})
+        workcenter = self.env['mrp.workcenter'].create({
+            'name': 'Kiln', 'company_id': crafts.id, 'resource_calendar_id': group.resource_calendar_id.id})
+        Employee = self.env['hr.employee']
+        own = Employee.create({'name': 'Own Worker', 'company_id': crafts.id, 'barcode': 'TREL-1'})
+        from_group = Employee.create({'name': 'Group Worker', 'company_id': group.id, 'barcode': 'TREL-2'})
+        from_sister = Employee.create({'name': 'Sister Worker', 'company_id': sister.id, 'barcode': 'TREL-3'})
+        outsider = Employee.create({'name': 'Outside Worker', 'company_id': unrelated.id, 'barcode': 'TREL-4'})
+        for employee in (own, from_group, from_sister):
+            self.assertTrue(workcenter._terminal_can_use(employee), employee.name)
+            self.assertEqual(workcenter._terminal_find_badge(employee.barcode), employee)
+        self.assertFalse(workcenter._terminal_can_use(outsider))
+        self.assertIsNone(workcenter._terminal_find_badge('TREL-4'))
+        self.assertEqual(workcenter.terminal_company_ids, group | crafts | sister)
+        names = [e['name'] for e in workcenter._terminal_data()['employees']]
+        self.assertIn('Sister Worker', names)
+        self.assertNotIn('Outside Worker', names)
