@@ -5,3 +5,4 @@ from . import test_terminal_http
 from . import test_access
 from . import test_working_hours
 from . import test_route
+from . import test_product_selection
