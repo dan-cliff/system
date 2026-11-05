@@ -32,7 +32,12 @@ def post_init_hook(env):
 
 
 def uninstall_hook(env):
-    """Give Odoo's Manufacturing app back its icon and its Work Centers."""
+    """Give Odoo's Manufacturing app back its icon and its Work Centers, and
+    products their usual company rule (own and parent companies only)."""
+    from .models.product_company import ODOO_PRODUCT_RULE
+    rule = env.ref('product.product_comp_rule', raise_if_not_found=False)
+    if rule:
+        rule.domain_force = ODOO_PRODUCT_RULE
     root = env.ref('mrp.menu_mrp_root', raise_if_not_found=False)
     if root:
         root.write({'name': 'Manufacturing', 'web_icon': 'mrp,static/description/icon.png', 'action': False})

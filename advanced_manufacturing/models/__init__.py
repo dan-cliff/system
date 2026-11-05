@@ -9,3 +9,4 @@ from . import mrp_production
 from . import terminal_event
 from . import manufacturing_dashboard
 from . import manufacturing_route
+from . import product_company
