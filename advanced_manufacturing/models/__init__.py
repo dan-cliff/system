@@ -7,3 +7,4 @@ from . import mrp_workcenter_productivity
 from . import mrp_production
 from . import terminal_event
 from . import manufacturing_dashboard
+from . import manufacturing_route

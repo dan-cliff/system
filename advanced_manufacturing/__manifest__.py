@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Manufacturing',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Supply Chain/Manufacturing',
     'sequence': 40,
     'summary': 'A modern Manufacturing app: dashboard, permissions and a Work Centre app '
@@ -37,6 +37,11 @@ place on the home screen, opening on its Dashboard.
     did it. Offline use is limited to the hours set in Settings. What could
     not be synced is shown on the work centre and in the Work Centre App Log.
 * Operations get Instructions shown on the Work Centre app.
+* Manufacture: Pick, Produce and Store, a route for Cliffs Country Crafts'
+  warehouse, selectable on products and product categories: components are
+  picked from stock to the Manufacturing Pick Area, the manufacturing order
+  produces into the Manufacturing Output area, and the new product is stored
+  in stock. Created once, then edited in Inventory › Configuration › Routes.
 * Permissions (Permission Management): Manufacturing Orders, Bills of
   Materials and Unbuild Orders each get Create Only, Create and Edit Own / My
   Team / All, View All, Delete Own / All; work orders and time logs follow
@@ -72,6 +77,7 @@ Add-ons that install automatically: On Site sign in checks
         'views/terminal_templates.xml',
         'views/menus.xml',
         'data/manufacturing_titles.xml',
+        'data/manufacturing_route_data.xml',
     ],
     'assets': {
         'web.assets_backend': [
