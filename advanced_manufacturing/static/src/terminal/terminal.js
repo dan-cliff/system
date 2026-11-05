@@ -106,6 +106,12 @@
         return Math.floor(total / 60) + ':' + pad(total % 60);
     }
 
+    // The running timer: hours:minutes:seconds.
+    function fmtTimer(minutes) {
+        const total = Math.max(0, Math.floor(minutes * 60));
+        return Math.floor(total / 3600) + ':' + pad(Math.floor(total / 60) % 60) + ':' + pad(total % 60);
+    }
+
     function initials(name) {
         return (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
     }
@@ -643,11 +649,12 @@
     function elapsedMinutes(wo) {
         let minutes = wo.duration || 0;
         // Odoo's duration already includes running timers up to the last refresh;
-        // add the time since for the timers still running.
-        const since = new Date(state.dataTime || Date.now());
-        for (const run of wo.running) {
-            const start = new Date(run.start);
-            minutes += (Date.now() - Math.max(start.getTime(), since.getTime())) / 60000;
+        // add the time since then while any timer runs. Workers' timers overlap,
+        // and Odoo counts overlapping time once, so this does too.
+        if (wo.running.length) {
+            const since = state.dataTime || Date.now();
+            const earliest = Math.min(...wo.running.map((run) => new Date(run.start).getTime()));
+            minutes += Math.max(0, Date.now() - Math.max(earliest, since)) / 60000;
         }
         return minutes;
     }
@@ -655,7 +662,7 @@
     function updateTimers() {
         const wo = workorderById(state.workorderId);
         const node = $('w-elapsed');
-        if (wo && node) node.textContent = fmtMinutes(elapsedMinutes(wo));
+        if (wo && node) node.textContent = fmtTimer(elapsedMinutes(wo));
     }
 
     function section(title, ...children) {
@@ -681,7 +688,7 @@
         // Time
         blocks.push(section('Time',
             el('div', { class: 'w-time' },
-                el('div', { class: 'w-elapsed', id: 'w-elapsed' }, fmtMinutes(elapsedMinutes(wo))),
+                el('div', { class: 'w-elapsed', id: 'w-elapsed' }, fmtTimer(elapsedMinutes(wo))),
                 el('div', { class: 'w-expected' }, 'Expected ' + fmtMinutes(wo.duration_expected || 0))),
             names.length ? el('div', { class: 'w-working' }, 'Working now: ' + names.join(', ')) : null,
             el('div', { class: 'w-actions' },
