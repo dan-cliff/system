@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Manufacturing',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'category': 'Supply Chain/Manufacturing',
     'sequence': 40,
     'summary': 'A modern Manufacturing app: dashboard, permissions and a Work Centre app '
