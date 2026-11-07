@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Laser Jobbing has no app of its own: its jobs are collected and worked
+         through in Manufacturing, and its templates and options sit under
+         Manufacturing's Configuration. -->
+    <menuitem id="menu_laser_jobs" name="Laser Jobs" parent="mrp.menu_mrp_manufacturing"
+              action="laser_jobbing.action_laser_job" groups="laser_jobbing.group_laser_user" sequence="15"/>
+
+    <menuitem id="menu_laser_config" name="Laser Jobbing" parent="mrp.menu_mrp_configuration"
+              groups="laser_jobbing.group_laser_admin" sequence="80"/>
+    <menuitem id="menu_laser_templates" name="Laser Templates" parent="menu_laser_config"
+              action="laser_jobbing.action_laser_template" sequence="10"/>
+    <menuitem id="menu_laser_fonts" name="Laser Fonts" parent="menu_laser_config"
+              action="laser_jobbing.action_laser_font" sequence="20"/>
+    <menuitem id="menu_laser_materials" name="Laser Materials" parent="menu_laser_config"
+              action="laser_jobbing.action_laser_material" sequence="30"/>
+</odoo>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_view" model="ir.ui.view">
+        <field name="name">mrp.production.form.laser_jobbing</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_laser_jobs" type="object" class="oe_stat_button" icon="fa-bolt"
+                        groups="laser_jobbing.group_laser_user" invisible="not laser_job_count">
+                    <field name="laser_job_count" widget="statinfo" string="Laser Jobs"/>
+                </button>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Laser Files" name="laser_files" groups="laser_jobbing.group_laser_user"
+                      invisible="not laser_job_count">
+                    <field name="laser_job_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="template_id"/>
+                            <field name="operation"/>
+                            <field name="personalisation_summary"/>
+                            <field name="material_id" optional="show"/>
+                            <field name="quantity"/>
+                            <field name="output_filename"/>
+                            <field name="output_file" column_invisible="1"/>
+                            <field name="state" widget="badge"/>
+                            <button name="action_download_output" type="object" icon="fa-download"
+                                    title="Download Laser File" invisible="not output_file"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_laser_job_form" model="ir.ui.view">
+        <field name="name">laser.job.form.manufacturing</field>
+        <field name="model">laser.job</field>
+        <field name="inherit_id" ref="laser_jobbing.view_laser_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_download_output']" position="before">
+                <button name="action_create_production" type="object" string="Create Manufacturing Order"
+                        groups="mrp.group_mrp_user"
+                        invisible="production_id or not has_bom or state not in ('draft', 'confirmed')"/>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_view_production" type="object" class="oe_stat_button" icon="fa-wrench"
+                        groups="mrp.group_mrp_user" invisible="not production_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Manufacturing</span>
+                        <field name="production_id" class="o_stat_value" readonly="1" options="{'no_open': True}"/>
+                    </div>
+                </button>
+            </div>
+            <field name="origin" position="after">
+                <field name="has_bom" invisible="1"/>
+                <field name="production_state" invisible="not production_id" groups="mrp.group_mrp_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_laser_job_list" model="ir.ui.view">
+        <field name="name">laser.job.list.manufacturing</field>
+        <field name="model">laser.job</field>
+        <field name="inherit_id" ref="laser_jobbing.view_laser_job_list"/>
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="production_id" optional="show" groups="mrp.group_mrp_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_laser_job_search" model="ir.ui.view">
+        <field name="name">laser.job.search.manufacturing</field>
+        <field name="model">laser.job</field>
+        <field name="inherit_id" ref="laser_jobbing.view_laser_job_search"/>
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="production_id" groups="mrp.group_mrp_user"/>
+            </field>
+            <filter name="no_file" position="after">
+                <filter name="no_production" string="No Manufacturing Order" domain="[('production_id', '=', False)]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>
