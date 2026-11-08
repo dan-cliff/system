@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Multi-company: users only see assets (and their logs) of their allowed companies. -->
+    <record id="rule_asset_asset_company" model="ir.rule">
+        <field name="name">Asset: multi-company</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_asset_usage_log_company" model="ir.rule">
+        <field name="name">Asset Usage Log: multi-company</field>
+        <field name="model_id" ref="model_asset_usage_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_asset_defect_company" model="ir.rule">
+        <field name="name">Asset Defect: multi-company</field>
+        <field name="model_id" ref="model_asset_defect"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_asset_maintenance_log_company" model="ir.rule">
+        <field name="name">Asset Maintenance Log: multi-company</field>
+        <field name="model_id" ref="model_asset_maintenance_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_asset_location_log_company" model="ir.rule">
+        <field name="name">Asset Location Log: multi-company</field>
+        <field name="model_id" ref="model_asset_location_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

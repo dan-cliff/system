@@ -102,6 +102,9 @@
                             <field name="serial_number"/>
                             <field name="registration_number"/>
                             <field name="location"/>
+                            <!-- Moved to the top of the Organisation section by org_structure. -->
+                            <field name="company_id" groups="base.group_multi_company"
+                                   options="{'no_create': True}"/>
                         </group>
                     </group>
 
@@ -322,6 +325,7 @@
                 <field name="latest_usage_unit" optional="show"/>
                 <field name="latest_usage_date" optional="show"/>
                 <field name="open_defect_count" optional="show" string="Open Defects"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'active'"
                        decoration-warning="state == 'maintenance'"
@@ -373,6 +377,7 @@
                 <field name="asset_subtype_id"/>
                 <field name="serial_number"/>
                 <field name="location"/>
+                <field name="company_id" groups="base.group_multi_company"/>
                 <separator/>
                 <filter name="active" string="Active" domain="[('state','=','active')]"/>
                 <filter name="maintenance" string="Under Maintenance" domain="[('state','=','maintenance')]"/>
@@ -384,6 +389,8 @@
                     <filter name="group_subtype" string="Sub-Type" context="{'group_by': 'asset_subtype_id'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_location" string="Location" context="{'group_by': 'location'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
                 </group>
                 <searchpanel>
                     <field name="asset_type_id" string="Asset Type" enable_counters="1" expand="1"/>

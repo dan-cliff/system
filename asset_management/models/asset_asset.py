@@ -11,6 +11,8 @@ class Asset(models.Model):
     _description = 'Asset'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'asset_number desc'
+    # Show the Company at the top of the Organisation section of the form.
+    _org_form_company = True
 
     # ── Identity ──────────────────────────────────────────────────────────────
     name = fields.Char(string='Asset Name', required=True, tracking=True)
@@ -38,6 +40,17 @@ class Asset(models.Model):
         tracking=True,
     )
     notes = fields.Html(string='Notes')
+    company_id = fields.Many2one(
+        'res.company',
+        string='Company',
+        required=True,
+        index=True,
+        tracking=True,
+        default=lambda self: self.env.company,
+        help='The company this asset is allocated to. Changing it moves the '
+             "asset's linked records (logs, defects, inspections, checklists, "
+             '...) to the same company.',
+    )
 
     # ── Purchase Information ──────────────────────────────────────────────────
     supplier_id = fields.Many2one(
@@ -350,6 +363,46 @@ class Asset(models.Model):
             if vals.get('asset_number', 'New') == 'New':
                 vals['asset_number'] = self.env['ir.sequence'].next_by_code('asset.asset') or 'New'
         return super().create(vals_list)
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'company_id' in vals:
+            self._sync_company_to_linked_records()
+        return res
+
+    @api.model
+    def _asset_company_links(self):
+        """(model, field) pairs of every model that links to an asset and
+        keeps its own Company, so they follow the asset's company. Models
+        whose company is related to the asset follow it on their own."""
+        links = []
+        for model_name in self.env.registry:
+            Model = self.env[model_name]
+            if model_name == self._name or Model._abstract or Model._transient or not Model._auto:
+                continue
+            company = Model._fields.get('company_id')
+            if (not company or company.type != 'many2one'
+                    or company.comodel_name != 'res.company'
+                    or not company.store or company.related or company.compute):
+                continue
+            links += [
+                (model_name, name) for name, field in Model._fields.items()
+                if field.type == 'many2one' and field.comodel_name == self._name
+                and field.store and not field.related and not field.compute
+            ]
+        return links
+
+    def _sync_company_to_linked_records(self):
+        """Move every record linked to these assets to the asset's company."""
+        links = self._asset_company_links()
+        for asset in self:
+            for model_name, field_name in links:
+                records = self.env[model_name].sudo().with_context(active_test=False).search([
+                    (field_name, '=', asset.id),
+                    ('company_id', '!=', asset.company_id.id),
+                ])
+                if records:
+                    records.write({'company_id': asset.company_id.id})
 
     @api.onchange('asset_type_id')
     def _onchange_asset_type(self):
