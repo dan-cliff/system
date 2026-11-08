@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Asset Management',
-    'version': '19.0.1.0.2',
+    'version': '19.0.1.1.0',
     'category': 'Operations/Assets',
     'summary': 'Track physical assets with usage logs, defect reports, maintenance history and a mobile-first PWA control plane.',
     'author': 'Custom',
@@ -9,6 +9,7 @@
     'data': [
         'security/asset_security.xml',
         'security/ir.model.access.csv',
+        'security/asset_company_rules.xml',
         'data/res_lang_data.xml',
         'data/asset_sequence.xml',
         'data/asset_maintenance_type_data.xml',

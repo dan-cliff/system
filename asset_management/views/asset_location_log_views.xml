@@ -12,6 +12,7 @@
                 <field name="longitude" digits="[10,7]"/>
                 <field name="accuracy" string="Accuracy (m)" optional="show"/>
                 <field name="source" optional="hide"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
             </list>
         </field>
     </record>
@@ -25,6 +26,7 @@
                     <group>
                         <group string="Details">
                             <field name="asset_id" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
                             <field name="recorded_at" readonly="1"/>
                             <field name="source" readonly="1"/>
                         </group>
