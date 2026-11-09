@@ -283,6 +283,23 @@ class TestInventoryDesigns(TransactionCase):
         html, _t = Report._render_qweb_html(warehouse_label.report_name, self.warehouse.ids)
         self.assertIn(self.warehouse.name.encode(), html)
 
+    def test_deleted_label_left_out_of_print_menu(self):
+        """A page still offering a deleted label design doesn't fail."""
+        Report = self.env['ir.actions.report']
+        tote = self.env['stock.location'].create({
+            'name': 'T', 'location_id': self.warehouse.lot_stock_id.id, 'storage_level': 'tote'})
+        design = self.env.ref('advanced_inventory.label_tote')
+        action = design.report_action_id
+        action_id, report_name = action.id, action.report_name
+        design.unlink()
+        self.assertFalse(action.exists())
+        # The browser's cached Print menu still lists the deleted action.
+        self.assertEqual(Report.browse([action_id]).get_valid_action_reports('stock.location', tote.ids), [])
+        with self.assertRaisesRegex(UserError, 'label design has been deleted'):
+            Report._render_qweb_pdf(report_name, tote.ids)
+        with self.assertRaisesRegex(UserError, 'no label design for tote'):
+            tote.action_print_layout_label()
+
     def test_product_label_on_product_form(self):
         label = self.env.ref('advanced_inventory.label_product')
         action = label.report_template_action_id
