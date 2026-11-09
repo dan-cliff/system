@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view" model="ir.ui.view">
+        <field name="name">product.template.form.laser_jobbing</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Laser Personalisation" name="laser_personalisation">
+                    <group>
+                        <group>
+                            <field name="laser_template_id"/>
+                        </group>
+                        <group>
+                            <div class="text-muted" colspan="2">
+                                Every piece of this product sold gets a laser job made from this template, with
+                                the text and pictures the customer (or an employee) fills in.
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_search_view" model="ir.ui.view">
+        <field name="name">product.template.search.laser_jobbing</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_to_sell']" position="before">
+                <filter name="laser_personalised" string="Laser Personalised" domain="[('laser_personalised', '=', True)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_laser_job" model="ir.sequence">
+            <field name="name">Laser Job</field>
+            <field name="code">laser.job</field>
+            <field name="prefix">LJ/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Starting fonts: no files, so they draw in the browser's and server's own
+             families. Upload .ttf / .otf files (Configuration › Laser Fonts) for
+             outlined cutting text and exact previews. -->
+        <record id="font_sans" model="laser.font">
+            <field name="name">Sans Serif</field>
+            <field name="sequence">10</field>
+            <field name="css_family">sans-serif</field>
+        </record>
+        <record id="font_serif" model="laser.font">
+            <field name="name">Serif</field>
+            <field name="sequence">20</field>
+            <field name="css_family">serif</field>
+        </record>
+        <record id="font_script" model="laser.font">
+            <field name="name">Script</field>
+            <field name="sequence">30</field>
+            <field name="css_family">cursive</field>
+        </record>
+        <record id="font_mono" model="laser.font">
+            <field name="name">Monospace</field>
+            <field name="sequence">40</field>
+            <field name="css_family">monospace</field>
+        </record>
+
+        <!-- Starting materials -->
+        <record id="material_plywood_3" model="laser.material">
+            <field name="name">Plywood 3 mm</field>
+            <field name="sequence">10</field>
+            <field name="thickness_mm">3</field>
+        </record>
+        <record id="material_mdf_3" model="laser.material">
+            <field name="name">MDF 3 mm</field>
+            <field name="sequence">20</field>
+            <field name="thickness_mm">3</field>
+        </record>
+        <record id="material_acrylic_3" model="laser.material">
+            <field name="name">Acrylic 3 mm</field>
+            <field name="sequence">30</field>
+            <field name="thickness_mm">3</field>
+        </record>
+        <record id="material_leather" model="laser.material">
+            <field name="name">Leather</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="material_slate" model="laser.material">
+            <field name="name">Slate</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="material_glass" model="laser.material">
+            <field name="name">Glass</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="material_anodised_aluminium" model="laser.material">
+            <field name="name">Anodised Aluminium</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="material_stainless_steel" model="laser.material">
+            <field name="name">Stainless Steel</field>
+            <field name="sequence">80</field>
+        </record>
+    </data>
+</odoo>

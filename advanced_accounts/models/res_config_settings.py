@@ -13,6 +13,7 @@ class ResConfigSettings(models.TransientModel):
     module_advanced_accounts_feature_suggestions = fields.Boolean("Accounts and Contacts in Feature Suggestions")
     module_advanced_accounts_print_farm = fields.Boolean("Accounts and Contacts in Print Farm Jobs")
     module_advanced_accounts_embroidery = fields.Boolean("Accounts and Contacts in Embroidery Jobs")
+    module_advanced_accounts_laser_jobbing = fields.Boolean("Accounts and Contacts in Laser Jobs")
     module_advanced_accounts_checklists = fields.Boolean("Accounts and Contacts in Checklists")
     module_advanced_accounts_signr = fields.Boolean("Accounts and Contacts in Sign'r")
     module_advanced_accounts_purchase = fields.Boolean("Accounts and Contacts in Purchase")
