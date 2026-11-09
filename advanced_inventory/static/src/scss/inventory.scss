@@ -2,3 +2,12 @@
 .o_inventory_layout_kanban .o_kanban_record {
     border-radius: 0.75rem;
 }
+
+// Label Design, Sign Design and Digital Sign forms have no chatter: let the
+// sheet use the whole width of the window.
+.o_form_view.o_inventory_full_width {
+    .o_form_renderer,
+    .o_form_renderer > .o_form_sheet_bg {
+        max-width: none;
+    }
+}
