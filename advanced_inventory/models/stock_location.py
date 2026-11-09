@@ -18,16 +18,25 @@ LEVEL_PREFIX = {'room': 'R', 'aisle': 'A', 'shelf': 'S', 'tote': 'T'}
 
 
 class StockLocation(models.Model):
-    _inherit = 'stock.location'
+    _name = 'stock.location'
+    _inherit = ['stock.location', 'mail.thread', 'mail.activity.mixin']
     # Locations list in walk order, so every picker of locations follows the route.
     _order = 'walk_sequence, complete_name, id'
 
+    # Tracked in the chatter.
+    name = fields.Char(tracking=True)
+    location_id = fields.Many2one(tracking=True)
+    usage = fields.Selection(tracking=True)
+    barcode = fields.Char(tracking=True)
+    active = fields.Boolean(tracking=True)
+    company_id = fields.Many2one(tracking=True)
+
     storage_level = fields.Selection(
-        STORAGE_LEVELS, string='Layout Level', index=True,
+        STORAGE_LEVELS, string='Layout Level', index=True, tracking=True,
         help='Where this location sits in the warehouse layout: a room, an aisle in it, '
              'a shelf in the aisle or a tote on the shelf.')
     layout_code = fields.Char(
-        string='Layout Code', size=12,
+        string='Layout Code', size=12, tracking=True,
         help='Short code shown on the floor plan, labels and signs, e.g. A3 for aisle 3. '
              'Also builds the barcode of new locations.')
     layout_x = fields.Float(string='X (m)', digits=(16, 2))
