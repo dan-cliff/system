@@ -146,3 +146,35 @@ class TestBarcodeLookup(TransactionCase):
             self.assertEqual(Overview.scanner_lookup('000')['barcode_db'], {'found': False})
         self.env['ir.config_parameter'].sudo().set_param(barcode_lookup.KEY_PARAM, False)
         self.assertFalse(Overview.scanner_lookup('000')['barcode_db'])
+
+    def test_name_optional_with_barcode(self):
+        """With a barcode the name may be left empty: it comes from the Barcode Database."""
+        view = 'product.product_template_only_form_view'
+        with self._patch(fake_get()):
+            form = Form(self.env['product.template'], view=view)
+            form.barcode = '9300000000017'
+            self.assertEqual(form.name, 'Merino Wool Beanie')  # filled in on entering the barcode
+            product = form.save()
+        self.assertEqual(product.name, 'Merino Wool Beanie')
+        # Unknown barcode: the onchange warns, and saving names the product after its barcode.
+        with self._patch(fake_get(404)):
+            form = Form(self.env['product.template'], view=view)
+            form.barcode = '0000000000000'
+            product = form.save()
+        self.assertEqual(product.name, '0000000000000')
+        # Without a barcode the name is still required.
+        form = Form(self.env['product.template'], view=view)
+        with self.assertRaises(AssertionError):
+            form.save()
+
+    def test_create_and_clear_name_with_barcode(self):
+        with self._patch(fake_get()):
+            product = self.env['product.template'].create({'barcode': '9300000000017', 'sale_ok': False})
+        self.assertEqual(product.name, 'Merino Wool Beanie')
+        self.assertFalse(product.sale_ok)  # what was entered is kept
+        self.assertTrue(product.image_1920)
+        self.env['ir.config_parameter'].sudo().set_param(barcode_lookup.KEY_PARAM, False)
+        product = self.env['product.template'].create({'barcode': '123456789'})
+        self.assertEqual(product.name, '123456789')
+        product.write({'name': False})
+        self.assertEqual(product.name, '123456789')

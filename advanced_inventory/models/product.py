@@ -77,7 +77,15 @@ class ProductTemplate(models.Model):
             self.cost_from_analysis = False
 
     def write(self, vals):
-        res = super().write(vals)
+        if 'name' in vals and not vals['name'] and (vals.get('barcode') or all(self.mapped('barcode'))):
+            # The name is optional on the form once there is a barcode: a cleared name
+            # comes back from the Barcode Database, or becomes the barcode.
+            res = True
+            for product in self:
+                name = self._barcode_lookup_create_values({'barcode': vals.get('barcode') or product.barcode})['name']
+                res = super(ProductTemplate, product).write(dict(vals, name=name)) and res
+        else:
+            res = super().write(vals)
         if 'cost_analysis_id' in vals or vals.get('cost_from_analysis'):
             self.filtered('cost_from_analysis')._apply_analysis_cost()
         return res
@@ -103,16 +111,50 @@ class ProductTemplate(models.Model):
 
     @api.onchange('barcode')
     def _onchange_barcode_lookup(self):
-        """Typing or scanning a barcode fills in what the product doesn't have yet."""
+        """Entering or scanning a barcode fills in what the product doesn't have yet."""
         Lookup = self.env['advanced.inventory.barcode.lookup']
-        if not self.barcode or not Lookup._available() or self.name and self.image_1920:
+        if not self.barcode or not Lookup._available():
             return
         try:
             data = Lookup._fetch(self.barcode)
-        except Exception:  # noqa: BLE001 - never block typing a barcode; the button reports errors
-            return
-        if data:
-            self.update(Lookup._product_values(data, self))
+        except Exception as error:  # noqa: BLE001 - never block entering a barcode
+            problem = str(error)
+        else:
+            if data:
+                self.update(Lookup._product_values(data, self))
+                return
+            problem = _("The Barcode Database doesn't know the barcode %s.", self.barcode)
+        if not self.name:
+            return {'warning': {
+                'type': 'notification',
+                'title': _('Barcode Database'),
+                'message': _('%s Enter a product name, or the barcode will be used as the name.', problem),
+            }}
+
+    @api.model
+    def _barcode_lookup_create_values(self, vals):
+        """A product saved with a barcode and no name: fill it in from the Barcode Database,
+        falling back to the barcode as its name."""
+        if vals.get('name') or not vals.get('barcode'):
+            return vals
+        barcode = vals['barcode'].strip()
+        Lookup = self.env['advanced.inventory.barcode.lookup']
+        if Lookup._available():
+            try:
+                data = Lookup._fetch(barcode)
+            except Exception:  # noqa: BLE001 - the barcode still names the product
+                data = None
+            if data:
+                # What was entered wins; the Barcode Database fills in what was left empty.
+                found = Lookup._product_values(data)
+                vals = dict(found, **{key: value for key, value in vals.items() if value or key not in found})
+        if not vals.get('name'):
+            vals = dict(vals, name=barcode)
+        return vals
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        return super().create([self._barcode_lookup_create_values(vals) for vals in vals_list])
 
     def action_barcode_lookup(self):
         """Fill in the product from the Barcode Database (only fields it doesn't have yet)."""
