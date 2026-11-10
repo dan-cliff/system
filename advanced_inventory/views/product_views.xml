@@ -72,6 +72,21 @@
             </xpath>
         </field>
     </record>
+    <!-- Bulk Scan: scan barcodes one after another to create their products. -->
+    <record id="product_template_tree_bulk_scan" model="ir.ui.view">
+        <field name="name">product.template.list.advanced_inventory.bulk_scan</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="action_open_bulk_scan" type="object" string="Bulk Scan" icon="fa-barcode"
+                            class="btn-secondary" display="always" groups="stock.group_stock_manager"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Barcode Database: fill the product in from its barcode (barcodelookup.com). -->
     <record id="product_template_only_form_barcode_lookup" model="ir.ui.view">
         <field name="name">product.template.form.advanced_inventory.barcode_lookup</field>

@@ -96,6 +96,7 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
             'advanced_inventory/static/src/designer/**/*',
             'advanced_inventory/static/src/layout_designer/**/*',
             'advanced_inventory/static/src/overview/**/*',
+            'advanced_inventory/static/src/bulk_scan/**/*',
         ],
         'web.assets_tests': [
             'advanced_inventory/static/tests/**/*',
