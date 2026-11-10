@@ -72,6 +72,7 @@ menu other apps put under Odoo's Inventory menu moves here automatically.
         'report/walk_list_report.xml',
         'views/inventory_menus.xml',
         'views/stock_location_views.xml',
+        'views/res_config_settings_views.xml',
         'views/stock_warehouse_views.xml',
         'views/stock_picking_views.xml',
         'views/stock_move_line_views.xml',

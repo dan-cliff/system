@@ -72,3 +72,18 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+// Barcode Database result for an unknown barcode
+.o_inventory_barcode_db_image {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    background: #F2F2FA;
+}
+.o_inventory_barcode_db_description {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
