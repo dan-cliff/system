@@ -5,7 +5,7 @@ import requests
 
 from odoo.exceptions import UserError
 from odoo.tests import Form, tagged
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import HttpCase, TransactionCase
 
 from odoo.addons.advanced_inventory.models import barcode_lookup
 
@@ -178,3 +178,52 @@ class TestBarcodeLookup(TransactionCase):
         self.assertEqual(product.name, '123456789')
         product.write({'name': False})
         self.assertEqual(product.name, '123456789')
+
+    def test_bulk_scan_barcode(self):
+        Product = self.env['product.template']
+        action = Product.action_open_bulk_scan()
+        self.assertEqual((action['tag'], action['target']), ('advanced_inventory.bulk_scan', 'new'))
+        self.assertTrue(Product.bulk_scan_info()['available'])
+        with self._patch(fake_get()):
+            created = Product.bulk_scan_barcode(' 9300000000017 ')
+            again = Product.bulk_scan_barcode('9300000000017')
+        self.assertEqual(created['status'], 'created')
+        self.assertEqual(created['name'], 'Merino Wool Beanie')
+        product = Product.browse(created['id'])
+        self.assertEqual(product.barcode, '9300000000017')
+        self.assertTrue(product.is_storable)
+        self.assertEqual((again['status'], again['id']), ('exists', product.id))
+        with self._patch(fake_get(404)):
+            self.assertEqual(Product.bulk_scan_barcode('000')['status'], 'failed')
+        with self._patch(fake_get(429)):
+            failed = Product.bulk_scan_barcode('001')
+        self.assertEqual(failed['status'], 'failed')
+        self.assertIn('lookup limit', failed['message'])
+        self.assertEqual(Product.bulk_scan_barcode('  ')['status'], 'failed')
+        self.env['ir.config_parameter'].sudo().set_param(barcode_lookup.KEY_PARAM, False)
+        self.assertFalse(Product.bulk_scan_info()['available'])
+        self.assertIn('API key', Product.bulk_scan_barcode('002')['message'])
+
+
+@tagged('post_install', '-at_install')
+class TestBulkScanTour(HttpCase):
+
+    def test_bulk_scan_tour(self):
+        self.env['ir.config_parameter'].sudo().set_param(barcode_lookup.KEY_PARAM, 'test-key')
+        get = fake_get()
+        real_get = requests.get
+
+        def lookup(url, *args, **kwargs):
+            # Only barcodelookup.com and its pictures are faked; the test browser's own
+            # requests (e.g. to Chrome) go through.
+            if url == barcode_lookup.API_URL:
+                if kwargs['params']['barcode'] == '0000000000000':
+                    return FakeResponse(404, {'products': []})
+                return get(url, *args, **kwargs)
+            if url.startswith('https://images.example.com/'):
+                return get(url, *args, **kwargs)
+            return real_get(url, *args, **kwargs)
+        with patch.object(barcode_lookup.requests, 'get', lookup):
+            self.start_tour('/odoo/action-stock.product_template_action_product?view_type=list',
+                            'advanced_inventory_bulk_scan', login='admin')
+        self.assertEqual(self.env['product.template'].search_count([('barcode', '=', '9300000000017')]), 1)

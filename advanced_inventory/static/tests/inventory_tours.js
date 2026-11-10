@@ -59,3 +59,34 @@ registry.category("web_tour.tours").add("advanced_inventory_sign_designer", {
         { trigger: ".o_form_saved" },
     ],
 });
+
+registry.category("web_tour.tours").add("advanced_inventory_bulk_scan", {
+    steps: () => [
+        { trigger: ".o_list_view .o_list_button_bulk_scan, .o_list_view button[name='action_open_bulk_scan']", run: "click" },
+        { trigger: ".o_bulk_scan .o_bulk_scan_input" },
+        // A barcode the Barcode Database knows: its product is created.
+        { trigger: ".o_bulk_scan_input", run: "edit 9300000000017" },
+        { trigger: ".o_bulk_scan_input", run: "press Enter" },
+        // Scanning carries on straight away: an unknown barcode, then one already used.
+        { trigger: ".o_bulk_scan_input", run: "edit 0000000000000" },
+        { trigger: ".o_bulk_scan_input", run: "press Enter" },
+        { trigger: ".o_bulk_scan_input", run: "edit 9300000000017" },
+        { trigger: ".o_bulk_scan_input", run: "press Enter" },
+        { trigger: ".o_bulk_scan_created:contains('Merino Wool Beanie')" },
+        { trigger: ".o_bulk_scan_failed:contains('0000000000000'):contains(\"doesn't know\")" },
+        { trigger: ".o_bulk_scan_exists:contains('Already a product')" },
+        { trigger: ".o_bulk_scan_counts:contains('1 created'):contains('1 already products'):contains('1 failed')" },
+        {
+            trigger: ".o_bulk_scan_input",
+            run() {
+                const value = document.querySelector(".o_bulk_scan_input").value;
+                if (value) {
+                    throw new Error(`The scan box still holds "${value}" after scanning.`);
+                }
+            },
+        },
+        { trigger: ".o_bulk_scan_close", run: "click" },
+        // The list reloads with the new product.
+        { trigger: ".o_list_view .o_data_row:contains('Merino Wool Beanie')" },
+    ],
+});

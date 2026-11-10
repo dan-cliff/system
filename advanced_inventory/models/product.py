@@ -156,6 +156,57 @@ class ProductTemplate(models.Model):
     def create(self, vals_list):
         return super().create([self._barcode_lookup_create_values(vals) for vals in vals_list])
 
+    # ── Bulk Scan ─────────────────────────────────────────────────────────
+    def action_open_bulk_scan(self):
+        """The products list's Bulk Scan button: scan barcodes one after another."""
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'advanced_inventory.bulk_scan',
+            'name': _('Bulk Scan'),
+            'target': 'new',
+            'context': {'dialog_size': 'large', 'footer': False},
+        }
+
+    @api.model
+    def bulk_scan_info(self):
+        return {'available': self.env['advanced.inventory.barcode.lookup']._available()}
+
+    @api.model
+    def bulk_scan_barcode(self, barcode):
+        """Turn one scanned barcode into a product, from the Barcode Database.
+
+        Never raises: returns {'status': 'created' | 'exists' | 'failed', 'barcode',
+        'message', 'id', 'name'} so one bad scan doesn't stop the next."""
+        barcode = (barcode or '').strip()
+        result = {'barcode': barcode, 'id': False, 'name': ''}
+        if not barcode:
+            return dict(result, status='failed', message=_('Empty barcode.'))
+        existing = self.env['product.product'].with_context(active_test=False).search(
+            [('barcode', '=', barcode)], limit=1)
+        if existing:
+            return dict(result, status='exists', id=existing.product_tmpl_id.id, name=existing.display_name,
+                        message=_('Already a product.'))
+        Lookup = self.env['advanced.inventory.barcode.lookup']
+        if not Lookup._available():
+            return dict(result, status='failed', message=Lookup._no_key_message())
+        try:
+            data = Lookup._fetch(barcode)
+        except Exception as error:  # noqa: BLE001 - reported on the scan's row
+            return dict(result, status='failed', message=str(error))
+        if not data:
+            return dict(result, status='failed', message=_("The Barcode Database doesn't know this barcode."))
+        try:
+            with self.env.cr.savepoint():
+                vals = Lookup._product_values(data)
+                vals.update({'barcode': barcode, 'type': 'consu', 'is_storable': True})
+                vals.setdefault('name', barcode)
+                product = self.create(vals)
+                product.message_post(body=_('Created by Bulk Scan from the Barcode Database.'))
+        except Exception as error:  # noqa: BLE001 - e.g. access rights or a barcode clash
+            return dict(result, status='failed', message=str(error))
+        return dict(result, status='created', id=product.id, name=product.display_name,
+                    message=_('Created.'))
+
     def action_barcode_lookup(self):
         """Fill in the product from the Barcode Database (only fields it doesn't have yet)."""
         self.ensure_one()
