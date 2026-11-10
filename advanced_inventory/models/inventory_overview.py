@@ -182,4 +182,35 @@ class AdvancedInventoryOverview(models.AbstractModel):
         if picking:
             return {'type': 'picking', 'id': picking.id, 'name': picking.name, 'state': picking.state,
                     'walk_kind': picking.walk_kind, 'rows': [], 'slots': []}
-        return {'type': False}
+        return {'type': False, 'barcode_db': self._scanner_barcode_db(barcode)}
+
+    @api.model
+    def _scanner_barcode_db(self, barcode):
+        """What the Barcode Database knows about a barcode we don't stock, for the Scanner."""
+        Lookup = self.env['advanced.inventory.barcode.lookup']
+        if not Lookup._available() or not self.env['product.template'].has_access('create'):
+            return False
+        try:
+            data = Lookup._fetch(barcode)
+        except Exception as error:  # noqa: BLE001 - shown to the user instead of failing the scan
+            return {'found': False, 'error': str(error)}
+        if not data:
+            return {'found': False}
+        return {'found': True, 'name': data['name'], 'brand': data['brand'],
+                'category': data['category'], 'description': data['description'],
+                'image': data['images'][0] if data['images'] else False}
+
+    @api.model
+    def scanner_create_product(self, barcode):
+        """Create a product for a scanned barcode from the Barcode Database, then look it up."""
+        barcode = (barcode or '').strip()
+        if self.env['product.product'].search_count([('barcode', '=', barcode)], limit=1):
+            return self.scanner_lookup(barcode)
+        Lookup = self.env['advanced.inventory.barcode.lookup']
+        data = Lookup.lookup_or_raise(barcode)
+        vals = Lookup._product_values(data)
+        vals.update({'barcode': barcode, 'type': 'consu', 'is_storable': True})
+        vals.setdefault('name', barcode)
+        product = self.env['product.template'].create(vals)
+        product.message_post(body=self.env._('Created from the Barcode Database in the Scanner app.'))
+        return self.scanner_lookup(barcode)

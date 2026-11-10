@@ -72,4 +72,18 @@
             </xpath>
         </field>
     </record>
+    <!-- Barcode Database: fill the product in from its barcode (barcodelookup.com). -->
+    <record id="product_template_only_form_barcode_lookup" model="ir.ui.view">
+        <field name="name">product.template.form.advanced_inventory.barcode_lookup</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <field name="barcode" position="after">
+                <field name="barcode_lookup_available" invisible="1"/>
+                <button name="action_barcode_lookup" type="object" icon="fa-search" colspan="2"
+                        class="btn btn-link p-0 text-start" string="Fill in from Barcode Database"
+                        invisible="not barcode_lookup_available or not barcode or product_variant_count &gt; 1"/>
+            </field>
+        </field>
+    </record>
 </odoo>

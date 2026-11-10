@@ -228,12 +228,29 @@ export class InventoryLookupScreen extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ result: null, scanned: "" });
+        this.notification = useService("notification");
+        this.state = useState({ result: null, scanned: "", creating: false });
     }
 
     async onScan(value) {
         this.state.scanned = value;
         this.state.result = await this.orm.call("advanced.inventory.overview", "scanner_lookup", [value]);
+    }
+
+    /** Create a product for an unknown barcode from what the Barcode Database knows. */
+    async onCreateProduct() {
+        if (this.state.creating) {
+            return;
+        }
+        this.state.creating = true;
+        try {
+            this.state.result = await this.orm.call(
+                "advanced.inventory.overview", "scanner_create_product", [this.state.scanned]
+            );
+            this.notification.add(_t("Product created from the Barcode Database."), { type: "success" });
+        } finally {
+            this.state.creating = false;
+        }
     }
 }
 

@@ -14,3 +14,5 @@ from . import sign
 from . import ir_actions_report
 from . import ir_ui_menu
 from . import inventory_overview
+from . import barcode_lookup
+from . import res_config_settings

@@ -41,6 +41,10 @@ class ProductTemplate(models.Model):
     # ── Storage ───────────────────────────────────────────────────────────
     product_slot_ids = fields.One2many('advanced.inventory.product.slot', 'product_tmpl_id', string='Storage Slots')
     product_slot_count = fields.Integer(compute='_compute_product_slot_count', string='Slots')
+    # ── Barcode Database ──────────────────────────────────────────────────
+    barcode_lookup_available = fields.Boolean(
+        compute='_compute_barcode_lookup_available',
+        help='A Barcode Database (barcodelookup.com) API key is set in Inventory settings.')
 
     @api.depends('qty_available', 'standard_price', 'list_price', 'cost_analysis_id.sell_price')
     def _compute_inventory_value(self):
@@ -91,6 +95,43 @@ class ProductTemplate(models.Model):
                 lambda v: company_currency.compare_amounts(v.standard_price, cost) != 0)
             if variants:
                 variants.write({'standard_price': cost})
+
+    def _compute_barcode_lookup_available(self):
+        available = self.env['advanced.inventory.barcode.lookup']._available()
+        for product in self:
+            product.barcode_lookup_available = available
+
+    @api.onchange('barcode')
+    def _onchange_barcode_lookup(self):
+        """Typing or scanning a barcode fills in what the product doesn't have yet."""
+        Lookup = self.env['advanced.inventory.barcode.lookup']
+        if not self.barcode or not Lookup._available() or self.name and self.image_1920:
+            return
+        try:
+            data = Lookup._fetch(self.barcode)
+        except Exception:  # noqa: BLE001 - never block typing a barcode; the button reports errors
+            return
+        if data:
+            self.update(Lookup._product_values(data, self))
+
+    def action_barcode_lookup(self):
+        """Fill in the product from the Barcode Database (only fields it doesn't have yet)."""
+        self.ensure_one()
+        if not self.barcode:
+            raise UserError(_('Add a barcode first.'))
+        Lookup = self.env['advanced.inventory.barcode.lookup']
+        if not Lookup._available():
+            raise UserError(Lookup._no_key_message())
+        data = Lookup.lookup_or_raise(self.barcode)
+        vals = Lookup._product_values(data, self)
+        if vals:
+            self.write(vals)
+        labels = [self._fields[name].get_description(self.env)['string'] for name in vals]
+        message = (_('Filled in from the Barcode Database: %s.', ', '.join(labels)) if labels else
+                   _('The Barcode Database has nothing to add: this product already has those details.'))
+        return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {
+            'message': message, 'type': 'success' if labels else 'info',
+            'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'}}}
 
     def action_view_product_slots(self):
         self.ensure_one()

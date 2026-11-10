@@ -14,6 +14,22 @@
                         string="Layout" invisible="not storage_level or not warehouse_id"
                         groups="stock.group_stock_manager"/>
             </div>
+            <!-- Name and Parent Location use the whole width of the form. -->
+            <xpath expr="//div[hasclass('oe_location_header')]" position="attributes">
+                <attribute name="class" add="w-100" separator=" "/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_location_header')]/div" position="attributes">
+                <attribute name="class">w-100</attribute>
+            </xpath>
+            <field name="name" position="attributes">
+                <attribute name="class" add="w-100" separator=" "/>
+            </field>
+            <field name="location_id" position="attributes">
+                <attribute name="class" add="w-100" separator=" "/>
+            </field>
+            <xpath expr="//sheet" position="after">
+                <chatter/>
+            </xpath>
             <xpath expr="//group[@name='additional_info']" position="after">
                 <group string="Warehouse Layout" name="warehouse_layout" invisible="usage != 'internal'">
                     <field name="storage_level"/>

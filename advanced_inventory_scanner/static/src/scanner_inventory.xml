@@ -113,6 +113,25 @@
             <ScanInput placeholder="'Scan a product, location, warehouse or transfer label…'" onSubmit.bind="onScan"/>
             <t t-set="r" t-value="state.result"/>
             <p t-if="r and !r.type" class="o_scanner_subtitle">Nothing found for "<t t-esc="state.scanned"/>".</p>
+            <t t-set="db" t-value="r and !r.type and r.barcode_db"/>
+            <div t-if="db and db.found" class="o_inventory_lookup o_inventory_barcode_db">
+                <div class="o_inventory_walk_label">Barcode Database</div>
+                <div class="d-flex gap-3 align-items-start">
+                    <img t-if="db.image" t-att-src="db.image" alt="" class="o_inventory_barcode_db_image"/>
+                    <div>
+                        <h3 t-esc="db.name"/>
+                        <p t-if="db.brand or db.category" class="text-muted mb-1">
+                            <t t-esc="db.brand"/><t t-if="db.brand and db.category"> · </t><t t-esc="db.category"/>
+                        </p>
+                        <p t-if="db.description" class="o_inventory_barcode_db_description" t-esc="db.description"/>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-lg" t-on-click="onCreateProduct" t-att-disabled="state.creating">
+                    Create Product
+                </button>
+            </div>
+            <p t-elif="db and db.error" class="text-muted" t-esc="db.error"/>
+            <p t-elif="db" class="text-muted">The Barcode Database doesn't know this barcode either.</p>
             <div t-if="r and r.type" class="o_inventory_lookup">
                 <div class="o_inventory_walk_label">
                     <t t-if="r.type === 'product'">Product</t>

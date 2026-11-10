@@ -16,7 +16,9 @@
           walk order, each product going to its storage slot.
         - Look Up: scan any label - a product shows where it is stored and its
           slots; a room, aisle, shelf or tote shows what it holds; a warehouse
-          or a transfer opens.
+          or a transfer opens. A barcode nobody stocks yet is looked up in
+          Inventory's Barcode Database (when it has an API key), with a
+          Create Product button.
 
         The labels come from Inventory's label designer: product labels carry
         the product's barcode, location labels the location's barcode, so
