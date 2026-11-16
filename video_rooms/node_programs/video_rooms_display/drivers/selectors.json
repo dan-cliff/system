@@ -1,0 +1,575 @@
+{
+    "_comment": "Where each platform's controls are. Each value is a list of candidates: a CSS selector, {\"text\": regex} (visible text) or {\"label\": regex} (aria-label/title). *_text values are regexes matched against the page's text. Fix here when a vendor changes its page, then release a new program version.",
+    "teams": {
+        "open_in_browser": [
+            "[data-tid='joinOnWeb']",
+            {
+                "text": "^(continue on this browser|join on the web instead|use the web app instead)$"
+            }
+        ],
+        "name_input": [
+            "input[data-tid='prejoin-display-name-input']",
+            "input[placeholder*='name' i]"
+        ],
+        "prejoin_mic": [
+            "[data-tid='toggle-mute']",
+            "[role='switch'][title*='Microphone' i]",
+            {
+                "label": "^(mute|unmute) mic|microphone$"
+            }
+        ],
+        "prejoin_camera": [
+            "[data-tid='toggle-video']",
+            "[role='switch'][title*='Camera' i]",
+            {
+                "label": "^camera$|turn (on|off) camera"
+            }
+        ],
+        "join_button": [
+            "button[data-tid='prejoin-join-button']",
+            {
+                "text": "^join now$"
+            }
+        ],
+        "lobby_text": "someone in the meeting should let you in soon|waiting for (someone|people) to let you in|we've let people in the meeting know you're waiting",
+        "in_call": [
+            "#hangup-button",
+            "[data-tid='hangup-main-btn']",
+            "button[aria-label^='Leave' i]"
+        ],
+        "mic_button": [
+            "#microphone-button",
+            "[data-tid='microphone-button']",
+            {
+                "label": "^(mute|unmute) mic"
+            }
+        ],
+        "mic_off_label": "unmute",
+        "camera_button": [
+            "#video-button",
+            "[data-tid='video-button']",
+            {
+                "label": "^turn (on|off) camera|^camera"
+            }
+        ],
+        "camera_off_label": "turn on camera|camera off",
+        "share_button": [
+            "#screenshare-button",
+            "[data-tid='desktop-share-button']",
+            {
+                "label": "^share( content)?$"
+            }
+        ],
+        "share_window_option": [
+            {
+                "text": "^window$"
+            },
+            {
+                "label": "share a window"
+            }
+        ],
+        "stop_share": [
+            {
+                "label": "^stop (sharing|presenting)"
+            },
+            {
+                "text": "^stop (sharing|presenting)$"
+            }
+        ],
+        "leave_button": [
+            "#hangup-button",
+            "[data-tid='hangup-main-btn']",
+            "button[aria-label^='Leave' i]"
+        ],
+        "leave_confirm": [
+            {
+                "text": "^leave$"
+            }
+        ],
+        "layout_button": [
+            "#custom-view-button",
+            {
+                "label": "^view$"
+            }
+        ],
+        "layout_options": {
+            "gallery": [
+                {
+                    "text": "^gallery$"
+                }
+            ],
+            "speaker": [
+                {
+                    "text": "^speaker$"
+                }
+            ],
+            "content": [
+                {
+                    "text": "^focus on content$"
+                }
+            ]
+        },
+        "ended_text": "you( have|'ve)? left the meeting|the meeting has ended|you've been removed from (this|the) meeting|thanks for joining",
+        "error_text": "sorry, but you were denied access|you can't join this meeting|no one let you in|anonymous users can't join|meeting link is not valid",
+        "mic_shortcut": "Control+Shift+M",
+        "camera_shortcut": "Control+Shift+O",
+        "share_shortcut": "Control+Shift+E",
+        "leave_shortcut": "Control+Shift+H"
+    },
+    "zoom": {
+        "open_in_browser": [
+            {
+                "text": "^join from (your|this) browser$"
+            }
+        ],
+        "name_input": [
+            "#input-for-name",
+            "input[placeholder*='name' i]"
+        ],
+        "passcode_input": [
+            "#input-for-pwd",
+            "input[type='password']"
+        ],
+        "prejoin_mic": [
+            "#preview-audio-control-button"
+        ],
+        "prejoin_camera": [
+            "#preview-video-control-button"
+        ],
+        "join_button": [
+            "button.preview-join-button",
+            {
+                "text": "^join$"
+            }
+        ],
+        "lobby_text": "please wait, the meeting host will let you in soon|waiting for the host to start this meeting|host has joined. we've let them know you're here",
+        "in_call": [
+            ".footer__leave-btn",
+            "button[aria-label='Leave' i]"
+        ],
+        "mic_button": [
+            ".join-audio-container__btn",
+            {
+                "label": "^(mute|unmute) my microphone"
+            }
+        ],
+        "mic_off_label": "unmute",
+        "camera_button": [
+            ".send-video-container__btn",
+            {
+                "label": "^(start|stop) my video"
+            }
+        ],
+        "camera_off_label": "start my video|start video",
+        "share_button": [
+            ".sharing-entry-button-container button",
+            {
+                "label": "^share screen"
+            }
+        ],
+        "share_window_option": [],
+        "stop_share": [
+            ".sharing-status-container__stop",
+            {
+                "text": "^stop share$"
+            }
+        ],
+        "leave_button": [
+            ".footer__leave-btn",
+            "button[aria-label='Leave' i]"
+        ],
+        "leave_confirm": [
+            ".leave-meeting-options__btn",
+            {
+                "text": "^leave meeting$"
+            }
+        ],
+        "join_audio": [
+            "button.join-audio-by-voip__join-btn",
+            {
+                "text": "^join audio by computer$"
+            }
+        ],
+        "layout_button": [
+            ".full-screen-icon",
+            {
+                "label": "^view$"
+            }
+        ],
+        "layout_options": {
+            "gallery": [
+                {
+                    "text": "^gallery view$"
+                }
+            ],
+            "speaker": [
+                {
+                    "text": "^speaker view$"
+                }
+            ],
+            "content": [
+                {
+                    "text": "^speaker view$"
+                }
+            ]
+        },
+        "ended_text": "this meeting has been ended by host|you( have)? left the meeting|the meeting has ended",
+        "error_text": "captcha|verify (that )?you('re| are) (a )?human|i'm not a robot|the host has disabled join from browser|this meeting link is invalid|only authenticated users can join|meeting passcode wrong",
+        "mic_shortcut": "Alt+A",
+        "camera_shortcut": "Alt+V",
+        "share_shortcut": "Alt+S"
+    },
+    "google_meet": {
+        "name_input": [
+            "input[aria-label='Your name' i]",
+            "input[placeholder*='name' i]"
+        ],
+        "prejoin_mic": [
+            "div[role='button'][aria-label*='microphone' i][data-is-muted]",
+            "button[aria-label*='microphone' i][data-is-muted]"
+        ],
+        "prejoin_camera": [
+            "div[role='button'][aria-label*='camera' i][data-is-muted]",
+            "button[aria-label*='camera' i][data-is-muted]"
+        ],
+        "join_button": [
+            {
+                "text": "^(ask to join|join now|join anyway)$"
+            }
+        ],
+        "lobby_text": "asking to be let in|you'll join the call when someone lets you in|please wait until a meeting host brings you into the call",
+        "in_call": [
+            "button[aria-label='Leave call' i]"
+        ],
+        "mic_button": [
+            "button[aria-label*='microphone' i][data-is-muted]",
+            {
+                "label": "turn (on|off) microphone"
+            }
+        ],
+        "mic_off_label": "turn on microphone",
+        "camera_button": [
+            "button[aria-label*='camera' i][data-is-muted]",
+            {
+                "label": "turn (on|off) camera"
+            }
+        ],
+        "camera_off_label": "turn on camera",
+        "share_button": [
+            "button[aria-label='Share screen' i]",
+            {
+                "label": "^present now$"
+            }
+        ],
+        "share_window_option": [
+            {
+                "text": "^a window$"
+            }
+        ],
+        "stop_share": [
+            {
+                "text": "^stop presenting$"
+            },
+            {
+                "label": "^stop presenting"
+            }
+        ],
+        "leave_button": [
+            "button[aria-label='Leave call' i]"
+        ],
+        "leave_confirm": [
+            {
+                "text": "^just leave the call$"
+            }
+        ],
+        "layout_button": [
+            "button[aria-label='More options' i]"
+        ],
+        "layout_options": {
+            "gallery": [
+                {
+                    "text": "^change layout$"
+                }
+            ],
+            "speaker": [
+                {
+                    "text": "^change layout$"
+                }
+            ],
+            "content": [
+                {
+                    "text": "^change layout$"
+                }
+            ]
+        },
+        "ended_text": "you left the meeting|the call has ended|you've been removed from the meeting|return to home screen",
+        "error_text": "you can't join this video call|your request to join was denied|someone in the call denied your request|no one responded to your request|you can't create a meeting yourself",
+        "mic_shortcut": "Control+D",
+        "camera_shortcut": "Control+E"
+    },
+    "webex": {
+        "open_in_browser": [
+            {
+                "text": "^join from (your|this) browser\\.?$"
+            },
+            {
+                "text": "^use (the )?web app$"
+            }
+        ],
+        "name_input": [
+            "input[placeholder*='name' i]",
+            "input[aria-label*='name' i]"
+        ],
+        "email_input": [
+            "input[placeholder*='email' i]",
+            "input[type='email']"
+        ],
+        "passcode_input": [
+            "input[placeholder*='password' i]",
+            "input[placeholder*='passcode' i]"
+        ],
+        "next_button": [
+            {
+                "text": "^next$"
+            }
+        ],
+        "prejoin_mic": [
+            {
+                "label": "^(mute|unmute)$"
+            },
+            "button[aria-label*='mute' i]"
+        ],
+        "prejoin_camera": [
+            {
+                "label": "^(stop|start) video$"
+            }
+        ],
+        "join_button": [
+            {
+                "text": "^join meeting$"
+            },
+            {
+                "text": "^join$"
+            }
+        ],
+        "lobby_text": "waiting for the host|the host will let you in soon|you're in the lobby|waiting to be admitted",
+        "in_call": [
+            {
+                "label": "^leave meeting$"
+            },
+            "button[aria-label*='leave' i]"
+        ],
+        "mic_button": [
+            {
+                "label": "^(mute|unmute)$"
+            }
+        ],
+        "mic_off_label": "^unmute",
+        "camera_button": [
+            {
+                "label": "^(stop|start) video$"
+            }
+        ],
+        "camera_off_label": "start video",
+        "share_button": [
+            {
+                "label": "^share$"
+            },
+            {
+                "text": "^share$"
+            }
+        ],
+        "share_window_option": [
+            {
+                "text": "^(application|window)$"
+            }
+        ],
+        "stop_share": [
+            {
+                "text": "^stop sharing$"
+            },
+            {
+                "label": "^stop sharing"
+            }
+        ],
+        "leave_button": [
+            {
+                "label": "^leave meeting$"
+            }
+        ],
+        "leave_confirm": [
+            {
+                "text": "^leave meeting$"
+            }
+        ],
+        "layout_button": [
+            {
+                "label": "^layout$"
+            },
+            {
+                "text": "^layout$"
+            }
+        ],
+        "layout_options": {
+            "gallery": [
+                {
+                    "text": "^grid$"
+                }
+            ],
+            "speaker": [
+                {
+                    "text": "^stack$"
+                }
+            ],
+            "content": [
+                {
+                    "text": "^focus$"
+                }
+            ]
+        },
+        "ended_text": "you've left the meeting|the meeting has ended|the host ended the meeting",
+        "error_text": "sign in to join|you need to sign in|meeting is locked|the host has removed you|invalid meeting number",
+        "mic_shortcut": "Control+M",
+        "camera_shortcut": "Control+Shift+V"
+    },
+    "jitsi": {
+        "name_input": [
+            "#premeeting-name-input",
+            "input[placeholder*='name' i]"
+        ],
+        "prejoin_mic": [
+            {
+                "label": "^(mute|unmute)( microphone)?$"
+            }
+        ],
+        "prejoin_camera": [
+            {
+                "label": "^(start|stop) camera$"
+            }
+        ],
+        "join_button": [
+            "[data-testid='prejoin.joinMeeting']",
+            {
+                "text": "^join meeting$"
+            }
+        ],
+        "lobby_text": "asking to join meeting|you are in the lobby|waiting for the moderator|the conference has not yet started",
+        "in_call": [
+            {
+                "label": "^leave the meeting$"
+            },
+            ".hangup-button"
+        ],
+        "mic_button": [
+            {
+                "label": "^(mute|unmute)$"
+            },
+            {
+                "label": "microphone"
+            }
+        ],
+        "mic_off_label": "^unmute",
+        "camera_button": [
+            {
+                "label": "^(start|stop) camera$"
+            }
+        ],
+        "camera_off_label": "^start camera",
+        "share_button": [
+            {
+                "label": "^(start|stop) sharing your screen$"
+            },
+            {
+                "label": "share screen"
+            }
+        ],
+        "share_window_option": [],
+        "stop_share": [
+            {
+                "label": "^stop sharing your screen$"
+            }
+        ],
+        "leave_button": [
+            {
+                "label": "^leave the meeting$"
+            },
+            ".hangup-button"
+        ],
+        "leave_confirm": [
+            {
+                "text": "^leave meeting$"
+            }
+        ],
+        "layout_button": [
+            {
+                "label": "^toggle tile view$"
+            }
+        ],
+        "layout_options": {
+            "gallery": [],
+            "speaker": [],
+            "content": []
+        },
+        "ended_text": "you have been disconnected|thank you for using|the meeting has been ended|you left the meeting",
+        "error_text": "you have been kicked|password required|the lobby request was rejected|connection failed",
+        "mic_shortcut": "m",
+        "camera_shortcut": "v",
+        "share_shortcut": "d"
+    },
+    "odoo_discuss": {
+        "name_input": [
+            "input[placeholder*='name' i]"
+        ],
+        "join_button": [
+            {
+                "text": "^join( call)?$"
+            },
+            {
+                "label": "^join call$"
+            },
+            {
+                "text": "^start a call$"
+            }
+        ],
+        "lobby_text": "",
+        "in_call": [
+            {
+                "label": "^disconnect$"
+            },
+            "button[title='Disconnect' i]"
+        ],
+        "mic_button": [
+            {
+                "label": "^(mute|unmute)$"
+            }
+        ],
+        "mic_off_label": "^unmute",
+        "camera_button": [
+            {
+                "label": "camera"
+            }
+        ],
+        "camera_off_label": "^camera$|turn on camera",
+        "share_button": [
+            {
+                "label": "^share screen$"
+            }
+        ],
+        "share_window_option": [],
+        "stop_share": [
+            {
+                "label": "^stop screen sharing$"
+            }
+        ],
+        "leave_button": [
+            {
+                "label": "^disconnect$"
+            }
+        ],
+        "leave_confirm": [],
+        "layout_button": [],
+        "layout_options": {},
+        "ended_text": "",
+        "error_text": "this conversation doesn't exist|you are not allowed"
+    }
+}

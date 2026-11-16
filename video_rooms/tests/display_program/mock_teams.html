@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Mock Teams</title></head>
+<body>
+<div id="app"></div>
+<script>
+  // A stand-in for Teams' web join: launcher -> pre-join -> lobby -> in call.
+  const app = document.getElementById('app');
+  const stage = sessionStorage.getItem('stage') || 'launcher';
+  window.events = [];
+  function render(stage) {
+    sessionStorage.setItem('stage', stage);
+    if (stage === 'launcher') {
+      app.innerHTML = '<h1>How do you want to join your Teams meeting?</h1><button data-tid="joinOnWeb">Continue on this browser</button>';
+      app.querySelector('button').onclick = () => { location.reload(); sessionStorage.setItem('stage', 'prejoin'); };
+    } else if (stage === 'prejoin') {
+      app.innerHTML = '<input data-tid="prejoin-display-name-input" placeholder="Type your name">'
+        + '<div role="switch" data-tid="toggle-mute" aria-checked="true" title="Microphone">Mic</div>'
+        + '<div role="switch" data-tid="toggle-video" aria-checked="true" title="Camera">Cam</div>'
+        + '<button data-tid="prejoin-join-button">Join now</button>';
+      for (const s of app.querySelectorAll('[role=switch]')) s.onclick = () => s.setAttribute('aria-checked', s.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+      const input = app.querySelector('input');
+      input.addEventListener('input', () => window.events.push('name:' + input.value));
+      app.querySelector('button').onclick = (e) => {
+        window.events.push('join trusted=' + e.isTrusted + ' name=' + input.value + ' cam=' + app.querySelector('[data-tid=toggle-video]').getAttribute('aria-checked'));
+        render('lobby'); setTimeout(() => render('call'), 1500);
+      };
+    } else if (stage === 'lobby') {
+      app.innerHTML = '<p>Someone in the meeting should let you in soon</p>';
+    } else if (stage === 'call') {
+      app.innerHTML = '<button id="microphone-button" aria-pressed="true" aria-label="Mute mic">Mic</button>'
+        + '<button id="video-button" aria-pressed="true" aria-label="Turn off camera">Cam</button>'
+        + '<button id="screenshare-button" aria-label="Share">Share</button>'
+        + '<button id="hangup-button" aria-label="Leave">Leave</button>';
+      const mic = app.querySelector('#microphone-button');
+      mic.onclick = () => { const on = mic.getAttribute('aria-pressed') !== 'true'; mic.setAttribute('aria-pressed', String(on)); mic.setAttribute('aria-label', on ? 'Mute mic' : 'Unmute mic'); };
+      app.querySelector('#screenshare-button').onclick = (e) => window.events.push('share trusted=' + e.isTrusted);
+      app.querySelector('#hangup-button').onclick = () => render('left');
+    } else {
+      app.innerHTML = '<h1>You left the meeting</h1>';
+    }
+  }
+  render(stage);
+</script>
+</body></html>

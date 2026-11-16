@@ -70,6 +70,17 @@ class VideoRoomsNodeApi(http.Controller):
             return request.make_response(file.read(), headers=[('Content-Type', 'text/html; charset=utf-8'),
                                                                ('Cache-Control', 'no-store')])
 
+    @http.route('/video_rooms/node/v1/share-window', type='http', auth='public', methods=['GET'],
+                csrf=False, save_session=False)
+    def share_window(self, **kwargs):
+        """The window the meeting shares: the HDMI capture card or a wireless share."""
+        node, error = authenticate(roles=ROLES)
+        if error:
+            return error
+        with file_open('video_rooms/static/src/display/share.html', 'rb') as file:
+            return request.make_response(file.read(), headers=[('Content-Type', 'text/html; charset=utf-8'),
+                                                               ('Cache-Control', 'no-store')])
+
     @http.route('/video_rooms/node/v1/display/state', type='http', auth='public', methods=['GET'],
                 csrf=False, save_session=False)
     def display_state(self, **kwargs):
@@ -82,4 +93,5 @@ class VideoRoomsNodeApi(http.Controller):
             return error_response('This Display is not any room\'s Room Display yet.', 404)
         payload = room._display_payload()
         payload['presence'] = room._effective_layout('presence')
+        payload['share_url'] = '%s/video_rooms/share' % room.get_base_url().rstrip('/')
         return json_response(payload)
