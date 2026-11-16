@@ -29,3 +29,5 @@ from . import followup_send
 # om_fiscal_year
 from . import change_lock_date
 from . import fiscal_year_closing
+# subscription_oca
+from . import subscription_wizards

@@ -1,10 +1,10 @@
 {
     'name': 'Accounting',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Accounting/Accounting',
     'sequence': 1,
-    'summary': 'Full accounting: assets, budgets, recurring payments, period closing, '
-               'follow-ups and the financial reports',
+    'summary': 'Full accounting: assets, budgets, recurring payments, subscriptions, '
+               'period closing, follow-ups and the financial reports',
     'description': """
         Accounting
 
@@ -16,6 +16,13 @@
           disposal and sale, assets created from vendor bills, asset analysis
         - Budgets: budgetary positions, budgets and budget analysis
         - Recurring Payments: recurring templates and payments, auto-posted entries
+        - Subscriptions: customers invoiced for the same products every N days,
+          weeks, months or years, forever or for a fixed number of periods, as
+          draft or posted invoices, emailed or not, or through a sales order;
+          started by confirming a sales order of a subscription product; paused
+          and resumed, closed with a reason; templates, stages, tags and close
+          reasons under Configuration (Accounting › Customers › Subscriptions,
+          and Sales › Orders › Subscriptions)
         - Period Closing: closing checks and tasks, lock dates, fiscal years and
           the year-end closing
         - Follow-ups: payment follow-up plans, reminders, customer and vendor
@@ -36,17 +43,27 @@
         its own deletes its records. Afterwards, the Odoo Mates accounting
         modules can't be installed again next to Accounting.
 
+        Taking over Subscription management (subscription_oca): installed or
+        upgraded on a database that has it, Accounting takes over its
+        subscriptions, templates, stages, tags and close reasons (the same
+        models, fields and external IDs) and uninstalls it without dropping
+        anything. Its salespeople get the matching Subscriptions permissions.
+        Afterwards it can't be installed again next to Accounting.
+
         Access: one permission per record type and operation (Create Only,
         Create and Edit Own / My Team / All, View All, Delete Own / All) plus
         Confirm and Post (assets), Approve (budgets), Confirm and Generate
-        (recurring payments) and Close and Reopen (period closings), and an
+        (recurring payments), Start, Pause and Close and Create Invoices
+        (subscriptions) and Close and Reopen (period closings), and an
         Administrator. The financial reports and the follow-ups keep the core
         accounting groups.
 
-        Based on the Odoo Mates accounting modules (LGPL-3), by Odoo Mates and Odoo SA.
+        Based on the Odoo Mates accounting modules (LGPL-3), by Odoo Mates and
+        Odoo SA. Subscriptions are written for Accounting, on the models of the
+        Subscription management app (subscription_oca) so its data carries over.
     """,
     'author': "Cliff's Country Crafts, Odoo Mates, Odoo SA",
-    'depends': ['account', 'analytic', 'mail', 'hr', 'base_setup'],
+    'depends': ['account', 'analytic', 'mail', 'hr', 'base_setup', 'sale_management'],
     'data': [
         'security/group.xml',
         'security/advanced_accounting_security.xml',
@@ -56,6 +73,7 @@
         'security/security_followup.xml',
         'security/security_fiscal.xml',
         'security/security_recurring.xml',
+        'security/security_subscription.xml',
         'data/res_lang_data.xml',
         # reports
         'data/account_account_type.xml',
@@ -140,6 +158,10 @@
         'views/recurring_template_view.xml',
         'views/recurring_payment_view.xml',
         'views/auto_post_views.xml',
+        # subscriptions
+        'data/subscription_data.xml',
+        'views/subscription_config_views.xml',
+        'views/subscription_views.xml',
         # the app
         'views/review_menu.xml',
         'views/settings_accountant.xml',

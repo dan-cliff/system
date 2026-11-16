@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The external IDs are those of the Subscription management app (subscription_oca) -->
+    <record id="sale_subscription_company_rule" model="ir.rule">
+        <field name="name">Subscriptions: multi-company</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="sale_subscription_line_company_rule" model="ir.rule">
+        <field name="name">Subscription Products: multi-company</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

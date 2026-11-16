@@ -31,8 +31,8 @@ name is modern_crm so it never clashes with Odoo's standard crm app.
 * When a contract is fully signed it can activate itself, confirm its
   quote into a Sales Order and draft the Invoice (each switched on in
   Settings). The opportunity's buttons do the same by hand. With
-  subscription_oca, modern_crm_subscription shows the Subscriptions those
-  sales orders create.
+  Accounting (advanced_accounting), modern_crm_subscription shows the
+  Subscriptions those sales orders create.
 * Permissions per CLAUDE.md: per-model privileges on Leads, Opportunities
   and Contracts, workflow privileges (Create Quotes, Confirm Sales Orders,
   Create Invoices, Send Contracts for Signature, Activate Contracts) and the
