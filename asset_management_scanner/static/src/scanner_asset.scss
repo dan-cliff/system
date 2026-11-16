@@ -1,0 +1,87 @@
+// Look Up Asset and Bulk Asset Logs on the Scanner. House palette (CLAUDE.md "Icon style").
+.o_scanner_home {
+    .o_scanner_tile_purple {
+        --scanner-tone: linear-gradient(135deg, #8E5CF0 0%, #5B3DB8 100%);
+        --scanner-tone-shadow: #{rgba(#5B3DB8, 0.35)};
+    }
+
+    .o_scanner_tile_coral {
+        --scanner-tone: linear-gradient(135deg, #F9A3A3 0%, #FF5A6E 100%);
+        --scanner-tone-shadow: #{rgba(#FF5A6E, 0.35)};
+    }
+}
+
+.o_scanner_asset_kinds {
+    .o_scanner_asset_kind_orange { border-left-color: #FF9F1C; }
+    .o_scanner_asset_kind_blue { border-left-color: #0A6CF0; }
+    .o_scanner_asset_kind_coral { border-left-color: #FF5A6E; }
+}
+
+.o_scanner_dialog .o_scanner_asset_done .fa {
+    color: #14A3A3;
+}
+
+.o_scanner_screen.o_scanner_asset {
+    // The details form sits above the list, so let the page scroll instead
+    // of squeezing the list.
+    height: auto;
+    min-height: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+
+    .o_scanner_asset_form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 0.75rem 0 1rem;
+        padding: 16px;
+        border-radius: 16px;
+        background-color: #FFFFFF;
+        box-shadow: 0 4px 12px rgba(#2A3F8F, 0.12);
+    }
+
+    .o_scanner_asset_field {
+        flex: 1 1 220px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+
+        &.o_scanner_asset_field_wide {
+            flex-basis: 100%;
+        }
+
+        .o_scanner_asset_label {
+            font-weight: 600;
+            color: #2A3F8F;
+        }
+
+        .o_scanner_asset_required {
+            color: #FF5A6E;
+        }
+
+        .o_scanner_asset_record .o_input {
+            font-size: 1.1rem;
+            padding: 8px 12px;
+            border: 1px solid #A9ABDC;
+            border-radius: 8px;
+        }
+    }
+
+    .o_scanner_lines {
+        flex: 0 0 auto;
+        overflow: visible;
+    }
+
+    .o_scanner_asset_note {
+        color: #FF5A6E;
+        font-weight: 600;
+        margin: 0.5rem 0;
+    }
+
+    .o_scanner_asset_generate {
+        margin-top: 0.75rem;
+        border-radius: 14px;
+    }
+}
