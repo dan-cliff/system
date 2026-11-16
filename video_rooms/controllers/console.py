@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """The Room Console: an installable PWA for the room's tablet, served by Odoo
-(secure context), signed in as a console user (see DESIGN.md Q13). Controls
+(secure context), signed in automatically as the tablet's own restricted user (DESIGN.md §7). Controls
 go through video.room.command; state comes back over the Odoo bus."""
 from odoo import http
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Room Presence screens: an installable PWA for the tablet at the room's door,
-served by Odoo, signed in as a screen user that may only see the room's
-schedule (see DESIGN.md Q13). Updates arrive over the Odoo bus. Never shows
+served by Odoo, signed in automatically as the tablet's restricted user that may
+only see the room's schedule (DESIGN.md §7). Updates arrive over the Odoo bus. Never shows
 meeting credentials."""
 from odoo import http
 

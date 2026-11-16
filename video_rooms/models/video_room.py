@@ -42,11 +42,30 @@ class VideoRoom(models.Model):
     dnd_message = fields.Char(string='Do Not Disturb Message', help='Optional, e.g. "Interview in progress".')
     dnd_on_join = fields.Boolean(string='Do Not Disturb During Calls',
                                  help='Switch Do Not Disturb on automatically while the room is in a call.')
+    # ── Room Designer (DESIGN.md §5, §6e) ─────────────────────────────────
+    screen_ids = fields.One2many('video.room.screen', 'room_id', string='Screens')
+    console_layout = fields.Json(help='Console tiles for the call and idle pages, as saved by the Room Designer.')
+    console_template_id = fields.Many2one('video.room.layout.template', domain="[('kind', '=', 'console')]",
+                                          help='Follow this template; empty: the room keeps its own layout.')
+    presence_layout = fields.Json(help='Presence screen blocks and theme, as saved by the Room Designer.')
+    presence_template_id = fields.Many2one('video.room.layout.template', domain="[('kind', '=', 'presence')]")
+    admin_pin = fields.Char(string='Console Admin PIN', groups='base.group_system',
+                            help="Opens the Console's setup mode.")
+    tablet_node_ids = fields.One2many('iot.node', 'video_room_id', string='Tablets')
+
+    def action_open_designer(self):
+        """Open the Room Designer (client action video_rooms.room_designer)."""
+        raise NotImplementedError('Video Rooms is a scaffold: see DESIGN.md')
+
+    def action_identify_screens(self):
+        """Show a big number on each screen (and flash the tablets) for a few seconds."""
+        raise NotImplementedError('Video Rooms is a scaffold: see DESIGN.md')
+
     book_now_durations = fields.Char(default='15,30,60',
                                      help='Minutes offered by Book Now on the Presence screen.')
     soon_minutes = fields.Integer(default=10, help='Show "Booked Soon" this many minutes before a booking.')
     # TODO(build): state (idle / in_call / offline) computed from the Node and the current call;
-    #              current_call_id; mail alias for invite emails; console users / PIN (see DESIGN.md Q13).
+    #              current_call_id; mail alias for invite emails; (DESIGN.md §6).
 
     def _compute_availability(self):
         # TODO(build): dnd -> in_use (current booking or call) -> soon -> available.

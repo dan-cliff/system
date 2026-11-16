@@ -17,17 +17,47 @@ class IotNode(models.Model):
 class VideoRoom(models.Model):
     _inherit = 'video.room'
 
+    ha_area = fields.Char(string='Home Assistant Area',
+                          help='The room\'s Area in Home Assistant, used by Discover Devices.')
     ha_control_ids = fields.One2many('video.room.ha.control', 'room_id', string='Room Controls')
+    ha_category_ids = fields.Many2many('video.room.ha.category', compute='_compute_ha_category_ids',
+                                       string='Devices in the Room',
+                                       help='The kinds of device the room has; the Console only shows these panels.')
     ha_preset_ids = fields.One2many('video.room.ha.preset', 'room_id', string='Room Presets')
+    @api.depends('ha_control_ids.category_id')
+    def _compute_ha_category_ids(self):
+        for room in self:
+            room.ha_category_ids = room.ha_control_ids.category_id
+
+    def action_ha_discover(self):
+        """Ask the Display Node for the entities in the room's Home Assistant Area and suggest a
+        Room Control for each, with its likely category, to confirm or untick."""
+        raise NotImplementedError('Video Rooms is a scaffold: see DESIGN.md')
+
     ha_publish_state = fields.Boolean(
         string='Publish Room State to Home Assistant', default=True,
         help='Keeps sensor.video_room_<room> (available / in use / in call / do not disturb) up to date.')
 
 
+class VideoRoomHaCategory(models.Model):
+    """A kind of room device (option model under Configuration): Lighting, Air
+    Conditioning, Blinds, Smart Window Film, Scenes, ... New kinds are new records."""
+    _name = 'video.room.ha.category'
+    _description = 'Room Device Category (Home Assistant)'
+    _order = 'sequence, name'
+
+    name = fields.Char(required=True, translate=True)
+    sequence = fields.Integer(default=10)
+    active = fields.Boolean(default=True)
+    entity_domains = fields.Char(required=True, help='Home Assistant domains it covers, e.g. "light,switch".')
+    # Technical: which Console panel draws it.
+    panel = fields.Selection([('lighting', 'Lights'), ('climate', 'Climate'), ('cover', 'Blinds / Covers'),
+                              ('glass', 'Clear / Frosted'), ('scene', 'Run')], required=True)
+
+
 class VideoRoomHaControl(models.Model):
-    """One Home Assistant entity in a room, shown on the Room Console. The kind of
-    control comes from the entity's domain: light, switch (e.g. privacy film),
-    climate (A/C), cover (blinds), fan, scene, script."""
+    """One Home Assistant entity in a room, in one of the room's device categories,
+    shown on the Room Console in that category's panel."""
     _name = 'video.room.ha.control'
     _description = 'Video Room Control (Home Assistant)'
     _order = 'room_id, sequence, id'
@@ -35,6 +65,7 @@ class VideoRoomHaControl(models.Model):
     room_id = fields.Many2one('video.room', required=True, ondelete='cascade')
     sequence = fields.Integer(default=10)
     name = fields.Char(required=True, help='Shown on the Console, e.g. "Ceiling Lights", "Privacy Glass".')
+    category_id = fields.Many2one('video.room.ha.category', string='Category', required=True)
     entity_id = fields.Char(string='Entity', required=True, help='e.g. light.boardroom_ceiling')
     domain = fields.Char(compute='_compute_domain', store=True)
     on_presence = fields.Boolean(string='Show State at the Door',

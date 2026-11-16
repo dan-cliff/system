@@ -7,3 +7,6 @@ TODO(build): follow CLAUDE.md "Permissions":
 - "Room Console" and "Presence Screen" groups for the tablets' screen users (DESIGN.md §7):
   the Console may control its rooms; the Presence screen may read its rooms' schedule
   (never the meeting credentials, which carry groups= on meeting.meeting) and Book Now
+- video.room.board is a primary model (CRUD privileges); "Room Board Screen" group for board
+  screen users (read-only, their board's rooms; Book Now only when the board allows it)
+- video.room.screen / video.room.layout.template: Room Designer = Video Rooms Administrator only

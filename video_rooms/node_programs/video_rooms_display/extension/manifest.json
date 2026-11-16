@@ -3,18 +3,62 @@
     "name": "Video Rooms Display",
     "version": "0.0.1",
     "description": "Drives meeting web clients on a Video Room Display. Scaffold - see video_rooms/DESIGN.md.",
-    "background": {"service_worker": "service_worker.js", "type": "module"},
-    "permissions": ["tabs", "scripting", "storage"],
+    "background": {
+        "service_worker": "service_worker.js",
+        "type": "module"
+    },
+    "permissions": [
+        "tabs",
+        "scripting",
+        "storage"
+    ],
     "host_permissions": [
-        "https://teams.microsoft.com/*", "https://teams.live.com/*",
-        "https://*.zoom.us/*", "https://meet.google.com/*", "https://*.webex.com/*",
+        "https://teams.microsoft.com/*",
+        "https://teams.live.com/*",
+        "https://*.zoom.us/*",
+        "https://meet.google.com/*",
+        "https://*.webex.com/*",
+        "https://meet.jit.si/*",
         "http://127.0.0.1/*"
     ],
     "content_scripts": [
-        {"matches": ["https://teams.microsoft.com/*", "https://teams.live.com/*"],
-         "js": ["drivers/driver_base.js", "drivers/teams.js"]},
-        {"matches": ["https://*.zoom.us/*"], "js": ["drivers/driver_base.js", "drivers/zoom.js"]},
-        {"matches": ["https://meet.google.com/*"], "js": ["drivers/driver_base.js", "drivers/google_meet.js"]},
-        {"matches": ["https://*.webex.com/*"], "js": ["drivers/driver_base.js", "drivers/webex.js"]}
-    ]
+        {
+            "matches": [
+                "https://teams.microsoft.com/*",
+                "https://teams.live.com/*"
+            ],
+            "js": [
+                "drivers/driver_base.js",
+                "drivers/teams.js"
+            ]
+        },
+        {
+            "matches": [
+                "https://*.zoom.us/*"
+            ],
+            "js": [
+                "drivers/driver_base.js",
+                "drivers/zoom.js"
+            ]
+        },
+        {
+            "matches": [
+                "https://meet.google.com/*"
+            ],
+            "js": [
+                "drivers/driver_base.js",
+                "drivers/google_meet.js"
+            ]
+        },
+        {
+            "matches": [
+                "https://*.webex.com/*"
+            ],
+            "js": [
+                "drivers/driver_base.js",
+                "drivers/webex.js"
+            ]
+        }
+    ],
+    "_comment": "Odoo Discuss is registered at runtime for our Odoo address; Jitsi runs through its External API in the Display page."
 }

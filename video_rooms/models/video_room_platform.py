@@ -23,9 +23,7 @@ class VideoRoomPlatform(models.Model):
         ('webex', 'Cisco Webex'),
         ('jitsi', 'Jitsi Meet'),
         ('odoo_discuss', 'Odoo Discuss'),
-        ('generic', 'Generic (open the link only)'),
-        ('none', 'Not supported'),
-    ], required=True, default='generic')
+    ], required=True)
     url_patterns = fields.Text(
         help='One regular expression per line, matched against a meeting link to recognise this platform.')
     note = fields.Html(help='What hosts need to allow for us to join, known limits, ...')

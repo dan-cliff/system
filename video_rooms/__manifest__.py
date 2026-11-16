@@ -14,8 +14,16 @@
           downloads, no third-party sign-in
         - Calls: the room's schedule and history, with links from invite
           emails, calendars, the console or "Send to Room"
-        - Platforms: Teams, Zoom, Google Meet, Webex (and more), detected from
-          the meeting link
+        - Platforms: Teams (first), Zoom, Google Meet, Webex, Odoo Discuss and
+          Jitsi Meet, detected from the meeting link
+        - Screens configured per room: one TV, two, or screens all around the
+          room, spanned, mirrored, shared content or room info
+        - Room Designer: a visual editor for the screens, the Console layout
+          and the Presence screen layout, with templates
+        - Room Boards: the live status of chosen rooms at once, in Odoo and on
+          wall screens
+        - Tablets sign in automatically: each has its own restricted user and
+          a rolling key (IoT Interfaces browser Nodes)
         - Screen sharing from HDMI, a companion laptop or wireless share
         - Room booking in Meeting Management: a meeting books a room and holds
           what the room needs to join an external call (link, meeting ID,

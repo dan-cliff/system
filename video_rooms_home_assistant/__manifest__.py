@@ -9,6 +9,8 @@
 
         Optional: install it when Home Assistant runs the building.
 
+        - Per room, the kinds of device it has (Lighting, Air Conditioning,
+          Blinds, Smart Window Film, ...): the Console only shows those
         - Room Controls: the Home Assistant entities in each room (lights, A/C,
           blinds, smart privacy film, scenes), shown on the Room Console
         - Room Presets: one tap sets several (e.g. "Presentation": lights 30%,
@@ -22,6 +24,7 @@
     'author': "Cliff's Country Crafts",
     'depends': ['video_rooms'],
     'data': [
+        'data/video_room_ha_category_data.xml',
         # TODO(build): security, views (Room Controls / Presets tabs on the room,
         #              Home Assistant settings on the Display Node), presets data
     ],

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ha_category_lighting" model="video.room.ha.category">
+        <field name="name">Lighting</field>
+        <field name="sequence">10</field>
+        <field name="entity_domains">light,switch</field>
+        <field name="panel">lighting</field>
+    </record>
+    <record id="ha_category_air_conditioning" model="video.room.ha.category">
+        <field name="name">Air Conditioning</field>
+        <field name="sequence">20</field>
+        <field name="entity_domains">climate,fan</field>
+        <field name="panel">climate</field>
+    </record>
+    <record id="ha_category_blinds" model="video.room.ha.category">
+        <field name="name">Blinds</field>
+        <field name="sequence">30</field>
+        <field name="entity_domains">cover</field>
+        <field name="panel">cover</field>
+    </record>
+    <record id="ha_category_window_film" model="video.room.ha.category">
+        <field name="name">Smart Window Film</field>
+        <field name="sequence">40</field>
+        <field name="entity_domains">switch,light</field>
+        <field name="panel">glass</field>
+    </record>
+    <record id="ha_category_scenes" model="video.room.ha.category">
+        <field name="name">Scenes</field>
+        <field name="sequence">50</field>
+        <field name="entity_domains">scene,script</field>
+        <field name="panel">scene</field>
+    </record>
+</odoo>
