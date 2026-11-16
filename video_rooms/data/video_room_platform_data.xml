@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Starting platforms. url_patterns: one regular expression per line. -->
+    <record id="platform_teams" model="video.room.platform">
+        <field name="name">Microsoft Teams</field>
+        <field name="sequence">10</field>
+        <field name="driver">teams</field>
+        <field name="url_patterns">^https://teams\.microsoft\.com/(l/meetup-join|meet)/
+^https://teams\.live\.com/meet/</field>
+        <field name="note"><![CDATA[<p>Joins as an anonymous guest in Chrome. The host's tenant must allow anonymous join, and someone admits the room from the lobby.</p>]]></field>
+    </record>
+    <record id="platform_zoom" model="video.room.platform">
+        <field name="name">Zoom</field>
+        <field name="sequence">20</field>
+        <field name="driver">zoom</field>
+        <field name="url_patterns">^https://([\w-]+\.)?zoom\.us/(j|w|wc|my)/
+^https://([\w-]+\.)?zoomgov\.com/(j|w|wc)/</field>
+        <field name="note"><![CDATA[<p>Uses the Zoom web client. The host must allow "join from browser". A CAPTCHA or a "signed-in users only" setting needs someone at the console, or a room account.</p>]]></field>
+    </record>
+    <record id="platform_google_meet" model="video.room.platform">
+        <field name="name">Google Meet</field>
+        <field name="sequence">30</field>
+        <field name="driver">google_meet</field>
+        <field name="url_patterns">^https://meet\.google\.com/[a-z]{3}-[a-z]{4}-[a-z]{3}</field>
+        <field name="note"><![CDATA[<p>"Ask to join" as a guest, and someone in the meeting admits the room. Workspace orgs may only allow signed-in users.</p>]]></field>
+    </record>
+    <record id="platform_webex" model="video.room.platform">
+        <field name="name">Cisco Webex</field>
+        <field name="sequence">40</field>
+        <field name="driver">webex</field>
+        <field name="url_patterns">^https://[\w-]+\.webex\.com/</field>
+        <field name="note"><![CDATA[<p>Webex web app as a guest (name and email). Some sites require sign-in.</p>]]></field>
+    </record>
+    <!-- Suggested extras: archived until chosen (see DESIGN.md §3). -->
+    <record id="platform_odoo_discuss" model="video.room.platform">
+        <field name="name">Odoo Discuss</field>
+        <field name="sequence">50</field>
+        <field name="driver">odoo_discuss</field>
+        <field name="active" eval="False"/>
+        <field name="url_patterns">/(chat|discuss)/\d+/</field>
+    </record>
+    <record id="platform_jitsi" model="video.room.platform">
+        <field name="name">Jitsi Meet</field>
+        <field name="sequence">60</field>
+        <field name="driver">jitsi</field>
+        <field name="active" eval="False"/>
+        <field name="url_patterns">^https://meet\.jit\.si/</field>
+    </record>
+    <record id="platform_goto" model="video.room.platform">
+        <field name="name">GoTo Meeting</field>
+        <field name="sequence">70</field>
+        <field name="driver">generic</field>
+        <field name="active" eval="False"/>
+        <field name="url_patterns">^https://(meet\.goto\.com|global\.gotomeeting\.com/join)/</field>
+    </record>
+    <record id="platform_ringcentral" model="video.room.platform">
+        <field name="name">RingCentral Video</field>
+        <field name="sequence">80</field>
+        <field name="driver">generic</field>
+        <field name="active" eval="False"/>
+        <field name="url_patterns">^https://v\.ringcentral\.com/join/</field>
+    </record>
+    <record id="platform_whereby" model="video.room.platform">
+        <field name="name">Whereby</field>
+        <field name="sequence">90</field>
+        <field name="driver">generic</field>
+        <field name="active" eval="False"/>
+        <field name="url_patterns">^https://whereby\.com/</field>
+    </record>
+    <!-- Retired: recognised so the console can say so, never joined. -->
+    <record id="platform_skype" model="video.room.platform">
+        <field name="name">Skype (retired)</field>
+        <field name="sequence">100</field>
+        <field name="driver">none</field>
+        <field name="active" eval="False"/>
+        <field name="url_patterns">^https://join\.skype\.com/</field>
+    </record>
+    <record id="platform_chime" model="video.room.platform">
+        <field name="name">Amazon Chime (retired)</field>
+        <field name="sequence">110</field>
+        <field name="driver">none</field>
+        <field name="active" eval="False"/>
+        <field name="url_patterns">^https://chime\.aws/</field>
+    </record>
+</odoo>
