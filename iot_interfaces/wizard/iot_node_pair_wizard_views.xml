@@ -5,7 +5,15 @@
         <field name="model">iot.node.pair.wizard</field>
         <field name="arch" type="xml">
             <form>
-                <div class="alert alert-info" role="alert">
+                <div class="alert alert-info" role="alert" invisible="not is_browser_node">
+                    On the tablet or PC, scan this QR code (or open the link) in Chrome. It pairs the browser,
+                    then offers to install the app. From then on the browser keeps its own rolling key and signs
+                    in by itself: you won't need to sign it in or pair it again.
+                </div>
+                <div class="text-center mb-3" invisible="not is_browser_node">
+                    <field name="qr_code_url" widget="image_url" options="{'size': [240, 240]}" nolabel="1"/>
+                </div>
+                <div class="alert alert-info" role="alert" invisible="is_browser_node">
                     On the Node (a Raspberry Pi connected to the internet and the local network), open a
                     terminal and run this command. It installs the Node agent, pairs the Node with Odoo,
                     installs its role's program and starts it whenever the Node is switched on. From then on
@@ -23,6 +31,7 @@
                     <field name="code" widget="CopyClipboardChar"/>
                     <field name="expires" options="{'numeric': True}"/>
                     <field name="already_paired" invisible="1"/>
+                    <field name="is_browser_node" invisible="1"/>
                 </group>
                 <p class="text-muted">The pairing code works once and expires after 24 hours.</p>
                 <footer>

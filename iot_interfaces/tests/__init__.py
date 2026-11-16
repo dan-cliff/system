@@ -2,3 +2,4 @@
 from . import test_node_auth
 from . import test_api
 from . import test_program
+from . import test_browser_node

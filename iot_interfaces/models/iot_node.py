@@ -117,7 +117,35 @@ class IotNode(models.Model):
     last_auth_error = fields.Char(string='Last Refused Request', readonly=True, copy=False)
     last_auth_error_on = fields.Datetime(string='Refused On', readonly=True, copy=False)
 
+    # ── Browser Nodes ─────────────────────────────────────────────────────
+    # A browser Node is a tablet or PC browser (an installed web app) instead of a
+    # Raspberry Pi. It pairs from a web page and signs with a key its browser can
+    # use but never read (WebCrypto). Each one signs in as its own restricted user,
+    # automatically, whenever it needs an Odoo session. Apps list their browser
+    # roles in _iot_browser_roles().
+    is_browser_node = fields.Boolean(string='Browser Node', compute='_compute_is_browser_node',
+                                     help='A tablet or PC browser rather than a Raspberry Pi.')
+    session_user_id = fields.Many2one(
+        'res.users', string='Signs In As', copy=False, ondelete='restrict', tracking=True,
+        help="The browser Node's own restricted user: the Node is signed in as this user automatically "
+             "with its rolling key. It can't be an administrator.")
+
     _node_key_unique = models.Constraint('UNIQUE(node_key)', 'Each Node needs its own Node ID.')
+
+    @api.depends('role')
+    def _compute_is_browser_node(self):
+        browser_roles = self._iot_browser_roles()
+        for node in self:
+            node.is_browser_node = node.role in browser_roles
+
+    @api.constrains('session_user_id')
+    def _check_session_user(self):
+        for node in self.filtered('session_user_id'):
+            user = node.session_user_id
+            if user._is_superuser() or user._is_admin() or user.has_group('base.group_system'):
+                raise ValidationError(_(
+                    '%(node)s can\'t sign in as %(user)s: a browser Node signs in by itself, so it must use '
+                    'its own restricted user, never an administrator.', node=node.name, user=user.name))
 
     @api.depends('last_seen')
     def _compute_is_online(self):
@@ -181,6 +209,16 @@ class IotNode(models.Model):
         return super().write(vals)
 
     # ── Hooks for the apps that add Roles ─────────────────────────────────
+    @api.model
+    def _iot_browser_roles(self):
+        """Roles whose Nodes are browsers (tablets, PCs) rather than Raspberry Pis."""
+        return set()
+
+    def _iot_browser_home(self):
+        """Where a browser Node goes once it is signed in (a path on this Odoo)."""
+        self.ensure_one()
+        return '/odoo'
+
     def _iot_hello_data(self):
         """Extra values the Node's check-in answer carries for its role."""
         self.ensure_one()
@@ -195,9 +233,17 @@ class IotNode(models.Model):
         return 'curl -fsSL %s/iot/install.sh | sudo bash -s -- --url %s --pair %s' % (
             shlex.quote(base), shlex.quote(base), shlex.quote(code))
 
-    def action_pair(self):
-        """Make a one-time pairing code and show the install command."""
+    def _iot_browser_pair_url(self, code):
+        """The page a browser Node opens (from the QR code) to pair."""
         self.ensure_one()
+        return '%s/iot/browser/pair?code=%s' % (self.get_base_url().rstrip('/'), code)
+
+    def action_pair(self):
+        """Make a one-time pairing code and show the install command (or, for a
+        browser Node, the link and QR code to open on the tablet or PC)."""
+        self.ensure_one()
+        if self.is_browser_node and not self.session_user_id:
+            raise UserError(_('Choose the user %s signs in as (Signs In As) before pairing it.', self.name))
         code = '-'.join(''.join(secrets.choice(PAIRING_ALPHABET) for _i in range(4)) for _j in range(4))
         expires = fields.Datetime.now() + PAIRING_CODE_VALID
         self.sudo().write({'pairing_code_hash': _hash(code), 'pairing_expires': expires})
@@ -207,7 +253,8 @@ class IotNode(models.Model):
             'node_id': self.id,
             'code': code,
             'expires': expires,
-            'install_command': self._install_command(code),
+            'install_command': self._iot_browser_pair_url(code) if self.is_browser_node else self._install_command(code),
+            'is_browser_node': self.is_browser_node,
             'already_paired': self.is_paired,
         })
         return {
@@ -305,7 +352,8 @@ class IotNode(models.Model):
             node._iot_refused(_("The Node's clock is wrong by %s seconds.", round((timestamp - now_ms) / 1000)), mac)
             return None, "The Node's clock is wrong. Check its date and time."
         allowed, _invalid = iot_auth.parse_macs(node.allowed_macs)
-        if allowed and mac not in allowed:
+        # A browser can't read its MAC address: its key lives where only that browser can use it.
+        if allowed and mac not in allowed and not node.is_browser_node:
             node._iot_refused(_('%s is not an authorised MAC address.', mac or 'No MAC address'), mac)
             return None, 'This Node is not authorised.'
         path = httprequest.path + ('?' + httprequest.query_string.decode('latin-1') if httprequest.query_string else '')
@@ -337,6 +385,26 @@ class IotNode(models.Model):
         if vals:
             node.write(vals)
         return node, None
+
+    def _iot_browser_session(self, session, env):
+        """Sign the browser Node's browser in as its own user (a signed request).
+
+        ``session`` is the request's Odoo session; ``env`` the request environment.
+        Returns the user."""
+        self.ensure_one()
+        user = self.sudo().session_user_id
+        if not self.is_browser_node or not user or not user.active:
+            raise UserError(_('%s has no user to sign in as.', self.name))
+        if user._is_superuser() or user._is_admin() or user.has_group('base.group_system'):
+            raise UserError(_('%s may not sign in as an administrator.', self.name))
+        if session.uid != user.id:
+            if session.uid:
+                session.logout(keep_db=True)
+            # As Odoo's own login does once the password is checked (see Session.authenticate).
+            session['pre_login'] = user.login
+            session['pre_uid'] = user.id
+            session.finalize(env)
+        return user
 
     def _iot_new_secret(self):
         """A new key to hand to the Node in a signed response, if it is time for one."""
