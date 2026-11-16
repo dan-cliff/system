@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ─── Rooms ─────────────────────────────────────────────────────────── -->
+    <record id="view_video_room_list" model="ir.ui.view">
+        <field name="name">video.room.list</field>
+        <field name="model">video.room</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="availability" widget="badge"
+                       decoration-success="availability == 'available'" decoration-warning="availability == 'soon'"
+                       decoration-danger="availability == 'in_use'" decoration-info="availability == 'dnd'"/>
+                <field name="capacity" optional="show"/>
+                <field name="display_node_id" optional="show"/>
+                <field name="display_online" optional="show" widget="boolean"/>
+                <field name="tablet_count" optional="hide" string="Tablets"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_video_room_kanban" model="ir.ui.view">
+        <field name="name">video.room.kanban</field>
+        <field name="model">video.room</field>
+        <field name="arch" type="xml">
+            <kanban class="o_video_room_kanban" sample="1">
+                <field name="availability"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <field name="availability" widget="badge"
+                                   decoration-success="availability == 'available'"
+                                   decoration-warning="availability == 'soon'"
+                                   decoration-danger="availability == 'in_use'"
+                                   decoration-info="availability == 'dnd'"/>
+                        </div>
+                        <div class="text-muted">
+                            <span t-if="record.capacity.raw_value"><field name="capacity"/> seats</span>
+                        </div>
+                        <div t-if="record.current_meeting_id.raw_value" class="mt-1">
+                            Now: <field name="current_meeting_id"/>
+                        </div>
+                        <div t-elif="record.next_meeting_id.raw_value" class="mt-1 text-muted">
+                            Next: <field name="next_meeting_id"/>
+                        </div>
+                        <footer class="pt-2">
+                            <span t-if="record.display_online.raw_value" class="badge text-bg-success">Display online</span>
+                            <span t-elif="record.display_node_id.raw_value" class="badge text-bg-secondary">Display offline</span>
+                            <field name="display_online" invisible="1"/>
+                            <field name="display_node_id" invisible="1"/>
+                            <field name="capacity" invisible="1"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_video_room_form" model="ir.ui.view">
+        <field name="name">video.room.form</field>
+        <field name="model">video.room</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open_designer" type="object" string="Room Designer" class="btn-primary"
+                            groups="video_rooms.group_video_rooms_design"/>
+                    <button name="action_join_current" type="object" string="Join Current Booking"
+                            invisible="not current_meeting_id or current_call_id or not display_node_id"
+                            groups="video_rooms.group_video_rooms_control"/>
+                    <button name="action_leave" type="object" string="Leave Call" invisible="not current_call_id"
+                            groups="video_rooms.group_video_rooms_control"/>
+                    <button name="action_dnd_on" type="object" string="Do Not Disturb" invisible="dnd_active"
+                            groups="video_rooms.group_video_rooms_control"/>
+                    <button name="action_dnd_off" type="object" string="End Do Not Disturb" invisible="not dnd_active"
+                            groups="video_rooms.group_video_rooms_control"/>
+                    <button name="action_identify_screens" type="object" string="Identify Screens"
+                            invisible="not display_node_id"
+                            groups="video_rooms.group_video_rooms_control,video_rooms.group_video_rooms_design"/>
+                    <field name="availability" widget="statusbar" statusbar_visible="available,soon,in_use,dnd"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_bookings" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="meeting_count" widget="statinfo" string="Bookings"/>
+                        </button>
+                        <button name="action_view_calls" type="object" class="oe_stat_button" icon="fa-video-camera">
+                            <field name="call_count" widget="statinfo" string="Calls"/>
+                        </button>
+                        <button name="action_view_tablets" type="object" class="oe_stat_button" icon="fa-tablet">
+                            <field name="tablet_count" widget="statinfo" string="Tablets"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Board Room"/></h1>
+                    </div>
+                    <group>
+                        <group name="room" string="Room">
+                            <field name="capacity"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group name="now" string="Now">
+                            <field name="current_meeting_id" invisible="not current_meeting_id"/>
+                            <field name="next_meeting_id" invisible="not next_meeting_id"/>
+                            <field name="current_call_id" invisible="not current_call_id"/>
+                            <field name="dnd_until" options="{'numeric': True}" invisible="not dnd_active"/>
+                            <field name="dnd_message" invisible="not dnd_active"/>
+                            <field name="dnd_active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Calls" name="calls">
+                            <group>
+                                <group string="Joining">
+                                    <field name="call_display_name" placeholder="e.g. Cliff's Country Crafts - Board Room"/>
+                                    <field name="call_email"/>
+                                    <field name="join_with_mic"/>
+                                    <field name="join_with_camera"/>
+                                </group>
+                                <group string="Do Not Disturb">
+                                    <field name="dnd_on_join"/>
+                                    <div class="text-muted" colspan="2">
+                                        Anyone at the Room Console can switch Do Not Disturb on or off. It ends with
+                                        the booking or call, after the time chosen, or after 4 hours at the most.
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Booking" name="booking">
+                            <group>
+                                <group string="At the Door">
+                                    <field name="book_now_durations"/>
+                                    <field name="soon_minutes"/>
+                                </group>
+                                <group string="Check-In">
+                                    <field name="checkin_required"/>
+                                    <field name="checkin_minutes" invisible="not checkin_required"/>
+                                    <div class="text-muted" colspan="2" invisible="not checkin_required">
+                                        A booking nobody checks in to (on the Console or at the door) within this time
+                                        is released and the room shows as available.
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Screens" name="screens">
+                            <p class="text-muted">
+                                Up to 4 screens, one per video output on the room PC. Arrange them visually in the
+                                <b>Room Designer</b>.
+                            </p>
+                            <field name="screen_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="show"/>
+                                    <field name="number" string="#"/>
+                                    <field name="name"/>
+                                    <field name="output"/>
+                                    <field name="wall"/>
+                                    <field name="content"/>
+                                    <field name="mirror_of_id" invisible="content != 'mirror'"
+                                           required="content == 'mirror'"/>
+                                    <field name="grid_x" optional="hide"/>
+                                    <field name="grid_y" optional="hide"/>
+                                    <field name="grid_w" optional="hide"/>
+                                    <field name="grid_h" optional="hide"/>
+                                    <field name="tv_address" optional="hide"/>
+                                </list>
+                            </field>
+                            <group>
+                                <field name="tv_control_id"/>
+                            </group>
+                        </page>
+                        <page string="Devices" name="devices">
+                            <group>
+                                <group string="Room Display">
+                                    <field name="display_node_id" options="{'no_create': True}"/>
+                                    <field name="display_online" invisible="not display_node_id"/>
+                                    <field name="has_ptz_camera"/>
+                                    <button name="action_add_display" type="object" string="Add Room Display"
+                                            class="btn-secondary" colspan="2" invisible="display_node_id"
+                                            groups="video_rooms.group_video_rooms_admin"/>
+                                    <button name="action_restart_display" type="object" string="Restart Display Browser"
+                                            class="btn-secondary" colspan="2" invisible="not display_node_id"
+                                            groups="video_rooms.group_video_rooms_control"/>
+                                </group>
+                                <group string="Tablets">
+                                    <field name="admin_pin" password="True" groups="video_rooms.group_video_rooms_admin"/>
+                                    <button name="action_add_console_tablet" type="object" string="Add Console Tablet"
+                                            class="btn-secondary" colspan="2" groups="video_rooms.group_video_rooms_admin"/>
+                                    <button name="action_add_presence_tablet" type="object" string="Add Door Tablet"
+                                            class="btn-secondary" colspan="2" groups="video_rooms.group_video_rooms_admin"/>
+                                </group>
+                            </group>
+                            <field name="tablet_node_ids" readonly="1">
+                                <list>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="role"/>
+                                    <field name="is_paired"/>
+                                    <field name="is_online"/>
+                                    <field name="last_seen" options="{'numeric': True}"/>
+                                </list>
+                            </field>
+                            <div class="text-muted">
+                                Tablets (Android) pair once by scanning a QR code, install as an app, and sign in by
+                                themselves from then on with their own restricted user and rolling key.
+                            </div>
+                        </page>
+                        <page string="Layouts" name="layouts" groups="video_rooms.group_video_rooms_design">
+                            <group>
+                                <field name="console_template_id"/>
+                                <field name="presence_template_id"/>
+                            </group>
+                            <p class="text-muted">
+                                Design the Console and door screens in the <b>Room Designer</b>. A room that follows a
+                                template shows the template's layout and changes with it.
+                            </p>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_video_room_search" model="ir.ui.view">
+        <field name="name">video.room.search</field>
+        <field name="model">video.room</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="display_node_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="dnd" string="Do Not Disturb" domain="[('dnd_active', '=', True)]"/>
+                <filter name="checkin" string="Require Check-In" domain="[('checkin_required', '=', True)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_video_room" model="ir.actions.act_window">
+        <field name="name">Rooms</field>
+        <field name="res_model">video.room</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first meeting room</p>
+            <p>Give it a Room Display (the PC behind its screens) and tablets for the table and the door.</p>
+        </field>
+    </record>
+
+    <!-- ─── Calls ─────────────────────────────────────────────────────────── -->
+    <record id="view_video_room_call_list" model="ir.ui.view">
+        <field name="name">video.room.call.list</field>
+        <field name="model">video.room.call</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="id" optional="show"/>
+                <field name="create_date" string="Started" options="{'numeric': True}"/>
+                <field name="name"/>
+                <field name="room_id"/>
+                <field name="platform_id"/>
+                <field name="source_id" optional="show"/>
+                <field name="organiser_partner_id" optional="show"/>
+                <field name="duration" optional="show" widget="float_time"/>
+                <field name="state" widget="badge" decoration-success="state == 'in_call'"
+                       decoration-info="state in ('joining', 'lobby')" decoration-danger="state == 'failed'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_video_room_call_form" model="ir.ui.view">
+        <field name="name">video.room.call.form</field>
+        <field name="model">video.room.call</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="joining,lobby,in_call,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="room_id"/>
+                            <field name="meeting_id"/>
+                            <field name="platform_id"/>
+                            <field name="source_id"/>
+                            <field name="organiser_partner_id"/>
+                            <field name="url" widget="url" groups="video_rooms.group_video_rooms_admin"/>
+                        </group>
+                        <group>
+                            <field name="create_date" string="Started" options="{'numeric': True}"/>
+                            <field name="joined_at" options="{'numeric': True}"/>
+                            <field name="left_at" options="{'numeric': True}"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="failure_reason" invisible="not failure_reason"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_video_room_call_search" model="ir.ui.view">
+        <field name="name">video.room.call.search</field>
+        <field name="model">video.room.call</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="room_id"/>
+                <field name="platform_id"/>
+                <field name="organiser_partner_id"/>
+                <filter name="failed" string="Could Not Join" domain="[('state', '=', 'failed')]"/>
+                <filter name="active_calls" string="In Progress" domain="[('state', 'in', ('joining', 'lobby', 'in_call'))]"/>
+                <separator/>
+                <filter name="create_date" string="Started" date="create_date"/>
+                <group>
+                    <filter name="group_room" string="Room" context="{'group_by': 'room_id'}"/>
+                    <filter name="group_platform" string="Platform" context="{'group_by': 'platform_id'}"/>
+                    <filter name="group_month" string="Month" context="{'group_by': 'create_date:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_video_room_call" model="ir.actions.act_window">
+        <field name="name">Calls</field>
+        <field name="res_model">video.room.call</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No calls yet</p>
+            <p>Every time a room joins a Teams, Zoom, Google Meet, Webex, Odoo Discuss or Jitsi call it is listed here.</p>
+        </field>
+    </record>
+
+    <!-- ─── Room Boards ───────────────────────────────────────────────────── -->
+    <record id="view_video_room_board_list" model="ir.ui.view">
+        <field name="name">video.room.board.list</field>
+        <field name="model">video.room.board</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="room_selection"/>
+                <field name="room_count" string="Rooms"/>
+                <field name="view_mode"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_video_room_board_form" model="ir.ui.view">
+        <field name="name">video.room.board.form</field>
+        <field name="model">video.room.board</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open_board" type="object" string="Open Board" class="btn-primary"/>
+                    <button name="action_add_board_screen" type="object" string="Add Board Screen"
+                            groups="video_rooms.group_video_rooms_admin"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Head Office - Meeting Rooms"/></h1>
+                    </div>
+                    <group>
+                        <group string="Rooms">
+                            <field name="room_selection" widget="radio"/>
+                            <field name="room_ids" widget="many2many_tags" invisible="room_selection != 'manual'"/>
+                            <field name="room_domain" widget="domain" options="{'model': 'video.room', 'in_dialog': True}"
+                                   invisible="room_selection != 'rule'"/>
+                            <field name="room_count"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Look">
+                            <field name="view_mode"/>
+                            <field name="columns"/>
+                            <field name="sort_by"/>
+                            <field name="theme" widget="radio" options="{'horizontal': True}"/>
+                        </group>
+                        <group string="Each Room Shows">
+                            <field name="show_current"/>
+                            <field name="show_next_booking"/>
+                            <field name="show_platform"/>
+                            <field name="show_dnd"/>
+                            <field name="show_capacity"/>
+                        </group>
+                        <group string="Touchscreens">
+                            <field name="allow_book_now"/>
+                        </group>
+                    </group>
+                    <separator string="Board Screens"/>
+                    <field name="screen_node_ids" readonly="1">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="name"/>
+                            <field name="is_paired"/>
+                            <field name="is_online"/>
+                            <field name="last_seen" options="{'numeric': True}"/>
+                        </list>
+                    </field>
+                    <div class="text-muted">
+                        Show this board on existing PCs and Android tablets: <b>Add Board Screen</b> gives a QR code
+                        to open on the device. It pairs once and signs in by itself from then on.
+                    </div>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_video_room_board_search" model="ir.ui.view">
+        <field name="name">video.room.board.search</field>
+        <field name="model">video.room.board</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="room_ids"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_video_room_board" model="ir.actions.act_window">
+        <field name="name">Room Boards</field>
+        <field name="res_model">video.room.board</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Make a Room Board</p>
+            <p>Show the live status of several rooms at once, in Odoo and on reception or corridor screens.</p>
+        </field>
+    </record>
+
+    <!-- ─── Bookings (Meeting Management meetings with a room) ───────────── -->
+    <record id="view_meeting_form_video_rooms" model="ir.ui.view">
+        <field name="name">meeting.meeting.form.video.rooms</field>
+        <field name="model">meeting.meeting</field>
+        <field name="inherit_id" ref="meeting_management.view_meeting_meeting_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location']" position="before">
+                <field name="video_room_id" options="{'no_create': True}"/>
+                <field name="video_private" invisible="not video_room_id"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Joining" name="video_joining" invisible="not video_room_id">
+                    <field name="video_can_see_details" invisible="1"/>
+                    <field name="video_has_details" invisible="1"/>
+                    <group invisible="not video_can_see_details">
+                        <group string="External Meeting">
+                            <field name="video_join_url" widget="url" placeholder="Paste the meeting link the customer sent"/>
+                            <field name="video_platform_id" options="{'no_create': True}"/>
+                            <field name="video_meeting_code"/>
+                            <field name="video_passcode"/>
+                            <field name="video_join_note"/>
+                            <field name="video_account_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="In the Room">
+                            <field name="video_checked_in" options="{'numeric': True}"/>
+                            <field name="video_instant" invisible="not video_instant"/>
+                            <button name="action_video_join" type="object" string="Join in the Room Now"
+                                    class="btn-primary" colspan="2" groups="video_rooms.group_video_rooms_control"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert" invisible="video_can_see_details or not video_has_details">
+                        This booking has joining details. Only its organiser and Video Rooms administrators can
+                        see them; the room uses them when someone taps Join on the Room Console.
+                    </div>
+                    <div class="text-muted" invisible="not video_can_see_details">
+                        Only the organiser and Video Rooms administrators see these details. Door screens and Room
+                        Boards never show them; the Room Display receives them only when it joins.
+                    </div>
+                    <field name="video_call_ids" readonly="1" invisible="not video_call_ids">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="create_date" string="Started" options="{'numeric': True}"/>
+                            <field name="platform_id"/>
+                            <field name="state"/>
+                            <field name="duration" widget="float_time"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_meeting_list_video_rooms" model="ir.ui.view">
+        <field name="name">meeting.meeting.list.video.rooms</field>
+        <field name="model">meeting.meeting</field>
+        <field name="inherit_id" ref="meeting_management.view_meeting_meeting_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location']" position="before">
+                <field name="video_room_id" optional="show"/>
+                <field name="video_platform_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_meeting_search_video_rooms" model="ir.ui.view">
+        <field name="name">meeting.meeting.search.video.rooms</field>
+        <field name="model">meeting.meeting</field>
+        <field name="inherit_id" ref="meeting_management.view_meeting_meeting_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="video_room_id"/>
+                <filter name="video_has_room" string="Room Bookings" domain="[('video_room_id', '!=', False)]"/>
+                <filter name="video_group_room" string="Room" context="{'group_by': 'video_room_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_video_room_bookings" model="ir.actions.act_window">
+        <field name="name">Bookings</field>
+        <field name="res_model">meeting.meeting</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="domain">[('video_room_id', '!=', False)]</field>
+        <field name="context">{'search_default_video_group_room': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Book a room</p>
+            <p>Any meeting in Meeting Management can book a room: choose the Room on the meeting.</p>
+        </field>
+    </record>
+</odoo>

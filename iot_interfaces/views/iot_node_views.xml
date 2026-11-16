@@ -82,6 +82,9 @@
                     <group>
                         <group string="Node" name="node">
                             <field name="role" readonly="is_paired"/>
+                            <field name="is_browser_node" invisible="1"/>
+                            <field name="session_user_id" invisible="not is_browser_node"
+                                   required="is_browser_node" options="{'no_quick_create': True}"/>
                             <field name="location_note"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="active" invisible="1"/>
@@ -93,7 +96,11 @@
                             <field name="agent_version"/>
                         </group>
                     </group>
-                    <div class="text-muted" invisible="is_paired">
+                    <div class="text-muted" invisible="is_paired or not is_browser_node">
+                        This Node is a tablet or PC browser. Click <b>Pair Node</b> for a QR code to open on it:
+                        it pairs, installs as an app and signs in as its own user by itself from then on.
+                    </div>
+                    <div class="text-muted" invisible="is_paired or is_browser_node">
                         A Node is a Raspberry Pi on your own network. It connects Odoo, which is hosted outside
                         that network, to hardware Odoo can't reach itself. It only makes outgoing connections,
                         so nothing needs opening on the router. Click <b>Pair Node</b> for the command that
@@ -148,7 +155,7 @@
                                     <field name="last_auth_error_on" options="{'numeric': True}" invisible="not last_auth_error"/>
                                 </group>
                             </group>
-                            <group string="Authorised MAC Addresses">
+                            <group string="Authorised MAC Addresses" invisible="is_browser_node">
                                 <field name="allowed_macs" nolabel="1" colspan="2"
                                        placeholder="One per line, e.g. b8:27:eb:12:34:56. Empty allows any Node with the key."/>
                                 <field name="authorise_paired_mac"/>

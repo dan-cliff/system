@@ -8,6 +8,8 @@ Routes:
     POST /iot/v1/pair                     Swap a one-time pairing code for the Node's id and key
     POST /iot/v1/hello                    Signed check-in: online status, rolling key, program updates
     GET  /iot/v1/program/file/<id>        Signed download of a program file for an update
+    GET  /iot/browser/pair                Page a browser Node (tablet, PC) pairs from (QR code)
+    POST /iot/v1/browser/session          Signed: signs a browser Node in as its own user
 
 Apps add their own signed routes and check them with ``authenticate``:
 
@@ -69,6 +71,7 @@ NODE_FILES = {
     '/iot/install.sh': ('iot_interfaces/node/install.sh', 'text/x-shellscript'),
     '/iot/pi/iot_node_agent.py': ('iot_interfaces/node/iot_node_agent.py', 'text/x-python'),
     '/iot/pi/iot_auth.py': ('iot_interfaces/lib/iot_auth.py', 'text/x-python'),
+    '/iot/browser/pair': ('iot_interfaces/static/src/browser/pair.html', 'text/html'),
 }
 
 
@@ -129,3 +132,25 @@ class IotController(http.Controller):
             ('Content-Type', 'application/octet-stream'),
             ('Cache-Control', 'no-store'),
         ])
+
+    @http.route('/iot/v1/browser/session', type='http', auth='public', methods=['POST'], csrf=False)
+    def browser_session(self, **kwargs):
+        """Signed by a browser Node: signs its browser in as the Node's own user (a new
+        Odoo session cookie) and hands over the next rolling key when it is due."""
+        browser_roles = node_env()['iot.node']._iot_browser_roles()
+        if not browser_roles:
+            return error_response('No app uses browser Nodes.', 404)
+        node, error = authenticate(roles=list(browser_roles))
+        if error:
+            return error
+        node._iot_heartbeat(request.httprequest.remote_addr, 'browser')
+        try:
+            user = node._iot_browser_session(request.session, request.env)
+        except UserError as error:
+            return error_response(error.args[0], 403)
+        result = {'status': 'ok', 'name': node.name, 'role': node.role, 'user': user.name,
+                  'home': node._iot_browser_home()}
+        new_secret = node._iot_new_secret()
+        if new_secret:
+            result['new_secret'] = new_secret
+        return json_response(result)

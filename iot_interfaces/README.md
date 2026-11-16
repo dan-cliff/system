@@ -133,6 +133,40 @@ token and paste it into Odoo. Then give a program a
 * While a program is held in GitHub, module updates don't add shipped
   versions to it.
 
+## Browser Nodes (tablets and PCs)
+
+Some Nodes are a **browser** rather than a Raspberry Pi: a meeting-room
+tablet, a door screen, or a PC showing a dashboard. They use the same
+pairing and rolling key, from a web page:
+
+* An app lists its browser roles in `_iot_browser_roles()` and says where
+  each Node goes once it is signed in in `_iot_browser_home()`.
+* Each browser Node has its own restricted user (**Signs In As**). It
+  can't be an administrator.
+* **Pair Node** shows a **QR code**. Scanning it on the tablet or PC opens
+  `/iot/browser/pair?code=…`, which pairs the browser and signs it in.
+* The browser keeps its key as a **non-extractable WebCrypto key** in
+  IndexedDB. Pages can sign with it, but no script can read it out.
+* Whenever the browser needs an Odoo session (first launch, after a
+  restart, or once the session expires), the page signs
+  `POST /iot/v1/browser/session`. Odoo signs it in as the Node's user and
+  hands over the next key when it is due. **Nobody signs a tablet in by
+  hand**, and it is never paired again unless its site data is cleared
+  or its access is revoked.
+* Browsers can't read MAC addresses, so the MAC list doesn't apply to
+  browser Nodes.
+* Use a separate browser profile (or the installed app) for a browser
+  Node. The Node's sign-in replaces any other Odoo session in that
+  profile.
+
+Pages use the library from `/iot_interfaces/static/src/browser/iot_browser.js`:
+
+```js
+import { ensureSession, withSession, rpc } from "/iot_interfaces/static/src/browser/iot_browser.js";
+await ensureSession();                                     // signed in as the Node's user
+const data = await withSession(() => rpc("/my_app/data")); // signs in again if the session expired
+```
+
 ## Adding a Node role in an app
 
 1. Depend on `iot_interfaces` and add the role:
@@ -198,6 +232,8 @@ Tests can pair a Node and sign requests with
 | `POST /iot/v1/pair` | `{code, role, mac, macs, hostname}` → `{node, secret, name, role}` |
 | `POST /iot/v1/hello` | Signed check-in. Sends `{version, program: {digest, error, setup_changed}}`; gets `{name, role, program: {version_id, digest, entrypoint, home, setup, files: [...]}, new_secret?}` |
 | `GET /iot/v1/program/file/<id>` | Signed download of a program file for the Node's role |
+| `GET /iot/browser/pair` | Page a browser Node pairs from (opened from the QR code) |
+| `POST /iot/v1/browser/session` | Signed by a browser Node: signs its browser in as its own user; may carry `new_secret` |
 
 Signed requests carry `X-IoT-Node`, `X-IoT-Timestamp` (milliseconds),
 `X-IoT-MAC` and `X-IoT-Signature`. See `lib/iot_auth.py`.

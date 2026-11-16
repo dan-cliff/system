@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Room form: Room Controls tab -->
+    <record id="view_video_room_form_ha" model="ir.ui.view">
+        <field name="name">video.room.form.home.assistant</field>
+        <field name="model">video.room</field>
+        <field name="inherit_id" ref="video_rooms.view_video_room_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='devices']" position="after">
+                <page string="Room Controls" name="ha_controls">
+                    <group>
+                        <group string="Home Assistant">
+                            <field name="ha_area" placeholder="e.g. Board Room"/>
+                            <field name="ha_category_ids" widget="many2many_tags"/>
+                            <field name="ha_publish_state"/>
+                        </group>
+                        <group>
+                            <button name="action_ha_discover" type="object" string="Discover Devices" class="btn-secondary"
+                                    colspan="2" groups="video_rooms.group_video_rooms_design"/>
+                            <div class="text-muted" colspan="2">
+                                Set the room's Area as it is in Home Assistant, then Discover Devices: what it finds is
+                                added below as archived suggestions. Tick Active for the ones the Console should
+                                control. Rooms may have only lights, or lights, air conditioning, blinds and
+                                window film: the Console only shows what the room has.
+                            </div>
+                        </group>
+                    </group>
+                    <field name="ha_control_ids" context="{'active_test': False, 'default_room_id': id}">
+                        <list editable="bottom" decoration-muted="not active">
+                            <field name="sequence" widget="handle"/>
+                            <field name="id" optional="show"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="name"/>
+                            <field name="category_id" options="{'no_create': True}"/>
+                            <field name="entity_id" placeholder="light.board_room_ceiling"/>
+                            <field name="on_presence" optional="show"/>
+                        </list>
+                    </field>
+                    <separator string="Room Presets"/>
+                    <field name="ha_preset_ids" context="{'default_room_id': id}">
+                        <list>
+                            <field name="sequence" widget="handle"/>
+                            <field name="id" optional="show"/>
+                            <field name="name"/>
+                            <field name="trigger_ids" widget="many2many_tags"/>
+                            <button name="action_run" type="object" string="Run" icon="fa-play"/>
+                        </list>
+                        <form>
+                            <sheet>
+                                <div class="oe_title"><h1><field name="name" placeholder="e.g. Presentation"/></h1></div>
+                                <group>
+                                    <field name="trigger_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                                    <field name="lead_minutes"
+                                           invisible="not trigger_ids"/>
+                                </group>
+                                <field name="line_ids">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="id" optional="show"/>
+                                        <field name="control_id" options="{'no_create': True}"/>
+                                        <field name="action"/>
+                                        <field name="level" invisible="action != 'level'"/>
+                                    </list>
+                                </field>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Room Display Node: Home Assistant connection -->
+    <record id="view_iot_node_form_ha" model="ir.ui.view">
+        <field name="name">iot.node.form.home.assistant</field>
+        <field name="model">iot.node</field>
+        <field name="inherit_id" ref="iot_interfaces.view_iot_node_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Home Assistant" name="home_assistant" invisible="role != 'video_rooms_display'">
+                    <group>
+                        <field name="ha_url" placeholder="http://homeassistant.local:8123"/>
+                        <field name="ha_token" password="True" groups="base.group_system"/>
+                        <field name="ha_status"/>
+                    </group>
+                    <div class="text-muted">
+                        The room PC talks to Home Assistant on the local network; Odoo never connects to it. Make a
+                        Home Assistant user for Video Rooms and paste one of its long-lived access tokens here.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Configuration -->
+    <record id="view_video_room_ha_category_list" model="ir.ui.view">
+        <field name="name">video.room.ha.category.list</field>
+        <field name="model">video.room.ha.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="entity_domains"/>
+                <field name="panel"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_video_room_ha_category" model="ir.actions.act_window">
+        <field name="name">Device Categories</field>
+        <field name="res_model">video.room.ha.category</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+    <record id="view_video_room_ha_trigger_list" model="ir.ui.view">
+        <field name="name">video.room.ha.trigger.list</field>
+        <field name="model">video.room.ha.trigger</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="event"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_video_room_ha_trigger" model="ir.actions.act_window">
+        <field name="name">Preset Triggers</field>
+        <field name="res_model">video.room.ha.trigger</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+    <menuitem id="menu_video_rooms_ha_categories" name="Device Categories" parent="video_rooms.menu_video_rooms_config"
+              sequence="60" action="action_video_room_ha_category"/>
+    <menuitem id="menu_video_rooms_ha_triggers" name="Preset Triggers" parent="video_rooms.menu_video_rooms_config"
+              sequence="61" action="action_video_room_ha_trigger"/>
+</odoo>
