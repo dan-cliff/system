@@ -92,3 +92,28 @@ class TestVideoRoomsHttp(HttpCase):
         call = self.env['video.room.call'].browse(join['params']['call_id'])
         self.assertEqual(call.state, 'in_call')
         self.assertEqual(self._rpc('/video_rooms/console/state')['display']['mic'], True)
+
+    def test_wireless_share_signalling(self):
+        display = self.env['iot.node'].create({'name': 'Display', 'role': 'video_rooms_display'})
+        self.room.display_node_id = display
+        signer = pair(display)
+        display._iot_heartbeat('127.0.0.1')  # online
+        refused = self._rpc('/video_rooms/share/start', code='000000' if self.room.share_code != '000000' else '111111')
+        self.assertFalse(refused['ok'])
+        started = self._rpc('/video_rooms/share/start', code=self.room.share_code)
+        self.assertTrue(started['ok'], started)
+        self.assertEqual(started['room'], 'Board Room')
+        self.assertTrue(self._rpc('/video_rooms/share/offer', token=started['token'], sdp='v=0 offer')['ok'])
+        self.assertIsNone(self._rpc('/video_rooms/share/answer', token=started['token'])['sdp'])
+        # The Display is told to show the share, reads the offer and answers it.
+        command = self.env['video.room.command'].search([('room_id', '=', self.room.id), ('command', '=', 'share')])
+        self.assertEqual(command.params['session'], started['token'])
+        path = '/video_rooms/node/v1/share/%s' % started['token']
+        offer = self.url_open(path, headers=signer.headers('GET', path)).json()
+        self.assertEqual(offer['sdp'], 'v=0 offer')
+        body = json.dumps({'sdp': 'v=0 answer'}).encode()
+        headers = dict(signer.headers('POST', path + '/answer', body), **{'Content-Type': 'application/json'})
+        self.assertEqual(self.url_open(path + '/answer', data=body, headers=headers).status_code, 200)
+        self.assertEqual(self._rpc('/video_rooms/share/answer', token=started['token'])['sdp'], 'v=0 answer')
+        # Unsigned requests get nothing.
+        self.assertEqual(self.url_open(path).status_code, 401)

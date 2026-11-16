@@ -385,21 +385,31 @@ class RoomDisplay:
         self._in_call_driver().call('setLayout', params.get('value') or 'gallery')
 
     def do_share(self, params):
+        """Share the HDMI capture or a wireless share: into the call when there is one
+        (the window is kept off-screen and the platform shares it), otherwise shown on the
+        room's screens for an in-room presentation."""
         value = params.get('value')
-        driver = self._in_call_driver()
+        driver = self.browser.driver('call') if self.call else None
         if value == 'stop':
-            driver.call('stopShare')
+            if driver:
+                driver.call('stopShare')
             self.browser.close('share')
             return 'Stopped sharing'
         mode = 'wireless' if value == 'wireless' else 'hdmi'
         capture = devices.hdmi_capture(self.config)
         if mode == 'hdmi' and not capture:
             raise RuntimeError('No HDMI capture card found on the room PC.')
-        self.browser.window('share', '%s?mode=%s&device=%s' % (SHARE_URL, mode, urllib.parse.quote(capture or '')),
-                            offscreen=True)
-        time.sleep(2)  # let the capture start before the platform looks for the window
-        driver.call('startShare', SHARE_TITLE)
-        return 'Sharing'
+        url = '%s?mode=%s&device=%s&session=%s' % (SHARE_URL, mode, urllib.parse.quote(capture or ''),
+                                                 urllib.parse.quote(params.get('session') or ''))
+        self.browser.close('share')
+        if driver:
+            self.browser.window('share', url, offscreen=True)
+            time.sleep(2)  # let the picture start before the platform looks for the window
+            driver.call('startShare', SHARE_TITLE)
+            return 'Sharing into the call'
+        call_group = next((g for g in self.groups if g['content'] == 'call'), None)
+        self.browser.window('share', url, call_group['rect'] if call_group else None)
+        return "Showing on the room's screens"
 
     def do_volume(self, params):
         self.state['volume'] = devices.set_volume(params.get('value', 60))

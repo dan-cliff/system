@@ -10,3 +10,4 @@ from . import video_room_command
 from . import video_room_board
 from . import meeting_meeting
 from . import iot_node
+from . import video_room_share

@@ -136,12 +136,12 @@ class TestVideoRooms(TransactionCase):
             self.room.screen_ids[0].grid_x = 4  # off the wall
 
     def test_board(self):
-        other = self.Room.create({'name': 'Pod A'})
+        other = self.Room.create({'name': 'Test Pod Z9'})
         board = self.env['video.room.board'].create({'name': 'Head Office', 'room_ids': [(6, 0, [self.room.id, other.id])],
                                                      'sort_by': 'name'})
         payload = board._payload()
-        self.assertEqual([r['name'] for r in payload['rooms']], ['Board Room', 'Pod A'])
-        board.write({'room_selection': 'rule', 'room_domain': "[('name', '=', 'Pod A')]"})
-        self.assertEqual([r['name'] for r in board._payload()['rooms']], ['Pod A'])
+        self.assertEqual([r['name'] for r in payload['rooms']], ['Board Room', 'Test Pod Z9'])
+        board.write({'room_selection': 'rule', 'room_domain': "[('name', '=', 'Test Pod Z9')]"})
+        self.assertEqual([r['name'] for r in board._payload()['rooms']], ['Test Pod Z9'])
         overview = self.env['video.room.board'].get_overview(board.id)
         self.assertEqual(overview['board']['name'], 'Head Office')
