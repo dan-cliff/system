@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="scanner_app.ScannerRoot" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_scanner_body')]" position="inside">
+            <AssetLookupScreen t-if="state.screen === 'asset_lookup'"/>
+            <AssetBulkPicker t-if="state.screen === 'asset_bulk_picker'"
+                onSelect="(kind) => this.goTo('asset_bulk', { assetBulkKind: kind })"/>
+            <AssetBulkScreen t-if="state.screen === 'asset_bulk'" t-key="state.assetBulkKind"
+                kind="state.assetBulkKind" onBack.bind="goHome"/>
+        </xpath>
+    </t>
+
+    <t t-name="asset_management_scanner.LookupScreen">
+        <div class="o_scanner_screen o_scanner_asset">
+            <ScanInput placeholder="'Scan an asset label to open it…'" onSubmit.bind="onScan"/>
+            <p class="o_scanner_subtitle">
+                Scan the asset's QR code, or type its Asset #, Serial / VIN or Registration Number.
+            </p>
+        </div>
+    </t>
+
+    <t t-name="asset_management_scanner.BulkPicker">
+        <div class="o_scanner_picker o_scanner_asset_kinds">
+            <t t-foreach="kinds" t-as="kind" t-key="kind.kind">
+                <button t-attf-class="o_scanner_picker_row o_scanner_asset_kind o_scanner_asset_kind_{{kind.tone}}"
+                        t-on-click="() => this.props.onSelect(kind.kind)">
+                    <span class="o_scanner_picker_title"><i t-attf-class="fa {{kind.icon}} me-2"/><t t-esc="kind.label"/></span>
+                    <span class="o_scanner_picker_subtitle" t-esc="kind.subtitle"/>
+                </button>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="asset_management_scanner.BulkDoneDialog">
+        <Dialog title="'Entries Created'" size="'sm'" contentClass="'o_scanner_dialog'">
+            <p class="o_scanner_asset_done fs-5 mb-0">
+                <i class="fa fa-check-circle me-2"/><t t-esc="props.message"/>
+            </p>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="() => this.props.close()">OK</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="asset_management_scanner.BulkScreen">
+        <div class="o_scanner_screen o_scanner_asset">
+            <t t-if="!state.loading">
+                <p class="o_scanner_subtitle">
+                    Fill in the <t t-esc="info.label"/> details, then scan each asset ·
+                    <t t-esc="state.assets.length"/> scanned
+                </p>
+
+                <div class="o_scanner_asset_form">
+                    <t t-foreach="visibleFields" t-as="field" t-key="field.name">
+                        <div t-attf-class="o_scanner_asset_field {{field.wide ? 'o_scanner_asset_field_wide' : ''}}"
+                               t-att-data-field="field.name">
+                            <span class="o_scanner_asset_label"><t t-esc="field.string"/><span t-if="field.required" class="o_scanner_asset_required"> *</span></span>
+                            <t t-set="value" t-value="state.values[field.name]"/>
+                            <DateTimeInput t-if="field.type === 'date'"
+                                           value="value"
+                                           type="'date'"
+                                           class="'form-control form-control-lg'"
+                                           onChange="(v) => this.setValue(field, v || false)"
+                                           onApply="(v) => this.setValue(field, v || false)"/>
+                            <select t-elif="field.type === 'select' or field.type === 'selection'"
+                                    class="form-select form-select-lg" t-on-change="(ev) => this.onSelect(field, ev)">
+                                <option t-if="!field.required" value="" t-att-selected="!value"/>
+                                <t t-foreach="field.options" t-as="option" t-key="option[0]">
+                                    <option t-att-value="option[0]" t-att-selected="option[0] === value" t-esc="option[1]"/>
+                                </t>
+                            </select>
+                            <div t-elif="field.type === 'record'" class="o_scanner_asset_record">
+                                <RecordSelector resModel="field.model" resId="value || false" domain="field.domain"
+                                                update="(resId) => this.setValue(field, resId || false)"/>
+                            </div>
+                            <input t-elif="field.type === 'number'" type="number" step="any"
+                                   class="form-control form-control-lg" t-att-value="value"
+                                   t-on-change="(ev) => this.onNumber(field, ev)"/>
+                            <textarea t-elif="field.type === 'text'" rows="3" class="form-control form-control-lg"
+                                      t-att-value="value or ''" t-on-input="(ev) => this.onInput(field, ev)"/>
+                            <input t-else="" type="text" class="form-control form-control-lg" t-att-value="value or ''"
+                                   t-on-input="(ev) => this.onInput(field, ev)"/>
+                        </div>
+                    </t>
+                </div>
+
+                <ScanInput placeholder="'Scan an asset label to add it…'" onSubmit.bind="onScan"/>
+
+                <div class="o_scanner_lines">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Asset #</th>
+                                <th>Asset</th>
+                                <th>Type</th>
+                                <th t-if="props.kind === 'usage'" class="text-end">Latest Reading</th>
+                                <th/>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.assets" t-as="asset" t-key="asset.id" class="o_scanner_asset_line">
+                                <td t-esc="asset.asset_number"/>
+                                <td t-esc="asset.name"/>
+                                <td t-esc="asset.type"/>
+                                <td t-if="props.kind === 'usage'" class="text-end">
+                                    <t t-esc="asset.reading"/> <small t-esc="asset.unit"/>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-link text-danger" title="Remove"
+                                            t-on-click="() => this.removeAsset(asset)">✕</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="o_scanner_subtitle" t-if="!state.assets.length">No assets scanned yet.</p>
+                </div>
+
+                <div class="o_scanner_asset_note" t-if="missingFields.length">
+                    Fill in <t t-esc="missingLabels"/> first.
+                </div>
+                <button class="btn btn-lg btn-primary w-100 o_scanner_asset_generate" t-on-click="onGenerate"
+                        t-att-disabled="!canGenerate">
+                    <i class="fa fa-magic me-1"/>Generate
+                    <t t-if="state.assets.length"> (<t t-esc="state.assets.length"/>)</t>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>
