@@ -180,6 +180,7 @@
                                 <group string="Room Display">
                                     <field name="display_node_id" options="{'no_create': True}"/>
                                     <field name="display_online" invisible="not display_node_id"/>
+                                    <field name="has_ptz_camera"/>
                                     <button name="action_add_display" type="object" string="Add Room Display"
                                             class="btn-secondary" colspan="2" invisible="display_node_id"
                                             groups="video_rooms.group_video_rooms_admin"/>

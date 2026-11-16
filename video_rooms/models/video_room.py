@@ -46,6 +46,8 @@ class VideoRoom(models.Model):
     display_state = fields.Json(related='display_node_id.video_room_state', string='Display State')
     tablet_node_ids = fields.One2many('iot.node', 'video_room_id', string='Tablets')
     tablet_count = fields.Integer(compute='_compute_counts')
+    has_ptz_camera = fields.Boolean(string='PTZ Camera',
+                                    help='The room camera can pan, tilt and zoom to presets (the Console offers them).')
     tv_control_id = fields.Many2one('video.room.tv.control', string='TV Power Control',
                                     help='How the room\'s TVs are switched on and off.')
 
@@ -458,6 +460,95 @@ class VideoRoom(models.Model):
         return {'type': 'ir.actions.act_window', 'name': _('Tablets'), 'res_model': 'iot.node',
                 'view_mode': 'list,form', 'domain': [('video_room_id', '=', self.id)],
                 'context': {'default_video_room_id': self.id}}
+
+    # ── Room Designer ────────────────────────────────────────────────────
+    def _check_design(self):
+        if not self.env.user.has_group('video_rooms.group_video_rooms_design'):
+            raise UserError(_('The Room Designer needs the "Video Rooms: Design Rooms" permission.'))
+
+    def designer_load(self):
+        """Everything the Room Designer edits for this room."""
+        self.ensure_one()
+        self._check_design()
+        room = self.sudo()
+        outputs = room.display_node_id.video_room_outputs or []
+        panels = {c.get('panel') for c in room._console_controls()}
+        templates = self.env['video.room.layout.template'].sudo().search([('kind', 'in', ('console', 'presence'))])
+        return {
+            'id': room.id, 'name': room.name, 'capacity': room.capacity,
+            'outputs': outputs or ['HDMI-1', 'HDMI-2', 'DP-1', 'DP-2'],
+            'outputs_reported': bool(outputs),
+            'has_display': bool(room.display_node_id),
+            'has': {'lighting': 'lighting' in panels, 'climate': 'climate' in panels, 'blinds': 'cover' in panels,
+                    'glass': 'glass' in panels, 'scenes': 'scene' in panels, 'ptz': room.has_ptz_camera},
+            'screens': [{'id': s.id, 'name': s.name, 'wall': s.wall, 'x': s.grid_x, 'y': s.grid_y, 'w': s.grid_w,
+                         'h': s.grid_h, 'content': s.content, 'mirrorOf': s.mirror_of_id.id or '',
+                         'output': s.output or ''} for s in room.screen_ids],
+            'console': room._effective_layout('console'),
+            'presence': room._effective_layout('presence'),
+            'console_template': room.console_template_id.name or '',
+            'presence_template': room.presence_template_id.name or '',
+            'templates': [{'id': t.id, 'name': t.name, 'kind': t.kind, 'layout': t.layout} for t in templates],
+        }
+
+    def designer_save(self, data):
+        """Save the Room Designer: screens (replaced), Console and Presence layouts.
+        Saving a layout stops the room following a template for it."""
+        self.ensure_one()
+        self._check_design()
+        room = self.sudo()
+        screens = data.get('screens') or []
+        if len(screens) > 4:
+            raise UserError(_('A room can have up to 4 screens, one per output on the room PC.'))
+        Screen = self.env['video.room.screen'].sudo()
+        keep = {int(s['id']) for s in screens if str(s.get('id', '')).isdigit()}
+        room.screen_ids.filtered(lambda s: s.id not in keep).unlink()
+        ids = {}
+        for sequence, item in enumerate(screens):
+            vals = {'room_id': room.id, 'sequence': sequence, 'name': (item.get('name') or _('Screen')).strip()[:64],
+                    'wall': item.get('wall') or 'front', 'grid_x': int(item.get('x') or 0),
+                    'grid_y': int(item.get('y') or 0), 'grid_w': int(item.get('w') or 1),
+                    'grid_h': int(item.get('h') or 1), 'content': item.get('content') or 'call',
+                    'output': item.get('output') or False, 'mirror_of_id': False}
+            key = str(item.get('id'))
+            screen = Screen.browse(int(key)) if key.isdigit() and int(key) in keep else Screen.create(vals)
+            if screen.id in keep:
+                screen.write(vals)
+            ids[key] = screen.id
+        for item in screens:
+            if item.get('content') == 'mirror' and str(item.get('mirrorOf') or '') in ids:
+                Screen.browse(ids[str(item.get('id'))]).mirror_of_id = ids[str(item['mirrorOf'])]
+        vals = {}
+        if data.get('console'):
+            vals.update(console_layout=data['console'], console_template_id=False)
+        if data.get('presence'):
+            vals.update(presence_layout=data['presence'], presence_template_id=False)
+        if vals:
+            room.write(vals)
+        room.message_post(body=_('Room Designer: layout published by %s.', self.env.user.name))
+        return self.designer_load()
+
+    def designer_save_template(self, kind, name, layout):
+        """Save a Console or Presence layout as a template other rooms can use."""
+        self.ensure_one()
+        self._check_design()
+        if kind not in ('console', 'presence') or not (name or '').strip():
+            raise UserError(_('Give the template a name.'))
+        Template = self.env['video.room.layout.template'].sudo()
+        template = Template.search([('kind', '=', kind), ('name', '=', name.strip())], limit=1)
+        if template:
+            template.layout = layout
+        else:
+            template = Template.create({'kind': kind, 'name': name.strip(), 'layout': layout})
+        return {'id': template.id, 'name': template.name, 'kind': kind, 'layout': layout}
+
+    def designer_follow_template(self, kind, template_id):
+        """Make the room follow a template (it changes when the template changes)."""
+        self.ensure_one()
+        self._check_design()
+        field = {'console': 'console_template_id', 'presence': 'presence_template_id'}[kind]
+        self.sudo().write({field: int(template_id) or False})
+        return self.designer_load()
 
     # ── What the tablets, boards and Display read ───────────────────────
     def _local_time(self, value, fmt='%H:%M'):
