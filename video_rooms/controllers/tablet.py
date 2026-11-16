@@ -65,7 +65,7 @@ class VideoRoomsTablet(http.Controller):
             'name': title, 'short_name': title, 'start_url': '/video_rooms/%s' % app, 'scope': '/video_rooms/',
             'display': 'fullscreen', 'orientation': 'any', 'background_color': '#12152A', 'theme_color': colour,
             'icons': [{'src': '/video_rooms/static/description/pwa_%s.png' % size, 'sizes': '%sx%s' % (size, size),
-                       'type': 'image/png', 'purpose': 'any maskable'} for size in (192, 512)],
+                       'type': 'image/png', 'purpose': 'any'} for size in (192, 512)],
         }
         return request.make_response(json.dumps(data), headers=[('Content-Type', 'application/manifest+json'),
                                                                 ('Cache-Control', 'no-cache')])

@@ -1,9 +1,10 @@
 # Video Rooms – framework design
 
-> Status: **scaffold only, nothing is built yet.** Every manifest on this
-> branch says `installable: False`, so none of it can be installed by mistake.
-> This document covers how the system would work, which parts are risky,
-> and the questions to answer before we build it.
+> Status: **built.** This document says how Video Rooms works, the
+> decisions behind it and the risks. §15 lists what's in the repository and
+> how to set up a room. Where the build differs from the first design, the
+> design was changed to match; §2 explains the main change (the drivers run
+> through Chrome DevTools, not an extension).
 
 ## 1. What we want
 
@@ -35,14 +36,14 @@ same-origin policy. Our PWA can't click "Mute" inside
 (`X-Frame-Options` / CSP `frame-ancestors`), so we can't embed them in our
 own page either.
 
-So the Room Display is **a managed Chromium kiosk plus our own browser
-extension**, run by a Node agent:
+So the Room Display is **a managed Chrome kiosk driven through Chrome
+DevTools**, run by a Node agent:
 
 ```
                  Odoo (Cloudpepper)  ── Video Rooms app
                  ▲             ▲
-   HTTPS (Odoo   │             │ HTTPS, signed by the Node agent
-   session + bus)│             │ (IoT Interfaces rolling key)
+   HTTPS (tablet │             │ HTTPS, signed by the Node agent
+   own user)     │             │ (IoT Interfaces rolling key)
                  │             │
 ┌──────────────┐ │   ┌─────────┴─────────────────────────────────────────┐
 │ Room Console │─┤   │ Room PC  = IoT Node, role "video_rooms_display"   │
@@ -54,40 +55,58 @@ extension**, run by a Node agent:
 └──────────────┘     │                     │    display layout           │
                      │                     │  · Home Assistant REST/WS ──┼──► Home Assistant
                      │                     │    (optional, LAN only)     │    lights · A/C ·
-                     │                     │  · local WebSocket ▼        │    blinds · glass
-                     │  Chromium (kiosk, managed policies)               │
-                     │   └─ Video Rooms extension                        │
-                     │       ├─ service worker  ◄── commands             │
-                     │       └─ content scripts = platform DRIVERS       │
-                     │           teams.js zoom.js google_meet.js webex.js│
-                     │           (click/keyboard the web client, report  │
-                     │            state: joined, muted, sharing, lobby…) │
+                     │                     │  · DevTools 127.0.0.1 ▼     │    blinds · glass
+                     │  Google Chrome (Openbox kiosk, managed policies)  │
+                     │   └─ meeting window: platform DRIVER injected in  │
+                     │      an isolated world (driver_base.js + teams.js │
+                     │      zoom.js google_meet.js webex.js jitsi.js     │
+                     │      odoo_discuss.js + selectors.json): clicks /  │
+                     │      keys the web client, reports joined, muted,  │
+                     │      sharing, lobby…; trusted clicks for sharing  │
                      └───────────────┬───────────────────────────────────┘
                                      │ HDMI/DP ×1–4 (the PC's own outputs)
                                   TV video wall
                           camera + speakerphone (USB)
 ```
 
-Why use an extension and not Playwright/Puppeteer: browsers controlled
-through WebDriver/CDP automation set `navigator.webdriver`, and Google
-Meet (and sometimes Zoom) refuse or challenge those browsers. Content
-scripts in a normal Chromium profile look like a person using Chrome. The
-Python agent still handles what a page can't, such as audio devices, TV
-power and restarting the browser.
+**Why DevTools rather than an extension (changed during the build).**
+Chrome 137 stopped loading unpacked extensions (`--load-extension`) in
+Google Chrome, and Ubuntu's Chromium is a confined snap. So `room_agent.py`
+injects the drivers itself through Chrome's DevTools port, which is bound
+to 127.0.0.1 only. This keeps the benefits of the extension approach:
+
+- Chrome is started normally, with no `--enable-automation` and no
+  WebDriver, so `navigator.webdriver` stays false and Meet and Zoom see an
+  ordinary browser.
+- Drivers run in an isolated world: they see the page's DOM, not its
+  scripts.
+
+It adds two things:
+
+- **Trusted clicks and keys** (`Input.dispatch*`), which screen sharing
+  needs, because the platforms only share in response to a real user
+  gesture.
+- No extension to package or sign.
+
+The Python agent also handles what a page can't, such as screens, audio,
+TV power, camera presets and restarting the browser.
 
 ### Platform drivers
 
-Every platform implements the same driver interface
-(`node_programs/video_rooms_display/extension/drivers/driver_base.js`):
+Every platform uses the same driver
+(`node_programs/video_rooms_display/drivers/driver_base.js`). It is driven by
+that platform's entry in `selectors.json`, plus a small hooks file for
+anything special:
 
 | Method | Notes |
 | --- | --- |
-| `join({url, displayName, mic, camera})` | Gets through the pre-join screen ("Continue on this browser", name, devices) and waits in the lobby. |
-| `leave()` | |
-| `setMic(on)` / `setCamera(on)` | DOM button first, keyboard shortcut as a fallback. |
-| `startShare(source)` / `stopShare()` | The source is a window title (see §4). |
-| `setLayout(name)` | Gallery / speaker / share-focus, where the client allows it. |
-| `getState()` | `idle, prejoin, lobby, in_call, ended, error` plus mic, camera, share, participants (if visible) and the error text. |
+| `step(params)` | One step towards joining: "Continue on this browser", name, email, passcode, mic and camera, then Join. The agent repeats it every two seconds until the room is in the lobby or the call, so the page reloading in between doesn't matter. |
+| `leave()` | Leave, and confirm if asked. |
+| `setMic(on)` / `setCamera(on)` | The button first, the keyboard shortcut as a fallback. |
+| `startShare(title)` / `stopShare()` | A trusted click on Share. Chrome picks the "Video Rooms Share" window by itself (`--auto-select-desktop-capture-source`). |
+| `setLayout(name)` | Gallery, speaker or content, where the client allows it. |
+| `state()` | `idle, prejoin, lobby, in_call, ended, error`, plus mic, camera, sharing and the error text. |
+| `selfTest()` | Which selectors match the current page. |
 
 The DOM selectors are kept in `selectors.json` (data, not code). When a
 vendor changes its UI, we release a new program version and every room
@@ -105,7 +124,7 @@ let in.
 | --- | --- | --- | --- | --- |
 | **Microsoft Teams** | Yes (Chrome/Edge, including Linux), after "Continue on this browser". Teams free (`teams.live.com`) too. | The tenant has turned off anonymous join, or the lobby is never opened. | Medium: the UI changes often. | **Azure Communication Services** can join any Teams meeting as an anonymous user. It gives full control and **our own layout** (people on one TV, the share on another). Paid per participant-minute. |
 | **Zoom** | Yes, through the web client (`app.zoom.us/wc/join/…`). | The host turned off "join from browser" or requires signed-in users. The web client sometimes shows a CAPTCHA to anonymous joins. | **Highest**: the CAPTCHA can't be automated, and we shouldn't try to get around it. | Meeting SDK for Web. Zoom keeps tightening the rules for SDK apps joining meetings outside the app's own account, so check the current policy before choosing this route. |
-| **Google Meet** | Yes in Chrome: "Ask to join", then someone in the meeting admits us. | A Workspace org only allows signed-in or internal users. | Medium-high: it detects automated browsers (the extension approach avoids this). | **None.** No SDK joins Meet with full media, so the web client is the only route. |
+| **Google Meet** | Yes in Chrome: "Ask to join", then someone in the meeting admits us. | A Workspace org only allows signed-in or internal users. | Medium-high: it detects automated browsers (a normal Chrome driven over DevTools isn't flagged). | **None.** No SDK joins Meet with full media, so the web client is the only route. |
 | **Cisco Webex** | Yes: the web app asks for a name and email only. | The site requires sign-in. | Medium. | **Webex Browser SDK** with a guest issuer / service app. Workable, and free to develop with. |
 
 **Verdict:** we can work with all four. Zoom is the most likely to fail
@@ -122,8 +141,8 @@ someone else's interface.
 
 | Platform | How the driver works | Effort |
 | --- | --- | --- |
-| **Odoo Discuss video calls** | It's our own Odoo, so calls involve no third party. The Display joins a channel's call through its invitation link as a guest. The content script is registered at runtime for our Odoo address (`chrome.scripting.registerContentScripts`), because that address differs per installation. Odoo's call UI is ours, so its selectors only change when we upgrade Odoo. | Low |
-| **Jitsi Meet** | No page scraping: the Display opens Jitsi with the official **External API** (an iframe in our own display page), which gives real commands and events: mute, camera, share, layout, participants. It works for `meet.jit.si` and self-hosted Jitsi servers. | Low |
+| **Odoo Discuss video calls** | It's our own Odoo, so calls involve no third party. The Display joins a channel's call through its invitation link as a guest. Odoo's call screen is ours, so its selectors only change when we upgrade Odoo. | Low |
+| **Jitsi Meet** | The same DOM driver as the others (Jitsi's page is stable and has keyboard shortcuts). It works for `meet.jit.si` and self-hosted servers: add the server's address to the platform's link patterns. The official External API remains an option if more control is ever needed. | Low |
 
 No other platforms are planned. A link from any other platform is shown
 on the Console as "Not supported", and the room doesn't try to join.
@@ -539,12 +558,14 @@ controls.
 
 | Option | Latency | Cost |
 | --- | --- | --- |
-| **A. Fast poll**: `room_agent.py` polls `/video_rooms/node/v1/sync` every ~1 s during a call or while the console is awake, and every ~10 s when idle. It sends the state and gets pending commands back. The Console gets state over the normal Odoo bus. | ~1 s | Simplest. About 1 request/s per busy room, which is cheap but shows up in logs. |
+| **A. Fast poll**: `room_agent.py` polls `/video_rooms/node/v1/sync` every ~1 s during a call and every ~3 s when idle. It sends the state and gets pending commands back. The tablets poll their own small state routes: the Console every 1.5 s in a call and 4 s idle, the door every 8 s, boards every 10 s. | ~1 s | Simplest. About 1 request/s per busy room, which is cheap but shows up in logs. |
 | **B. Push channel in IoT Interfaces**: a long-lived signed WebSocket from the agent to Odoo's `/websocket` (gevent) worker. | <200 ms | A general IoT Interfaces upgrade (other roles benefit), but a real piece of work in a security-critical module. |
 | **C. LAN direct**: the tablet talks to the room PC on the local network. | <100 ms | Needs local pairing and security. A plain-HTTP LAN page can't be an installable PWA (it isn't a secure context). |
 
-**Recommendation:** build A first, so the work isn't blocked on B. Move
-to B if A feels sluggish or other Node roles need push too.
+**Built: A.** Move to B if it feels sluggish, or if other Node roles need
+push too. The tablets poll instead of using the Odoo bus, because they
+aren't Odoo's web client: Odoo's websocket requires its worker's exact
+version string, which changes with Odoo updates.
 
 ### Tablet sign-in: a dedicated restricted login per tablet with a rolling key
 
@@ -595,17 +616,30 @@ hold, and nobody manages passwords or tokens.
 
 - **OS: Ubuntu Desktop 24.04 LTS.** The IoT Interfaces installer (bash,
   apt, systemd) works on it unchanged. Windows would need a new installer.
-- **Google Chrome .deb**, not the Ubuntu Chromium snap, because the snap
-  makes managed policies and extension force-install fiddly. Policies go
-  in `/etc/opt/chrome/policies/managed/video_rooms.json`: auto-grant
-  camera/mic/screen capture for the four platforms, force-install our
-  extension, kiosk start page = the agent's local address.
-- The program's `setup.sh` (run as root by the install command) does the
-  following:
-  - installs Chrome and its policies;
-  - sets up auto-login and kiosk autostart;
-  - installs `cec-utils` and `v4l-utils`;
-  - turns off screen blanking.
+- **Google Chrome .deb**, not the Ubuntu Chromium snap (confined, so
+  policies are fiddly). It updates from Google's repository. Policies go in
+  `/etc/opt/chrome/policies/managed/video_rooms.json`: camera, mic and
+  screen capture allowed for the platforms, no translate, password manager
+  or sign-in prompts.
+- **Kiosk session: X11 + Openbox** instead of GNOME, logged in
+  automatically. Openbox draws no window borders, so one Chrome window can
+  span several screens exactly. `picom` keeps the off-screen share window
+  capturable.
+- The program's `setup.sh` (run as root by the install command):
+  - installs Chrome, its policies and `openbox`, `picom`, `cec-utils`,
+    `v4l-utils`, `pulseaudio-utils`, `x11-xserver-utils`;
+  - sets up auto-login into the Openbox session;
+  - starts `room_browser.sh` (Chrome with DevTools on 127.0.0.1:9222,
+    restarted if it closes).
+- `room_agent.py` (started and updated by the Node agent):
+  - arranges the outputs with `xrandr`;
+  - places the windows through DevTools;
+  - injects the drivers;
+  - runs volume (`pactl`), TV power (`cec-client`, RS-232 or LAN) and
+    camera presets (`v4l2-ctl`, saved in the Node's data folder).
+- A HDMI capture card is recognised by its name (capture, HDMI, Cam
+  Link, MS2109, …). Another name can be set as `hdmi_capture_name` in the
+  Node's `data/config.json`.
 - Updates to the drivers and agent arrive over the air. Only a change to
   `setup.sh` needs the install command run again.
 
@@ -618,8 +652,8 @@ hold, and nobody manages passwords or tokens.
   - Use Android Enterprise / a device-management (MDM) kiosk policy, or
     a kiosk launcher, if we want the PWA to start at boot and be
     impossible to leave.
-  - Turn off battery optimisation for Chrome, so the bus connection
-    isn't killed in the background.
+  - Turn off battery optimisation for Chrome, so status updates
+    aren't stopped in the background.
 - **Keep the pairing:** the page asks for **persistent storage**
   (`navigator.storage.persist()`), so Android doesn't clear the key.
   Installed PWAs are normally granted it. The tablet then only needs
@@ -660,9 +694,9 @@ project unnecessary, or confirm it's worth building.
 | Phase | Scope | Size |
 | --- | --- | --- |
 | 1. Rooms without video | Odoo models, views and security. **Room booking** in Meeting Management (no double bookings, credentials). **Presence screens** with Book Now. **Do Not Disturb**. **Tablets as browser Nodes** with their own restricted users and rolling keys (the IoT Interfaces addition). **Room Boards**. | Medium. Plain Odoo work with no vendor risk, and it's useful straight away. |
-| 2. Teams MVP | Display Node (agent, setup, Chrome extension) and the **Microsoft Teams driver**. Console with join, leave, mic, camera, volume and Do Not Disturb. HDMI share and companion join. Configurable **screens** (span, mirror, room info). Fast-poll channel. | **Largest phase**: the video framework is built here. |
+| 2. Teams MVP | Display Node (agent, setup, DevTools-injected drivers) and the **Microsoft Teams driver**. Console with join, leave, mic, camera, volume and Do Not Disturb. HDMI share and companion join. Configurable **screens** (span, mirror, room info). Fast-poll channel. | **Largest phase**: the video framework is built here. |
 | 3. Room Designer | The visual editor: screens, Console layout, Presence layout, layout templates. | Medium. Frontend work only (OWL). |
-| 4. More platforms | **Zoom, Google Meet, Webex** DOM drivers, **Odoo Discuss**, **Jitsi** (External API), the driver self-test. | Medium. Each driver is small once Teams has proven the framework. |
+| 4. More platforms | **Zoom, Google Meet, Webex** DOM drivers, **Odoo Discuss**, **Jitsi**, the driver self-test. | Medium. Each driver is small once Teams has proven the framework. |
 | 5. Building | **Home Assistant** module: device categories per room, Discover Devices, presets, triggers, room state sensor. TV power (CEC/RS-232/IP). Camera PTZ presets. | Small–medium. Home Assistant's API is stable and documented. |
 | 6. Extras | Invite-email parsing, check-in and auto-release, wireless share (WebRTC + TURN), Shared content screens (companion mode), room PC content share. | Medium. |
 | 7. Optional | SDK drivers (Azure Communication Services for Teams, Webex SDK) for control we can rely on and our own wall layouts. Push channel (§7 option B). | Medium–large, and has running costs (ACS). |
@@ -739,29 +773,66 @@ Rooms:
 | **Customers and contacts** | A call's **external organiser** is a contact, so it becomes `organiser_partner_id` (`res.partner`) on `video.room.call`. The optional `advanced_accounts_video_rooms` app ("Remap Video Rooms Contacts to Advanced Accounts", not auto-install, with its toggle on the Advanced Accounts settings page) adds the Account/Contact fields through `advanced.accounts.mixin`. |
 | **Meeting Management** | Bookings extend `meeting.meeting` in place. Its own views get the Room and credentials fields, with the same date and list rules. |
 
-## 14. Scaffold on this branch
+## 14. What was built
+
+All phases except phase 6's invite-email parsing and phase 7 (the optional
+SDK drivers and push channel) are built.
+
+| Module | What it is |
+| --- | --- |
+| `iot_interfaces` (changed) | **Browser Nodes**: tablets and PCs pair from a QR code, keep a non-extractable WebCrypto key and sign in as their own restricted user by themselves (`static/src/browser/iot_browser.js`, `/iot/browser/pair`, `/iot/v1/browser/session`). |
+| `video_rooms` | The app: rooms, calls, Room Boards, screens, commands, platforms, accounts, layout templates, wireless shares; room booking on Meeting Management meetings; the tablet apps (Console, door, Room Board); the Overview; the Room Designer; the Room Display program (`node_programs/video_rooms_display`). |
+| `video_rooms_home_assistant` | Optional: device categories, Room Controls, presets and triggers, Discover Devices, the room status sensor. |
+| `video_rooms_permission` | The five standard roles (auto-installs with Permission Management). |
+| `advanced_accounts_video_rooms` | Optional: a call's Organiser as an Account and Contact (toggle in Advanced Accounts settings). |
 
 ```
-video_rooms/                         Odoo app (installable: False)
-  DESIGN.md                          this document
-  models/video_room*.py              rooms, calls, platforms, screens, boards,
-                                     layout templates, accounts, commands
-  models/meeting_meeting.py          room booking + join credentials
-  models/iot_node.py                 Node roles: display, console, presence, board
-  controllers/node_api.py            Display Node endpoints (signed)
-  controllers/tablet.py              tablet pairing + rolling-key session renewal
-  controllers/console.py             Console PWA routes
-  controllers/presence.py            Presence screen PWA routes (+ Book Now)
-  controllers/board.py               Room Board pages (Odoo + PC/tablet screens)
-  data/                              platforms (noupdate), program sync
-  static/src/console/, presence/,    PWA shells (placeholders)
-    board/, designer/                Room Board + Room Designer (OWL, placeholders)
-  node_programs/video_rooms_display/ the Room PC program
-    iot_program.json  setup.sh  room_agent.py
-    display/          idle screen + "Video Rooms Share" window
-    extension/        Chrome extension: service worker + drivers
-                      (teams first; zoom, google_meet, webex, odoo_discuss, jitsi)
-  prototype/room_designer.html       clickable prototype: Room Designer + Room Boards
-video_rooms_home_assistant/          optional: device categories, controls, presets
-video_rooms_permission/              standard roles bridge (placeholder)
+video_rooms/
+  models/                 video_room (availability, Do Not Disturb, Book Now, check-in, joining,
+                          payloads, Room Designer), screen, call, command, board, share,
+                          platform, options, account, layout template, meeting_meeting, iot_node
+  controllers/node_api.py Room Display: sync, idle page, share window (signed)
+  controllers/tablet.py   tablet shells, manifests, service worker, Console / door / board routes
+  controllers/share.py    wireless share (laptop page and signalling)
+  static/src/tablet/      the tablet apps (vanilla JS PWAs)
+  static/src/backend/     Overview (room_board) and Room Designer (OWL client actions)
+  static/src/display/     the Display's idle page and share window
+  static/src/share/       the laptop's share page
+  node_programs/video_rooms_display/
+    setup.sh room_browser.sh uninstall.sh   room PC setup (Ubuntu 24.04, Chrome, Openbox)
+    room_agent.py cdp.py devices.py         the Room Display program
+    drivers/                                driver_base.js, one hooks file per platform, selectors.json
+  tests/                  Odoo tests; tests/display_program/ drives a stand-in Teams page
+  prototype/              the clickable Room Designer prototype
 ```
+
+## 15. Setting up a room
+
+1. **Install** Video Rooms (and Permission Management for the roles). Give
+   people roles in Permission Management.
+2. **Room:** Video Rooms › Rooms › New. Set the name, seats, name and email
+   in calls, check-in and Do Not Disturb options, TV power control and the
+   Console admin PIN.
+3. **Room PC** (Ubuntu Desktop 24.04, one output per screen, up to four):
+   on the room's Devices tab, click **Add Room Display**, then run the
+   install command it shows on the PC and restart it.
+4. **Screens and layouts:** open the **Room Designer**. Lay out the
+   screens (the PC's real outputs appear once it is running), the Console
+   tiles and the door screen, then **Publish**.
+5. **Tablets** (Android, Chrome): click **Add Console Tablet** or **Add Door
+   Tablet** and scan the QR code on the tablet. It pairs, signs in, and
+   offers *Install app*. Pin the app (Screen pinning) and keep the tablet
+   on power.
+6. **Room Boards:** Video Rooms › Room Boards › New. Choose the rooms,
+   click **Add Board Screen** and scan the QR code on the PC or tablet.
+7. **Bookings:** any meeting in Meeting Management can pick the **Room**.
+   Its **Joining** tab holds the customer's link (or the meeting ID and
+   passcode). In the room, tap **Join** on the Console.
+8. **Home Assistant** (when ready): install `video_rooms_home_assistant`,
+   then set the Home Assistant address and token on the Room Display
+   Node. On each room, set its Area and click **Discover Devices**, tick
+   the controls to use and add presets.
+9. **Wireless share across isolated networks:** if laptops are on a guest
+   network that can't reach the room PC, set a TURN server in the system
+   parameter `video_rooms.ice_servers`, e.g.
+   `[{"urls": "turn:turn.example.com:3478", "username": "…", "credential": "…"}]`.
