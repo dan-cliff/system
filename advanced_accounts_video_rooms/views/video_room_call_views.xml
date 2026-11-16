@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_video_room_call_form_advanced_accounts" model="ir.ui.view">
+        <field name="name">video.room.call.form.advanced_accounts</field>
+        <field name="model">video.room.call</field>
+        <field name="inherit_id" ref="video_rooms.view_video_room_call_form"/>
+        <field name="arch" type="xml">
+            <field name="organiser_partner_id" position="before">
+                <field name="adv_account_id" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </field>
+            <field name="organiser_partner_id" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not organiser_partner_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_video_room_call_list_advanced_accounts" model="ir.ui.view">
+        <field name="name">video.room.call.list.advanced_accounts</field>
+        <field name="model">video.room.call</field>
+        <field name="inherit_id" ref="video_rooms.view_video_room_call_list"/>
+        <field name="arch" type="xml">
+            <field name="organiser_partner_id" position="before">
+                <field name="adv_account_id" optional="show"/>
+                <field name="adv_contact_id" optional="show"/>
+            </field>
+            <field name="organiser_partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_video_room_call_search_advanced_accounts" model="ir.ui.view">
+        <field name="name">video.room.call.search.advanced_accounts</field>
+        <field name="model">video.room.call</field>
+        <field name="inherit_id" ref="video_rooms.view_video_room_call_search"/>
+        <field name="arch" type="xml">
+            <field name="organiser_partner_id" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <filter name="group_room" position="before">
+                <filter name="group_adv_account" string="Account" context="{'group_by': 'adv_account_id'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Video Rooms - Home Assistant',
-    'version': '19.0.0.0.1',
+    'version': '19.0.1.0.0',
     'category': 'Productivity',
     'summary': 'Control room lights, A/C, blinds and privacy glass through Home Assistant from the Room Console',
     'description': """
-        Video Rooms - Home Assistant (SCAFFOLD - see video_rooms/DESIGN.md §6d)
+        Video Rooms - Home Assistant (see video_rooms/DESIGN.md §6d)
 
         Optional: install it when Home Assistant runs the building.
 
@@ -24,12 +24,14 @@
     'author': "Cliff's Country Crafts",
     'depends': ['video_rooms'],
     'data': [
+        'security/ir.model.access.csv',
+        'security/video_rooms_ha_security.xml',
         'data/video_room_ha_category_data.xml',
-        # TODO(build): security, views (Room Controls / Presets tabs on the room,
-        #              Home Assistant settings on the Display Node), presets data
+        'data/video_room_ha_trigger_data.xml',
+        'views/video_room_ha_views.xml',
     ],
-    # Optional, chosen per installation; scaffold only.
+    # Optional: installed when the building's Home Assistant is ready.
     'auto_install': False,
-    'installable': False,
+    'installable': True,
     'license': 'LGPL-3',
 }

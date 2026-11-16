@@ -54,9 +54,10 @@ class VideoRoomsNodeApi(http.Controller):
             request.env['video.room.account'].sudo().search(
                 [('login', '=', str(login)), '|', ('room_id', '=', False), ('room_id', '=', room.id)]
             ).write({'signed_in_on': fields.Datetime.now()})
+        room._display_reported(state)
         commands = Command._collect(room)
         busy = bool(room.current_call_id) or bool(commands) or state.get('call_state') in ('prejoin', 'lobby', 'in_call')
-        return json_response({'status': 'ok', 'room': room._display_payload(), 'commands': commands,
+        return json_response({'status': 'ok', 'room': room._display_sync_payload(), 'commands': commands,
                               'poll': 1 if busy else 3})
 
     @http.route('/video_rooms/node/v1/display', type='http', auth='public', methods=['GET'],

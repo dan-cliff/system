@@ -268,6 +268,8 @@ class RoomDisplay:
         self.call = None        # {'call_id', 'params', 'started', 'state', 'last_step'}
         self.companion = False
         self.state = {'call_state': 'idle', 'volume': devices.get_volume(), 'version': VERSION}
+        self.ha_read_at = 0
+        self.ha_published = None
 
     # ── Loop ─────────────────────────────────────────────────────────────
     def run(self):
@@ -300,6 +302,7 @@ class RoomDisplay:
         for command in answer.get('commands') or []:
             self.results.append(self.handle(command))
         self.advance_call()
+        self.home_assistant_sync()
         return answer.get('poll') or 3
 
     # ── Screens and windows ──────────────────────────────────────────────
@@ -448,6 +451,14 @@ class RoomDisplay:
             devices.ptz_save(params.get('value'), self.config, DATA_DIR)
         elif kind == 'ha':
             return self.home_assistant(params)
+        elif kind == 'ha_discover':
+            template = '{%% set ns = namespace(items=[]) %%}{%% for e in area_entities(%s) %%}' \
+                       '{%% set ns.items = ns.items + [{"entity_id": e, "name": state_attr(e, "friendly_name")}] %%}' \
+                       '{%% endfor %%}{{ ns.items | tojson }}' % json.dumps(params.get('area') or '')
+            found = self._ha_request(params, 'POST', '/api/template', {'template': template})
+            entities = json.loads(found) if isinstance(found, str) else found
+            self.state['ha_discovered'] = {'area': params.get('area'), 'entities': entities}
+            return 'Found %s devices' % len(entities or [])
         else:
             raise RuntimeError('Unknown room device.')
 
@@ -457,6 +468,45 @@ class RoomDisplay:
 
     def do_admit_share(self, params):
         return 'Wireless share connecting'
+
+    def _ha_request(self, connection, method, path, payload=None):
+        request = urllib.request.Request(
+            connection['url'].rstrip('/') + path, method=method,
+            data=json.dumps(payload).encode() if payload is not None else None,
+            headers={'Authorization': 'Bearer %s' % connection['token'], 'Content-Type': 'application/json'})
+        with urllib.request.urlopen(request, timeout=10) as response:
+            body = response.read().decode() or 'null'
+        return json.loads(body) if body.strip()[:1] in '[{"' else body
+
+    def home_assistant_sync(self):
+        """Read the room's devices (every 10 s) and publish the room's status sensor."""
+        connection = self.room.get('ha')
+        if not connection:
+            return
+        try:
+            if time.time() - self.ha_read_at >= 10:
+                self.ha_read_at = time.time()
+                states = {}
+                for entity in connection.get('entities') or []:
+                    data = self._ha_request(connection, 'GET', '/api/states/%s' % entity)
+                    attrs = data.get('attributes') or {}
+                    states[entity] = {'state': data.get('state'), 'attributes': {
+                        k: attrs[k] for k in ('friendly_name', 'brightness', 'current_temperature', 'temperature',
+                                              'current_position', 'hvac_mode') if k in attrs}}
+                self.state['ha_states'] = states
+                self.state['ha_status'] = 'Connected'
+            status = self.room.get('status') or {}
+            if connection.get('publish') and connection.get('sensor'):
+                sensor = {'state': status.get('availability') or 'unknown', 'attributes': {
+                    'friendly_name': '%s status' % self.room.get('room', 'Room'),
+                    'in_call': bool(status.get('call')), 'do_not_disturb': bool((status.get('dnd') or {}).get('active')),
+                    'current_booking': (status.get('current') or {}).get('title', ''),
+                    'next_booking': (status.get('next') or {}).get('start', ''), 'icon': 'mdi:video-account'}}
+                if sensor != self.ha_published:
+                    self._ha_request(connection, 'POST', '/api/states/%s' % connection['sensor'], sensor)
+                    self.ha_published = sensor
+        except (urllib.error.URLError, OSError, ValueError) as error:
+            self.state['ha_status'] = 'Home Assistant unreachable: %s' % str(error)[:80]
 
     def home_assistant(self, params):
         """Call a Home Assistant action on the local network (address and token come from Odoo)."""

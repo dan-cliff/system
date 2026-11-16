@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Room Controls and Presets follow their room (CLAUDE.md > Permissions): no access
+         without a Rooms permission, and each permission opens them as it opens the room. -->
+    <record id="rule_video_room_ha_control_deny" model="ir.rule">
+        <field name="name">Room Controls: only through a Rooms permission</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_video_rooms_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_video_room_ha_control_create_only" model="ir.rule">
+        <field name="name">Room Controls: Rooms Create Only</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_create_only'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_ha_control_edit_own" model="ir.rule">
+        <field name="name">Room Controls: Rooms Create and Edit Own</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_own'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_control_edit_team" model="ir.rule">
+        <field name="name">Room Controls: Rooms Create and Edit My Team</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_team'))]"/>
+        <field name="domain_force">['|', ('room_id.create_uid', '=', user.id), ('room_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_control_edit_all" model="ir.rule">
+        <field name="name">Room Controls: Rooms Create and Edit All</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_control_view_all" model="ir.rule">
+        <field name="name">Room Controls: Rooms View All</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_ha_control_delete_own" model="ir.rule">
+        <field name="name">Room Controls: Rooms Delete Own</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_delete_own'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_control_delete_all" model="ir.rule">
+        <field name="name">Room Controls: Rooms Delete All</field>
+        <field name="model_id" ref="model_video_room_ha_control"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_deny" model="ir.rule">
+        <field name="name">Room Presets: only through a Rooms permission</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_video_rooms_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_video_room_ha_preset_create_only" model="ir.rule">
+        <field name="name">Room Presets: Rooms Create Only</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_create_only'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_ha_preset_edit_own" model="ir.rule">
+        <field name="name">Room Presets: Rooms Create and Edit Own</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_own'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_edit_team" model="ir.rule">
+        <field name="name">Room Presets: Rooms Create and Edit My Team</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_team'))]"/>
+        <field name="domain_force">['|', ('room_id.create_uid', '=', user.id), ('room_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_edit_all" model="ir.rule">
+        <field name="name">Room Presets: Rooms Create and Edit All</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_view_all" model="ir.rule">
+        <field name="name">Room Presets: Rooms View All</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_ha_preset_delete_own" model="ir.rule">
+        <field name="name">Room Presets: Rooms Delete Own</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_delete_own'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_delete_all" model="ir.rule">
+        <field name="name">Room Presets: Rooms Delete All</field>
+        <field name="model_id" ref="model_video_room_ha_preset"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_line_deny" model="ir.rule">
+        <field name="name">Room Preset Steps: only through a Rooms permission</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_video_rooms_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_video_room_ha_preset_line_create_only" model="ir.rule">
+        <field name="name">Room Preset Steps: Rooms Create Only</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_create_only'))]"/>
+        <field name="domain_force">[('preset_id.room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_ha_preset_line_edit_own" model="ir.rule">
+        <field name="name">Room Preset Steps: Rooms Create and Edit Own</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_own'))]"/>
+        <field name="domain_force">[('preset_id.room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_line_edit_team" model="ir.rule">
+        <field name="name">Room Preset Steps: Rooms Create and Edit My Team</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_team'))]"/>
+        <field name="domain_force">['|', ('preset_id.room_id.create_uid', '=', user.id), ('preset_id.room_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_line_edit_all" model="ir.rule">
+        <field name="name">Room Preset Steps: Rooms Create and Edit All</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_line_view_all" model="ir.rule">
+        <field name="name">Room Preset Steps: Rooms View All</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_ha_preset_line_delete_own" model="ir.rule">
+        <field name="name">Room Preset Steps: Rooms Delete Own</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_delete_own'))]"/>
+        <field name="domain_force">[('preset_id.room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_ha_preset_line_delete_all" model="ir.rule">
+        <field name="name">Room Preset Steps: Rooms Delete All</field>
+        <field name="model_id" ref="model_video_room_ha_preset_line"/>
+        <field name="groups" eval="[(4, ref('video_rooms.group_room_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

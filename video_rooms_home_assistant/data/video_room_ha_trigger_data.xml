@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ha_trigger_call_start" model="video.room.ha.trigger">
+        <field name="name">A call starts</field><field name="sequence">10</field><field name="event">call_start</field>
+    </record>
+    <record id="ha_trigger_call_end" model="video.room.ha.trigger">
+        <field name="name">A call ends</field><field name="sequence">20</field><field name="event">call_end</field>
+    </record>
+    <record id="ha_trigger_booking_start" model="video.room.ha.trigger">
+        <field name="name">A booking starts</field><field name="sequence">30</field><field name="event">booking_start</field>
+    </record>
+    <record id="ha_trigger_booking_end" model="video.room.ha.trigger">
+        <field name="name">A booking ends</field><field name="sequence">40</field><field name="event">booking_end</field>
+    </record>
+    <record id="ha_trigger_dnd_on" model="video.room.ha.trigger">
+        <field name="name">Do Not Disturb turns on</field><field name="sequence">50</field><field name="event">dnd_on</field>
+    </record>
+    <record id="ha_trigger_dnd_off" model="video.room.ha.trigger">
+        <field name="name">Do Not Disturb turns off</field><field name="sequence">60</field><field name="event">dnd_off</field>
+    </record>
+</odoo>

@@ -631,7 +631,12 @@ class VideoRoom(models.Model):
         return []
 
     def _console_device(self, params):
-        """A room device control used on the Console (Home Assistant handles these)."""
+        """A room device used on the Console: camera presets here; Home Assistant adds its own."""
+        if params.get('kind') in ('ptz', 'ptz_save'):
+            if not self.sudo().has_ptz_camera:
+                raise UserError(_('%s has no PTZ camera.', self.name))
+            self._send_command('device', kind=params['kind'], value=params.get('value'))
+            return ''
         raise UserError(_('%s has no device controls.', self.name))
 
     def _presence_payload(self):
@@ -670,6 +675,14 @@ class VideoRoom(models.Model):
             'theme': 'dark', 'orient': 'landscape', 'privacy': 'title',
             'colors': {'available': '#0FA585', 'soon': '#F08A00', 'in_use': '#E8455B', 'dnd': '#7A4BE0'},
         }
+
+    def _display_sync_payload(self):
+        """What the Room Display gets on each sync (Home Assistant adds its connection)."""
+        return self._display_payload()
+
+    def _display_reported(self, state):
+        """The Room Display reported ``state`` (apps add what they need from it)."""
+        return True
 
     def _display_payload(self):
         """Settings the Room Display needs on each sync."""
