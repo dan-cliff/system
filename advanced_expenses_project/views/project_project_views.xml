@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="project_project_view_form_advanced_expenses" model="ir.ui.view">
+        <field name="name">project.project.form.advanced_expenses</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_open_advanced_expenses" type="object" class="oe_stat_button" icon="fa-money"
+                        groups="advanced_expenses.group_expenses_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="advanced_expense_total" widget="monetary"/>
+                        </span>
+                        <span class="o_stat_text">Expenses (<field name="advanced_expense_count" class="d-inline"/>)</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

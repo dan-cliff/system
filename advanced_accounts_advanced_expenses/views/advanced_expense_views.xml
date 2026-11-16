@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_expense_view_form_adv_accounts" model="ir.ui.view">
+        <field name="name">advanced.expense.form.advanced_accounts</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_form"/>
+        <field name="arch" type="xml">
+            <field name="vendor_id" position="before">
+                <field name="adv_account_id" string="Vendor Account" options="{'no_quick_create': True}"
+                       readonly="state in ('paid',)"/>
+                <field name="adv_contact_id" string="Vendor Contact" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}" readonly="state in ('paid',)"/>
+            </field>
+            <field name="vendor_id" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not vendor_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_list_adv_accounts" model="ir.ui.view">
+        <field name="name">advanced.expense.list.advanced_accounts</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_list"/>
+        <field name="arch" type="xml">
+            <field name="vendor_id" position="before">
+                <field name="adv_account_id" string="Vendor Account" optional="show"/>
+                <field name="adv_contact_id" string="Vendor Contact" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_search_adv_accounts" model="ir.ui.view">
+        <field name="name">advanced.expense.search.advanced_accounts</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_search"/>
+        <field name="arch" type="xml">
+            <field name="vendor_id" position="before">
+                <field name="adv_account_id" string="Vendor Account"/>
+                <field name="adv_contact_id" string="Vendor Contact"/>
+            </field>
+            <filter name="group_category" position="after">
+                <filter name="group_adv_account" string="Account" context="{'group_by': 'adv_account_id'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

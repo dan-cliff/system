@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_expense_category_view_form_sale" model="ir.ui.view">
+        <field name="name">advanced.expense.category.form.sale</field>
+        <field name="model">advanced.expense.category</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_category_view_form"/>
+        <field name="arch" type="xml">
+            <group name="rules" position="inside">
+                <field name="sale_product_id" placeholder="Re-invoiced Expense" options="{'no_create': True}"/>
+            </group>
+        </field>
+    </record>
+</odoo>

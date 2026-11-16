@@ -17,7 +17,7 @@ class ResConfigSettings(models.TransientModel):
     module_advanced_accounts_checklists = fields.Boolean("Accounts and Contacts in Checklists")
     module_advanced_accounts_signr = fields.Boolean("Accounts and Contacts in Sign'r")
     module_advanced_accounts_purchase = fields.Boolean("Accounts and Contacts in Purchase")
-    module_advanced_accounts_expense = fields.Boolean("Accounts and Contacts in Expenses")
+    module_advanced_accounts_advanced_expenses = fields.Boolean("Accounts and Contacts in Expenses")
     module_advanced_accounts_pos = fields.Boolean("Accounts and Contacts in Point of Sale")
     module_advanced_accounts_asset = fields.Boolean("Accounts and Contacts in Asset Management")
     module_advanced_accounts_accounting = fields.Boolean("Accounts and Contacts in Accounting")
