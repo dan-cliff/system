@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_expense_view_form_sale" model="ir.ui.view">
+        <field name="name">advanced.expense.form.sale</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_form"/>
+        <field name="arch" type="xml">
+            <field name="vendor_id" position="after">
+                <field name="sale_order_id" options="{'no_create': True}"
+                       readonly="sale_order_line_id or state in ('paid',)"/>
+                <field name="sale_order_line_id" invisible="not sale_order_line_id" readonly="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_list_sale" model="ir.ui.view">
+        <field name="name">advanced.expense.list.sale</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_list"/>
+        <field name="arch" type="xml">
+            <field name="vendor_id" position="after">
+                <field name="sale_order_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_search_sale" model="ir.ui.view">
+        <field name="name">advanced.expense.search.sale</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_search"/>
+        <field name="arch" type="xml">
+            <field name="vendor_id" position="after">
+                <field name="sale_order_id"/>
+            </field>
+            <filter name="paid_by_company" position="after">
+                <filter name="reinvoiced" string="Re-invoiced" domain="[('sale_order_id', '!=', False)]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

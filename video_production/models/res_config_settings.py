@@ -96,7 +96,7 @@ class ResConfigSettings(models.TransientModel):
     module_hr_timesheet = fields.Boolean(string='Install Timesheets Module')
     module_crm = fields.Boolean(string='Install CRM Module')
     module_sale_management = fields.Boolean(string='Install Sales Module')
-    module_hr_expense = fields.Boolean(string='Install Expenses Module')
+    module_advanced_expenses = fields.Boolean(string='Install Expenses Module')
     module_maintenance = fields.Boolean(string='Install Maintenance / Equipment Module')
     module_social = fields.Boolean(string='Install Social Marketing Module')
 
@@ -105,7 +105,7 @@ class ResConfigSettings(models.TransientModel):
         'vp_use_project': 'module_project',
         'vp_use_timesheets': 'module_hr_timesheet',
         'vp_use_crm': 'module_crm',
-        'vp_use_expenses': 'module_hr_expense',
+        'vp_use_expenses': 'module_advanced_expenses',
         'vp_use_maintenance': 'module_maintenance',
         'vp_use_social': 'module_social',
     }
