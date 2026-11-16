@@ -35,3 +35,10 @@ from . import res_company_accountant
 from . import settings_accountant
 from . import ir_module
 from . import workflow_access
+# subscription_oca
+from . import subscription_config
+from . import subscription_template
+from . import subscription
+from . import subscription_line
+from . import subscription_links
+from . import subscription_workflow

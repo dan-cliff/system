@@ -20,12 +20,24 @@ keeps the values the users gave it.
 ``post_init_hook`` then applies the data upgrades the Odoo Mates modules ship
 for the versions installed, and gives the users of the accounting groups the
 Accounting permissions matching what they could do before.
+
+Subscriptions take over the Subscription management app (subscription_oca) the
+same way, when Accounting is installed (``pre_init_hook``) or upgraded to
+19.0.1.1.0 (migrations/19.0.1.1.0): its external IDs, many2many tables and
+constraints are handed to Accounting, its views are switched off while
+Accounting loads its own, and it is marked "to remove". Owning nothing any
+more, it is then uninstalled at the end of the update without dropping
+anything, and Odoo reloads without its code. The salespeople, who could do
+everything with subscriptions, get the matching Subscriptions permissions.
 """
 import json
 import logging
+import sys
+import types
 
 from odoo import api, Command
 from odoo.exceptions import UserError
+from odoo.modules.module import Manifest
 from odoo.tools import parse_version
 from odoo.tools.sql import column_exists, create_column
 
@@ -46,7 +58,13 @@ OM_MODULES = (
     'om_account_accountant',
 )
 
+# the Subscription management app, taken over by Subscriptions
+SUBSCRIPTION_MODULES = ('subscription_oca',)
+# every module Accounting replaces: none of them can be installed next to it
+TAKEN_OVER_MODULES = OM_MODULES + SUBSCRIPTION_MODULES
+
 VERSIONS_PARAM = 'advanced_accounting.takeover_versions'
+SUBSCRIPTION_PARAM = 'advanced_accounting.takeover_subscriptions'
 VIEWS_PARAM = 'advanced_accounting.takeover_views'
 SNAPSHOT_TABLE = 'advanced_accounting_takeover_snapshot'
 # models whose records the takeover never snapshots: Odoo reflects them itself
@@ -54,32 +72,47 @@ UNSNAPSHOT_MODELS = ('ir.model', 'ir.model.fields', 'ir.model.fields.selection',
                      'ir.model.relation', 'ir.module.module', 'ir.ui.view')
 
 
-def _installed_om_modules(cr):
+def _installed_om_modules(cr, modules=OM_MODULES):
     cr.execute("""
         SELECT name, latest_version FROM ir_module_module
          WHERE name IN %s AND state IN ('installed', 'to upgrade', 'to remove')
-    """, [OM_MODULES])
+    """, [modules])
     return dict(cr.fetchall())
 
 
 def _check_dependents(cr, modules):
     """ Refuse the takeover while another installed module needs one of them:
-    it would be left without its dependency. """
+    it would be left without its dependency. A module whose code no longer
+    needs it (it now depends on Accounting, e.g. modern_crm_subscription) is
+    pointed at Accounting instead. """
     cr.execute("""
-        SELECT DISTINCT mod.name, dep.name
+        SELECT DISTINCT dep.id, mod.name, dep.name
           FROM ir_module_module_dependency dep
           JOIN ir_module_module mod ON mod.id = dep.module_id
          WHERE dep.name IN %s
            AND mod.name NOT IN %s
            AND mod.state IN ('installed', 'to upgrade')
       ORDER BY mod.name
-    """, [tuple(modules), OM_MODULES])
-    dependents = cr.fetchall()
+    """, [tuple(modules), TAKEN_OVER_MODULES])
+    dependents = []
+    for dep_id, name, dependency in cr.fetchall():
+        manifest = Manifest.for_addon(name, display_warning=False) or {}
+        if dependency in manifest.get('depends', ()):
+            dependents.append((name, dependency))
+        else:
+            cr.execute("""
+                UPDATE ir_module_module_dependency SET name = %s WHERE id = %s
+                   AND NOT EXISTS (SELECT 1 FROM ir_module_module_dependency other
+                                    WHERE other.module_id = ir_module_module_dependency.module_id
+                                      AND other.name = %s)
+            """, [MODULE, dep_id, MODULE])
+            if not cr.rowcount:  # it already depends on Accounting
+                cr.execute("DELETE FROM ir_module_module_dependency WHERE id = %s", [dep_id])
     if dependents:
         raise UserError(
-            "Accounting replaces the Odoo Mates accounting modules, but these installed modules depend on "
-            "them:\n%s\n\nUninstall them first, or change them to depend on advanced_accounting (the models "
-            "are the same)." % "\n".join("- %s (needs %s)" % row for row in dependents))
+            "Accounting replaces %s, but these installed modules depend on them:\n%s\n\nUninstall them "
+            "first, or change them to depend on advanced_accounting (the models are the same)." % (
+                ", ".join(sorted(modules)), "\n".join("- %s (needs %s)" % row for row in dependents)))
 
 
 def _claim_xmlids(cr, module_id, om_module):
@@ -273,32 +306,95 @@ def _pre_migrate(cr, versions):
         """)
 
 
+def _claim_subscriptions(cr, module_id, subscriptions):
+    """ Hand what the Subscription management app owns to Accounting. Returns
+    the ids of its views. """
+    _logger.info("Accounting: taking over %s", sorted(subscriptions))
+    cr.execute("""
+        SELECT res_id FROM ir_model_data WHERE module IN %s AND model = 'ir.ui.view'
+    """, [tuple(subscriptions)])
+    view_ids = [view_id for (view_id,) in cr.fetchall()]
+    for module in SUBSCRIPTION_MODULES:
+        if module in subscriptions:
+            _claim_xmlids(cr, module_id, module)
+    return view_ids
+
+
+def _remove_subscription_modules(cr, subscriptions):
+    """ Owning nothing any more, the Subscription management app is uninstalled
+    at the end of the update without dropping anything, and the registry is
+    then reloaded without its code. """
+    cr.execute("UPDATE ir_module_module SET state = 'to remove' WHERE name IN %s", [tuple(subscriptions)])
+    _set_param(cr, SUBSCRIPTION_PARAM, subscriptions)
+
+
+def _module_id(cr):
+    cr.execute("SELECT id FROM ir_module_module WHERE name = %s", [MODULE])
+    return cr.fetchone()[0]
+
+
 def pre_init_hook(env):
     cr = env.cr
     versions = _installed_om_modules(cr)
-    if not versions:
+    subscriptions = _installed_om_modules(cr, SUBSCRIPTION_MODULES)
+    if not versions and not subscriptions:
         return
-    _logger.info("Accounting: taking over the Odoo Mates modules %s", sorted(versions))
-    _check_dependents(cr, versions)
-    _pre_migrate(cr, versions)
+    _check_dependents(cr, {**versions, **subscriptions})
+    module_id = _module_id(cr)
 
-    cr.execute("SELECT id FROM ir_module_module WHERE name = %s", [MODULE])
-    module_id = cr.fetchone()[0]
-    for om_module in OM_MODULES:
-        if om_module in versions:
-            _claim_xmlids(cr, module_id, om_module)
+    if versions:
+        _logger.info("Accounting: taking over the Odoo Mates modules %s", sorted(versions))
+        _pre_migrate(cr, versions)
+        for om_module in OM_MODULES:
+            if om_module in versions:
+                _claim_xmlids(cr, module_id, om_module)
+    if subscriptions:
+        _claim_subscriptions(cr, module_id, subscriptions)
     _snapshot_noupdate(env)
     _deactivate_views(cr)
 
-    # uninstalled without their uninstall: their tables now belong to Accounting
-    cr.execute("""
-        UPDATE ir_module_module SET state = 'uninstalled', latest_version = NULL
-         WHERE name IN %s
-    """, [tuple(versions)])
-    # accounting_pdf_reports dropped this table on install: a wizard relation it replaced
-    cr.execute("DROP TABLE IF EXISTS account_journal_account_report_partner_ledger_rel")
+    if versions:
+        # uninstalled without their uninstall: their tables now belong to Accounting
+        cr.execute("""
+            UPDATE ir_module_module SET state = 'uninstalled', latest_version = NULL
+             WHERE name IN %s
+        """, [tuple(versions)])
+        # accounting_pdf_reports dropped this table on install: a wizard relation it replaced
+        cr.execute("DROP TABLE IF EXISTS account_journal_account_report_partner_ledger_rel")
+        _set_param(cr, VERSIONS_PARAM, versions)
+    if subscriptions:
+        _remove_subscription_modules(cr, subscriptions)
 
-    _set_param(cr, VERSIONS_PARAM, versions)
+
+def _skip_code(modules):
+    """ Keep Odoo from loading the code of modules taken over during this
+    update. They are still in the list of modules being loaded, and Accounting
+    comes first: loaded after it, they would define its models again, without
+    the fields and rules of Accounting and of the modules extending them, until
+    the registry is reloaded once they are removed. An empty package in their
+    place gives Odoo nothing to load. (Loaded before Accounting, their models
+    are simply replaced by Accounting's.) """
+    for module in modules:
+        qualname = f'odoo.addons.{module}'
+        if qualname not in sys.modules:
+            placeholder = types.ModuleType(qualname, f"{module}: taken over by Accounting, not loaded")
+            placeholder.__path__ = []
+            sys.modules[qualname] = placeholder
+
+
+def pre_migrate_subscriptions(cr):
+    """ Upgrading to 19.0.1.1.0 (Subscriptions): take over the Subscription
+    management app. Odoo keeps the noupdate records of a module being upgraded
+    as they are, so only its views need switching off while Accounting loads. """
+    subscriptions = _installed_om_modules(cr, SUBSCRIPTION_MODULES)
+    if not subscriptions:
+        return
+    _skip_code(subscriptions)
+    _check_dependents(cr, subscriptions)
+    view_ids = _claim_subscriptions(cr, _module_id(cr), subscriptions)
+    cr.execute("UPDATE ir_ui_view SET active = false WHERE id = ANY(%s) AND active RETURNING id", [view_ids])
+    _set_param(cr, VIEWS_PARAM, [view_id for (view_id,) in cr.fetchall()])
+    _remove_subscription_modules(cr, subscriptions)
 
 
 def _post_migrate(env, versions):
@@ -350,7 +446,21 @@ TAKEOVER_GRANTS = {
 
 
 def _grant_permissions(env):
-    for source, targets in TAKEOVER_GRANTS.items():
+    _grant(env, TAKEOVER_GRANTS)
+
+
+# what the users of the Subscription management app could do (everything, as
+# salespeople), as Subscriptions permissions
+SUBSCRIPTION_GRANTS = {
+    'sales_team.group_sale_salesman': [
+        'group_subscription_edit_all', 'group_subscription_view_all', 'group_subscription_delete_all',
+        'group_subscription_manage', 'group_subscription_invoice',
+    ],
+}
+
+
+def _grant(env, grants):
+    for source, targets in grants.items():
         group = env.ref(source, raise_if_not_found=False)
         users = group.all_user_ids.filtered(lambda u: not u.share) if group else env['res.users']
         if not users:
@@ -359,18 +469,33 @@ def _grant_permissions(env):
             env.ref(f'{MODULE}.{target}').write({'user_ids': [Command.link(u.id) for u in users]})
 
 
+def finish_subscription_takeover(env):
+    """ After the takeover of the Subscription management app: its views that
+    Accounting loaded again are switched back on (the others are removed at the
+    end of the update), and its users get the Subscriptions permissions. """
+    param = env['ir.config_parameter'].sudo().search([('key', '=', SUBSCRIPTION_PARAM)])
+    if not param:
+        return
+    subscriptions = json.loads(param.value)
+    param.unlink()
+    _reactivate_views(env)
+    _grant(env, SUBSCRIPTION_GRANTS)
+    _logger.info("Accounting: took over %s", sorted(subscriptions))
+
+
 def post_init_hook(env):
     # a plan with three reminders for the companies that have none yet
     env['followup.followup']._create_default_plans(env['res.company'].search([]))
 
-    param = env['ir.config_parameter'].sudo().search([('key', '=', VERSIONS_PARAM)])
-    if not param:
-        return
-    versions = json.loads(param.value)
-    param.unlink()
     _restore_noupdate(env.cr)
     env.invalidate_all()
     _reactivate_views(env)
-    _post_migrate(env, versions)
-    _grant_permissions(env)
-    _logger.info("Accounting: took over %s", sorted(versions))
+
+    param = env['ir.config_parameter'].sudo().search([('key', '=', VERSIONS_PARAM)])
+    if param:
+        versions = json.loads(param.value)
+        param.unlink()
+        _post_migrate(env, versions)
+        _grant_permissions(env)
+        _logger.info("Accounting: took over %s", sorted(versions))
+    finish_subscription_takeover(env)

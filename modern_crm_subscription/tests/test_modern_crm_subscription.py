@@ -7,7 +7,8 @@ from odoo.addons.modern_crm.tests.common import ModernCrmCommon
 class TestModernCrmSubscription(ModernCrmCommon):
 
     def test_confirming_the_sale_starts_the_subscription(self):
-        template = self.env['sale.subscription.template'].create({
+        # templates are Accounting Configuration
+        template = self.env['sale.subscription.template'].sudo().create({
             'name': 'Monthly', 'recurring_rule_type': 'months', 'recurring_interval': 1,
         })
         self.product.product_tmpl_id.write({'subscribable': True, 'subscription_template_id': template.id})

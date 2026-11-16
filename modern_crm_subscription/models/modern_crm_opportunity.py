@@ -18,7 +18,7 @@ class ModernCrmOpportunity(models.Model):
     def action_view_subscriptions(self):
         self.ensure_one()
         subscriptions = self._get_subscriptions()
-        action = self.env['ir.actions.act_window']._for_xml_id('subscription_oca.sale_subscription_action')
+        action = self.env['ir.actions.act_window']._for_xml_id('advanced_accounting.sale_subscription_action')
         action['context'] = {'create': False}
         if len(subscriptions) == 1:
             action.update(views=[(False, 'form')], view_mode='form', res_id=subscriptions.id)

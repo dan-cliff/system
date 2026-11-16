@@ -1,6 +1,6 @@
 {
     'name': 'Accounting - Permission Management',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Accounting/Accounting',
     'summary': 'Standard Permission Management roles for Accounting',
     'description': """
@@ -8,15 +8,16 @@
         are installed, and adds these roles:
 
         - Accounting – Administrator: everything, including deleting any asset,
-          budget, recurring payment or period closing, every workflow action
-          and Configuration
+          budget, recurring payment, subscription or period closing, every
+          workflow action and Configuration
         - Accounting – Manager: create and edit their own and their team's
-          assets, budgets, recurring payments and period closings
+          assets, budgets, recurring payments, subscriptions and period closings
         - Accounting – Employee: create and edit their own assets, budgets,
-          recurring payments and period closings
+          recurring payments, subscriptions and period closings
         - Accounting – Approver: view every asset, budget, recurring payment and
           period closing, confirm and post assets, approve budgets, confirm and
-          generate recurring payments, and close and reopen periods
+          generate recurring payments, start, pause, close and invoice
+          subscriptions, and close and reopen periods
     """,
     'author': "Cliff's Country Crafts",
     'depends': ['advanced_accounting', 'permission_management'],
