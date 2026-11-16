@@ -1,48 +1,55 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Video Rooms',
-    'version': '19.0.0.0.1',
+    'version': '19.0.1.0.0',
     'category': 'Productivity',
-    'summary': 'Meeting rooms that join Teams, Zoom, Google Meet and Webex calls as a browser guest, '
-               'controlled from a tablet console and shown on a TV video wall',
+    'summary': 'Meeting rooms that join Teams, Zoom, Google Meet, Webex, Odoo Discuss and Jitsi calls as a '
+               'browser guest, with room booking, door screens, Room Boards and a visual Room Designer',
     'description': """
-        Video Rooms (SCAFFOLD - not built yet, see DESIGN.md)
+        Video Rooms
 
-        - Rooms: a Room Console (tablet PWA) and a Room Display (a PC behind
-          the TV video wall, an IoT Interfaces Node)
-        - Joins other people's meetings in their web clients as a guest: no
-          downloads, no third-party sign-in
-        - Calls: the room's schedule and history, with links from invite
-          emails, calendars, the console or "Send to Room"
-        - Platforms: Teams (first), Zoom, Google Meet, Webex, Odoo Discuss and
-          Jitsi Meet, detected from the meeting link
-        - Screens configured per room: one TV, two, or screens all around the
-          room, spanned, mirrored, shared content or room info
-        - Room Designer: a visual editor for the screens, the Console layout
-          and the Presence screen layout, with templates
-        - Room Boards: the live status of chosen rooms at once, in Odoo and on
-          wall screens
-        - Tablets sign in automatically: each has its own restricted user and
-          a rolling key (IoT Interfaces browser Nodes)
-        - Screen sharing from HDMI, a companion laptop or wireless share
-        - Room booking in Meeting Management: a meeting books a room and holds
-          what the room needs to join an external call (link, meeting ID,
-          passcode), visible only to those who need it
-        - Room Presence screens (tablet PWA at the door): today's bookings,
-          Book Now, a clear Available / In Use status and Do Not Disturb
-          (set from the Console)
+        - Rooms with a Room Display (the PC behind up to four screens, an IoT
+          Interfaces Node running Chrome with the Video Rooms extension) and
+          Android tablets: the Room Console on the table and the door screen
+        - Joins other people's meetings in their web clients as a guest, with
+          no downloads and no third-party sign-in: Microsoft Teams, Zoom, Google
+          Meet, Cisco Webex, Odoo Discuss and Jitsi Meet
+        - Room booking in Meeting Management: any meeting can book a room and
+          hold the external meeting's link, ID and passcode, seen only by its
+          organiser and Video Rooms administrators
+        - Door screens: Available / Booked Soon / In Use / Do Not Disturb, the
+          day's bookings, Book Now and check-in
+        - Do Not Disturb from the Console (emergencies only), up to 4 hours
+        - Room Boards: the live status of chosen rooms, in Odoo and on PCs and
+          tablets
+        - Room Designer: a visual editor for each room's screens, Console and
+          door screen layouts, with templates
+        - Sharing: HDMI capture, companion join and wireless share
+        - Tablets and board screens pair once with a QR code and sign in by
+          themselves with their own restricted user and a rolling key
+
+        See DESIGN.md for how it works.
     """,
     'author': "Cliff's Country Crafts",
-    'depends': ['base', 'mail', 'iot_interfaces', 'meeting_management'],
+    'depends': ['base', 'mail', 'web', 'hr', 'iot_interfaces', 'meeting_management'],
     'data': [
-        # TODO(build): security/video_rooms_security.xml (privileges, groups, rules - see CLAUDE.md)
-        # TODO(build): security/ir.model.access.csv
+        'security/video_rooms_security.xml',
+        'security/ir.model.access.csv',
+        'data/res_lang_data.xml',
         'data/video_room_platform_data.xml',
+        'data/video_room_option_data.xml',
+        'data/video_rooms_cron.xml',
         'data/iot_program_data.xml',
-        # TODO(build): views (rooms, calls, platforms, node page), menus incl. Reports + Configuration
+        'views/video_room_views.xml',
+        'views/video_room_config_views.xml',
+        'views/video_rooms_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'video_rooms/static/src/backend/**/*',
+        ],
+    },
     'application': True,
-    # Scaffold only: switch on once it is built.
-    'installable': False,
+    'installable': True,
     'license': 'LGPL-3',
 }

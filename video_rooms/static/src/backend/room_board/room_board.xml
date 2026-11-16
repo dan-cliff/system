@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="video_rooms.RoomBoard">
+        <div class="o_vr_board o_action h-100 overflow-auto p-3">
+            <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <h2 class="m-0" t-esc="state.board ? state.board.name : 'Room status'"/>
+                    <span class="text-muted" t-if="state.board"><t t-esc="state.board.now"/> · <t t-esc="state.board.date"/></span>
+                </div>
+                <select class="form-select w-auto" t-on-change="chooseBoard" aria-label="Room Board">
+                    <option value="" t-att-selected="!state.boardId">All rooms</option>
+                    <t t-foreach="state.boards" t-as="b" t-key="b.id">
+                        <option t-att-value="b.id" t-att-selected="state.boardId === b.id" t-esc="b.name"/>
+                    </t>
+                </select>
+            </div>
+            <div t-if="state.loading" class="text-muted">Loading…</div>
+            <t t-elif="state.board">
+                <div t-if="!state.board.rooms.length" class="text-muted">No rooms yet. Add rooms in Video Rooms › Rooms.</div>
+                <div t-if="showTiles" class="o_vr_tiles" t-attf-style="grid-template-columns: repeat({{ state.board.columns || 4 }}, minmax(0, 1fr))">
+                    <t t-foreach="state.board.rooms" t-as="room" t-key="room.id">
+                        <button type="button" t-attf-class="o_vr_tile {{ status(room)[1] }}" t-on-click="() => this.openRoom(room)">
+                            <span class="o_vr_name" t-esc="room.name"/>
+                            <span class="o_vr_status" t-esc="status(room)[0]"/>
+                            <span t-if="room.current" class="o_vr_line"><t t-esc="room.current.title"/> · until <t t-esc="room.current.end"/></span>
+                            <span t-if="room.dnd.active" class="o_vr_line">Emergencies only<t t-if="room.dnd.until"> · until <t t-esc="room.dnd.until"/></t></span>
+                            <span class="o_vr_line" t-if="room.next">Next: <t t-esc="room.next.start"/> <t t-esc="room.next.title"/></span>
+                            <span class="o_vr_line" t-elif="!room.current">No more bookings today</span>
+                            <span class="o_vr_line" t-if="room.call"><t t-esc="room.call.platform"/> call</span>
+                            <span class="o_vr_line text-warning" t-if="!room.display_online">Room display offline</span>
+                        </button>
+                    </t>
+                </div>
+                <div t-if="showTimeline and state.board.rooms.length" class="o_vr_timeline mt-4">
+                    <span/>
+                    <div class="o_vr_axis">
+                        <t t-foreach="hours" t-as="hr" t-key="hr">
+                            <span t-attf-style="left: {{ (hr - 8) * 10 }}%" t-esc="hr &lt; 10 ? '0' + hr : hr"/>
+                        </t>
+                    </div>
+                    <t t-foreach="state.board.rooms" t-as="room" t-key="room.id">
+                        <span class="o_vr_tname" t-esc="room.name"/>
+                        <div class="o_vr_bar">
+                            <t t-foreach="room.today" t-as="m" t-key="m.id">
+                                <span t-attf-class="{{ room.current and room.current.id === m.id ? 'is-now' : '' }}"
+                                      t-att-style="barStyle(m)" t-att-title="m.start + '–' + m.end + ' ' + m.title"/>
+                            </t>
+                            <i class="o_vr_now" t-att-style="nowStyle"/>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

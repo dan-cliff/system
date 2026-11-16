@@ -1,0 +1,21 @@
+.o_vr_board {
+    .o_vr_tiles { display: grid; gap: 12px; }
+    .o_vr_tile {
+        display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; min-width: 0;
+        border: 1px solid var(--border-color, #dee2e6); border-left-width: 8px; border-radius: 10px; padding: 12px;
+        background: var(--o-view-background-color, #fff);
+        &.o_vr_ok { border-left-color: #0FA585; .o_vr_status { color: #0FA585; } }
+        &.o_vr_soon { border-left-color: #F08A00; .o_vr_status { color: #C26F00; } }
+        &.o_vr_busy { border-left-color: #E8455B; .o_vr_status { color: #D13A50; } }
+        &.o_vr_dnd { border-left-color: #7A4BE0; .o_vr_status { color: #7A4BE0; } }
+    }
+    .o_vr_name { font-weight: 700; font-size: 1.15rem; }
+    .o_vr_status { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: .85rem; }
+    .o_vr_line { font-size: .9rem; opacity: .85; overflow-wrap: anywhere; }
+    .o_vr_timeline { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 6px 12px; align-items: center; }
+    .o_vr_axis { position: relative; height: 18px; span { position: absolute; transform: translateX(-50%); font-size: .75rem; opacity: .7; } }
+    .o_vr_bar { position: relative; height: 22px; background: rgba(42, 63, 143, .12); border-radius: 5px;
+        span { position: absolute; top: 3px; bottom: 3px; border-radius: 3px; background: #4A55A8; &.is-now { background: #E8455B; } } }
+    .o_vr_now { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #FF9F1C; }
+    .o_vr_tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}

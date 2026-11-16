@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ─── Platforms ─────────────────────────────────────────────────────── -->
+    <record id="view_video_room_platform_list" model="ir.ui.view">
+        <field name="name">video.room.platform.list</field>
+        <field name="model">video.room.platform</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="driver"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_video_room_platform_form" model="ir.ui.view">
+        <field name="name">video.room.platform.form</field>
+        <field name="model">video.room.platform</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <field name="driver"/>
+                        <field name="url_patterns" placeholder="One regular expression per line"/>
+                        <field name="join_url_template"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                    <field name="note" placeholder="What hosts need to allow, known limits, …"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_video_room_platform" model="ir.actions.act_window">
+        <field name="name">Platforms</field>
+        <field name="res_model">video.room.platform</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- ─── Call Sources ──────────────────────────────────────────────────── -->
+    <record id="view_video_room_call_source_list" model="ir.ui.view">
+        <field name="name">video.room.call.source.list</field>
+        <field name="model">video.room.call.source</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_video_room_call_source" model="ir.actions.act_window">
+        <field name="name">Call Sources</field>
+        <field name="res_model">video.room.call.source</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- ─── TV Control Types ──────────────────────────────────────────────── -->
+    <record id="view_video_room_tv_control_list" model="ir.ui.view">
+        <field name="name">video.room.tv.control.list</field>
+        <field name="model">video.room.tv.control</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="method"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_video_room_tv_control_form" model="ir.ui.view">
+        <field name="name">video.room.tv.control.form</field>
+        <field name="model">video.room.tv.control</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="e.g. LG commercial display (RS-232)"/></h1></div>
+                    <group>
+                        <field name="method"/>
+                        <field name="on_command" invisible="method not in ('rs232', 'ip')"/>
+                        <field name="off_command" invisible="method not in ('rs232', 'ip')"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                    <field name="note"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_video_room_tv_control" model="ir.actions.act_window">
+        <field name="name">TV Control Types</field>
+        <field name="res_model">video.room.tv.control</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- ─── Layout Templates ──────────────────────────────────────────────── -->
+    <record id="view_video_room_layout_template_list" model="ir.ui.view">
+        <field name="name">video.room.layout.template.list</field>
+        <field name="model">video.room.layout.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="kind"/>
+                <field name="room_count"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_video_room_layout_template_form" model="ir.ui.view">
+        <field name="name">video.room.layout.template.form</field>
+        <field name="model">video.room.layout.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <field name="kind"/>
+                        <field name="room_count"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                    <p class="text-muted">Templates are made and edited in the Room Designer ("Save as template").</p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_video_room_layout_template" model="ir.actions.act_window">
+        <field name="name">Layout Templates</field>
+        <field name="res_model">video.room.layout.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- ─── Room Accounts ─────────────────────────────────────────────────── -->
+    <record id="view_video_room_account_list" model="ir.ui.view">
+        <field name="name">video.room.account.list</field>
+        <field name="model">video.room.account</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="platform_id"/>
+                <field name="login"/>
+                <field name="room_id"/>
+                <field name="signed_in_on" options="{'numeric': True}"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_video_room_account" model="ir.actions.act_window">
+        <field name="name">Room Accounts</field>
+        <field name="res_model">video.room.account</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No room accounts</p>
+            <p>Only needed for hosts that refuse browser guests. Sign the account in once on the Room Display's
+               browser; no password is kept in Odoo.</p>
+        </field>
+    </record>
+
+    <!-- ─── Nodes (IoT Interfaces) ────────────────────────────────────────── -->
+    <record id="view_iot_node_form_video_rooms" model="ir.ui.view">
+        <field name="name">iot.node.form.video.rooms</field>
+        <field name="model">iot.node</field>
+        <field name="inherit_id" ref="iot_interfaces.view_iot_node_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Video Room" name="video_room"
+                      invisible="role not in ('video_rooms_display', 'video_rooms_console', 'video_rooms_presence', 'video_rooms_board')">
+                    <group>
+                        <field name="video_display_room_ids" widget="many2many_tags" readonly="1"
+                               invisible="role != 'video_rooms_display'"/>
+                        <field name="video_room_id" invisible="role not in ('video_rooms_console', 'video_rooms_presence')"/>
+                        <field name="video_room_board_id" invisible="role != 'video_rooms_board'"/>
+                        <field name="video_room_outputs" invisible="role != 'video_rooms_display'" readonly="1"/>
+                        <field name="video_room_state" invisible="role != 'video_rooms_display'" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_iot_node_video_display" model="ir.actions.act_window">
+        <field name="name">Video Room Displays</field>
+        <field name="res_model">iot.node</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('role', '=', 'video_rooms_display')]</field>
+        <field name="context">{'default_role': 'video_rooms_display'}</field>
+    </record>
+    <record id="action_iot_node_video_tablets" model="ir.actions.act_window">
+        <field name="name">Video Room Tablets and Boards</field>
+        <field name="res_model">iot.node</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('role', 'in', ('video_rooms_console', 'video_rooms_presence', 'video_rooms_board'))]</field>
+        <field name="context">{'default_role': 'video_rooms_console'}</field>
+    </record>
+</odoo>

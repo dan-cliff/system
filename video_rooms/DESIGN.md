@@ -113,7 +113,7 @@ on a given meeting (CAPTCHA, host settings). Google Meet can only ever use
 the web-client route. The fallback for every platform is a **free room
 account** signed in on the room PC (a Google account, a Zoom Basic
 account). That gets past "signed-in users only" rules, at the cost of the
-"no sign-in" goal. See Q3.
+"no sign-in" goal. Decided: allowed, with no passwords kept (§11).
 
 ### Also supported: Odoo Discuss and Jitsi Meet
 
@@ -236,7 +236,7 @@ Rooms are booked in our own **Meeting Management** app
 - **Book Now** on the Presence screen creates a meeting from now. It is
   15, 30 or 60 minutes long, shortened to end at the next booking, and
   marked *Booked at the Door*.
-- **Check-in** (optional, Q17): nobody checks in on the Console or
+- **Check-in** (optional, §11): nobody checks in on the Console or
   Presence screen within N minutes, and the booking is released, so ghost
   bookings don't block the room.
 
@@ -275,7 +275,7 @@ The booking holds what the room needs to get into the customer's meeting:
   sign in once on the Room Display (from the Console's "Room Accounts"
   screen, which mirrors the TV). Chrome keeps the session, and Odoo keeps
   only the login name and when it was last seen signed in. If passwords
-  must be kept (Q14), use an encrypted field with
+  must be kept (decided: no, §11), use an encrypted field with
   `groups='base.group_system'`, the same way IoT Interfaces keeps Node
   secrets. It would be sent only in a sign-in command.
 
@@ -339,7 +339,7 @@ optional module, not auto-installed. Video Rooms works without it.
   (`groups='base.group_system'`) and handed to the Node in its signed
   sync. It isn't a Node credential: the Node still uses the rolling key
   with Odoo. A building-wide **Home Assistant bridge Node** role is the
-  alternative if some rooms have no Display (Q20).
+  alternative if some rooms have no Display (§12).
 - **Configurable per room:** each room's configuration says which kinds
   of devices it has. One room may have **only lights**, another
   **Lighting, Air Conditioning, Blinds and Smart Window Film**. The
@@ -687,76 +687,34 @@ weeks across them. Odoo Discuss and Jitsi don't have this problem.
 | Tablets | **Android**: the Console, Presence and board tablets all run as Chrome PWAs (§8a). |
 | Room Board screens | **Existing PCs and Android tablets** as browser Nodes. No Raspberry Pis (§6f). |
 | Home Assistant timing | The rooms aren't in Home Assistant yet. The module is written now (optional, off) so that switching it on later is configuration only: install it, connect Home Assistant, set each room's Area, then Discover Devices (§6d). |
+| Room accounts | Allowed as a fallback for hosts that refuse guests: **sign in once on the room PC**. No platform passwords are stored in Odoo (§6b). |
+| Joining | **Tap Join on the Console.** Rooms never join on their own. |
+| Console use | **Anyone in the room** can use it. Screen and layout setup in the Console is behind the room's **admin PIN**. |
+| Credentials | Visible to the booking's **organiser (chairperson or creator) and Video Rooms administrators**. The room PC gets them only at join time. Door tablets and boards never do. |
+| Door privacy | **Title and organiser** by default. A booking ticked **Private** shows "Booked". |
+| Check-in | **Per room**, off by default. When on, a booking nobody checks in to within **10 minutes** (adjustable) is released. |
+| Do Not Disturb | **Anyone** at the Console can switch it on or off. It lasts **4 hours at most**. "On during calls" is an optional room setting, off by default. |
+| Board Book Now | A **per-board** option, off by default. |
+| Sharing (Teams MVP) | **HDMI capture, companion join and wireless share** are all in the first video release. |
+| Retention | **Keep everything**: call history, links and credentials stay on past bookings. |
+| Booking | **Any** Meeting Management meeting can book a room. Double bookings are refused. |
+| Room PCs | **Ubuntu Desktop 24.04 LTS.** |
 
-## 12. Questions to answer before building
+## 12. Still to gather (configuration, not code)
 
-**Rooms and hardware**
+All decisions that shape the code are made (§11). What's left is
+per-installation detail, entered as configuration when each room is set
+up:
 
-1. How many rooms, now and later? Is it one company, or several companies
-   or organisation units?
-2. For the first installations: which TVs, and do they have RS-232 or
-   LAN control, or only HDMI-CEC? Which room PCs (they need as many video
-   outputs as the room has screens, up to four)?
-3. Is it acceptable to have a **signed-in room account** (Google, Zoom)
-   as a fallback when a host blocks anonymous guests?
-4. What camera and audio are there? Is a PTZ camera wanted, and with
-   presets? Is a speakerphone already in place, or do we choose one?
-5. Are the room PCs new (I'd suggest Ubuntu), or existing Windows
-   machines?
-
-**Using it**
-
-6. How do meeting links usually arrive? Invite emails to a person, to a
-   room mailbox, Outlook/M365 calendars, or links pasted in chat?
-   (Meeting Management already has Graph API integration we could reuse.)
-7. What name should the room show in calls ("Cliff's Country Crafts –
-   Board Room")? What email should it give when Webex asks for one?
-8. Which share sources are a must for the Teams MVP: HDMI, companion
-    join or wireless?
-9. Should the room join automatically at the meeting start time, or
-    always need a tap on the console?
-10. Is in-room presentation without a call needed?
-11. Should anyone in the room be able to use the Console, with only
-    setup mode behind the Admin PIN?
-12. Should call history and meeting links be kept, and for how long
-    (privacy)?
-
-**Booking, presence and Do Not Disturb**
-
-13. Should every Meeting Management meeting be able to book a room, or
-    only some meeting types? Should outside staff (e.g. an Outlook
-    calendar) be able to book too?
-14. Room accounts: sign in once on the Display with no password kept
-    (recommended), or keep passwords encrypted in Odoo?
-15. Who may see the meeting credentials: only the organiser and room
-    admins, or all Video Rooms users?
-16. What should the door show for a booking: title and organiser, or
-    always just "Booked"? Should private be a per-booking choice?
-17. Should rooms need check-in, and release the booking after how many
-    minutes?
-18. Who can switch off Do Not Disturb: anyone at the Console, or only
-    whoever switched it on? Is a maximum length needed (e.g. 2 hours)?
-    Should it come on automatically during calls?
-19. Room Boards: should touchscreen boards offer Book Now?
-
-**Home Assistant**
-
-20. Where does Home Assistant run, and can every room PC reach it on the
-    LAN? Do some rooms have no Display (then we'd need a bridge Node)?
-    (The rooms aren't in Home Assistant yet: when they are added, give
-    each one an Area named after the room, so Discover Devices finds its
-    devices.)
-21. Is the smart film a simple switch (clear / frosted) or does it have
-    levels?
-22. Which presets and triggers are wanted (pre-cool before bookings,
-    frost the glass on Do Not Disturb, room off after the last
-    meeting)? Should that logic live in Odoo presets or in Home
-    Assistant automations that use our room sensor?
-
-**Scope**
-
-23. Should we price Teams Rooms Basic with Direct Guest Join before
-    building?
+- Rooms and companies, each room's name and email in calls, capacity,
+  TVs and how they are switched on (CEC, RS-232 or LAN), and the room PC's
+  outputs.
+- Camera, PTZ presets and audio hardware per room.
+- How customers' links usually arrive. Typing them on the booking and
+  "Send to Room" work from day one, and invite-email parsing comes later.
+- Home Assistant, once the rooms are added to it: its address, a token,
+  each room's Area, and whether the window film is a switch or has
+  levels.
 
 ## 13. CLAUDE.md checklist for the build
 

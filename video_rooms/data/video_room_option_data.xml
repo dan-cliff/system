@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Where calls come from (Configuration › Call Sources). -->
+    <record id="call_source_booking" model="video.room.call.source">
+        <field name="name">Booking</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="call_source_console" model="video.room.call.source">
+        <field name="name">Room Console</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="call_source_odoo" model="video.room.call.source">
+        <field name="name">Sent from Odoo</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="call_source_invite" model="video.room.call.source">
+        <field name="name">Invite Email</field>
+        <field name="sequence">40</field>
+    </record>
+
+    <!-- How TVs are switched on and off (Configuration › TV Control Types). -->
+    <record id="tv_control_none" model="video.room.tv.control">
+        <field name="name">Not Controlled</field>
+        <field name="sequence">10</field>
+        <field name="method">none</field>
+    </record>
+    <record id="tv_control_cec" model="video.room.tv.control">
+        <field name="name">HDMI-CEC</field>
+        <field name="sequence">20</field>
+        <field name="method">cec</field>
+        <field name="note">Needs a USB-CEC adapter (e.g. Pulse-Eight) or a graphics card with CEC; uses cec-client.</field>
+    </record>
+    <record id="tv_control_rs232" model="video.room.tv.control">
+        <field name="name">RS-232 Serial</field>
+        <field name="sequence">30</field>
+        <field name="method">rs232</field>
+        <field name="note">Set the TV model's on and off commands. The Display uses the first USB serial adapter.</field>
+    </record>
+    <record id="tv_control_ip" model="video.room.tv.control">
+        <field name="name">LAN (IP Control)</field>
+        <field name="sequence">40</field>
+        <field name="method">ip</field>
+        <field name="note">Set the TV model's on and off commands; the TV's address goes on each screen's TV Address.</field>
+    </record>
+</odoo>

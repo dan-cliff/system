@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_video_rooms_overview" model="ir.actions.client">
+        <field name="name">Overview</field>
+        <field name="tag">video_rooms.room_board</field>
+    </record>
+
+    <menuitem id="menu_video_rooms_root" name="Video Rooms" sequence="58"
+              web_icon="video_rooms,static/description/icon.png"
+              groups="video_rooms.group_video_rooms_user"/>
+    <menuitem id="menu_video_rooms_overview" name="Overview" parent="menu_video_rooms_root" sequence="5"
+              action="action_video_rooms_overview"/>
+    <menuitem id="menu_video_rooms_rooms" name="Rooms" parent="menu_video_rooms_root" sequence="10"
+              action="action_video_room"/>
+    <menuitem id="menu_video_rooms_bookings" name="Bookings" parent="menu_video_rooms_root" sequence="20"
+              action="action_video_room_bookings" groups="meeting_management.group_meeting_user"/>
+    <menuitem id="menu_video_rooms_calls" name="Calls" parent="menu_video_rooms_root" sequence="30"
+              action="action_video_room_call"/>
+    <menuitem id="menu_video_rooms_boards" name="Room Boards" parent="menu_video_rooms_root" sequence="40"
+              action="action_video_room_board"/>
+    <!-- Report Builder places the app's custom reports here (CLAUDE.md > Reports menu). -->
+    <menuitem id="menu_video_rooms_reports" name="Reports" parent="menu_video_rooms_root" sequence="90"/>
+    <menuitem id="menu_video_rooms_config" name="Configuration" parent="menu_video_rooms_root" sequence="100"
+              groups="video_rooms.group_video_rooms_admin"/>
+    <menuitem id="menu_video_rooms_platforms" name="Platforms" parent="menu_video_rooms_config" sequence="10"
+              action="action_video_room_platform"/>
+    <menuitem id="menu_video_rooms_accounts" name="Room Accounts" parent="menu_video_rooms_config" sequence="20"
+              action="action_video_room_account"/>
+    <menuitem id="menu_video_rooms_call_sources" name="Call Sources" parent="menu_video_rooms_config" sequence="30"
+              action="action_video_room_call_source"/>
+    <menuitem id="menu_video_rooms_tv_controls" name="TV Control Types" parent="menu_video_rooms_config" sequence="40"
+              action="action_video_room_tv_control"/>
+    <menuitem id="menu_video_rooms_templates" name="Layout Templates" parent="menu_video_rooms_config" sequence="50"
+              action="action_video_room_layout_template"/>
+
+    <!-- Filtered Node menus in IoT Interfaces (CLAUDE.md > Hardware). -->
+    <menuitem id="menu_iot_video_displays" name="Video Room Displays" parent="iot_interfaces.menu_iot_nodes"
+              sequence="40" action="action_iot_node_video_display"/>
+    <menuitem id="menu_iot_video_tablets" name="Video Room Tablets and Boards" parent="iot_interfaces.menu_iot_nodes"
+              sequence="41" action="action_iot_node_video_tablets"/>
+</odoo>

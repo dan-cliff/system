@@ -5,6 +5,7 @@
         <field name="name">Microsoft Teams</field>
         <field name="sequence">10</field>
         <field name="driver">teams</field>
+        <field name="join_url_template">https://teams.microsoft.com/meet/{code}?p={passcode}</field>
         <field name="url_patterns">^https://teams\.microsoft\.com/(l/meetup-join|meet)/
 ^https://teams\.live\.com/meet/</field>
         <field name="note"><![CDATA[<p>Joins as an anonymous guest in Chrome. The host's tenant must allow anonymous join, and someone admits the room from the lobby.</p>]]></field>
@@ -13,6 +14,7 @@
         <field name="name">Zoom</field>
         <field name="sequence">20</field>
         <field name="driver">zoom</field>
+        <field name="join_url_template">https://app.zoom.us/wc/join/{code}?pwd={passcode}</field>
         <field name="url_patterns">^https://([\w-]+\.)?zoom\.us/(j|w|wc|my)/
 ^https://([\w-]+\.)?zoomgov\.com/(j|w|wc)/</field>
         <field name="note"><![CDATA[<p>Uses the Zoom web client. The host must allow "join from browser". A CAPTCHA or a "signed-in users only" setting needs someone at the console, or a room account.</p>]]></field>
@@ -21,6 +23,7 @@
         <field name="name">Google Meet</field>
         <field name="sequence">30</field>
         <field name="driver">google_meet</field>
+        <field name="join_url_template">https://meet.google.com/{code}</field>
         <field name="url_patterns">^https://meet\.google\.com/[a-z]{3}-[a-z]{4}-[a-z]{3}</field>
         <field name="note"><![CDATA[<p>"Ask to join" as a guest, and someone in the meeting admits the room. Workspace orgs may only allow signed-in users.</p>]]></field>
     </record>
@@ -42,6 +45,7 @@
         <field name="name">Jitsi Meet</field>
         <field name="sequence">60</field>
         <field name="driver">jitsi</field>
+        <field name="join_url_template">https://meet.jit.si/{code}</field>
         <field name="url_patterns">^https://meet\.jit\.si/</field>
         <field name="note"><![CDATA[<p>Controlled through Jitsi's External API. For a self-hosted Jitsi server, add its address as another pattern.</p>]]></field>
     </record>

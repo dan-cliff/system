@@ -1,0 +1,665 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (CLAUDE.md > Permissions). Generated from one table so every
+         permission follows the same pattern: each is its own privilege with one
+         "Allowed" group whose record rules give it its meaning. Every "Allowed" group
+         implies the technical Video Rooms User group, which holds the ACLs and a deny
+         rule per operation, so users can only do what a permission opens. Screens
+         follow their room. Commands are only written by code (sudo) after a check. -->
+    <data noupdate="1">
+        <record id="module_category_video_rooms" model="ir.module.category">
+            <field name="name">Video Rooms</field>
+            <field name="description">Meeting rooms that join Teams, Zoom, Google Meet, Webex, Odoo Discuss and Jitsi calls, with room booking, door screens and Room Boards.</field>
+            <field name="sequence">58</field>
+        </record>
+    </data>
+
+    <record id="group_video_rooms_user" model="res.groups">
+        <field name="name">Video Rooms: User</field>
+        <field name="comment">Technical: given by every Video Rooms permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_video_rooms_tablet" model="res.groups">
+        <field name="name">Video Rooms: Tablet</field>
+        <field name="comment">Technical: the portal users that Console, Presence and Room Board tablets sign in as. They reach only their own room or board, through the tablet pages.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+    </record>
+
+    <record id="privilege_room_create_only" model="res.groups.privilege">
+        <field name="name">Rooms: Create Only</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">20</field>
+        <field name="description">Create rooms, and view the ones they created (no editing after saving).</field>
+    </record>
+    <record id="group_room_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_room_create_only"/>
+        <field name="comment">Create rooms, and view the ones they created (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_room_edit_own" model="res.groups.privilege">
+        <field name="name">Rooms: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">21</field>
+        <field name="description">Create rooms, and view and edit the ones they created.</field>
+    </record>
+    <record id="group_room_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_room_edit_own"/>
+        <field name="comment">Create rooms, and view and edit the ones they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_room_edit_team" model="res.groups.privilege">
+        <field name="name">Rooms: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">22</field>
+        <field name="description">Create rooms, and view and edit their own and their team's.</field>
+    </record>
+    <record id="group_room_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_room_edit_team"/>
+        <field name="comment">Create rooms, and view and edit their own and their team's.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_room_edit_all" model="res.groups.privilege">
+        <field name="name">Rooms: Create and Edit All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">23</field>
+        <field name="description">Create, view and edit all rooms.</field>
+    </record>
+    <record id="group_room_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_room_edit_all"/>
+        <field name="comment">Create, view and edit all rooms.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_room_view_all" model="res.groups.privilege">
+        <field name="name">Rooms: View All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">24</field>
+        <field name="description">View all rooms.</field>
+    </record>
+    <record id="group_room_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_room_view_all"/>
+        <field name="comment">View all rooms.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_room_delete_own" model="res.groups.privilege">
+        <field name="name">Rooms: Delete Own</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">25</field>
+        <field name="description">Delete the rooms they created.</field>
+    </record>
+    <record id="group_room_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_room_delete_own"/>
+        <field name="comment">Delete the rooms they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_room_delete_all" model="res.groups.privilege">
+        <field name="name">Rooms: Delete All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">26</field>
+        <field name="description">Delete any rooms.</field>
+    </record>
+    <record id="group_room_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_room_delete_all"/>
+        <field name="comment">Delete any rooms.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_call_create_only" model="res.groups.privilege">
+        <field name="name">Calls: Create Only</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">27</field>
+        <field name="description">Create calls, and view the ones they created (no editing after saving).</field>
+    </record>
+    <record id="group_call_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_call_create_only"/>
+        <field name="comment">Create calls, and view the ones they created (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_call_edit_own" model="res.groups.privilege">
+        <field name="name">Calls: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">28</field>
+        <field name="description">Create calls, and view and edit the ones they created.</field>
+    </record>
+    <record id="group_call_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_call_edit_own"/>
+        <field name="comment">Create calls, and view and edit the ones they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_call_edit_team" model="res.groups.privilege">
+        <field name="name">Calls: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">29</field>
+        <field name="description">Create calls, and view and edit their own and their team's.</field>
+    </record>
+    <record id="group_call_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_call_edit_team"/>
+        <field name="comment">Create calls, and view and edit their own and their team's.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_call_edit_all" model="res.groups.privilege">
+        <field name="name">Calls: Create and Edit All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">30</field>
+        <field name="description">Create, view and edit all calls.</field>
+    </record>
+    <record id="group_call_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_call_edit_all"/>
+        <field name="comment">Create, view and edit all calls.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_call_view_all" model="res.groups.privilege">
+        <field name="name">Calls: View All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">31</field>
+        <field name="description">View all calls.</field>
+    </record>
+    <record id="group_call_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_call_view_all"/>
+        <field name="comment">View all calls.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_call_delete_own" model="res.groups.privilege">
+        <field name="name">Calls: Delete Own</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">32</field>
+        <field name="description">Delete the calls they created.</field>
+    </record>
+    <record id="group_call_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_call_delete_own"/>
+        <field name="comment">Delete the calls they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_call_delete_all" model="res.groups.privilege">
+        <field name="name">Calls: Delete All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">33</field>
+        <field name="description">Delete any calls.</field>
+    </record>
+    <record id="group_call_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_call_delete_all"/>
+        <field name="comment">Delete any calls.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_board_create_only" model="res.groups.privilege">
+        <field name="name">Room Boards: Create Only</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">34</field>
+        <field name="description">Create room boards, and view the ones they created (no editing after saving).</field>
+    </record>
+    <record id="group_board_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_board_create_only"/>
+        <field name="comment">Create room boards, and view the ones they created (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_board_edit_own" model="res.groups.privilege">
+        <field name="name">Room Boards: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">35</field>
+        <field name="description">Create room boards, and view and edit the ones they created.</field>
+    </record>
+    <record id="group_board_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_board_edit_own"/>
+        <field name="comment">Create room boards, and view and edit the ones they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_board_edit_team" model="res.groups.privilege">
+        <field name="name">Room Boards: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">36</field>
+        <field name="description">Create room boards, and view and edit their own and their team's.</field>
+    </record>
+    <record id="group_board_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_board_edit_team"/>
+        <field name="comment">Create room boards, and view and edit their own and their team's.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_board_edit_all" model="res.groups.privilege">
+        <field name="name">Room Boards: Create and Edit All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">37</field>
+        <field name="description">Create, view and edit all room boards.</field>
+    </record>
+    <record id="group_board_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_board_edit_all"/>
+        <field name="comment">Create, view and edit all room boards.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_board_view_all" model="res.groups.privilege">
+        <field name="name">Room Boards: View All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">38</field>
+        <field name="description">View all room boards.</field>
+    </record>
+    <record id="group_board_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_board_view_all"/>
+        <field name="comment">View all room boards.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_board_delete_own" model="res.groups.privilege">
+        <field name="name">Room Boards: Delete Own</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">39</field>
+        <field name="description">Delete the room boards they created.</field>
+    </record>
+    <record id="group_board_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_board_delete_own"/>
+        <field name="comment">Delete the room boards they created.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_board_delete_all" model="res.groups.privilege">
+        <field name="name">Room Boards: Delete All</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">40</field>
+        <field name="description">Delete any room boards.</field>
+    </record>
+    <record id="group_board_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_board_delete_all"/>
+        <field name="comment">Delete any room boards.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_video_rooms_control" model="res.groups.privilege">
+        <field name="name">Video Rooms: Control Rooms</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">41</field>
+        <field name="description">Send commands to rooms from Odoo (join, leave, mute, Do Not Disturb, identify screens) and open a room's Console remotely.</field>
+    </record>
+    <record id="group_video_rooms_control" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_video_rooms_control"/>
+        <field name="comment">Send commands to rooms from Odoo (join, leave, mute, Do Not Disturb, identify screens) and open a room's Console remotely.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_video_rooms_design" model="res.groups.privilege">
+        <field name="name">Video Rooms: Design Rooms</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">42</field>
+        <field name="description">Open the Room Designer: set up a room's screens and its Console and Presence screen layouts.</field>
+    </record>
+    <record id="group_video_rooms_design" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_video_rooms_design"/>
+        <field name="comment">Open the Room Designer: set up a room's screens and its Console and Presence screen layouts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_video_rooms_user'))]"/>
+    </record>
+
+    <record id="privilege_video_rooms" model="res.groups.privilege">
+        <field name="name">Video Rooms</field>
+        <field name="category_id" ref="module_category_video_rooms"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Video Rooms app.</field>
+    </record>
+    <record id="group_video_rooms_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_video_rooms"/>
+        <field name="comment">Every Video Rooms permission, including deleting anything, controlling and designing rooms and seeing every booking's joining details, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_room_create_only')), (4, ref('group_room_edit_own')), (4, ref('group_room_edit_team')), (4, ref('group_room_edit_all')), (4, ref('group_room_view_all')), (4, ref('group_room_delete_own')), (4, ref('group_room_delete_all')), (4, ref('group_call_create_only')), (4, ref('group_call_edit_own')), (4, ref('group_call_edit_team')), (4, ref('group_call_edit_all')), (4, ref('group_call_view_all')), (4, ref('group_call_delete_own')), (4, ref('group_call_delete_all')), (4, ref('group_board_create_only')), (4, ref('group_board_edit_own')), (4, ref('group_board_edit_team')), (4, ref('group_board_edit_all')), (4, ref('group_board_view_all')), (4, ref('group_board_delete_own')), (4, ref('group_board_delete_all')), (4, ref('group_video_rooms_control')), (4, ref('group_video_rooms_design'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <record id="rule_video_room_deny" model="ir.rule">
+        <field name="name">Rooms: only through a permission</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_video_rooms_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_video_room_screen_deny" model="ir.rule">
+        <field name="name">Room Screens: only through a permission</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_video_rooms_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_video_room_call_deny" model="ir.rule">
+        <field name="name">Calls: only through a permission</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_video_rooms_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_video_room_board_deny" model="ir.rule">
+        <field name="name">Room Boards: only through a permission</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_video_rooms_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <record id="rule_video_room_room_create_only" model="ir.rule">
+        <field name="name">Rooms: Create Only</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_room_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_screen_room_create_only" model="ir.rule">
+        <field name="name">Room Screens: Create Only</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_room_create_only'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_room_edit_own" model="ir.rule">
+        <field name="name">Rooms: Create and Edit Own</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_room_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_screen_room_edit_own" model="ir.rule">
+        <field name="name">Room Screens: Create and Edit Own</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_room_edit_own'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_room_edit_team" model="ir.rule">
+        <field name="name">Rooms: Create and Edit My Team</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_room_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_screen_room_edit_team" model="ir.rule">
+        <field name="name">Room Screens: Create and Edit My Team</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_room_edit_team'))]"/>
+        <field name="domain_force">['|', ('room_id.create_uid', '=', user.id), ('room_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_room_edit_all" model="ir.rule">
+        <field name="name">Rooms: Create and Edit All</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_room_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_screen_room_edit_all" model="ir.rule">
+        <field name="name">Room Screens: Create and Edit All</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_room_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_room_view_all" model="ir.rule">
+        <field name="name">Rooms: View All</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_room_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_screen_room_view_all" model="ir.rule">
+        <field name="name">Room Screens: View All</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_room_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_room_delete_own" model="ir.rule">
+        <field name="name">Rooms: Delete Own</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_room_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_screen_room_delete_own" model="ir.rule">
+        <field name="name">Room Screens: Delete Own</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_room_delete_own'))]"/>
+        <field name="domain_force">[('room_id.create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_room_delete_all" model="ir.rule">
+        <field name="name">Rooms: Delete All</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="groups" eval="[(4, ref('group_room_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_screen_room_delete_all" model="ir.rule">
+        <field name="name">Room Screens: Delete All</field>
+        <field name="model_id" ref="model_video_room_screen"/>
+        <field name="groups" eval="[(4, ref('group_room_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_video_room_call_call_create_only" model="ir.rule">
+        <field name="name">Calls: Create Only</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_call_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_call_call_edit_own" model="ir.rule">
+        <field name="name">Calls: Create and Edit Own</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_call_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_call_call_edit_team" model="ir.rule">
+        <field name="name">Calls: Create and Edit My Team</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_call_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_call_call_edit_all" model="ir.rule">
+        <field name="name">Calls: Create and Edit All</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_call_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_call_call_view_all" model="ir.rule">
+        <field name="name">Calls: View All</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_call_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_call_call_delete_own" model="ir.rule">
+        <field name="name">Calls: Delete Own</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_call_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_call_call_delete_all" model="ir.rule">
+        <field name="name">Calls: Delete All</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="groups" eval="[(4, ref('group_call_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_video_room_board_board_create_only" model="ir.rule">
+        <field name="name">Room Boards: Create Only</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_board_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_board_board_edit_own" model="ir.rule">
+        <field name="name">Room Boards: Create and Edit Own</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_board_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_board_board_edit_team" model="ir.rule">
+        <field name="name">Room Boards: Create and Edit My Team</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_board_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_board_board_edit_all" model="ir.rule">
+        <field name="name">Room Boards: Create and Edit All</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_board_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_board_board_view_all" model="ir.rule">
+        <field name="name">Room Boards: View All</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_board_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_video_room_board_board_delete_own" model="ir.rule">
+        <field name="name">Room Boards: Delete Own</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_board_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_video_room_board_board_delete_all" model="ir.rule">
+        <field name="name">Room Boards: Delete All</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="groups" eval="[(4, ref('group_board_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_video_room_company" model="ir.rule">
+        <field name="name">Rooms: multi-company</field>
+        <field name="model_id" ref="model_video_room"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_video_room_call_company" model="ir.rule">
+        <field name="name">Calls: multi-company</field>
+        <field name="model_id" ref="model_video_room_call"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_video_room_board_company" model="ir.rule">
+        <field name="name">Room Boards: multi-company</field>
+        <field name="model_id" ref="model_video_room_board"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>
