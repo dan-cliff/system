@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
+
+# Screens come straight from the room PC's own outputs. More screens will need video wall
+# controllers, and the model and Display code are extended when that happens (DESIGN.md §5).
+MAX_SCREENS = 4
 
 
 class VideoRoomScreen(models.Model):
@@ -30,6 +35,12 @@ class VideoRoomScreen(models.Model):
     ], string='Shows', required=True, default='call')
     mirror_of_id = fields.Many2one('video.room.screen', string='Mirror Of',
                                    domain="[('room_id', '=', room_id), ('id', '!=', id)]")
-    physical_tvs = fields.Integer(string='Physical TVs', default=1,
-                                  help='For an output feeding a video wall controller: how many TVs it covers.')
     # TODO(build): TV control (HDMI-CEC / RS-232 / IP) as an option model + its connection details.
+
+    @api.constrains('room_id')
+    def _check_max_screens(self):
+        for room in self.room_id:
+            if len(room.screen_ids) > MAX_SCREENS:
+                raise ValidationError(_(
+                    'A room can have up to %s screens, driven by the room PC\'s own outputs. '
+                    'More screens need video wall controllers, which are not supported yet.', MAX_SCREENS))

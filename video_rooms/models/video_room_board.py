@@ -31,7 +31,8 @@ class VideoRoomBoard(models.Model):
     allow_book_now = fields.Boolean(string='Book Now on Touchscreens', default=False)
     layout_template_id = fields.Many2one('video.room.layout.template', domain="[('kind', '=', 'board')]")
     style = fields.Json(help='Colours, logo, light/dark, as set in the designer.')
-    screen_node_ids = fields.Many2many('iot.node', string='Wall Screens',
+    # Existing PCs / Android tablets showing this board, each a browser Node (DESIGN.md §7).
+    screen_node_ids = fields.Many2many('iot.node', string='Board Screens',
                                        domain="[('role', 'in', ('video_rooms_board',))]")
 
     def _get_rooms(self):

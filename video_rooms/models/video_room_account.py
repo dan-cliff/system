@@ -16,6 +16,6 @@ class VideoRoomAccount(models.Model):
     room_id = fields.Many2one('video.room', help='Empty: any room may use it.')
     platform_id = fields.Many2one('video.room.platform', required=True)
     login = fields.Char(groups='base.group_system')
-    # TODO(build), only if DESIGN.md Q16 says passwords must be kept: an encrypted secret,
+    # TODO(build), only if DESIGN.md Q14 says passwords must be kept: an encrypted secret,
     #              groups='base.group_system', sent to the Display only for a sign-in command.
     signed_in_on = fields.Datetime(readonly=True, help='When the Display last reported this account signed in.')

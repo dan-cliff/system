@@ -18,7 +18,7 @@ class MeetingMeeting(models.Model):
     video_instant = fields.Boolean(string='Booked at the Door', readonly=True,
                                    help='Booked with Book Now on the Presence screen.')
     video_checked_in = fields.Datetime(string='Checked In', readonly=True,
-                                       help='TODO(build): release the room if nobody checks in (DESIGN.md Q19).')
+                                       help='TODO(build): release the room if nobody checks in (DESIGN.md Q17).')
     video_private = fields.Boolean(string='Private', help='Presence screens show "Booked" instead of the title.')
 
     # ── Joining an external meeting ───────────────────────────────────────

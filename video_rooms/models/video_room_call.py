@@ -19,9 +19,11 @@ class VideoRoomCall(models.Model):
                                   readonly=False)
     date_start = fields.Datetime(string='Starts')
     date_end = fields.Datetime(string='Ends')
-    organiser = fields.Char(help='Who invited the room (from the invite).')
-    # TODO(build): source (invite email / calendar / console / sent from Odoo) as an option model,
-    #              organiser as a res.partner (+ advanced_accounts_video_rooms remap), joined_at, left_at.
+    organiser_partner_id = fields.Many2one('res.partner', string='Organiser',
+                                           help='Who invited the room (from the invite). Remapped to Advanced '
+                                                'Accounts by the optional advanced_accounts_video_rooms app.')
+    # TODO(build): source_id -> video.room.call.source (option model: invite email / calendar / console /
+    #              sent from Odoo), joined_at, left_at; _org_parent_field = 'room_id' (DESIGN.md §13).
     # Technical: workflow state the Display reports.
     state = fields.Selection([
         ('planned', 'Planned'), ('joining', 'Joining'), ('lobby', 'In Lobby'), ('in_call', 'In Call'),

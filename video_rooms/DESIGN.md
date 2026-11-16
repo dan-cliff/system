@@ -63,7 +63,7 @@ extension**, run by a Node agent:
                      │           (click/keyboard the web client, report  │
                      │            state: joined, muted, sharing, lobby…) │
                      └───────────────┬───────────────────────────────────┘
-                                     │ HDMI ×N (or one 4K out → wall controller)
+                                     │ HDMI/DP ×1–4 (the PC's own outputs)
                                   TV video wall
                           camera + speakerphone (USB)
 ```
@@ -151,6 +151,12 @@ two, and a boardroom may have screens on every wall. Each room's screens
 are set up in the room's configuration (the room form's **Screens** tab
 in Odoo). The Console's setup mode shows the same layout.
 
+**Up to four screens per room**, driven straight from the room PC's own
+outputs, e.g. a graphics card or mini PC with 4 HDMI/DisplayPort
+outputs. A room that needs more will get **video wall controllers**
+when it comes up. The screen model and the Display code will be
+extended then. Nothing for controllers is built now.
+
 **`video.room.screen`**, one record per screen the room PC drives:
 
 | Field | Meaning |
@@ -160,7 +166,6 @@ in Odoo). The Console's setup mode shows the same layout.
 | Position | Where the screen sits, for the layout picture: which wall (front / left / right / back) and its place in a grid on that wall (column, row, width, height in cells). For example, a 2×2 front wall is four screens on the front wall at (0,0), (1,0), (0,1) and (1,1). |
 | Shows | **Call**: the main meeting. Every Call screen on the same wall is **spanned as one canvas** in its grid arrangement. **Mirror**: an exact copy of another screen (e.g. side and back walls repeat the front, so everyone can see). **Shared content**: just the share, via companion mode (below). **Room info**: the idle screen, clock and next booking, even during a call. |
 | Mirror Of | For Mirror: which screen it copies. |
-| Physical TVs | For an output that feeds a **video wall controller**: how many TVs that output covers (information only; the controller does the splitting). |
 | TV Control | How to switch the TV on and off: HDMI-CEC, RS-232 or LAN (IP), with the details per model. Optional. |
 
 Examples:
@@ -170,7 +175,7 @@ Examples:
 | Small meeting room | 1 screen, Call. |
 | Two-TV room | Two Call screens side by side on the front wall (one big canvas), **or** Call + Shared content (people left, slides right). |
 | Boardroom, screens all around | A 2×2 Call wall at the front, a Mirror of it on each side wall, and Room info by the door. |
-| Video wall controller | 1 output (Call, Physical TVs: 9). The controller splits it. |
+| More than four screens | Not supported yet: needs video wall controllers and a code change at the time. The Room Designer refuses a fifth screen and says so. |
 
 **How the Display applies it:** `room_agent.py` gets the screen layout in
 its sync. It then:
@@ -231,7 +236,7 @@ Rooms are booked in our own **Meeting Management** app
 - **Book Now** on the Presence screen creates a meeting from now. It is
   15, 30 or 60 minutes long, shortened to end at the next booking, and
   marked *Booked at the Door*.
-- **Check-in** (optional, Q19): nobody checks in on the Console or
+- **Check-in** (optional, Q17): nobody checks in on the Console or
   Presence screen within N minutes, and the booking is released, so ghost
   bookings don't block the room.
 
@@ -270,7 +275,7 @@ The booking holds what the room needs to get into the customer's meeting:
   sign in once on the Room Display (from the Console's "Room Accounts"
   screen, which mirrors the TV). Chrome keeps the session, and Odoo keeps
   only the login name and when it was last seen signed in. If passwords
-  must be kept (Q16), use an encrypted field with
+  must be kept (Q14), use an encrypted field with
   `groups='base.group_system'`, the same way IoT Interfaces keeps Node
   secrets. It would be sent only in a sign-in command.
 
@@ -334,7 +339,7 @@ optional module, not auto-installed. Video Rooms works without it.
   (`groups='base.group_system'`) and handed to the Node in its signed
   sync. It isn't a Node credential: the Node still uses the rolling key
   with Odoo. A building-wide **Home Assistant bridge Node** role is the
-  alternative if some rooms have no Display (Q22).
+  alternative if some rooms have no Display (Q20).
 - **Configurable per room:** each room's configuration says which kinds
   of devices it has. One room may have **only lights**, another
   **Lighting, Air Conditioning, Blinds and Smart Window Film**. The
@@ -510,11 +515,14 @@ reception screen, a corridor TV, a manager's second monitor or a tablet.
   - In Odoo as a dashboard (the Video Rooms app's **Overview** menu, an
     OWL client action). Live over the bus. Click a room to open it, or
     to open its Console remotely for people with Control Rooms.
-  - On a wall screen at `/video_rooms/board/<id>`, full screen. That
-    can be a Raspberry Pi TV as a Node (role `video_rooms_board`, page
-    signed by the agent, no login), or a tablet or PC browser as a
-    browser Node with its own restricted user and rolling key (as in
-    §7). Either way it is read-only and never shows credentials.
+  - On **existing PCs and Android tablets** at `/video_rooms/board/<id>`,
+    full screen. Each one is a **browser Node** (role
+    `video_rooms_board`) with its own restricted user and rolling key,
+    exactly like the room tablets (§7): pair once with the QR code,
+    install the PWA, and it stays signed in. On a PC, Chrome or Edge
+    installs it as an app that can start full screen at login. The board
+    is read-only and never shows credentials. No extra hardware or Pi
+    Nodes are needed.
 - **Book Now from a board** is an option for touchscreen boards. It is
   off by default, because a wall board is usually look-only.
 - Each board's look (colours, logo, light or dark) can be edited in the
@@ -601,6 +609,27 @@ hold, and nobody manages passwords or tokens.
 - Updates to the drivers and agent arrive over the air. Only a change to
   `setup.sh` needs the install command run again.
 
+## 8a. Android tablets (Console, Presence, Room Boards)
+
+- **Install:** open the pairing QR code in **Chrome**, then *Install
+  app*. The PWA opens full screen with no browser bars.
+- **Lock it down:**
+  - **Screen pinning** (built into Android) is enough for most tablets.
+  - Use Android Enterprise / a device-management (MDM) kiosk policy, or
+    a kiosk launcher, if we want the PWA to start at boot and be
+    impossible to leave.
+  - Turn off battery optimisation for Chrome, so the bus connection
+    isn't killed in the background.
+- **Keep the pairing:** the page asks for **persistent storage**
+  (`navigator.storage.persist()`), so Android doesn't clear the key.
+  Installed PWAs are normally granted it. The tablet then only needs
+  re-pairing if its app data is cleared or access is revoked.
+- **Keep the screen on:** the page holds a **screen wake lock** while
+  visible. Turn on "stay awake while charging" in developer options, or
+  use the MDM policy, for door and board tablets on permanent power.
+- **Updates:** the PWA updates itself when we deploy. Nothing is
+  installed by hand.
+
 ## 9. Risks
 
 1. **Vendors change their web UIs** with no notice, which breaks drivers.
@@ -654,6 +683,10 @@ weeks across them. Odoo Discuss and Jitsi don't have this problem.
 | Home Assistant | Optional module. The device categories each room has (Lighting, Air Conditioning, Blinds, Smart Window Film, …) are configured per room (§6d). |
 | Visual editor | The Room Designer for screens, Console layout and Presence layout, with templates (§6e). |
 | Multi-room status | Room Boards with rooms chosen individually or by rule, in Odoo and on wall screens (§6f). |
+| Screens per room | **Up to four**, from the room PC's own outputs. More screens will mean video wall controllers, and the code is extended when that happens (§5). |
+| Tablets | **Android**: the Console, Presence and board tablets all run as Chrome PWAs (§8a). |
+| Room Board screens | **Existing PCs and Android tablets** as browser Nodes. No Raspberry Pis (§6f). |
+| Home Assistant timing | The rooms aren't in Home Assistant yet. The module is written now (optional, off) so that switching it on later is configuration only: install it, connect Home Assistant, set each room's Area, then Discover Devices (§6d). |
 
 ## 12. Questions to answer before building
 
@@ -662,75 +695,93 @@ weeks across them. Odoo Discuss and Jitsi don't have this problem.
 1. How many rooms, now and later? Is it one company, or several companies
    or organisation units?
 2. For the first installations: which TVs, and do they have RS-232 or
-   LAN control, or only HDMI-CEC? Is there a video wall controller
-   anywhere? How many outputs does each room PC need? Screens with more
-   than four outputs need a second GPU or a controller.
+   LAN control, or only HDMI-CEC? Which room PCs (they need as many video
+   outputs as the room has screens, up to four)?
 3. Is it acceptable to have a **signed-in room account** (Google, Zoom)
    as a fallback when a host blocks anonymous guests?
 4. What camera and audio are there? Is a PTZ camera wanted, and with
    presets? Is a speakerphone already in place, or do we choose one?
 5. Are the room PCs new (I'd suggest Ubuntu), or existing Windows
    machines?
-6. Are the tablets Android or iPad? Android with a kiosk browser is
-   easier to lock down. iPad PWAs can lose their storage after weeks
-   unused, which would mean re-pairing.
-7. What should the Room Boards run on: Raspberry Pi TVs, existing PCs,
-   or tablets?
 
 **Using it**
 
-8. How do meeting links usually arrive? Invite emails to a person, to a
+6. How do meeting links usually arrive? Invite emails to a person, to a
    room mailbox, Outlook/M365 calendars, or links pasted in chat?
    (Meeting Management already has Graph API integration we could reuse.)
-9. What name should the room show in calls ("Cliff's Country Crafts –
+7. What name should the room show in calls ("Cliff's Country Crafts –
    Board Room")? What email should it give when Webex asks for one?
-10. Which share sources are a must for the Teams MVP: HDMI, companion
+8. Which share sources are a must for the Teams MVP: HDMI, companion
     join or wireless?
-11. Should the room join automatically at the meeting start time, or
+9. Should the room join automatically at the meeting start time, or
     always need a tap on the console?
-12. Is in-room presentation without a call needed?
-13. Should anyone in the room be able to use the Console, with only
+10. Is in-room presentation without a call needed?
+11. Should anyone in the room be able to use the Console, with only
     setup mode behind the Admin PIN?
-14. Should call history and meeting links be kept, and for how long
+12. Should call history and meeting links be kept, and for how long
     (privacy)?
 
 **Booking, presence and Do Not Disturb**
 
-15. Should every Meeting Management meeting be able to book a room, or
+13. Should every Meeting Management meeting be able to book a room, or
     only some meeting types? Should outside staff (e.g. an Outlook
     calendar) be able to book too?
-16. Room accounts: sign in once on the Display with no password kept
+14. Room accounts: sign in once on the Display with no password kept
     (recommended), or keep passwords encrypted in Odoo?
-17. Who may see the meeting credentials: only the organiser and room
+15. Who may see the meeting credentials: only the organiser and room
     admins, or all Video Rooms users?
-18. What should the door show for a booking: title and organiser, or
+16. What should the door show for a booking: title and organiser, or
     always just "Booked"? Should private be a per-booking choice?
-19. Should rooms need check-in, and release the booking after how many
+17. Should rooms need check-in, and release the booking after how many
     minutes?
-20. Who can switch off Do Not Disturb: anyone at the Console, or only
+18. Who can switch off Do Not Disturb: anyone at the Console, or only
     whoever switched it on? Is a maximum length needed (e.g. 2 hours)?
     Should it come on automatically during calls?
-21. Room Boards: should touchscreen boards offer Book Now?
+19. Room Boards: should touchscreen boards offer Book Now?
 
 **Home Assistant**
 
-22. Where does Home Assistant run, and can every room PC reach it on the
+20. Where does Home Assistant run, and can every room PC reach it on the
     LAN? Do some rooms have no Display (then we'd need a bridge Node)?
-    Are the rooms already set up as Areas in Home Assistant (for
-    Discover Devices)?
-23. Is the smart film a simple switch (clear / frosted) or does it have
+    (The rooms aren't in Home Assistant yet: when they are added, give
+    each one an Area named after the room, so Discover Devices finds its
+    devices.)
+21. Is the smart film a simple switch (clear / frosted) or does it have
     levels?
-24. Which presets and triggers are wanted (pre-cool before bookings,
+22. Which presets and triggers are wanted (pre-cool before bookings,
     frost the glass on Do Not Disturb, room off after the last
     meeting)? Should that logic live in Odoo presets or in Home
     Assistant automations that use our room sensor?
 
 **Scope**
 
-25. Should we price Teams Rooms Basic with Direct Guest Join before
+23. Should we price Teams Rooms Basic with Direct Guest Join before
     building?
 
-## 13. Scaffold on this branch
+## 13. CLAUDE.md checklist for the build
+
+Every rule in `CLAUDE.md` applies. Here is how each one lands in Video
+Rooms:
+
+| Rule | In Video Rooms |
+| --- | --- |
+| **Dates** | `data/res_lang_data.xml` keeps English on `%d/%m/%Y` / `%H:%M:%S`. Every Date/Datetime `<field>` in forms and lists gets `options="{'numeric': True}"`. Code, messages, the Presence screen, the Room Boards and the Console format dates as `%d/%m/%Y` and times as `%H:%M` (the boards show "Mon 16/11/2026"). Dates are stored as Date/Datetime only. |
+| **List views** | `<field name="id" optional="show"/>` is the first column of every list (after a `sequence` handle where there is one). |
+| **Reports menu** | `menu_video_rooms_reports` is a plain folder (no action, no groups), last, just before Configuration. |
+| **Permissions** | **Primary models:** Rooms, Calls and Room Boards each get the 7 privileges ("Rooms: Create Only" … "Rooms: Delete All"), each with an "Allowed" group whose `ir.rule`s carry the meaning. *Own* = `create_uid`. *My Team* = `create_uid.employee_ids child_of user.employee_ids`.<br>**Child records** (screens, layouts, Home Assistant controls and presets) follow `room_id`, and booking credentials follow the booking.<br>**Base group** "Video Rooms User" (technical) holds the ACL plus the four deny rules.<br>**Workflow privileges:** Control Rooms (use a Console, send commands), Design Rooms (Room Designer, screens, layouts), Book Now. Checked with `has_group`, and the action writes with `sudo()`.<br>**Administrator group** "Video Rooms: Administrator" implies all of them, includes `base.user_root` and `base.user_admin`, and gets Configuration.<br>**Roles** come from `video_rooms_permission` (Administrator / Manager / Employee, plus a Room Operator role with Control Rooms + Book Now), `noupdate`. |
+| **Tablet users** | The Console, Presence and Board tablet users are **portal** users in technical groups (Console Tablet / Presence Tablet / Board Screen). Their record rules limit them to their own Node's room or board. They aren't Permission Management roles, because roles are for staff. |
+| **Option models** (no Selection for choices) | Under Configuration, each with `active`/`sequence`, views, a menu, `noupdate` data, read for users and full for admins:<br>Platforms; Call Sources (Invite email / Calendar / Console / Sent from Odoo); TV Control Types (HDMI-CEC / RS-232 / LAN); Layout Templates; Room Accounts; Home Assistant Device Categories; Preset Triggers.<br>**Selections are kept only** where code branches on the value: call/command `state`, command type, a screen's wall and what it shows, a board's view/sort/room selection, a platform's driver, a category's panel, a template's kind, and room availability. |
+| **Company** | `company_id` (default `env.company`) on Rooms, Calls (from the room, stored) and Room Boards. It shows on forms and lists (`optional="show"`) with `groups="base.group_multi_company"`, and searches have a Company group-by. Each model has a multi-company `ir.rule`. |
+| **Organisation structure** | Rooms, Calls and Room Boards are opened from the app menus, so `org_structure` adds the four levels. Calls set `_org_parent_field = 'room_id'`, so they inherit the room's units. Screens, layouts and Home Assistant records live under the room, not in menus, so they aren't scoped. Level names are never hard-coded: board rules such as "every room in a Location" read labels through `env['org.config']`. |
+| **Hardware (Nodes)** | The Display is an `iot.node` role with its program in `node_programs/video_rooms_display/` (`iot_program.json`, registered in `_iot_builtin_programs`, `_iot_sync_builtin` data). Every route uses `authenticate(roles=[...])` with `auth='public', csrf=False, save_session=False`. Programs reach Odoo only through `$IOT_PROXY_URL`. Tablets and board PCs are IoT Interfaces **browser Nodes**: the pairing and rolling-key code is added *to IoT Interfaces*, not a separate token model. Home Assistant is reached only by the Node. Node menus go under `iot_interfaces.menu_iot_nodes`. |
+| **Icons** | The app icon is drawn in the **illustrated** style from `docs/icon_style/`: a screen/video wall with a camera accent overlapping its lower right, palette colours only, transparent background, no text. It is drawn as `static/description/icon.svg` and exported to a 1024×1024 PNG, and is also the root menu's `web_icon`. The PWA icons (Console, Presence, Board) use the tile style. |
+| **Toolbar icons** | None are planned. Any added later register with `showOnHomeScreen: true`. |
+| **AI** | No AI features, so the AI rules don't apply. |
+| **Actions** | Video Rooms raises no follow-up actions. If it ever does (e.g. "room fault" reports), they go to `advanced.action` through an `advanced_actions_video_rooms` bridge. |
+| **Customers and contacts** | A call's **external organiser** is a contact, so it becomes `organiser_partner_id` (`res.partner`) on `video.room.call`. The optional `advanced_accounts_video_rooms` app ("Remap Video Rooms Contacts to Advanced Accounts", not auto-install, with its toggle on the Advanced Accounts settings page) adds the Account/Contact fields through `advanced.accounts.mixin`. |
+| **Meeting Management** | Bookings extend `meeting.meeting` in place. Its own views get the Room and credentials fields, with the same date and list rules. |
+
+## 14. Scaffold on this branch
 
 ```
 video_rooms/                         Odoo app (installable: False)
@@ -743,7 +794,7 @@ video_rooms/                         Odoo app (installable: False)
   controllers/tablet.py              tablet pairing + rolling-key session renewal
   controllers/console.py             Console PWA routes
   controllers/presence.py            Presence screen PWA routes (+ Book Now)
-  controllers/board.py               Room Board wall-screen routes
+  controllers/board.py               Room Board pages (Odoo + PC/tablet screens)
   data/                              platforms (noupdate), program sync
   static/src/console/, presence/,    PWA shells (placeholders)
     board/, designer/                Room Board + Room Designer (OWL, placeholders)

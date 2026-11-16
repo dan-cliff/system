@@ -197,7 +197,7 @@ button { cursor: pointer; }
   <section id="view-screens" class="work">
     <div class="panel">
       <div class="row" style="justify-content:space-between">
-        <p class="hint">Drag a screen to move it, even onto another wall; drag its corner to resize. Double-click an empty spot to add a screen there. Call screens on the same wall join into one canvas.</p>
+        <p class="hint">Up to 4 screens, one per output on the room PC. Drag a screen to move it, even onto another wall; drag its corner to resize. Double-click an empty spot to add one. Call screens on the same wall join into one canvas.</p>
         <div class="row"><button class="btn small" id="btnAddScreen" type="button">+ Add screen</button><button class="btn small" id="btnIdentify" type="button">Identify screens</button></div>
       </div>
       <div class="plan" id="plan"></div>
@@ -254,7 +254,7 @@ button { cursor: pointer; }
   <section id="view-board" class="work" hidden>
     <div class="panel">
       <div class="wallscreen"><div class="board" id="boardPreview"></div></div>
-      <p class="hint">Live in Odoo (Video Rooms › Overview) and full screen on reception or corridor screens.</p>
+      <p class="hint">Live in Odoo (Video Rooms › Overview) and full screen on existing PCs and Android tablets, each paired once and kept signed in automatically.</p>
     </div>
     <aside class="panel">
       <div class="field"><label for="boardName">Board name</label><input type="text" id="boardName"></div>
@@ -337,13 +337,11 @@ function sample() {
     rooms: {
       board: {
         name: "Board Room", capacity: 12, location: "Head Office",
-        outputs: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "DP-1", "DP-2"],
+        outputs: ["HDMI-1", "HDMI-2", "DP-1", "DP-2"],
         has: { lighting: true, climate: true, blinds: true, glass: true, scenes: true, ptz: true },
         screens: [
-          { id: "s-front-tl", name: "Front top left", wall: "front", x: 1, y: 0, w: 1, h: 1, content: "call", output: "HDMI-1" },
-          { id: uid(), name: "Front top right", wall: "front", x: 2, y: 0, w: 1, h: 1, content: "call", output: "HDMI-2" },
-          { id: uid(), name: "Front bottom left", wall: "front", x: 1, y: 1, w: 1, h: 1, content: "call", output: "HDMI-3" },
-          { id: uid(), name: "Front bottom right", wall: "front", x: 2, y: 1, w: 1, h: 1, content: "call", output: "HDMI-4" },
+          { id: "s-front-tl", name: "Front left", wall: "front", x: 0, y: 0, w: 2, h: 2, content: "call", output: "HDMI-1" },
+          { id: uid(), name: "Front right", wall: "front", x: 2, y: 0, w: 2, h: 2, content: "call", output: "HDMI-2" },
           { id: uid(), name: "Left wall", wall: "left", x: 1, y: 0, w: 1, h: 1, content: "mirror", mirrorOf: "s-front-tl", output: "DP-1" },
           { id: uid(), name: "Right wall", wall: "right", x: 1, y: 0, w: 1, h: 1, content: "mirror", mirrorOf: "s-front-tl", output: "DP-2" },
         ],
@@ -370,7 +368,8 @@ function sample() {
   };
 }
 
-const KEY = "video-rooms-designer-v2";
+const KEY = "video-rooms-designer-v3";
+const MAX_SCREENS = 4; // the room PC's own outputs; more needs video wall controllers (not supported yet)
 let S; try { S = JSON.parse(localStorage.getItem(KEY)) || sample(); } catch (e) { S = sample(); }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable: keep in memory */ } };
 let roomId = Object.keys(S.rooms)[0], tab = "screens", selScreen = null, selTile = null, cpage = "call", pstate = "available";
@@ -433,6 +432,7 @@ function renderPlan() {
   plan.append(back);
 }
 function addScreen(wall, x, y) {
+  if (R().screens.length >= MAX_SCREENS) { toast(`A room can have up to ${MAX_SCREENS} screens, from the room PC's own outputs. More screens need video wall controllers, which aren't supported yet.`); return; }
   const W = WALLS[wall]; const free = (cx, cy) => !wallScreens(wall).some(s => cx >= s.x && cx < s.x + s.w && cy >= s.y && cy < s.y + s.h);
   if (x == null) { outer: for (let yy = 0; yy < W.rows; yy++) for (let xx = 0; xx < W.cols; xx++) if (free(xx, yy)) { x = xx; y = yy; break outer; } }
   if (x == null) { toast(`${W.label} is full. Make a screen smaller or use another wall.`); return; }
@@ -472,7 +472,7 @@ function warnings() {
   if (!sc.some(s => s.content === "call")) out.push("No screen shows the call. Set at least one screen to Call.");
   const seen = {}; for (const s of sc) { if (!s.output) out.push(`Screen ${numberOf(s)} (${s.name}) has no output.`); else (seen[s.output] = seen[s.output] || []).push(numberOf(s)); }
   for (const [o, n] of Object.entries(seen)) if (n.length > 1) out.push(`${o} is used by screens ${n.join(" and ")}. Each output drives one screen.`);
-  if (sc.length > R().outputs.length) out.push(`${sc.length} screens but the room PC has ${R().outputs.length} outputs. Add a GPU or a video wall controller.`);
+  if (sc.length > R().outputs.length) out.push(`${sc.length} screens but this room PC has ${R().outputs.length} outputs. Use a PC with an output per screen (up to ${MAX_SCREENS}).`);
   for (const s of sc) if (s.content === "mirror") { const m = sc.find(x => x.id === s.mirrorOf); if (!m) out.push(`Screen ${numberOf(s)} mirrors nothing. Choose a screen to copy.`); else if (m.content === "mirror") out.push(`Screen ${numberOf(s)} mirrors another mirror. Point it at the original.`); }
   if (sc.some(s => s.content === "shared")) out.push("Shared content uses companion mode: the host must admit a second guest. Without it these screens mirror the call.");
   for (const w of Object.keys(WALLS)) { const ws = wallScreens(w); for (let i = 0; i < ws.length; i++) for (let j = i + 1; j < ws.length; j++) { const a = ws[i], b = ws[j]; if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) out.push(`Screens ${numberOf(a)} and ${numberOf(b)} overlap on the ${WALLS[w].label.toLowerCase()}.`); } }
@@ -495,9 +495,8 @@ function renderInspector() {
       const m = h("select", { id: "scrMirror" }, h("option", { value: "" }, "Choose a screen"), R().screens.filter(x => x.id !== s.id).map(x => h("option", { value: x.id, selected: x.id === s.mirrorOf }, `${numberOf(x)} · ${x.name}`)));
       m.addEventListener("change", () => { s.mirrorOf = m.value; save(); renderScreens(); }); kids.push(f("Mirror of", m));
     }
-    const tvs = h("input", { type: "number", id: "scrTvs", min: 1, max: 25, value: s.tvs || 1 }); tvs.addEventListener("input", () => { s.tvs = +tvs.value || 1; save(); });
     const ctl = h("select", { id: "scrCtl" }, ["None", "HDMI-CEC", "RS-232", "LAN (IP)"].map(v => h("option", { selected: v === (s.ctl || "HDMI-CEC") }, v))); ctl.addEventListener("change", () => { s.ctl = ctl.value; save(); });
-    kids.push(f("Physical TVs on this output", tvs), f("TV power control", ctl), h("p", { class: "hint" }, `Position: ${WALLS[s.wall].label.toLowerCase()}, column ${s.x + 1}, row ${s.y + 1}, ${s.w}×${s.h} cells.`),
+    kids.push(f("TV power control", ctl), h("p", { class: "hint" }, `Position: ${WALLS[s.wall].label.toLowerCase()}, column ${s.x + 1}, row ${s.y + 1}, ${s.w}×${s.h} cells.`),
       h("button", { class: "btn danger small", type: "button", onclick: () => { R().screens = R().screens.filter(x => x.id !== s.id); R().screens.forEach(x => { if (x.mirrorOf === s.id) x.mirrorOf = ""; }); selScreen = null; save(); renderScreens(); } }, "Remove screen"));
     box.append(...kids);
   } else box.append(h("p", { class: "hint" }, "Select a screen to edit its name, output and what it shows."));
