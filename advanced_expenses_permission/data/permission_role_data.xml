@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_expenses_admin" model="permission.role">
+            <field name="name">Expenses – Administrator</field>
+            <field name="description">Everything in Expenses: create, edit and delete any expense, approve any expense, pay expenses, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_advanced_expenses'), 'group_id': ref('advanced_expenses.group_expenses_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_create_only'), 'group_id': ref('advanced_expenses.group_expense_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_edit_own'), 'group_id': ref('advanced_expenses.group_expense_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_edit_team'), 'group_id': ref('advanced_expenses.group_expense_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_edit_all'), 'group_id': ref('advanced_expenses.group_expense_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_view_all'), 'group_id': ref('advanced_expenses.group_expense_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_delete_own'), 'group_id': ref('advanced_expenses.group_expense_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_delete_all'), 'group_id': ref('advanced_expenses.group_expense_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_approve'), 'group_id': ref('advanced_expenses.group_expense_approve')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_approve_any'), 'group_id': ref('advanced_expenses.group_expense_approve_any')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_pay'), 'group_id': ref('advanced_expenses.group_expense_pay')})
+            ]"/>
+        </record>
+        <record id="role_expenses_manager" model="permission.role">
+            <field name="name">Expenses – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s expenses, and approve or refuse their team&apos;s. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_edit_team'), 'group_id': ref('advanced_expenses.group_expense_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_approve'), 'group_id': ref('advanced_expenses.group_expense_approve')})
+            ]"/>
+        </record>
+        <record id="role_expenses_employee" model="permission.role">
+            <field name="name">Expenses – Employee</field>
+            <field name="description">Create, view and edit their own expenses, and delete their own drafts.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_edit_own'), 'group_id': ref('advanced_expenses.group_expense_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_delete_own'), 'group_id': ref('advanced_expenses.group_expense_delete_own')})
+            ]"/>
+        </record>
+        <record id="role_expenses_approver" model="permission.role">
+            <field name="name">Expenses – Approver</field>
+            <field name="description">Approve or refuse any submitted expense (never their own).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_approve_any'), 'group_id': ref('advanced_expenses.group_expense_approve_any')})
+            ]"/>
+        </record>
+        <record id="role_expenses_payable" model="permission.role">
+            <field name="name">Expenses – Accounts Payable</field>
+            <field name="description">See every expense and pay approved ones (with Accounting: create their bills).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_view_all'), 'group_id': ref('advanced_expenses.group_expense_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_expenses.privilege_expense_pay'), 'group_id': ref('advanced_expenses.group_expense_pay')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

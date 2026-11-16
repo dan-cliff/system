@@ -4,7 +4,12 @@
     'category': 'Human Resources/Expenses',
     'summary': 'Expenses paid by the company pick a vendor Account and Contact',
     'description': """
-        Switched on in Settings > Advanced Accounts. Expenses paid by the company
+        For Odoo's own Expenses app (hr_expense). Our Expenses app
+        (advanced_expenses) replaces it and uninstalls it, with this module, and
+        uses advanced_accounts_advanced_expenses instead, which is what Settings >
+        Advanced Accounts > Expenses switches on.
+
+        Expenses paid by the company
         pick a vendor Account and Contact (only that Account's Contacts) in place
         of the Vendor. The Employee is unchanged.
     """,

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_view_form_expenses" model="ir.ui.view">
+        <field name="name">hr.employee.form.advanced_expenses</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_advanced_expenses" type="object" class="oe_stat_button" icon="fa-money"
+                        groups="advanced_expenses.group_expenses_user" invisible="not id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value"><field name="advanced_expense_count"/></span>
+                        <span class="o_stat_text">Expenses</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//group[@name='managers']" position="inside">
+                <field name="expense_approver_id" string="Expense" placeholder="Their manager"
+                       widget="many2one_avatar_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_view_search_expenses" model="ir.ui.view">
+        <field name="name">hr.employee.search.advanced_expenses</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//separator[@name='managers_groupby_separator']" position="before">
+                <filter name="group_expense_approver" string="Expense Approver"
+                        context="{'group_by': 'expense_approver_id'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
