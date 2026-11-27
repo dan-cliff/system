@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_pos_insights_orders" model="report.paperformat">
+        <field name="name">POS Insights Orders A4 Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">36.5</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">33</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_pos_insights_orders" model="ir.actions.report">
+        <field name="name">Session Orders</field>
+        <field name="model">pos.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pos_insights.report_pos_insights_orders</field>
+        <field name="report_file">pos_insights.report_pos_insights_orders</field>
+        <field name="print_report_name">'Orders - %s' % (object.name or '')</field>
+        <field name="paperformat_id" ref="paperformat_pos_insights_orders"/>
+        <field name="group_ids" eval="[(4, ref('pos_insights.group_pos_insights'))]"/>
+    </record>
+
+    <template id="report_pos_insights_orders">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="o.company_id.sudo()"/>
+                <t t-set="currency" t-value="o.currency_id"/>
+                <t t-set="orders" t-value="o._get_pos_insights_orders()"/>
+                <t t-set="product_summary" t-value="o._get_pos_insights_product_summary()"/>
+                <t t-set="has_cashier" t-value="'cashier' in orders._fields"/>
+
+                <div t-attf-class="header o_company_#{company.id}_layout">
+                    <div class="d-flex align-items-center">
+                        <div style="width: 33%;">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Logo"
+                                 style="height: 150px; width: auto; max-width: 100%;"/>
+                        </div>
+                        <div style="width: 67%;">
+                            <h2 class="mb-0 text-end">Orders - <t t-esc="o.name"/></h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="article">
+                    <div class="page">
+                        <style>
+                            .o_pos_insights_table, .o_pos_insights_table th, .o_pos_insights_table td {
+                                font-size: 11pt;
+                            }
+                            .o_pos_insights_thead th {
+                                background-color: #000000 !important;
+                                color: #ffffff !important;
+                                font-weight: bold !important;
+                                text-align: center !important;
+                            }
+                            .o_pos_insights_value {
+                                text-align: center !important;
+                            }
+                        </style>
+                        <table class="table table-sm table-borderless mb-4 o_pos_insights_table">
+                            <tr>
+                                <td><strong>Point of Sale:</strong> <span t-esc="o.config_id.name"/></td>
+                                <td><strong>Session:</strong> <span t-esc="o.name"/></td>
+                                <td><strong>Opened By:</strong> <span t-esc="o.user_id.name"/></td>
+                                <td><strong>Opened At:</strong> <span t-field="o.start_at"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Orders:</strong> <span t-esc="len(orders)"/></td>
+                                <td><strong>Total Taxes:</strong>
+                                    <span t-esc="sum(orders.mapped('amount_tax'))"
+                                          t-options="{'widget': 'monetary', 'display_currency': currency}"/></td>
+                                <td><strong>Total Sales:</strong>
+                                    <span t-esc="sum(orders.mapped('amount_total'))"
+                                          t-options="{'widget': 'monetary', 'display_currency': currency}"/></td>
+                                <td><strong>Printed At:</strong>
+                                    <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/></td>
+                            </tr>
+                        </table>
+
+                        <h4>Orders</h4>
+                        <table class="table table-sm table-bordered mb-4 o_pos_insights_table">
+                            <thead class="o_pos_insights_thead">
+                                <tr>
+                                    <th>Order Ref</th>
+                                    <th>Receipt Number</th>
+                                    <th>Date</th>
+                                    <th>Cashier</th>
+                                    <th>Customer</th>
+                                    <th>Payment Methods</th>
+                                    <th>Status</th>
+                                    <th>Taxes</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="orders" t-as="order">
+                                    <td t-esc="order.name"/>
+                                    <td t-esc="order.pos_reference"/>
+                                    <td class="o_pos_insights_value"><span t-field="order.date_order"/></td>
+                                    <td t-esc="order.cashier if has_cashier else order.user_id.name"/>
+                                    <td t-esc="order.partner_id.name"/>
+                                    <td t-esc="', '.join(order.payment_ids.payment_method_id.mapped('name'))"/>
+                                    <td class="o_pos_insights_value"><span t-field="order.state"/></td>
+                                    <td class="o_pos_insights_value">
+                                        <span t-field="order.amount_tax" t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                    </td>
+                                    <td class="o_pos_insights_value">
+                                        <span t-field="order.amount_total" t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                    </td>
+                                </tr>
+                                <tr t-if="not orders">
+                                    <td colspan="9" class="text-center text-muted">No orders in this session yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="page-break-before: always;">
+                            <h4>Sales by Product</h4>
+                            <table class="table table-sm table-bordered mb-4 o_pos_insights_table">
+                                <thead class="o_pos_insights_thead">
+                                    <tr>
+                                        <th style="width: 55%;">Product</th>
+                                        <th style="width: 15%;">Quantity</th>
+                                        <th style="width: 15%;">Tax Excl.</th>
+                                        <th style="width: 15%;">Tax Incl.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="product_summary" t-as="line">
+                                        <td t-esc="line['product']"/>
+                                        <td class="o_pos_insights_value" t-esc="line['qty']"
+                                            t-options="{'widget': 'float', 'precision': 2}"/>
+                                        <td class="o_pos_insights_value" t-esc="line['subtotal']"
+                                            t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                        <td class="o_pos_insights_value" t-esc="line['subtotal_incl']"
+                                            t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                    </tr>
+                                    <tr t-if="not product_summary">
+                                        <td colspan="4" class="text-center text-muted">No products sold in this session yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="text-center text-muted">
+                        <span class="page"/> of <span class="topage"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
