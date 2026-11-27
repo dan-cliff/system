@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every permission below is its
+         own privilege with one "Allowed" group, whose record rules give it its
+         meaning. All of them imply the technical Property user group, which
+         holds the ACLs and a deny rule per operation, so users can only do what
+         a permission opens. "Own" is what they created or are named on
+         (Property Manager / Responsible). Photos and floor plans follow their
+         property. Everyone who can raise leases or contracts can read the
+         properties, to pick one. This file is generated: keep its rules in step
+         across the three record types. -->
+    <data noupdate="1">
+        <record id="module_category_property" model="ir.module.category">
+            <field name="name">Property</field>
+            <field name="description">Manage the premises the business owns or leases.</field>
+            <field name="sequence">60</field>
+        </record>
+    </data>
+
+    <record id="group_property_user" model="res.groups">
+        <field name="name">Property: User</field>
+        <field name="comment">Technical: given by every Property permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="privilege_property_property_create_only" model="res.groups.privilege">
+        <field name="name">Properties: Create Only</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">100</field>
+        <field name="description">Create properties, and view the ones they created or look after (no editing after saving).</field>
+    </record>
+    <record id="group_property_property_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_property_create_only"/>
+        <field name="comment">Create properties, and view the ones they created or look after (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_property_edit_own" model="res.groups.privilege">
+        <field name="name">Properties: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">110</field>
+        <field name="description">Create properties, and view and edit their own.</field>
+    </record>
+    <record id="group_property_property_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_property_edit_own"/>
+        <field name="comment">Create properties, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_property_edit_team" model="res.groups.privilege">
+        <field name="name">Properties: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">120</field>
+        <field name="description">Create properties, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_property_property_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_property_edit_team"/>
+        <field name="comment">Create properties, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_property_edit_all" model="res.groups.privilege">
+        <field name="name">Properties: Create and Edit All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">130</field>
+        <field name="description">Create, view and edit all properties.</field>
+    </record>
+    <record id="group_property_property_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_property_edit_all"/>
+        <field name="comment">Create, view and edit all properties.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_property_view_all" model="res.groups.privilege">
+        <field name="name">Properties: View All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">140</field>
+        <field name="description">View all properties.</field>
+    </record>
+    <record id="group_property_property_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_property_view_all"/>
+        <field name="comment">View all properties.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_property_delete_own" model="res.groups.privilege">
+        <field name="name">Properties: Delete Own</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">150</field>
+        <field name="description">Delete their own properties.</field>
+    </record>
+    <record id="group_property_property_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_property_delete_own"/>
+        <field name="comment">Delete their own properties.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_property_delete_all" model="res.groups.privilege">
+        <field name="name">Properties: Delete All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">160</field>
+        <field name="description">Delete any properties.</field>
+    </record>
+    <record id="group_property_property_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_property_delete_all"/>
+        <field name="comment">Delete any properties.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_lease_create_only" model="res.groups.privilege">
+        <field name="name">Leases: Create Only</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">200</field>
+        <field name="description">Create leases, and view the ones they created or look after (no editing after saving).</field>
+    </record>
+    <record id="group_property_lease_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_lease_create_only"/>
+        <field name="comment">Create leases, and view the ones they created or look after (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_lease_edit_own" model="res.groups.privilege">
+        <field name="name">Leases: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">210</field>
+        <field name="description">Create leases, and view and edit their own.</field>
+    </record>
+    <record id="group_property_lease_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_lease_edit_own"/>
+        <field name="comment">Create leases, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_lease_edit_team" model="res.groups.privilege">
+        <field name="name">Leases: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">220</field>
+        <field name="description">Create leases, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_property_lease_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_lease_edit_team"/>
+        <field name="comment">Create leases, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_lease_edit_all" model="res.groups.privilege">
+        <field name="name">Leases: Create and Edit All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">230</field>
+        <field name="description">Create, view and edit all leases.</field>
+    </record>
+    <record id="group_property_lease_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_lease_edit_all"/>
+        <field name="comment">Create, view and edit all leases.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_lease_view_all" model="res.groups.privilege">
+        <field name="name">Leases: View All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">240</field>
+        <field name="description">View all leases.</field>
+    </record>
+    <record id="group_property_lease_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_lease_view_all"/>
+        <field name="comment">View all leases.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_lease_delete_own" model="res.groups.privilege">
+        <field name="name">Leases: Delete Own</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">250</field>
+        <field name="description">Delete their own leases.</field>
+    </record>
+    <record id="group_property_lease_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_lease_delete_own"/>
+        <field name="comment">Delete their own leases.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_lease_delete_all" model="res.groups.privilege">
+        <field name="name">Leases: Delete All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">260</field>
+        <field name="description">Delete any leases.</field>
+    </record>
+    <record id="group_property_lease_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_lease_delete_all"/>
+        <field name="comment">Delete any leases.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_contract_create_only" model="res.groups.privilege">
+        <field name="name">Property Contracts: Create Only</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">300</field>
+        <field name="description">Create property contracts, and view the ones they created or look after (no editing after saving).</field>
+    </record>
+    <record id="group_property_contract_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_contract_create_only"/>
+        <field name="comment">Create property contracts, and view the ones they created or look after (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_contract_edit_own" model="res.groups.privilege">
+        <field name="name">Property Contracts: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">310</field>
+        <field name="description">Create property contracts, and view and edit their own.</field>
+    </record>
+    <record id="group_property_contract_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_contract_edit_own"/>
+        <field name="comment">Create property contracts, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_contract_edit_team" model="res.groups.privilege">
+        <field name="name">Property Contracts: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">320</field>
+        <field name="description">Create property contracts, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_property_contract_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_contract_edit_team"/>
+        <field name="comment">Create property contracts, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_contract_edit_all" model="res.groups.privilege">
+        <field name="name">Property Contracts: Create and Edit All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">330</field>
+        <field name="description">Create, view and edit all property contracts.</field>
+    </record>
+    <record id="group_property_contract_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_contract_edit_all"/>
+        <field name="comment">Create, view and edit all property contracts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_contract_view_all" model="res.groups.privilege">
+        <field name="name">Property Contracts: View All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">340</field>
+        <field name="description">View all property contracts.</field>
+    </record>
+    <record id="group_property_contract_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_contract_view_all"/>
+        <field name="comment">View all property contracts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_contract_delete_own" model="res.groups.privilege">
+        <field name="name">Property Contracts: Delete Own</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">350</field>
+        <field name="description">Delete their own property contracts.</field>
+    </record>
+    <record id="group_property_contract_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_contract_delete_own"/>
+        <field name="comment">Delete their own property contracts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property_contract_delete_all" model="res.groups.privilege">
+        <field name="name">Property Contracts: Delete All</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">360</field>
+        <field name="description">Delete any property contracts.</field>
+    </record>
+    <record id="group_property_contract_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_property_contract_delete_all"/>
+        <field name="comment">Delete any property contracts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_user'))]"/>
+    </record>
+    <record id="privilege_property" model="res.groups.privilege">
+        <field name="name">Property</field>
+        <field name="category_id" ref="module_category_property"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Property app.</field>
+    </record>
+    <record id="group_property_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_property"/>
+        <field name="comment">Every Property permission, including deleting any property, lease or contract, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_property_property_create_only')), (4, ref('group_property_property_edit_own')), (4, ref('group_property_property_edit_team')), (4, ref('group_property_property_edit_all')), (4, ref('group_property_property_view_all')), (4, ref('group_property_property_delete_own')), (4, ref('group_property_property_delete_all')), (4, ref('group_property_lease_create_only')), (4, ref('group_property_lease_edit_own')), (4, ref('group_property_lease_edit_team')), (4, ref('group_property_lease_edit_all')), (4, ref('group_property_lease_view_all')), (4, ref('group_property_lease_delete_own')), (4, ref('group_property_lease_delete_all')), (4, ref('group_property_contract_create_only')), (4, ref('group_property_contract_edit_own')), (4, ref('group_property_contract_edit_team')), (4, ref('group_property_contract_edit_all')), (4, ref('group_property_contract_view_all')), (4, ref('group_property_contract_delete_own')), (4, ref('group_property_contract_delete_all'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Without a permission, nothing -->
+    <record id="rule_property_property_deny" model="ir.rule">
+        <field name="name">Properties: only through a permission</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_property_photo_deny" model="ir.rule">
+        <field name="name">Property Photos: only through a permission</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_property_floor_plan_deny" model="ir.rule">
+        <field name="name">Floor Plans: only through a permission</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_property_lease_deny" model="ir.rule">
+        <field name="name">Leases: only through a permission</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_property_contract_deny" model="ir.rule">
+        <field name="name">Property Contracts: only through a permission</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <!-- Properties: Create Only -->
+    <record id="rule_property_property_create_only" model="ir.rule">
+        <field name="name">Properties: Create Only</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_property_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_photo_create_only" model="ir.rule">
+        <field name="name">Property Photos: Create Only</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_property_create_only'))]"/>
+        <field name="domain_force">['|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_floor_plan_create_only" model="ir.rule">
+        <field name="name">Floor Plans: Create Only</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_property_create_only'))]"/>
+        <field name="domain_force">['|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Properties: Create and Edit Own -->
+    <record id="rule_property_property_edit_own" model="ir.rule">
+        <field name="name">Properties: Create and Edit Own</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_photo_edit_own" model="ir.rule">
+        <field name="name">Property Photos: Create and Edit Own</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_own'))]"/>
+        <field name="domain_force">['|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_floor_plan_edit_own" model="ir.rule">
+        <field name="name">Floor Plans: Create and Edit Own</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_own'))]"/>
+        <field name="domain_force">['|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Properties: Create and Edit My Team -->
+    <record id="rule_property_property_edit_team" model="ir.rule">
+        <field name="name">Properties: Create and Edit My Team</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_photo_edit_team" model="ir.rule">
+        <field name="name">Property Photos: Create and Edit My Team</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id), ('property_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('property_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_floor_plan_edit_team" model="ir.rule">
+        <field name="name">Floor Plans: Create and Edit My Team</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id), ('property_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('property_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Properties: Create and Edit All -->
+    <record id="rule_property_property_edit_all" model="ir.rule">
+        <field name="name">Properties: Create and Edit All</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_photo_edit_all" model="ir.rule">
+        <field name="name">Property Photos: Create and Edit All</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_floor_plan_edit_all" model="ir.rule">
+        <field name="name">Floor Plans: Create and Edit All</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_property_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Properties: View All -->
+    <record id="rule_property_property_view_all" model="ir.rule">
+        <field name="name">Properties: View All</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_property_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_photo_view_all" model="ir.rule">
+        <field name="name">Property Photos: View All</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_property_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_floor_plan_view_all" model="ir.rule">
+        <field name="name">Floor Plans: View All</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_property_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Properties: Delete Own -->
+    <record id="rule_property_property_delete_own" model="ir.rule">
+        <field name="name">Properties: Delete Own</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_property_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_property_photo_delete_own" model="ir.rule">
+        <field name="name">Property Photos: Delete Own</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_property_delete_own'))]"/>
+        <field name="domain_force">['|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_property_floor_plan_delete_own" model="ir.rule">
+        <field name="name">Floor Plans: Delete Own</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_property_delete_own'))]"/>
+        <field name="domain_force">['|', ('property_id.create_uid', '=', user.id), ('property_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Properties: Delete All -->
+    <record id="rule_property_property_delete_all" model="ir.rule">
+        <field name="name">Properties: Delete All</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_property_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_property_photo_delete_all" model="ir.rule">
+        <field name="name">Property Photos: Delete All</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="groups" eval="[(4, ref('group_property_property_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_property_floor_plan_delete_all" model="ir.rule">
+        <field name="name">Floor Plans: Delete All</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="groups" eval="[(4, ref('group_property_property_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Leases: Create Only -->
+    <record id="rule_property_lease_create_only" model="ir.rule">
+        <field name="name">Leases: Create Only</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Leases: Create and Edit Own -->
+    <record id="rule_property_lease_edit_own" model="ir.rule">
+        <field name="name">Leases: Create and Edit Own</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Leases: Create and Edit My Team -->
+    <record id="rule_property_lease_edit_team" model="ir.rule">
+        <field name="name">Leases: Create and Edit My Team</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Leases: Create and Edit All -->
+    <record id="rule_property_lease_edit_all" model="ir.rule">
+        <field name="name">Leases: Create and Edit All</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Leases: View All -->
+    <record id="rule_property_lease_view_all" model="ir.rule">
+        <field name="name">Leases: View All</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Leases: Delete Own -->
+    <record id="rule_property_lease_delete_own" model="ir.rule">
+        <field name="name">Leases: Delete Own</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Leases: Delete All -->
+    <record id="rule_property_lease_delete_all" model="ir.rule">
+        <field name="name">Leases: Delete All</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Property Contracts: Create Only -->
+    <record id="rule_property_contract_create_only" model="ir.rule">
+        <field name="name">Property Contracts: Create Only</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_contract_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Property Contracts: Create and Edit Own -->
+    <record id="rule_property_contract_edit_own" model="ir.rule">
+        <field name="name">Property Contracts: Create and Edit Own</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_contract_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Property Contracts: Create and Edit My Team -->
+    <record id="rule_property_contract_edit_team" model="ir.rule">
+        <field name="name">Property Contracts: Create and Edit My Team</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_contract_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Property Contracts: Create and Edit All -->
+    <record id="rule_property_contract_edit_all" model="ir.rule">
+        <field name="name">Property Contracts: Create and Edit All</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_contract_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Property Contracts: View All -->
+    <record id="rule_property_contract_view_all" model="ir.rule">
+        <field name="name">Property Contracts: View All</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_contract_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- Property Contracts: Delete Own -->
+    <record id="rule_property_contract_delete_own" model="ir.rule">
+        <field name="name">Property Contracts: Delete Own</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_contract_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Property Contracts: Delete All -->
+    <record id="rule_property_contract_delete_all" model="ir.rule">
+        <field name="name">Property Contracts: Delete All</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="groups" eval="[(4, ref('group_property_contract_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <!-- Raising leases and contracts: read the properties to pick one -->
+    <record id="rule_property_property_pick_read" model="ir.rule">
+        <field name="name">Properties: read, to raise leases and contracts</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="groups" eval="[(4, ref('group_property_lease_create_only')), (4, ref('group_property_lease_edit_own')), (4, ref('group_property_lease_edit_team')), (4, ref('group_property_lease_edit_all')), (4, ref('group_property_lease_view_all')), (4, ref('group_property_contract_create_only')), (4, ref('group_property_contract_edit_own')), (4, ref('group_property_contract_edit_team')), (4, ref('group_property_contract_edit_all')), (4, ref('group_property_contract_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Multi-company -->
+    <record id="rule_property_property_company" model="ir.rule">
+        <field name="name">Properties: multi-company</field>
+        <field name="model_id" ref="model_property_property"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_property_photo_company" model="ir.rule">
+        <field name="name">Property Photos: multi-company</field>
+        <field name="model_id" ref="model_property_photo"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_property_floor_plan_company" model="ir.rule">
+        <field name="name">Floor Plans: multi-company</field>
+        <field name="model_id" ref="model_property_floor_plan"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_property_lease_company" model="ir.rule">
+        <field name="name">Leases: multi-company</field>
+        <field name="model_id" ref="model_property_lease"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_property_contract_company" model="ir.rule">
+        <field name="name">Property Contracts: multi-company</field>
+        <field name="model_id" ref="model_property_contract"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

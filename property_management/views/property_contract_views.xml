@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="property_contract_view_form" model="ir.ui.view">
+        <field name="name">property.contract.form</field>
+        <field name="model">property.contract</field>
+        <field name="arch" type="xml">
+            <form string="Contract">
+                <header>
+                    <button name="action_activate" type="object" string="Activate" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state not in ('draft', 'active')"/>
+                    <button name="action_reset_draft" type="object" string="Reset to Draft"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,expired"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Building Insurance 2026"/></h1>
+                    </div>
+                    <group>
+                        <group name="contract_main">
+                            <field name="property_id"/>
+                            <field name="contract_type_id" options="{'no_create': True}"/>
+                            <field name="partner_id"/>
+                            <field name="reference"/>
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                        <group name="contract_term" string="Term and Cost">
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <field name="date_end" options="{'numeric': True}"/>
+                            <field name="auto_renew"/>
+                            <field name="notice_period_days"/>
+                            <field name="amount"/>
+                            <field name="frequency_id" options="{'no_create': True}"/>
+                            <field name="annual_amount"/>
+                            <field name="sum_insured"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Document" name="document">
+                            <group>
+                                <field name="document_name" invisible="1"/>
+                                <field name="document" filename="document_name"/>
+                            </group>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="property_contract_view_list" model="ir.ui.view">
+        <field name="name">property.contract.list</field>
+        <field name="model">property.contract</field>
+        <field name="arch" type="xml">
+            <list string="Contracts" decoration-muted="state in ('expired', 'cancelled')"
+                  decoration-info="state == 'draft'">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="contract_type_id"/>
+                <field name="partner_id"/>
+                <field name="reference" optional="hide"/>
+                <field name="date_start" options="{'numeric': True}" optional="show"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="annual_amount" sum="Total"/>
+                <field name="user_id" optional="show" widget="many2one_avatar_user"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="property_contract_view_search" model="ir.ui.view">
+        <field name="name">property.contract.search</field>
+        <field name="model">property.contract</field>
+        <field name="arch" type="xml">
+            <search string="Contracts">
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('reference', 'ilike', self)]"/>
+                <field name="property_id"/>
+                <field name="partner_id"/>
+                <field name="contract_type_id"/>
+                <field name="user_id"/>
+                <filter name="my_contracts" string="My Contracts" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="current" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="ended" string="Expired or Cancelled" domain="[('state', 'in', ('expired', 'cancelled'))]"/>
+                <separator/>
+                <filter name="date_end" string="Ends" date="date_end"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_property" string="Property" context="{'group_by': 'property_id'}"/>
+                    <filter name="group_type" string="Contract Type" context="{'group_by': 'contract_type_id'}"/>
+                    <filter name="group_partner" string="Supplier" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_property_contract" model="ir.actions.act_window">
+        <field name="name">Contracts</field>
+        <field name="res_model">property.contract</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="property_contract_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Record your first property contract</p>
+            <p>Insurance, cleaning, security, maintenance, utilities and other contracts for your
+               properties, with their cost, term and documents.</p>
+        </field>
+    </record>
+
+</odoo>
