@@ -2,13 +2,24 @@
 <templates xml:space="preserve">
     <t t-name="scanner_app.ScanInput">
         <div class="o_scanner_scan_input" t-on-click="focus">
-            <input type="text"
-                   class="o_scanner_input form-control form-control-lg"
-                   t-ref="input"
-                   t-att-placeholder="props.placeholder"
-                   t-att-disabled="props.disabled"
-                   t-on-keydown="onKeydown"
-                   autocomplete="off"/>
+            <div class="input-group">
+                <input type="text"
+                       class="o_scanner_input form-control form-control-lg"
+                       t-ref="input"
+                       t-att-placeholder="props.placeholder"
+                       t-att-disabled="props.disabled"
+                       t-att-inputmode="inputMode"
+                       t-on-keydown="onKeydown"
+                       autocomplete="off"/>
+                <button t-if="props.hideKeyboard" type="button"
+                        class="btn btn-lg o_scanner_keyboard_toggle"
+                        t-att-class="state.keyboard ? 'btn-primary' : 'btn-outline-secondary'"
+                        t-att-disabled="props.disabled"
+                        title="Type a barcode"
+                        t-on-click.stop="toggleKeyboard">
+                    <i class="fa fa-keyboard-o"/>
+                </button>
+            </div>
         </div>
     </t>
 </templates>

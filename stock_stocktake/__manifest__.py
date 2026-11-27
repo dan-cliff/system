@@ -1,6 +1,6 @@
 {
     'name': 'Stocktake',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Inventory/Inventory',
     'summary': 'Count on-hand stock and apply the counted quantities as an inventory adjustment',
     'description': """

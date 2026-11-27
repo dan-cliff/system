@@ -265,6 +265,39 @@ $scanner-shadow: 0 8px 20px rgba($scanner-navy, 0.18);
             font-size: 1.3rem;
             padding: 12px;
         }
+
+        // Shows the on-screen keyboard to type a barcode by hand.
+        .o_scanner_keyboard_toggle.btn-outline-secondary {
+            --bs-btn-color: #{$scanner-purple};
+            --bs-btn-border-color: #{$scanner-lavender};
+            --bs-btn-hover-color: #fff;
+            --bs-btn-hover-bg: #{$scanner-purple};
+            --bs-btn-hover-border-color: #{$scanner-purple};
+            --bs-btn-active-color: #fff;
+            --bs-btn-active-bg: #{$scanner-purple};
+            --bs-btn-active-border-color: #{$scanner-purple};
+            background-color: #fff;
+        }
+
+        .o_scanner_keyboard_toggle.btn-primary {
+            border-radius: 0 var(--bs-border-radius-lg) var(--bs-border-radius-lg) 0;
+            box-shadow: none;
+        }
+    }
+
+    // Tap to type an exact count; the scan field keeps focus otherwise.
+    .o_scanner_counted_input {
+        min-width: 6rem;
+        max-width: 9rem;
+        margin-left: auto;
+        font-weight: bold;
+        color: $scanner-navy;
+        border-color: $scanner-lavender;
+
+        &:focus {
+            border-color: $scanner-violet;
+            box-shadow: 0 0 0 0.2rem rgba($scanner-violet, 0.25);
+        }
     }
 
     .o_scanner_lines {

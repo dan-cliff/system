@@ -1,6 +1,6 @@
 {
     'name': 'Scanner',
-    'version': '19.0.1.0.7',
+    'version': '19.0.1.0.8',
     'category': 'Inventory/Inventory',
     'summary': 'Scan barcodes to receive purchase orders, create purchase orders, and run stocktakes',
     'description': """
@@ -19,8 +19,14 @@ Scanner
 * Create Purchase Orders by scanning: scan products, choose a package
   size (from the product's Packaging) and how many, per line. Scanned
   products are grouped onto one draft order per vendor.
-* Run a Stocktake: scan (or type) products to count them, repeat-scanning
-  to add up a count or entering an exact quantity. Nothing on stock on
+* Run a Stocktake: scan products to add them to the count (re-scanning a
+  product adds one). The cursor stays in the scan field and the most
+  recent scan is listed at the top; tap a line's Counted field to type
+  an exact count with the number keyboard.
+  A Vendor Product Code (Product > Purchase > Vendors) can be scanned
+  too, for bulk packs: it counts one of that vendor line's Unit,
+  converted to the product's unit (e.g. a carton of 24 adds 24).
+  The on-screen keyboard stays hidden while scanning. Nothing on stock on
   hand changes until the stocktake is marked Complete.
 """,
     'author': 'Bendigo Scouts',

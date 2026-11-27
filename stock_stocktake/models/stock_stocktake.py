@@ -80,15 +80,29 @@ class StockStocktake(models.Model):
             [('company_id', '=', self.company_id.id)], limit=1)
         return warehouse.lot_stock_id
 
+    def _find_scanned_product(self, barcode):
+        """Resolve a scanned barcode to the product it counts and how many of the
+        product's own unit one scan represents. Returns a dict with ``product``
+        (a product.product, possibly empty), ``qty`` and optionally ``error`` and
+        ``uom_name`` (the unit scanned, when it isn't the product's own).
+        Extended by other modules (e.g. vendor product codes in scanner_app)."""
+        product = self.env['product.product'].search(
+            [('barcode', '=', barcode), ('company_id', 'in', (self.company_id.id, False))], limit=1)
+        return {'product': product, 'qty': 1.0}
+
     def action_scan_barcode(self, barcode, lot_name=None):
-        """Find-or-create the line for a scanned product (+ lot/serial) and add one to its
-        counted quantity. Returns a dict describing the outcome for the scanning screen."""
+        """Find-or-create the line for a scanned product (+ lot/serial) and add the
+        scanned quantity (one unit, or a whole bulk unit) to its counted quantity.
+        Returns a dict describing the outcome for the scanning screen."""
         self.ensure_one()
         if self.state != 'draft':
             raise UserError('This stocktake is already completed.')
 
-        product = self.env['product.product'].search(
-            [('barcode', '=', barcode), ('company_id', 'in', (self.company_id.id, False))], limit=1)
+        found = self._find_scanned_product(barcode)
+        if found.get('error'):
+            return {'error': found['error']}
+        product = found['product']
+        scan_qty = found['qty']
         if not product:
             return {'error': 'No product found for barcode "%s".' % barcode}
 
@@ -111,15 +125,21 @@ class StockStocktake(models.Model):
         line = self.line_ids.filtered(
             lambda l: l.product_id == product and l.lot_id == lot)
         if line:
-            line.counted_qty += 1
+            line.counted_qty += scan_qty
         else:
             line = self.env['stock.stocktake.line'].create({
                 'stocktake_id': self.id,
                 'product_id': product.id,
                 'lot_id': lot.id or False,
-                'counted_qty': 1,
+                'counted_qty': scan_qty,
             })
-        return {'line_id': line.id}
+        result = {'line_id': line.id, 'qty_added': scan_qty}
+        if found.get('uom_name'):
+            result.update({
+                'scanned_uom_name': found['uom_name'],
+                'product_uom_name': product.uom_id.name,
+            })
+        return result
 
     def action_set_line_qty(self, line_id, qty):
         self.ensure_one()

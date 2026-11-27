@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="scanner_app.StocktakeScanScreen">
-        <div class="o_scanner_screen">
+        <div class="o_scanner_screen" t-ref="root">
             <p class="o_scanner_subtitle" t-if="!state.loading"><t t-esc="state.name"/></p>
 
-            <ScanInput placeholder="inputPlaceholder" onSubmit.bind="onScan" disabled="state.done"/>
+            <ScanInput placeholder="inputPlaceholder" onSubmit.bind="onScan" disabled="state.done" hideKeyboard="true"/>
 
             <div class="o_scanner_lines" t-if="!state.loading">
                 <table class="table table-striped">
@@ -22,7 +22,17 @@
                             t-att-class="{ o_scanner_line_active: line.id === state.activeLineId }">
                             <td><t t-esc="line.product_id[1]"/></td>
                             <td><t t-esc="line.lot_id ? line.lot_id[1] : ''"/></td>
-                            <td class="text-end o_scanner_qty_flag"><t t-esc="line.counted_qty"/></td>
+                            <td class="text-end o_scanner_qty_flag">
+                                <t t-if="state.done"><t t-esc="line.counted_qty"/></t>
+                                <input t-else="" type="number" min="0" step="any"
+                                       inputmode="decimal" enterkeyhint="done"
+                                       class="form-control form-control-lg text-end o_scanner_counted_input"
+                                       t-att-data-line-id="line.id"
+                                       t-att-value="line.counted_qty"
+                                       t-on-focus="() => this.onQtyFocus(line)"
+                                       t-on-keydown="(ev) => this.onQtyKeydown(line, ev)"
+                                       t-on-change="(ev) => this.onQtyChange(line, ev)"/>
+                            </td>
                             <td class="text-end"><t t-esc="line.theoretical_qty"/></td>
                             <td class="text-end"><t t-esc="line.difference_qty"/></td>
                         </tr>
