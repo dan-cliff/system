@@ -18,7 +18,9 @@ class TestAdvancedProjectRating(AdvancedProjectCommon, HttpCase):
         rating = self.env['advanced.project.rating'].search([('project_id', '=', project.id)])
         self.assertEqual(len(rating), 1)
         self.assertEqual((rating.task_id, rating.partner_id, rating.state), (task, self.customer, 'requested'))
-        self.assertIn(f'/my/projects/rating/{rating.id}?access_token=', rating.rating_url)
+        self.assertIn(f'/my/projects/rating/{rating.id}?access_token={rating.access_token}', rating.rating_url)
+        self.assertTrue(rating._fields['rating_url'].store)  # for Workflow Automation's notifications
+        self.assertEqual(rating.search([('rating_url', '=', rating.rating_url)]), rating)
         # done again later: asked only once
         task.stage_id = self.stage_todo
         task.stage_id = self.stage_done

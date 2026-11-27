@@ -13,6 +13,7 @@
                 <field name="partner_id"/>
                 <field name="score" widget="priority" readonly="1"/>
                 <field name="feedback" optional="show"/>
+                <field name="rating_url" optional="hide"/>
                 <field name="date_requested" options="{'numeric': True}" optional="hide"/>
                 <field name="date_rated" options="{'numeric': True}" optional="show"/>
                 <field name="company_id" optional="show" groups="base.group_multi_company"/>
@@ -43,7 +44,7 @@
                             <field name="date_requested" options="{'numeric': True}"/>
                             <field name="date_rated" options="{'numeric': True}" invisible="not date_rated"/>
                             <field name="requested_by_id" widget="many2one_avatar_user"/>
-                            <field name="rating_url" widget="CopyClipboardChar" invisible="not id or state != 'requested'"/>
+                            <field name="rating_url" widget="CopyClipboardChar" invisible="not rating_url"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>

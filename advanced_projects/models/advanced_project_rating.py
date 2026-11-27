@@ -46,9 +46,12 @@ class AdvancedProjectRating(models.Model):
     feedback = fields.Text()
     date_requested = fields.Datetime('Requested On', default=fields.Datetime.now, readonly=True)
     date_rated = fields.Datetime('Rated On', readonly=True, copy=False)
+    # Stored, so Workflow Automation can put it in its notifications (e.g. as
+    # the request's button); filled in as soon as the rating gets its token.
     rating_url = fields.Char(
-        'Rating Link', compute='_compute_rating_url',
-        help='Where the person asked gives the rating: use it in the request sent by Workflow Automation.')
+        'Rating Link', compute='_compute_rating_url', store=True, readonly=True,
+        help='The portal page where the person asked gives the rating: use it in the request sent by '
+             'Workflow Automation.')
 
     @api.depends('score')
     def _compute_score_value(self):
@@ -67,9 +70,11 @@ class AdvancedProjectRating(models.Model):
         for rating in self:
             rating.access_url = f'/my/projects/rating/{rating.id}'
 
+    @api.depends('access_token')
     def _compute_rating_url(self):
         for rating in self:
-            rating.rating_url = rating.id and rating.get_base_url() + rating.sudo().get_portal_url() or False
+            rating.rating_url = (rating.id and rating.access_token
+                                 and rating.get_base_url() + rating.sudo().get_portal_url()) or False
 
     @api.model_create_multi
     def create(self, vals_list):
