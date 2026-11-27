@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="embroidery_jobbing.HexColourField">
+        <div class="o_hex_colour_field d-flex align-items-center gap-2 w-100">
+            <span class="o_hex_colour_swatch position-relative flex-shrink-0 rounded border"
+                  t-att-class="{ 'o_hex_colour_empty': !colour }"
+                  t-att-title="swatchTitle"
+                  t-attf-style="background-color: #{colour or 'transparent'};">
+                <input t-if="!props.readonly" type="color" class="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                       t-att-value="colour or '#000000'" t-on-change="onPick" t-on-click.stop=""
+                       aria-label="Pick a colour"/>
+            </span>
+            <t t-if="props.readonly">
+                <span class="font-monospace" t-esc="formattedValue"/>
+            </t>
+            <t t-else="">
+                <input class="o_input font-monospace"
+                       t-att-id="props.id"
+                       type="text"
+                       autocomplete="off"
+                       maxlength="7"
+                       t-att-placeholder="props.placeholder"
+                       t-on-blur="onBlur"
+                       t-ref="input"/>
+            </t>
+        </div>
+    </t>
+
+</templates>

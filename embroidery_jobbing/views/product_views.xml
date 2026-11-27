@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Advanced Details: shown when any of its sections is (see
+         product.template._compute_show_advanced_details). -->
+    <record id="product_template_form_view_advanced_details" model="ir.ui.view">
+        <field name="name">product.template.form.advanced.details</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Advanced Details" name="advanced_details" invisible="not show_advanced_details">
+                    <field name="show_advanced_details" invisible="1"/>
+                    <field name="is_thread" invisible="1"/>
+                    <group name="advanced_details">
+                        <group string="Thread" name="thread_details" invisible="not is_thread">
+                            <field name="thread_manufacturer_id"
+                                   context="{'default_is_company': True}"/>
+                            <field name="thread_name" placeholder="e.g. 1747 Scarlet"/>
+                            <field name="thread_color" widget="hex_colour" placeholder="#FF5A6E"/>
+                            <field name="thread_type_id"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+    <record id="product_template_list_view_thread" model="ir.ui.view">
+        <field name="name">product.template.list.thread</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="thread_color" widget="hex_colour" optional="hide" readonly="1"/>
+                <field name="thread_type_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_template_search_view_thread" model="ir.ui.view">
+        <field name="name">product.template.search.thread</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_to_sell" position="before">
+                <filter string="Threads" name="threads" domain="[('is_thread', '=', True)]"/>
+                <separator/>
+            </filter>
+            <field name="categ_id" position="after">
+                <field name="thread_manufacturer_id"/>
+                <field name="thread_type_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_category_form_view_thread" model="ir.ui.view">
+        <field name="name">product.category.form.thread</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <field name="parent_id" position="after">
+                <field name="is_thread"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

@@ -9,9 +9,9 @@ live progress monitor for each stitch out.
 | --- | --- |
 | **Jobs** | Work orders: customer, product, pieces, item colour/sizes, placement, stabiliser, hoop, design, machine and instructions. **Send to Machine** sends the design for the next piece. |
 | **Jobs › Stitch Outs** | One record per piece sent to a machine, with its progress, ETA and event/error log. |
-| **Designs** | Brother `.pes` files. Stitch count, colours (Brother thread palette), size, trims and a stitch preview are read from the file on upload. |
+| **Designs** | Brother `.pes` files. Stitch count, thread colours, size, trims and a stitch preview are read from the file on upload. Or upload a PNG, JPG or SVG picture and it is digitised into a `.pes` (see below). |
 | **Machines** | Each machine (model, needles, speed, hoops, connection) with its live status. The kanban view is the machine floor at a glance. Add more machines as the business grows. |
-| **Configuration** | Status Boards, Machine Models (Brother PR1060W included), Hoops & Frames, Placements and Stabilisers. |
+| **Configuration** | Status Boards, Machine Models (Brother PR1060W included), Hoops & Frames, Placements, Stabilisers and Thread Types. |
 | **IoT Interfaces › Nodes** | The Raspberry Pis (Nodes) Embroidery uses: *Embroidery Bridges* beside the machines and *Embroidery Wall Displays* on TVs. |
 
 The **Progress** tab on a job, machine or stitch out shows the progress bar,
@@ -22,6 +22,54 @@ can Start, Pause, Report a Problem, Mark Done or Cancel from it.
 The ETA uses the speed measured from the machine's reports once it has 30
 seconds of stitching. Before that, or when the machine sends no live data, it
 uses the machine's **Running Speed** and **Colour Change Time**.
+
+## Threads
+
+Tick **Includes Threads** on a product category (Inventory or Sales ›
+Configuration › Product Categories). Its products get an **Advanced
+Details** tab with:
+
+* **Thread Manufacturer**: a company contact (an Account when Advanced
+  Accounts' Embroidery option is on).
+* **Thread Name**: the maker's name or number for the colour.
+* **Thread Colour**: a hex code such as `#FF5A6E`, shown as a swatch; click
+  the swatch to pick a colour instead. Codes are stored as `#rrggbb`.
+* **Thread Type**: from **Embroidery › Configuration › Thread Types**
+  (Polyester, Rayon, Cotton, Metallic and Bobbin to start with).
+
+The tab shows whenever any section on it does. Another module can add a
+section by extending `product.template._compute_show_advanced_details`.
+
+## Digitising artwork
+
+Upload a PNG, JPG or SVG as a design's **Artwork to Digitise** and save: it
+is turned into a `.pes` design file straight away (`lib/digitise.py`):
+
+1. The picture is drawn at the **Stitched Width** (and at most the **Max
+   Height**), 0.2 mm per pixel. SVG shapes, paths, transforms, `<use>`,
+   styles and gradients are drawn by `lib/svg.py`; text in an SVG must be
+   converted to outlines first.
+2. **Remove Background** drops transparent pixels or, for a picture with no
+   transparency, the colour around the edge (white inside the design stays).
+3. Each colour is matched to the nearest **thread product** (CIEDE2000
+   colour difference), optionally only one manufacturer's or some thread
+   types. Up to **Max Thread Colours** are kept; smaller areas join the
+   colour they look most like. With no thread products, Brother's palette
+   is used.
+4. Each colour, largest first, is stitched as a tatami fill: an underlay at
+   right angles, then rows at the **Fill Row Spacing** and **Fill Angle**,
+   with tie-in, tie-off and trims between areas.
+
+The **Thread Colours** tab then shows each colour's thread product, the
+artwork colour it stands for and the **Colour Difference** (green under 5,
+amber up to 10, red above). Pick another thread on a line and the `.pes` is
+rewritten with it. Change a setting, or click **Digitise Again**, to
+digitise again. Uploading a `.pes` over it replaces the artwork.
+
+Digitised files are PES version 6 with the real thread colours, names,
+numbers and brands, so the machine and Embrilliance show the threads used.
+Areas become fills: fine lines and small lettering are best checked in the
+preview and tidied in Embrilliance.
 
 ## Getting a design to the machine
 

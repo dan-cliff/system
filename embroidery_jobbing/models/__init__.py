@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from . import embroidery_options
+from . import product
 from . import iot_node
 from . import embroidery_machine
 from . import embroidery_design

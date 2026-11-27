@@ -1,6 +1,6 @@
 {
     'name': 'Remap Embroidery Contacts to Advanced Accounts',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Manufacturing',
     'summary': 'Embroidery jobs and designs pick a customer Account and Contact',
     'description': """
@@ -8,6 +8,8 @@
         pick a customer Account and Contact (only that Account's Contacts) in place
         of the Customer. A design made from a job starts with the job's Account and
         Contact. The status boards and stitch-outs keep showing the customer.
+        Thread manufacturers (on thread products and on a design's digitising
+        settings) are Accounts too.
     """,
     'author': "Cliff's Country Crafts",
     'depends': ['advanced_accounts', 'embroidery_jobbing'],
