@@ -46,7 +46,7 @@ class ResConfigSettings(models.TransientModel):
     module_advanced_payroll_accounting = fields.Boolean(string='Accounting')
     module_advanced_payroll_hr = fields.Boolean(string='Personnel')
     module_advanced_payroll_attendance = fields.Boolean(string='On Site')
-    module_advanced_payroll_timesheet = fields.Boolean(string='Advanced Timesheets')
+    module_advanced_payroll_timesheet = fields.Boolean(string='Timesheets')
     module_advanced_payroll_rostering = fields.Boolean(string='Rostering')
     payroll_advanced_accounting_installed = fields.Boolean(compute='_compute_payroll_apps_installed')
     payroll_advanced_hr_installed = fields.Boolean(compute='_compute_payroll_apps_installed')

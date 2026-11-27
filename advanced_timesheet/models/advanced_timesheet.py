@@ -201,7 +201,7 @@ class AdvancedTimesheet(models.Model):
     @api.ondelete(at_uninstall=False)
     def _unlink_except_approved(self):
         if any(sheet.state == 'approved' for sheet in self) and not self._is_admin():
-            raise UserError(_('Approved timesheets can only be deleted by an Advanced Timesheets Administrator.'))
+            raise UserError(_('Approved timesheets can only be deleted by an Timesheets Administrator.'))
 
     # ------------------------------------------------------------------
     # Navigation
@@ -241,7 +241,7 @@ class AdvancedTimesheet(models.Model):
     def _is_approver(self):
         """Whether the current user may approve this timesheet: they need the
         Approve permission and must be its approver (the employee's Manager),
-        unless they are an Advanced Timesheets Administrator."""
+        unless they are an Timesheets Administrator."""
         self.ensure_one()
         if self._is_admin():
             return True
@@ -268,7 +268,7 @@ class AdvancedTimesheet(models.Model):
             else:
                 sheet.message_post(body=_(
                     'Timesheet submitted for approval. No Manager is set for this employee, '
-                    'so an Advanced Timesheets Administrator must approve it.'))
+                    'so an Timesheets Administrator must approve it.'))
         return True
 
     def action_approve(self):
@@ -322,7 +322,7 @@ class AdvancedTimesheet(models.Model):
             if sheet.state == 'draft':
                 continue
             if sheet.state == 'approved' and not self._is_admin():
-                raise UserError(_('Only an Advanced Timesheets Administrator can reopen an approved timesheet.'))
+                raise UserError(_('Only an Timesheets Administrator can reopen an approved timesheet.'))
         sheets = self.filtered(lambda s: s.state != 'draft')
         sheets.sudo().write({'state': 'draft', 'submitted_date': False, 'approved_by_id': False, 'approved_date': False})
         for sheet in sheets:

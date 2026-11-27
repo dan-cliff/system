@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Payroll - Advanced Timesheets',
+    'name': 'Payroll - Timesheets',
     'version': '19.0.1.0.0',
     'category': 'Human Resources/Payroll',
     'summary': 'Fill payslips from approved timesheets',
     'description': """
-        Switched on in Settings › Payroll › Advanced Timesheets (only shown
-        when Advanced Timesheets is installed).
+        Switched on in Settings › Payroll › Timesheets (only shown
+        when Timesheets is installed).
 
         - Settings › Payroll › Pay Hours From gets "Approved Timesheets", and
           switching the feature on chooses it

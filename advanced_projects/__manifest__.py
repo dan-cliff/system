@@ -34,7 +34,7 @@ Rocketlane-style project management.
 * Project Types (Configuration) mark projects as internal or external.
 * Budget: each project's Budget tab allocates hours and money in budget lines
   (by Budget Category and phase) and records what was spent, compared with
-  the hours planned on tasks (and worked, with Advanced Timesheets).
+  the hours planned on tasks (and worked, with Timesheets).
   Employees only.
 * Ratings: record how a project (or a task) is going at any point; a task
   set to "Request a Rating on Completion" requests a rating from its

@@ -67,7 +67,7 @@
                                  help="Compare rostered shifts with On Site attendances: who attended, who was late and who was absent. Also switches on Personnel.">
                             <field name="module_advanced_rostering_attendance"/>
                         </setting>
-                        <setting id="advanced_rostering_feature_timesheet" string="Advanced Timesheets"
+                        <setting id="advanced_rostering_feature_timesheet" string="Timesheets"
                                  invisible="not rostering_advanced_timesheet_installed"
                                  help="Fill timesheets from the published roster and approved leave, booked to the Work Types of their Duties and Leave Types.">
                             <field name="module_advanced_rostering_timesheet"/>
@@ -79,7 +79,7 @@
                         </setting>
                         <setting id="advanced_rostering_feature_none" string="No other apps yet"
                                  invisible="rostering_advanced_hr_installed or rostering_advanced_attendance_installed or rostering_advanced_timesheet_installed or rostering_calendar_installed"
-                                 help="Install Personnel, On Site, Advanced Timesheets or Calendar to switch on what Rostering can do with them here.">
+                                 help="Install Personnel, On Site, Timesheets or Calendar to switch on what Rostering can do with them here.">
                             <field name="rostering_advanced_hr_installed" invisible="1"/>
                             <field name="rostering_advanced_attendance_installed" invisible="1"/>
                             <field name="rostering_advanced_timesheet_installed" invisible="1"/>

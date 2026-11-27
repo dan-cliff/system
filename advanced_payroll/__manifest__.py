@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Payroll',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'category': 'Human Resources/Payroll',
     'sequence': 97,
     'summary': 'Pay runs, payslips, pay items and statutory rules, with country-specific Payroll apps',
@@ -38,7 +38,7 @@ country. Installs Accounting (advanced_accounting) with it.
     employee's Work Address
   - On Site (advanced_payroll_attendance): pay hours from attendances and
     approved extra hours
-  - Advanced Timesheets (advanced_payroll_timesheet): pay hours from approved
+  - Timesheets (advanced_payroll_timesheet): pay hours from approved
     timesheets
   - Rostering (advanced_payroll_rostering): pay hours from the published
     roster, approved leave and public holiday rates

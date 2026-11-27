@@ -2,8 +2,8 @@
 <odoo>
     <data noupdate="1">
         <record id="role_advanced_timesheet_admin" model="permission.role">
-            <field name="name">Advanced Timesheets – Administrator</field>
-            <field name="description">Everything in Advanced Timesheets: create, edit and delete any timesheet, approve or reopen anyone&apos;s, and Configuration.</field>
+            <field name="name">Timesheets – Administrator</field>
+            <field name="description">Everything in Timesheets: create, edit and delete any timesheet, approve or reopen anyone&apos;s, and Configuration.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('advanced_timesheet.privilege_advanced_timesheet'), 'group_id': ref('advanced_timesheet.group_timesheet_admin')}),
                 (0, 0, {'privilege_id': ref('advanced_timesheet.privilege_timesheet_create_only'), 'group_id': ref('advanced_timesheet.group_timesheet_create_only')}),
@@ -17,21 +17,21 @@
             ]"/>
         </record>
         <record id="role_advanced_timesheet_manager" model="permission.role">
-            <field name="name">Advanced Timesheets – Manager</field>
+            <field name="name">Timesheets – Manager</field>
             <field name="description">Create, view and edit their own and their team&apos;s timesheets. No deleting.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('advanced_timesheet.privilege_timesheet_edit_team'), 'group_id': ref('advanced_timesheet.group_timesheet_edit_team')})
             ]"/>
         </record>
         <record id="role_advanced_timesheet_employee" model="permission.role">
-            <field name="name">Advanced Timesheets – Employee</field>
+            <field name="name">Timesheets – Employee</field>
             <field name="description">Create, view and edit their own timesheets. No deleting.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('advanced_timesheet.privilege_timesheet_edit_own'), 'group_id': ref('advanced_timesheet.group_timesheet_edit_own')})
             ]"/>
         </record>
         <record id="role_advanced_timesheet_approver" model="permission.role">
-            <field name="name">Advanced Timesheets – Approver</field>
+            <field name="name">Timesheets – Approver</field>
             <field name="description">Approve or send back the submitted timesheets of the employees they manage.</field>
             <field name="line_ids" eval="[
                 (0, 0, {'privilege_id': ref('advanced_timesheet.privilege_timesheet_approve'), 'group_id': ref('advanced_timesheet.group_timesheet_approve')})

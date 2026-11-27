@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Advanced Timesheets - Projects',
+    'name': 'Timesheets - Projects',
     'version': '19.0.1.0.0',
     'category': 'Services/Timesheets',
     'summary': 'Book timesheet hours to projects and tasks',
     'description': """
-        Installs automatically when both Advanced Timesheets and Project are installed.
+        Installs automatically when both Timesheets and Project are installed.
 
         - Timesheet entries get a Project and a Task, and the grid has a row per
           project / task (and work type)

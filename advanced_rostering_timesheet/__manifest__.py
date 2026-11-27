@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Rostering - Advanced Timesheets',
+    'name': 'Rostering - Timesheets',
     'version': '19.0.1.1.0',
     'category': 'Human Resources/Rostering',
     'summary': 'Fill timesheets from the published roster and approved leave',
     'description': """
-        Switched on in Settings › Rostering › Advanced Timesheets (only shown
-        when Advanced Timesheets is installed).
+        Switched on in Settings › Rostering › Timesheets (only shown
+        when Timesheets is installed).
 
         - Duties and Leave Types get a Timesheet Work Type
         - "Fill from Roster" on a draft timesheet adds an entry for each

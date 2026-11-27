@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Rostering',
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.3.1',
     'category': 'Human Resources/Rostering',
     'sequence': 96,
     'summary': 'Rosters built from duties, standard shifts and templates, plus leave requests',
@@ -43,7 +43,7 @@ Planning and Time Off in one app.
     Manager is shown, managers approve leave and see My Team's Rosters.
   - On Site (advanced_rostering_attendance): rostered shifts compared with
     attendances (attended, late, absent).
-  - Advanced Timesheets (advanced_rostering_timesheet): fill timesheets from
+  - Timesheets (advanced_rostering_timesheet): fill timesheets from
     the roster and approved leave.
 * Permissions per CLAUDE.md; standard roles ship in
   advanced_rostering_permission.

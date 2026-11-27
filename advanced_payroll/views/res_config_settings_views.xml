@@ -33,7 +33,7 @@
                             <field name="payroll_period_start" options="{'numeric': True}" required="1"/>
                         </setting>
                         <setting id="advanced_payroll_hours_source" string="Pay Hours From"
-                                 help="Where the hours of hourly employees come from. Salaried employees are paid their salary. Switch on Advanced Timesheets, On Site or Rostering below to pay the hours they record.">
+                                 help="Where the hours of hourly employees come from. Salaried employees are paid their salary. Switch on Timesheets, On Site or Rostering below to pay the hours they record.">
                             <field name="payroll_hours_source" widget="radio" required="1"/>
                         </setting>
                     </block>
@@ -53,7 +53,7 @@
                                  help="Pay hourly employees for the hours of their attendances, with approved extra hours at their overtime rate.">
                             <field name="module_advanced_payroll_attendance"/>
                         </setting>
-                        <setting id="advanced_payroll_feature_timesheet" string="Advanced Timesheets"
+                        <setting id="advanced_payroll_feature_timesheet" string="Timesheets"
                                  invisible="not payroll_advanced_timesheet_installed"
                                  help="Fill payslips from approved timesheets, each Work Type paid as its Pay Item. Payslips are refreshed when a timesheet is approved.">
                             <field name="module_advanced_payroll_timesheet"/>
@@ -65,7 +65,7 @@
                         </setting>
                         <setting id="advanced_payroll_feature_none" string="No other apps yet"
                                  invisible="payroll_advanced_accounting_installed or payroll_advanced_hr_installed or payroll_advanced_attendance_installed or payroll_advanced_timesheet_installed or payroll_advanced_rostering_installed"
-                                 help="Install Personnel, On Site, Advanced Timesheets or Rostering to switch on what Payroll can do with them here.">
+                                 help="Install Personnel, On Site, Timesheets or Rostering to switch on what Payroll can do with them here.">
                             <field name="payroll_advanced_accounting_installed" invisible="1"/>
                             <field name="payroll_advanced_hr_installed" invisible="1"/>
                             <field name="payroll_advanced_attendance_installed" invisible="1"/>

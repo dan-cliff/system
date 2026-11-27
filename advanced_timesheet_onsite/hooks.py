@@ -2,7 +2,7 @@
 """Move timesheet entries between the two attendance bridges.
 
 On Site copies Odoo's attendances (hr.attendance) into its own when it is
-installed. While "Advanced Timesheets - Attendances" is installed too, this
+installed. While "Timesheets - Attendances" is installed too, this
 module takes over its entries: each moves to the On Site attendance with the
 same employee and sign in time (keeping its work type, project, task and
 description), and that module stops filling timesheets. Uninstalling this
@@ -40,7 +40,7 @@ def post_init_hook(env):
             else:
                 # No On Site copy: keep the hours as an ordinary entry.
                 line.write({'attendance_id': False, 'is_auto': False})
-        _logger.info('Advanced Timesheets - On Site: took over %s attendance entries (%s kept as manual entries)',
+        _logger.info('Timesheets - On Site: took over %s attendance entries (%s kept as manual entries)',
                      len(taken), len(lines - taken))
         if Attendance._advanced_timesheet_sync_enabled():
             taken.onsite_attendance_id._advanced_timesheet_sync()

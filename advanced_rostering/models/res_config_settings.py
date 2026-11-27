@@ -54,7 +54,7 @@ class ResConfigSettings(models.TransientModel):
     # Cross-module feature switches, each shown only when its app is installed.
     module_advanced_rostering_hr = fields.Boolean(string='Personnel')
     module_advanced_rostering_attendance = fields.Boolean(string='On Site')
-    module_advanced_rostering_timesheet = fields.Boolean(string='Advanced Timesheets')
+    module_advanced_rostering_timesheet = fields.Boolean(string='Timesheets')
     module_advanced_rostering_calendar = fields.Boolean(string='Calendar')
     rostering_advanced_hr_installed = fields.Boolean(compute='_compute_rostering_apps_installed')
     rostering_advanced_attendance_installed = fields.Boolean(compute='_compute_rostering_apps_installed')
