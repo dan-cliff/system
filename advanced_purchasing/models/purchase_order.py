@@ -194,9 +194,11 @@ class PurchaseOrder(models.Model):
         to_confirm.filtered(lambda order: order.state == 'to approve')._purchasing_request_approval()
         return result
 
-    def button_approve(self, force=False):
-        if self.env.context.get('purchasing_approval_checked'):
-            return super().button_approve(force=force)
+    def _purchasing_check_approval(self):
+        """Raise unless the current user may approve these orders.
+
+        Returns (orders, needed): the orders that can be approved (draft, sent
+        or waiting for approval) and those of them that needed an approval."""
         orders = self.filtered(lambda order: order.state in ('draft', 'sent', 'to approve'))
         needed = self.browse()
         for order in orders:
@@ -208,14 +210,38 @@ class PurchaseOrder(models.Model):
                     order=order.name, approvers=approvers, route=route['route']))
             if route['needed']:
                 needed |= order
-        # Approvers may not be able to edit the order themselves: the check above is the permission.
-        result = super(PurchaseOrder, orders.sudo().with_context(purchasing_approval_checked=True)).button_approve(force=force)
-        if needed:
-            needed.sudo().write({'purchasing_approved_by_id': self.env.user.id, 'purchasing_rejection_reason': False})
-            needed.sudo().activity_feedback([APPROVAL_ACTIVITY], user_id=self.env.user.id,
-                                            feedback=self.env._('Approved'))
-            needed.sudo().activity_unlink([APPROVAL_ACTIVITY])
+        return orders, needed
+
+    def _purchasing_record_approval(self, approver):
+        """Note who approved these orders and close their approval activities."""
+        if not self:
+            return
+        self.sudo().write({'purchasing_approved_by_id': approver.id, 'purchasing_rejection_reason': False})
+        self.sudo().activity_feedback([APPROVAL_ACTIVITY], user_id=approver.id, feedback=self.env._('Approved'))
+        self.sudo().activity_unlink([APPROVAL_ACTIVITY])
+
+    def _purchasing_approve(self, approve):
+        """Run ``approve(orders)`` (the rest of ``button_approve``) once the
+        current user's permission to approve has been checked.
+
+        Approving is a workflow action: the check is the permission, and the
+        confirmation work (writing the order, creating its receipts, ...) runs
+        with ``sudo()``, as approvers may not be able to edit orders or use
+        Inventory themselves. The approver is still recorded as Approved By.
+        Modules whose ``button_approve`` sits above this one in the method
+        order (e.g. purchase_stock, through advanced_purchasing_stock) override
+        it with this too, so their part runs with ``sudo()`` as well."""
+        if self.env.context.get('purchasing_approval_checked'):
+            return approve(self)
+        approver = self.env.user
+        orders, needed = self._purchasing_check_approval()
+        result = approve(orders.sudo().with_context(purchasing_approval_checked=True))
+        needed._purchasing_record_approval(approver)
         return result
+
+    def button_approve(self, force=False):
+        return self._purchasing_approve(
+            lambda orders: super(PurchaseOrder, orders).button_approve(force=force))
 
     def _purchasing_send_back(self, reason):
         """Return orders waiting for approval to the buyer, with a reason."""
