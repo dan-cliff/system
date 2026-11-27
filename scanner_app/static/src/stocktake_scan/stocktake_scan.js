@@ -26,10 +26,11 @@ const LINE_FIELDS = [
  * Scan (or type) products to count them for a stock.stocktake. A scan is a product
  * barcode (one unit) or a Vendor Product Code (one of that vendor line's unit, e.g. a
  * carton of 24). Each scan adds the product to the stocktake (or adds the scanned
- * quantity to it if it is already there) and focuses
- * that line's Counted field with the number keyboard, so the count can be typed
- * straight away. Scanning the next product starts its own line - it never changes
- * the previous product's count. Nothing on stock on hand changes until
+ * quantity to it if it is already there) and moves it to the top of the list; the
+ * cursor stays in the scan field, ready for the next scan. Tap a line's Counted
+ * field to type an exact count (number keyboard); Enter returns to scanning.
+ * Scanning the next product starts its own line - it never changes the previous
+ * product's count. Nothing on stock on hand changes until
  * "Stocktake Complete" is confirmed.
  */
 export class StocktakeScanScreen extends Component {
@@ -69,7 +70,8 @@ export class StocktakeScanScreen extends Component {
         this.state.lines = await this.orm.searchRead(
             "stock.stocktake.line",
             [["stocktake_id", "=", this.stocktakeId]],
-            LINE_FIELDS
+            LINE_FIELDS,
+            { order: "write_date desc, id desc" }
         );
         this.state.loading = false;
     }
@@ -111,7 +113,7 @@ export class StocktakeScanScreen extends Component {
             this.state.pendingProductName = result.product_name;
             this.focusScanInput();
         } else if (result.line_id) {
-            await this.refreshLine(result.line_id);
+            await this.refreshLine(result.line_id, { moveToTop: true });
             if (result.scanned_uom_name) {
                 const line = this.state.lines.find((l) => l.id === result.line_id);
                 this.notification.add(
@@ -119,15 +121,21 @@ export class StocktakeScanScreen extends Component {
                     { type: "info" }
                 );
             }
-            this.focusQtyInput(result.line_id);
+            this.focusScanInput();
+            this.scrollToTop();
         }
     }
 
-    async refreshLine(lineId) {
+    /** Re-read a line; a scanned line moves to the top (most recent scan first),
+     * a manually edited count stays where it is. */
+    async refreshLine(lineId, { moveToTop = false } = {}) {
         const [line] = await this.orm.read("stock.stocktake.line", [lineId], LINE_FIELDS);
         const index = this.state.lines.findIndex((l) => l.id === lineId);
-        if (index === -1) {
-            this.state.lines.push(line);
+        if (moveToTop || index === -1) {
+            if (index !== -1) {
+                this.state.lines.splice(index, 1);
+            }
+            this.state.lines.unshift(line);
         } else {
             this.state.lines[index] = line;
         }
@@ -145,16 +153,12 @@ export class StocktakeScanScreen extends Component {
         }
     }
 
-    /** Focus (after render) the line's Counted field, selected so typing replaces it. */
-    focusQtyInput(lineId) {
+    /** Show the most recent scan (top of the list) after it renders. */
+    scrollToTop() {
         requestAnimationFrame(() => {
-            const input =
-                this.rootRef.el &&
-                this.rootRef.el.querySelector(`.o_scanner_counted_input[data-line-id="${lineId}"]`);
-            if (input) {
-                input.focus();
-                input.select();
-                input.scrollIntoView({ block: "nearest" });
+            const lines = this.rootRef.el && this.rootRef.el.querySelector(".o_scanner_lines");
+            if (lines) {
+                lines.scrollTop = 0;
             }
         });
     }
