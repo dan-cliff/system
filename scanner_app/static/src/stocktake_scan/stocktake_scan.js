@@ -23,8 +23,10 @@ const LINE_FIELDS = [
 ];
 
 /**
- * Scan (or type) products to count them for a stock.stocktake. Each scan adds the
- * product to the stocktake (or adds one to it if it is already there) and focuses
+ * Scan (or type) products to count them for a stock.stocktake. A scan is a product
+ * barcode (one unit) or a Vendor Product Code (one of that vendor line's unit, e.g. a
+ * carton of 24). Each scan adds the product to the stocktake (or adds the scanned
+ * quantity to it if it is already there) and focuses
  * that line's Counted field with the number keyboard, so the count can be typed
  * straight away. Scanning the next product starts its own line - it never changes
  * the previous product's count. Nothing on stock on hand changes until
@@ -110,6 +112,13 @@ export class StocktakeScanScreen extends Component {
             this.focusScanInput();
         } else if (result.line_id) {
             await this.refreshLine(result.line_id);
+            if (result.scanned_uom_name) {
+                const line = this.state.lines.find((l) => l.id === result.line_id);
+                this.notification.add(
+                    `1 ${result.scanned_uom_name} = ${result.qty_added} ${result.product_uom_name} added to ${line.product_id[1]}.`,
+                    { type: "info" }
+                );
+            }
             this.focusQtyInput(result.line_id);
         }
     }
