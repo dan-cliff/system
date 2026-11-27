@@ -417,6 +417,11 @@
         <field name="model_id" ref="model_risk_assessment_line"/>
         <field name="domain_force">[('assessment_id.company_id', 'in', company_ids)]</field>
     </record>
+    <record id="rule_risk_assessment_action_company" model="ir.rule">
+        <field name="name">Risk Assessment Actions: allowed companies</field>
+        <field name="model_id" ref="model_risk_assessment_action"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 
     <!-- Create and Edit Own Only: within those companies, only the assessments (and their
          Risks) the user created or is the Owner, Approver or a Collaborator on. Group rules
@@ -455,6 +460,26 @@
     <record id="rule_risk_assessment_line_any" model="ir.rule">
         <field name="name">Risk Assessment Lines: any record (Risk Assessments Update or Delete)</field>
         <field name="model_id" ref="model_risk_assessment_line"/>
+        <field name="groups" eval="[(4, ref('group_risk_assessment_update')), (4, ref('group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <!-- Actions follow their Risk's assessment, and their assignee can always see them. -->
+    <record id="rule_risk_assessment_action_own" model="ir.rule">
+        <field name="name">Risk Assessment Actions: assigned, own, owned, approving or collaborating</field>
+        <field name="model_id" ref="model_risk_assessment_action"/>
+        <field name="groups" eval="[(4, ref('group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            '|', '|', '|', '|',
+            ('user_id', '=', user.id),
+            ('assessment_id.create_uid', '=', user.id),
+            ('assessment_id.assessor_id', '=', user.id),
+            ('assessment_id.approver_id', '=', user.id),
+            ('assessment_id.collaborator_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_risk_assessment_action_any" model="ir.rule">
+        <field name="name">Risk Assessment Actions: any record (Risk Assessments Update or Delete)</field>
+        <field name="model_id" ref="model_risk_assessment_action"/>
         <field name="groups" eval="[(4, ref('group_risk_assessment_update')), (4, ref('group_risk_assessment_delete'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>

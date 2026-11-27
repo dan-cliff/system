@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- US federal payroll, 2026. Shipped as noupdate data so administrators
+         can update the rates each year. -->
+    <data noupdate="1">
+        <record id="payroll_country_us" model="payroll.country">
+            <field name="name">USA</field>
+            <field name="code">US</field>
+            <field name="country_id" ref="base.us"/>
+            <field name="sequence">30</field>
+            <field name="tax_year_start_month">1</field>
+            <field name="tax_year_start_day">1</field>
+            <field name="default_pay_frequency_id" ref="advanced_payroll.pay_frequency_fortnightly"/>
+            <field name="standard_hours_per_week">40</field>
+            <field name="ordinary_pay_item_id" ref="advanced_payroll.pay_item_ordinary"/>
+            <field name="note">&lt;p&gt;Calendar tax year. Federal rates for 2026 (IRS Publication 15-T percentage method); add state and local income taxes as Payroll Rules.&lt;/p&gt;</field>
+        </record>
+
+        <!-- Pay items -->
+        <record id="pay_item_us_pto" model="payroll.pay.item">
+            <field name="name">Paid Time Off</field>
+            <field name="code">US_PTO</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">30</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+        <record id="pay_item_us_sick" model="payroll.pay.item">
+            <field name="name">Sick Pay</field>
+            <field name="code">US_SICK</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">31</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+
+        <!-- Tax tables -->
+        <record id="tax_table_us_single" model="payroll.tax.table">
+            <field name="name">Single or Married Filing Separately (2026)</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">10</field>
+            <field name="annual_deduction">16100</field>
+            <field name="note">2026 tax brackets; annual deduction = the 2026 standard deduction ($16,100).</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 10}),
+                (0, 0, {'threshold': 12400, 'rate': 12}),
+                (0, 0, {'threshold': 50400, 'rate': 22}),
+                (0, 0, {'threshold': 105700, 'rate': 24}),
+                (0, 0, {'threshold': 201775, 'rate': 32}),
+                (0, 0, {'threshold': 256225, 'rate': 35}),
+                (0, 0, {'threshold': 640600, 'rate': 37})]"/>
+        </record>
+        <record id="tax_table_us_mfj" model="payroll.tax.table">
+            <field name="name">Married Filing Jointly (2026)</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">20</field>
+            <field name="annual_deduction">32200</field>
+            <field name="note">2026 tax brackets; annual deduction = the 2026 standard deduction ($32,200).</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 10}),
+                (0, 0, {'threshold': 24800, 'rate': 12}),
+                (0, 0, {'threshold': 100800, 'rate': 22}),
+                (0, 0, {'threshold': 211400, 'rate': 24}),
+                (0, 0, {'threshold': 403550, 'rate': 32}),
+                (0, 0, {'threshold': 512450, 'rate': 35}),
+                (0, 0, {'threshold': 768700, 'rate': 37})]"/>
+        </record>
+        <record id="tax_table_us_hoh" model="payroll.tax.table">
+            <field name="name">Head of Household (2026)</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">30</field>
+            <field name="annual_deduction">24150</field>
+            <field name="note">2026 tax brackets; annual deduction = the 2026 standard deduction ($24,150).</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 10}),
+                (0, 0, {'threshold': 17700, 'rate': 12}),
+                (0, 0, {'threshold': 67450, 'rate': 22}),
+                (0, 0, {'threshold': 105700, 'rate': 24}),
+                (0, 0, {'threshold': 201750, 'rate': 32}),
+                (0, 0, {'threshold': 256200, 'rate': 35}),
+                (0, 0, {'threshold': 640600, 'rate': 37})]"/>
+        </record>
+        <record id="tax_table_us_single_step2" model="payroll.tax.table">
+            <field name="name">Single or Married Filing Separately, Step 2 (2026)</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">11</field>
+            <field name="annual_deduction">8050</field>
+            <field name="note">W-4 Step 2 checked: half the brackets and half the standard deduction.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 10}),
+                (0, 0, {'threshold': 6200, 'rate': 12}),
+                (0, 0, {'threshold': 25200, 'rate': 22}),
+                (0, 0, {'threshold': 52850, 'rate': 24}),
+                (0, 0, {'threshold': 100888, 'rate': 32}),
+                (0, 0, {'threshold': 128112, 'rate': 35}),
+                (0, 0, {'threshold': 320300, 'rate': 37})]"/>
+        </record>
+        <record id="tax_table_us_mfj_step2" model="payroll.tax.table">
+            <field name="name">Married Filing Jointly, Step 2 (2026)</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">21</field>
+            <field name="annual_deduction">16100</field>
+            <field name="note">W-4 Step 2 checked: half the brackets and half the standard deduction.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 10}),
+                (0, 0, {'threshold': 12400, 'rate': 12}),
+                (0, 0, {'threshold': 50400, 'rate': 22}),
+                (0, 0, {'threshold': 105700, 'rate': 24}),
+                (0, 0, {'threshold': 201775, 'rate': 32}),
+                (0, 0, {'threshold': 256225, 'rate': 35}),
+                (0, 0, {'threshold': 384350, 'rate': 37})]"/>
+        </record>
+        <record id="tax_table_us_hoh_step2" model="payroll.tax.table">
+            <field name="name">Head of Household, Step 2 (2026)</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">31</field>
+            <field name="annual_deduction">12075</field>
+            <field name="note">W-4 Step 2 checked: half the brackets and half the standard deduction.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 10}),
+                (0, 0, {'threshold': 8850, 'rate': 12}),
+                (0, 0, {'threshold': 33725, 'rate': 22}),
+                (0, 0, {'threshold': 52850, 'rate': 24}),
+                (0, 0, {'threshold': 100875, 'rate': 32}),
+                (0, 0, {'threshold': 128100, 'rate': 35}),
+                (0, 0, {'threshold': 320300, 'rate': 37})]"/>
+        </record>
+
+        <!-- Filing statuses -->
+        <record id="filing_status_single" model="payroll.us.filing.status">
+            <field name="name">Single or Married Filing Separately</field>
+            <field name="sequence">10</field>
+            <field name="tax_table_id" ref="tax_table_us_single"/>
+            <field name="step2_tax_table_id" ref="tax_table_us_single_step2"/>
+        </record>
+        <record id="filing_status_mfj" model="payroll.us.filing.status">
+            <field name="name">Married Filing Jointly</field>
+            <field name="sequence">20</field>
+            <field name="tax_table_id" ref="tax_table_us_mfj"/>
+            <field name="step2_tax_table_id" ref="tax_table_us_mfj_step2"/>
+        </record>
+        <record id="filing_status_hoh" model="payroll.us.filing.status">
+            <field name="name">Head of Household</field>
+            <field name="sequence">30</field>
+            <field name="tax_table_id" ref="tax_table_us_hoh"/>
+            <field name="step2_tax_table_id" ref="tax_table_us_hoh_step2"/>
+        </record>
+
+        <!-- Rules -->
+        <record id="rule_us_fit" model="payroll.rule">
+            <field name="name">Federal Income Tax</field>
+            <field name="code">US_FIT</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">10</field>
+            <field name="category">tax</field>
+            <field name="compute_method">brackets</field>
+            <field name="base">taxable</field>
+            <field name="tax_table_id" ref="tax_table_us_single"/>
+            <field name="description">Federal withholding (percentage method) at the employee's W-4 filing status and adjustments.</field>
+        </record>
+        <record id="rule_us_ss" model="payroll.rule">
+            <field name="name">Social Security</field>
+            <field name="code">US_SS</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">20</field>
+            <field name="category">tax</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">6.2</field>
+            <field name="annual_cap">184500</field>
+            <field name="description">6.2% of wages up to the 2026 wage base ($184,500).</field>
+        </record>
+        <record id="rule_us_medicare" model="payroll.rule">
+            <field name="name">Medicare</field>
+            <field name="code">US_MED</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">30</field>
+            <field name="category">tax</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">1.45</field>
+        </record>
+        <record id="rule_us_medicare_additional" model="payroll.rule">
+            <field name="name">Additional Medicare</field>
+            <field name="code">US_MED_ADD</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">31</field>
+            <field name="category">tax</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">0.9</field>
+            <field name="annual_threshold">200000</field>
+            <field name="description">0.9% of wages above $200,000 in the year.</field>
+        </record>
+        <record id="rule_us_ss_employer" model="payroll.rule">
+            <field name="name">Social Security (Employer)</field>
+            <field name="code">US_SS_ER</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">50</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">6.2</field>
+            <field name="annual_cap">184500</field>
+        </record>
+        <record id="rule_us_medicare_employer" model="payroll.rule">
+            <field name="name">Medicare (Employer)</field>
+            <field name="code">US_MED_ER</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">51</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">1.45</field>
+        </record>
+        <record id="rule_us_futa" model="payroll.rule">
+            <field name="name">FUTA</field>
+            <field name="code">US_FUTA</field>
+            <field name="country_id" ref="payroll_country_us"/>
+            <field name="sequence">52</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">0.6</field>
+            <field name="annual_cap">7000</field>
+            <field name="description">0.6% (after the state unemployment credit) of the first $7,000 of wages.</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_live_counter_admin" model="permission.role">
+            <field name="name">Live Sales Counter – Administrator</field>
+            <field name="description">Everything in Live Sales Counter: create, edit and delete any counter, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_sales_counter'), 'group_id': ref('live_sales_counter.group_live_counter_manager')}),
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_create_only'), 'group_id': ref('live_sales_counter.group_live_counter_create_only')}),
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_edit_own'), 'group_id': ref('live_sales_counter.group_live_counter_edit_own')}),
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_edit_team'), 'group_id': ref('live_sales_counter.group_live_counter_edit_team')}),
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_edit_all'), 'group_id': ref('live_sales_counter.group_live_counter_edit_all')}),
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_view_all'), 'group_id': ref('live_sales_counter.group_live_counter_view_all')}),
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_delete_own'), 'group_id': ref('live_sales_counter.group_live_counter_delete_own')}),
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_delete_all'), 'group_id': ref('live_sales_counter.group_live_counter_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_live_counter_manager" model="permission.role">
+            <field name="name">Live Sales Counter – Manager</field>
+            <field name="description">Create, view and edit their own and their team's live sales counters. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_edit_team'), 'group_id': ref('live_sales_counter.group_live_counter_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_live_counter_employee" model="permission.role">
+            <field name="name">Live Sales Counter – Employee</field>
+            <field name="description">Create, view and edit their own live sales counters. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('live_sales_counter.privilege_live_counter_edit_own'), 'group_id': ref('live_sales_counter.group_live_counter_edit_own')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

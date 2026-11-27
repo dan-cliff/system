@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_project_invite_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.invite.form</field>
+        <field name="model">advanced.project.invite</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="collaborator_type" widget="radio" options="{'horizontal': true}"/>
+                    <field name="partner_ids" widget="many2many_tags_email" placeholder="Add people..."
+                           context="{'show_email': True}"/>
+                </group>
+                <div class="text-muted mb-3" invisible="collaborator_type != 'colleague'">
+                    Colleagues join the team with their permissions left as they are.
+                </div>
+                <div class="text-muted mb-3" invisible="collaborator_type != 'customer'">
+                    Customers see only the projects they are a Customer on (tasks and updates shared with customers),
+                    through the customer portal, and can comment there. Private comments stay hidden from them.
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not access_warning">
+                    <p class="fw-bold mb-1" invisible="not has_issues">
+                        <i class="fa fa-exclamation-triangle me-1" title="Warning"/>
+                        Some of these people cannot open the project with their current permissions:
+                    </p>
+                    <field name="access_warning" readonly="1"/>
+                    <div invisible="collaborator_type != 'customer' or not fixable_count">
+                        <div invisible="not can_fix_access" class="mt-2">
+                            <field name="update_permissions" nolabel="1" class="d-inline-block me-1"/>
+                            <label for="update_permissions" string="Update their permissions to the Project Customer permission set"/>
+                        </div>
+                        <p invisible="can_fix_access" class="mt-2 mb-0">
+                            You cannot change customers' permissions: ask a Project Administrator (or anyone with
+                            "Projects: Manage Customer Access") to update them from the project's Team tab.
+                            They are flagged there until then.
+                        </p>
+                    </div>
+                </div>
+                <group>
+                    <field name="send_invitation"/>
+                    <field name="message" invisible="not send_invitation" placeholder="Add a note to the invitation..."/>
+                </group>
+                <field name="project_id" invisible="1"/>
+                <field name="has_issues" invisible="1"/>
+                <field name="fixable_count" invisible="1"/>
+                <field name="can_fix_access" invisible="1"/>
+                <footer>
+                    <button name="action_invite" type="object" string="Invite" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

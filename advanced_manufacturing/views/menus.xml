@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Manufacturing's menus live in Odoo's Manufacturing root (renamed and
+         given this app's icon in data/manufacturing_titles.xml), so other apps'
+         menus there stay. -->
+    <record id="action_manufacturing_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">advanced_manufacturing.dashboard</field>
+        <field name="path">manufacturing-dashboard</field>
+    </record>
+    <menuitem id="menu_manufacturing_dashboard" name="Dashboard" parent="mrp.menu_mrp_root"
+              action="action_manufacturing_dashboard" sequence="1"/>
+
+    <!-- Reporting (Odoo's analysis menu) stays; Report Builder's Reports folder
+         sits directly before Configuration. -->
+    <record id="mrp.menu_mrp_reporting" model="ir.ui.menu">
+        <field name="sequence">90</field>
+    </record>
+    <menuitem id="menu_manufacturing_reports" name="Reports" parent="mrp.menu_mrp_root" sequence="95"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_manufacturing_terminal_events" name="Work Centre App Log" parent="mrp.menu_mrp_configuration"
+              action="action_terminal_event" groups="mrp.group_mrp_manager" sequence="95"/>
+</odoo>

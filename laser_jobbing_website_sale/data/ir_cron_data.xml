@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_laser_website_cleanup" model="ir.cron">
+        <field name="name">Laser Jobbing: remove unordered website personalisations</field>
+        <field name="model_id" ref="laser_jobbing.model_laser_job"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_remove_unordered_website_jobs()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

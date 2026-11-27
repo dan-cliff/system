@@ -20,6 +20,10 @@
               action="action_embroidery_machine" sequence="30"/>
 
     <!-- ─── Configuration (Administrators) ─────────────────────────────── -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_embroidery_reports" name="Reports" parent="menu_embroidery_root" sequence="89"/>
+
     <menuitem id="menu_embroidery_config" name="Configuration" parent="menu_embroidery_root"
               groups="group_embroidery_admin" sequence="90"/>
     <menuitem id="menu_embroidery_status_board_list" name="Status Boards" parent="menu_embroidery_config"

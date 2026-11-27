@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_slip_view_form_expenses" model="ir.ui.view">
+        <field name="name">payroll.slip.form.advanced_expenses</field>
+        <field name="model">payroll.slip</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_slip_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_open_advanced_expenses" type="object" class="oe_stat_button" icon="fa-money"
+                        invisible="not advanced_expense_count">
+                    <field name="advanced_expense_count" widget="statinfo" string="Expenses"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

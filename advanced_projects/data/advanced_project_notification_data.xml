@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting Project Notification Templates; admins can change them. They are only
+         sent while Workflow Automation is not installed. Published updates already
+         reach followers through the project's chatter, so no template ships for them. -->
+    <data noupdate="1">
+        <record id="notification_task_assigned" model="advanced.project.notification">
+            <field name="name">Task assigned to you</field>
+            <field name="sequence">10</field>
+            <field name="event">task_assigned</field>
+            <field name="notify_assignees" eval="True"/>
+            <field name="subject">Task assigned to you: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 14px;">
+    <p>Hello,</p>
+    <p>This task has been assigned to you:</p>
+    <p><strong t-out="object.name"/></p>
+    <ul>
+        <li>Project: <t t-out="object.project_id.name"/></li>
+        <li t-if="object.phase_id">Phase: <t t-out="object.phase_id.name"/></li>
+        <li t-if="object.date_end">Ends: <t t-out="object.date_end.strftime('%d/%m/%Y')"/></li>
+        <li t-if="object.user_ids">Assigned To: <t t-out="', '.join(object.user_ids.mapped('name'))"/></li>
+    </ul>
+    <div t-if="not is_html_empty(object.description)" t-out="object.description"/>
+    <p><a t-attf-href="{{ object.get_base_url() }}/odoo/advanced.project.task/{{ object.id }}"
+          style="background-color: #5B3DB8; padding: 8px 16px; color: #FFFFFF; text-decoration: none; border-radius: 5px;">View Task</a></p>
+</div>
+            </field>
+        </record>
+        <record id="notification_task_due_soon" model="advanced.project.notification">
+            <field name="name">Task due soon</field>
+            <field name="sequence">20</field>
+            <field name="event">task_due_soon</field>
+            <field name="days_before">1</field>
+            <field name="notify_assignees" eval="True"/>
+            <field name="subject">Task due soon: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 14px;">
+    <p>Hello,</p>
+    <p>This task is due to end soon:</p>
+    <p><strong t-out="object.name"/></p>
+    <ul>
+        <li>Project: <t t-out="object.project_id.name"/></li>
+        <li t-if="object.phase_id">Phase: <t t-out="object.phase_id.name"/></li>
+        <li t-if="object.date_end">Ends: <t t-out="object.date_end.strftime('%d/%m/%Y')"/></li>
+        <li t-if="object.user_ids">Assigned To: <t t-out="', '.join(object.user_ids.mapped('name'))"/></li>
+    </ul>
+    <div t-if="not is_html_empty(object.description)" t-out="object.description"/>
+    <p><a t-attf-href="{{ object.get_base_url() }}/odoo/advanced.project.task/{{ object.id }}"
+          style="background-color: #5B3DB8; padding: 8px 16px; color: #FFFFFF; text-decoration: none; border-radius: 5px;">View Task</a></p>
+</div>
+            </field>
+        </record>
+        <record id="notification_task_overdue" model="advanced.project.notification">
+            <field name="name">Task overdue</field>
+            <field name="sequence">30</field>
+            <field name="event">task_overdue</field>
+            <field name="notify_assignees" eval="True"/>
+            <field name="notify_manager" eval="True"/>
+            <field name="subject">Overdue task: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 14px;">
+    <p>Hello,</p>
+    <p>This task is past its end date:</p>
+    <p><strong t-out="object.name"/></p>
+    <ul>
+        <li>Project: <t t-out="object.project_id.name"/></li>
+        <li t-if="object.phase_id">Phase: <t t-out="object.phase_id.name"/></li>
+        <li t-if="object.date_end">Ends: <t t-out="object.date_end.strftime('%d/%m/%Y')"/></li>
+        <li t-if="object.user_ids">Assigned To: <t t-out="', '.join(object.user_ids.mapped('name'))"/></li>
+    </ul>
+    <div t-if="not is_html_empty(object.description)" t-out="object.description"/>
+    <p><a t-attf-href="{{ object.get_base_url() }}/odoo/advanced.project.task/{{ object.id }}"
+          style="background-color: #5B3DB8; padding: 8px 16px; color: #FFFFFF; text-decoration: none; border-radius: 5px;">View Task</a></p>
+</div>
+            </field>
+        </record>
+    </data>
+
+    <record id="ir_cron_advanced_project_task_deadlines" model="ir.cron">
+        <field name="name">Project: Task Due Soon and Overdue notifications</field>
+        <field name="model_id" ref="model_advanced_project_notification"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_notify_deadlines()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inventory's settings on its Nodes (IoT Interfaces). -->
+    <record id="view_iot_node_form_inventory_sign" model="ir.ui.view">
+        <field name="name">iot.node.form.inventory_sign</field>
+        <field name="model">iot.node</field>
+        <field name="inherit_id" ref="iot_interfaces.view_iot_node_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_inventory_reload_screen" type="object" string="Reload Screen"
+                        invisible="role != 'inventory_sign' or not is_paired"/>
+            </xpath>
+            <xpath expr="//group[@name='node']" position="inside">
+                <field name="inventory_sign_id" invisible="role != 'inventory_sign'"
+                       required="role == 'inventory_sign'" options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//group[@name='connection']" position="inside">
+                <field name="inventory_screen_size" invisible="role != 'inventory_sign'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_inventory_sign_nodes" model="ir.actions.act_window">
+        <field name="name">Inventory Digital Signs</field>
+        <field name="res_model">iot.node</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('role', '=', 'inventory_sign')]</field>
+        <field name="context">{'default_role': 'inventory_sign'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add the Node plugged into a screen</p>
+            <p>An Inventory Digital Sign Node is a Raspberry Pi (with Raspberry Pi OS with desktop) plugged into a
+               screen in the warehouse. Choose its Digital Sign, click Pair Node and run the command it shows on the Pi:
+               it then shows the sign full screen and keeps it up to date.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_iot_inventory_signs" name="Inventory Digital Signs" parent="iot_interfaces.menu_iot_nodes"
+              action="action_inventory_sign_nodes" sequence="30"/>
+</odoo>

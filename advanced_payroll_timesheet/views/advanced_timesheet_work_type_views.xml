@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_timesheet_work_type_view_list_payroll" model="ir.ui.view">
+        <field name="name">advanced.timesheet.work.type.list.payroll</field>
+        <field name="model">advanced.timesheet.work.type</field>
+        <field name="inherit_id" ref="advanced_timesheet.advanced_timesheet_work_type_view_list"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="payroll_pay_item_id" optional="show" placeholder="Ordinary Hours"
+                       options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+</odoo>

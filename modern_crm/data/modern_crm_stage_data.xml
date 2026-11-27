@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The Salesforce sales stages; admins adjust them under CRM > Configuration > Stages. -->
+    <data noupdate="1">
+        <record id="stage_prospecting" model="modern.crm.stage">
+            <field name="name">Prospecting</field>
+            <field name="sequence">10</field>
+            <field name="probability">10</field>
+            <field name="forecast_category_id" ref="forecast_category_pipeline"/>
+            <field name="is_won" eval="False"/>
+            <field name="is_lost" eval="False"/>
+            <field name="fold" eval="False"/>
+            <field name="guidance">&lt;p&gt;Research the account and find the people who decide. Log who you spoke to as contact roles.&lt;/p&gt;</field>
+        </record>
+        <record id="stage_qualification" model="modern.crm.stage">
+            <field name="name">Qualification</field>
+            <field name="sequence">20</field>
+            <field name="probability">20</field>
+            <field name="forecast_category_id" ref="forecast_category_pipeline"/>
+            <field name="is_won" eval="False"/>
+            <field name="is_lost" eval="False"/>
+            <field name="fold" eval="False"/>
+            <field name="guidance">&lt;p&gt;Confirm the budget, the authority to buy, the need and the timeline (BANT). Set a realistic close date.&lt;/p&gt;</field>
+        </record>
+        <record id="stage_needs_analysis" model="modern.crm.stage">
+            <field name="name">Needs Analysis</field>
+            <field name="sequence">30</field>
+            <field name="probability">30</field>
+            <field name="forecast_category_id" ref="forecast_category_pipeline"/>
+            <field name="is_won" eval="False"/>
+            <field name="is_lost" eval="False"/>
+            <field name="fold" eval="False"/>
+            <field name="guidance">&lt;p&gt;Understand the problem in their words, and add the products that solve it.&lt;/p&gt;</field>
+        </record>
+        <record id="stage_value_proposition" model="modern.crm.stage">
+            <field name="name">Value Proposition</field>
+            <field name="sequence">40</field>
+            <field name="probability">50</field>
+            <field name="forecast_category_id" ref="forecast_category_best_case"/>
+            <field name="is_won" eval="False"/>
+            <field name="is_lost" eval="False"/>
+            <field name="fold" eval="False"/>
+            <field name="guidance">&lt;p&gt;Show how the products solve their problem and what it is worth to them.&lt;/p&gt;</field>
+        </record>
+        <record id="stage_proposal" model="modern.crm.stage">
+            <field name="name">Proposal / Price Quote</field>
+            <field name="sequence">50</field>
+            <field name="probability">65</field>
+            <field name="forecast_category_id" ref="forecast_category_best_case"/>
+            <field name="is_won" eval="False"/>
+            <field name="is_lost" eval="False"/>
+            <field name="fold" eval="False"/>
+            <field name="guidance">&lt;p&gt;Create the quote from the opportunity&apos;s products and send it.&lt;/p&gt;</field>
+        </record>
+        <record id="stage_negotiation" model="modern.crm.stage">
+            <field name="name">Negotiation / Review</field>
+            <field name="sequence">60</field>
+            <field name="probability">80</field>
+            <field name="forecast_category_id" ref="forecast_category_commit"/>
+            <field name="is_won" eval="False"/>
+            <field name="is_lost" eval="False"/>
+            <field name="fold" eval="False"/>
+            <field name="guidance">&lt;p&gt;Agree the terms, then create the contract and send it for signature.&lt;/p&gt;</field>
+        </record>
+        <record id="stage_won" model="modern.crm.stage">
+            <field name="name">Closed Won</field>
+            <field name="sequence">70</field>
+            <field name="probability">100</field>
+            <field name="forecast_category_id" ref="forecast_category_closed"/>
+            <field name="is_won" eval="True"/>
+            <field name="is_lost" eval="False"/>
+            <field name="fold" eval="True"/>
+            <field name="guidance">&lt;p&gt;Signed and sold: confirm the sale and invoice it.&lt;/p&gt;</field>
+        </record>
+        <record id="stage_lost" model="modern.crm.stage">
+            <field name="name">Closed Lost</field>
+            <field name="sequence">80</field>
+            <field name="probability">0</field>
+            <field name="forecast_category_id" ref="forecast_category_omitted"/>
+            <field name="is_won" eval="False"/>
+            <field name="is_lost" eval="True"/>
+            <field name="fold" eval="True"/>
+            <field name="guidance">&lt;p&gt;Record why it was lost, so the team can learn from it.&lt;/p&gt;</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_order_view_form_modern_crm" model="ir.ui.view">
+        <field name="name">sale.order.form.modern_crm</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_modern_opportunity" type="object" class="oe_stat_button"
+                        icon="fa-handshake-o" invisible="not modern_opportunity_id"
+                        groups="modern_crm.group_modern_crm_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Opportunity</span>
+                    </div>
+                </button>
+            </div>
+            <field name="origin" position="after">
+                <field name="modern_opportunity_id" groups="modern_crm.group_modern_crm_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="sale_order_view_search_modern_crm" model="ir.ui.view">
+        <field name="name">sale.order.search.modern_crm</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="modern_opportunity_id" groups="modern_crm.group_modern_crm_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Quotes made from opportunities, under CRM > Sales -->
+    <record id="modern_crm_quote_action" model="ir.actions.act_window">
+        <field name="name">Quotes</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('modern_opportunity_id', '!=', False)]</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No quotes yet</p>
+            <p>Create a quote from an opportunity with <strong>New Quote</strong>: it copies the opportunity's products.</p>
+        </field>
+    </record>
+</odoo>

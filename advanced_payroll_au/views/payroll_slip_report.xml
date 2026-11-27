@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_payslip_employee_details_au" inherit_id="advanced_payroll.report_payslip_employee_details">
+        <xpath expr="//div" position="inside">
+            <t t-if="slip.country_code == 'AU'">
+                <div t-if="slip.payroll_employee_id.au_super_fund">Super Fund: <span t-esc="slip.payroll_employee_id.au_super_fund"/></div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

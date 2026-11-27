@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_laser_admin" model="permission.role">
+            <field name="name">Laser Jobbing – Administrator</field>
+            <field name="description">Everything in Laser Jobbing: create, edit and delete any laser job, and Configuration (templates, fonts, materials, settings).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_jobbing'), 'group_id': ref('laser_jobbing.group_laser_admin')}),
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_create_only'), 'group_id': ref('laser_jobbing.group_laser_job_create_only')}),
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_edit_own'), 'group_id': ref('laser_jobbing.group_laser_job_edit_own')}),
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_edit_team'), 'group_id': ref('laser_jobbing.group_laser_job_edit_team')}),
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_edit_all'), 'group_id': ref('laser_jobbing.group_laser_job_edit_all')}),
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_view_all'), 'group_id': ref('laser_jobbing.group_laser_job_view_all')}),
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_delete_own'), 'group_id': ref('laser_jobbing.group_laser_job_delete_own')}),
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_delete_all'), 'group_id': ref('laser_jobbing.group_laser_job_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_laser_manager" model="permission.role">
+            <field name="name">Laser Jobbing – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s laser jobs. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_edit_team'), 'group_id': ref('laser_jobbing.group_laser_job_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_laser_employee" model="permission.role">
+            <field name="name">Laser Jobbing – Employee</field>
+            <field name="description">Create, view and edit their own laser jobs. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_edit_own'), 'group_id': ref('laser_jobbing.group_laser_job_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_laser_operator" model="permission.role">
+            <field name="name">Laser Jobbing – Operator</field>
+            <field name="description">View and edit every laser job (start them, mark them done and download their files). No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('laser_jobbing.privilege_laser_job_edit_all'), 'group_id': ref('laser_jobbing.group_laser_job_edit_all')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

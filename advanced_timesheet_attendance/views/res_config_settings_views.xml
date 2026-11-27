@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="advanced_timesheet.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <block id="advanced_timesheet_block" position="inside">
-                <setting id="advanced_timesheet_attendance_sync"
+                <setting id="advanced_timesheet_attendance_sync" invisible="advanced_timesheet_attendance_superseded"
                          help="Every finished attendance becomes an entry on the employee's timesheet for that day (an Attendance row on the grid), kept up to date when the attendance changes. Manual entries are still allowed. Turning this on fills in existing attendances.">
                     <field name="advanced_timesheet_attendance_sync"/>
                 </setting>

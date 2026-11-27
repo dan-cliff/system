@@ -1,0 +1,142 @@
+# -*- coding: utf-8 -*-
+from datetime import date
+
+from odoo.exceptions import AccessError
+from odoo.tests import TransactionCase, new_test_user, tagged
+
+
+@tagged('post_install', '-at_install')
+class TestRosteringHr(TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))
+        groups = ('advanced_rostering.group_roster_own,advanced_rostering.group_roster_team,'
+                  'advanced_rostering.group_leave_edit_team')
+        cls.boss_user = new_test_user(cls.env, 'rhr_boss', name='Bea Boss', groups=groups)
+        cls.worker_user = new_test_user(cls.env, 'rhr_worker', name='Will Worker',
+                                        groups='advanced_rostering.group_roster_own')
+        cls.other_user = new_test_user(cls.env, 'rhr_other', name='Olly Other',
+                                       groups='advanced_rostering.group_roster_own')
+        Employee = cls.env['hr.employee']
+        cls.boss = Employee.create({'name': 'Bea Boss', 'user_id': cls.boss_user.id})
+        cls.worker = Employee.create({'name': 'Will Worker', 'user_id': cls.worker_user.id, 'parent_id': cls.boss.id})
+        cls.no_login = Employee.create({'name': 'Nina No-Login', 'parent_id': cls.boss.id})
+        cls.other = Employee.create({'name': 'Olly Other', 'user_id': cls.other_user.id})
+        cls.leave_type = cls.env['rostering.leave.type'].create({'name': 'Annual'})
+
+    def test_manager_approves(self):
+        leave = self.env['rostering.leave'].with_user(self.worker_user).create({
+            'leave_type_id': self.leave_type.id, 'date_from': date(2026, 12, 1), 'date_to': date(2026, 12, 2),
+        })
+        self.assertEqual(leave.employee_id, self.worker)
+        self.assertEqual(leave.manager_id, self.boss)
+        self.assertEqual(leave.approver_user_id, self.boss_user)
+        leave.with_user(self.worker_user).action_submit()
+        with self.assertRaises(AccessError):
+            leave.with_user(self.other_user).action_approve()
+        self.assertIn(leave, self.env['rostering.leave'].with_user(self.boss_user).search([('can_approve', '=', True)]))
+        leave.with_user(self.boss_user).action_approve()
+        self.assertEqual(leave.state, 'approved')
+
+    def test_manager_requests_for_team(self):
+        leave = self.env['rostering.leave'].with_user(self.boss_user).create({
+            'employee_id': self.no_login.id, 'leave_type_id': self.leave_type.id,
+            'date_from': date(2026, 12, 1), 'date_to': date(2026, 12, 1),
+        })
+        self.assertFalse(leave.user_id)
+        with self.assertRaises(AccessError):
+            self.env['rostering.leave'].with_user(self.boss_user).create({
+                'employee_id': self.other.id, 'leave_type_id': self.leave_type.id,
+                'date_from': date(2026, 12, 1), 'date_to': date(2026, 12, 1),
+            })
+        with self.assertRaises(AccessError):
+            self.env['rostering.leave'].with_user(self.worker_user).create({
+                'employee_id': self.no_login.id, 'leave_type_id': self.leave_type.id,
+                'date_from': date(2026, 12, 2), 'date_to': date(2026, 12, 2),
+            })
+
+    def test_my_team_rosters(self):
+        roster = self.env['rostering.roster'].create({'name': 'Shop', 'date_start': date(2026, 11, 4)})
+        Shift = self.env['rostering.shift']
+        for employee in (self.boss, self.worker, self.no_login, self.other):
+            Shift.create({'roster_id': roster.id, 'employee_id': employee.id, 'date': date(2026, 11, 4)})
+        roster.action_publish()
+        team = Shift.with_user(self.boss_user).search([('in_my_team', '=', True)])
+        self.assertEqual(team.employee_id, self.boss | self.worker | self.no_login)
+        self.assertEqual(Shift.with_user(self.worker_user).search([]).employee_id, self.worker)
+        self.assertEqual(self.env['rostering.shift'].with_user(self.boss_user)._my_manager_name(), False)
+        self.assertEqual(self.env['rostering.shift'].with_user(self.worker_user)._my_manager_name(), 'Bea Boss')
+
+    def test_employee_picker_lists_public_profiles(self):
+        """A Personnel user whose Employees permissions cover nobody still
+        finds everyone when picking a rostering employee."""
+        self.worker_user.group_ids = [(4, self.env.ref('advanced_hr.group_personnel_user').id)]
+        Employee = self.env['hr.employee'].with_user(self.worker_user)
+        self.assertFalse(Employee.name_search('Olly'))
+        picker = Employee.with_context(rostering_employee_picker=True)
+        self.assertEqual([emp_id for emp_id, _name in picker.name_search('Olly')], [self.other.id])
+        field_context = self.env['rostering.shift']._fields['employee_id'].context
+        self.assertTrue(field_context.get('rostering_employee_picker'))
+
+    def test_employee_holiday_jurisdictions(self):
+        au = self.env.ref('base.au')
+        vic = self.env['res.country.state'].search([('country_id', '=', au.id), ('code', '=', 'VIC')])
+        Jurisdiction = self.env['rostering.holiday.jurisdiction']
+        country = Jurisdiction.create({'name': 'Australia', 'kind': 'country', 'code': 'AU', 'country_id': au.id})
+        state = Jurisdiction.create({'name': 'Victoria', 'kind': 'state', 'code': 'AU-VIC',
+                                     'country_id': au.id, 'state_id': vic.id})
+        religion = Jurisdiction.create({'name': 'Orthodox', 'kind': 'religion'})
+        params = self.env['ir.config_parameter'].sudo()
+        params.set_param('advanced_rostering.holiday_import', 'True')
+        params.set_param('advanced_rostering.employee_jurisdictions', 'True')
+        # Filled from the Work Address, not the private address.
+        melbourne = self.env['res.partner'].create({'name': 'Melbourne Shop', 'country_id': au.id,
+                                                    'state_id': vic.id})
+        self.worker.write({'private_country_id': False, 'private_state_id': False, 'address_id': melbourne.id})
+        self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | state)
+        # Picked by hand: kept when the address changes.
+        self.worker.rostering_holiday_jurisdiction_ids |= religion
+        melbourne.state_id = False
+        self.assertEqual(self.worker.rostering_holiday_jurisdiction_ids, country | religion)
+
+        holiday = self.env['rostering.public.holiday'].create({
+            'name': 'Orthodox Easter', 'date': date(2026, 11, 4), 'jurisdiction_ids': [(6, 0, religion.ids)],
+            'pay_multiplier': 2.0,
+        })
+        roster = self.env['rostering.roster'].create({'name': 'Shop', 'date_start': date(2026, 11, 4)})
+        shifts = self.env['rostering.shift'].create([
+            {'roster_id': roster.id, 'employee_id': self.worker.id, 'date': date(2026, 11, 4)},
+            {'roster_id': roster.id, 'employee_id': self.other.id, 'date': date(2026, 11, 4)},
+        ])
+        self.assertEqual(shifts[0].public_holiday_ids, holiday)
+        self.assertEqual(shifts[0].holiday_pay_multiplier, 2.0)
+        self.assertFalse(shifts[1].public_holiday_ids)
+
+    def test_full_day_hours_from_working_hours(self):
+        calendar = self.env.company.resource_calendar_id
+        leave = self.env['rostering.leave'].create({
+            'employee_id': self.worker.id, 'leave_type_id': self.leave_type.id,
+            'date_from': date(2026, 12, 7), 'date_to': date(2026, 12, 8),
+        })
+        expected = calendar.full_time_required_hours * calendar.hours_per_day / calendar.hours_per_week
+        self.assertAlmostEqual(leave._full_day_hours(), expected, places=2)
+        self.assertAlmostEqual(leave.hours, 2 * expected, places=2)
+
+    def test_leave_organisation_follows_employee(self):
+        Leave = self.env['rostering.leave']
+        if 'org_division_id' not in Leave._fields or 'org_division_id' not in self.env['hr.employee']._fields:
+            self.skipTest('Organisation Structure is not installed')
+        north, south = self.env['org.division'].create([{'name': 'North'}, {'name': 'South'}])
+        self.worker.org_division_id = north
+        self.other.org_division_id = south
+        leave = Leave.create({
+            'employee_id': self.worker.id, 'leave_type_id': self.leave_type.id,
+            'date_from': date(2026, 12, 14), 'date_to': date(2026, 12, 14),
+        })
+        self.assertEqual(leave.org_division_id, north)
+        leave.employee_id = self.other
+        self.assertEqual(leave.org_division_id, south)
+        arch = Leave.get_view(self.env.ref('advanced_rostering.rostering_leave_view_form').id)['arch']
+        self.assertNotIn('org_division_id', arch)

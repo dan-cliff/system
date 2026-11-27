@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="modern_crm_stage_view_list" model="ir.ui.view">
+        <field name="name">modern.crm.stage.list</field>
+        <field name="model">modern.crm.stage</field>
+        <field name="arch" type="xml">
+            <list string="Stages">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="probability"/>
+                <field name="forecast_category_id"/>
+                <field name="is_won"/>
+                <field name="is_lost"/>
+                <field name="fold" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="modern_crm_stage_view_form" model="ir.ui.view">
+        <field name="name">modern.crm.stage.form</field>
+        <field name="model">modern.crm.stage</field>
+        <field name="arch" type="xml">
+            <form string="Stage">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Negotiation / Review"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="probability"/>
+                            <field name="forecast_category_id"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="is_won"/>
+                            <field name="is_lost"/>
+                            <field name="fold"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <label for="guidance"/>
+                    <field name="guidance" placeholder="What should salespeople do to move an opportunity on from this stage?"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="modern_crm_stage_action" model="ir.actions.act_window">
+        <field name="name">Stages</field>
+        <field name="res_model">modern.crm.stage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

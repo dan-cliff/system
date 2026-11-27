@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_subscription_form" model="ir.ui.view">
+        <field name="name">sale.subscription.form.advanced_accounts</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="advanced_accounting.sale_subscription_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" required="not adv_contact_id and not partner_id"
+                       options="{'no_quick_create': True}" placeholder="Type to find an Account..."/>
+                <field name="adv_contact_id" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="sale_subscription_tree" model="ir.ui.view">
+        <field name="name">sale.subscription.list.advanced_accounts</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="advanced_accounting.sale_subscription_tree"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" optional="show" readonly="1"/>
+                <field name="adv_contact_id" optional="show" readonly="1"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="sale_subscription_kanban" model="ir.ui.view">
+        <field name="name">sale.subscription.kanban.advanced_accounts</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="advanced_accounting.sale_subscription_kanban"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="invisible">adv_account_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="sale_subscription_search" model="ir.ui.view">
+        <field name="name">sale.subscription.search.advanced_accounts</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="advanced_accounting.sale_subscription_search"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <filter name="group_partner" position="before">
+                <filter string="Account" name="group_adv_account" context="{'group_by': 'adv_account_id'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

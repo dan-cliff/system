@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_us_filing_status_view_list" model="ir.ui.view">
+        <field name="name">payroll.us.filing.status.list</field>
+        <field name="model">payroll.us.filing.status</field>
+        <field name="arch" type="xml">
+            <list string="US Filing Statuses">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="tax_table_id"/>
+                <field name="step2_tax_table_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_us_filing_status_view_form" model="ir.ui.view">
+        <field name="name">payroll.us.filing.status.form</field>
+        <field name="model">payroll.us.filing.status</field>
+        <field name="arch" type="xml">
+            <form string="US Filing Status">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Head of Household"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="tax_table_id" options="{'no_create': True}"/>
+                            <field name="step2_tax_table_id" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Notes..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_us_filing_status_view_search" model="ir.ui.view">
+        <field name="name">payroll.us.filing.status.search</field>
+        <field name="model">payroll.us.filing.status</field>
+        <field name="arch" type="xml">
+            <search string="US Filing Statuses">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_payroll_us_filing_status" model="ir.actions.act_window">
+        <field name="name">US Filing Statuses</field>
+        <field name="res_model">payroll.us.filing.status</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a filing status</p>
+            <p>W-4 filing statuses and the tax tables federal withholding uses for them.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_payroll_us_filing_statuses"
+              name="US Filing Statuses"
+              parent="advanced_payroll.menu_payroll_config"
+              action="action_payroll_us_filing_status"
+              sequence="130"/>
+</odoo>

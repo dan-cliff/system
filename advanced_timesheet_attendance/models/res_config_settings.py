@@ -5,14 +5,16 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    advanced_timesheet_attendance_sync = fields.Boolean(
-        string='Fill from Attendances', config_parameter='advanced_timesheet.attendance_sync',
-        help='Every finished attendance becomes an automatic entry on the employee\'s timesheet. '
-             'Manual entries are still allowed.',
+    advanced_timesheet_attendance_superseded = fields.Boolean(
+        compute='_compute_advanced_timesheet_attendance_superseded',
     )
 
+    def _compute_advanced_timesheet_attendance_superseded(self):
+        self.advanced_timesheet_attendance_superseded = self.env['hr.attendance']._advanced_timesheet_superseded()
+
     def set_values(self):
-        was_enabled = self.env['hr.attendance']._advanced_timesheet_sync_enabled()
+        Attendance = self.env['hr.attendance']
+        was_enabled = Attendance._advanced_timesheet_sync_enabled()
         super().set_values()
-        if self.advanced_timesheet_attendance_sync and not was_enabled:
-            self.env['hr.attendance']._advanced_timesheet_sync_missing()
+        if not was_enabled and Attendance._advanced_timesheet_sync_enabled():
+            Attendance._advanced_timesheet_sync_missing()

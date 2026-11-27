@@ -1,0 +1,342 @@
+/* Public checklist form (views/checklist_public_templates.xml). */
+:root {
+    --cl-primary: #0A6CF0;
+    --cl-primary-light: #3BB8FF;
+    --cl-navy: #2A3F8F;
+    --cl-error: #D93A4F;
+    --cl-panel: #F2F2FA;
+    --cl-border: #D5D7EC;
+    --cl-text: #1f2937;
+    --cl-muted: #5f6b7a;
+    --cl-radius: 10px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--cl-panel);
+    color: var(--cl-text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.cl-page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+}
+
+.cl-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.cl-header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: var(--cl-navy);
+}
+
+.cl-logo {
+    max-height: 56px;
+    max-width: 160px;
+}
+
+.cl-intro,
+.cl-pre {
+    white-space: pre-line;
+}
+
+.cl-intro {
+    color: var(--cl-muted);
+}
+
+.cl-card {
+    background: #fff;
+    border-radius: var(--cl-radius);
+    box-shadow: 0 1px 3px rgba(42, 63, 143, 0.12);
+    padding: 20px;
+    margin: 16px 0;
+}
+
+.cl-card h2 {
+    margin: 0 0 12px;
+    font-size: 1.2rem;
+    color: var(--cl-navy);
+}
+
+.cl-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0 16px;
+}
+
+.cl-columns {
+    display: grid;
+    gap: 0 24px;
+}
+
+@media (min-width: 720px) {
+    .cl-columns-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cl-columns-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.cl-field,
+.cl-question {
+    margin-bottom: 16px;
+}
+
+.cl-field label,
+.cl-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.cl-description,
+.cl-hint {
+    color: var(--cl-muted);
+    font-size: 0.9rem;
+    margin: 0 0 6px;
+}
+
+.cl-req {
+    color: var(--cl-error);
+    margin-left: 2px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--cl-border);
+    border-radius: 8px;
+    font: inherit;
+    background: #fff;
+    color: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--cl-primary-light);
+    outline-offset: 1px;
+    border-color: var(--cl-primary);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+input.cl-locked {
+    background: var(--cl-panel);
+    color: var(--cl-muted);
+}
+
+.cl-has-error input,
+.cl-has-error select,
+.cl-has-error textarea {
+    border-color: var(--cl-error);
+}
+
+.cl-error {
+    color: var(--cl-error);
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.cl-alert {
+    background: #fde8eb;
+    border: 1px solid #f5b5bf;
+    color: #8a1f2f;
+    border-radius: var(--cl-radius);
+    padding: 12px 16px;
+    margin: 16px 0;
+}
+
+/* Dates: typed dd/mm/yyyy, with a native picker behind the button. */
+.cl-date {
+    position: relative;
+    display: flex;
+    gap: 6px;
+}
+
+.cl-date-pick {
+    flex: none;
+    width: 44px;
+    border: 1px solid var(--cl-border);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.cl-native {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Options */
+.cl-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cl-options-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.cl-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.cl-options-buttons .cl-option {
+    --cl-btn: var(--cl-primary);
+    position: relative;
+}
+
+.cl-options-buttons .cl-option input {
+    position: absolute;
+    opacity: 0;
+}
+
+.cl-options-buttons .cl-option span {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 2px solid var(--cl-btn);
+    border-radius: 999px;
+    color: var(--cl-text);
+    background: #fff;
+}
+
+.cl-options-buttons .cl-option input:checked + span {
+    background: var(--cl-btn);
+    color: #fff;
+}
+
+.cl-options-buttons .cl-option input:focus-visible + span {
+    outline: 2px solid var(--cl-primary-light);
+    outline-offset: 2px;
+}
+
+.cl-options-buttons .cl-option input:disabled + span {
+    opacity: 0.6;
+}
+
+.cl-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.cl-option input[type="checkbox"],
+.cl-option input[type="radio"],
+.cl-toggle input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--cl-primary);
+}
+
+.cl-geo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.cl-geo-button,
+.cl-submit {
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--cl-primary-light), var(--cl-primary));
+    cursor: pointer;
+}
+
+.cl-geo-button:disabled,
+.cl-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.cl-records {
+    margin: 0;
+    padding-left: 20px;
+}
+
+/* Layout */
+.cl-section-title {
+    border: 2px solid;
+    border-radius: var(--cl-radius);
+    padding: 12px 16px;
+}
+
+.cl-section-title-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.cl-section-break-line {
+    border-top: 2px solid;
+    margin: 6px 0;
+}
+
+.cl-section-break-name {
+    font-weight: 700;
+}
+
+.cl-instructions img {
+    max-width: 100%;
+}
+
+.cl-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.cl-submit {
+    padding: 12px 32px;
+    font-size: 1.05rem;
+}
+
+.cl-link {
+    color: var(--cl-primary);
+}
+
+/* Honeypot: off screen. */
+.cl-hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+[hidden] {
+    display: none !important;
+}

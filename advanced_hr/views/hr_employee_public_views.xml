@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Directory: everyone's public profile, for every internal user. -->
+    <record id="personnel_employee_public_view_list" model="ir.ui.view">
+        <field name="name">hr.employee.public.list.personnel</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="hr.hr_employee_public_view_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="class" add="o_personnel_list" separator=" "/>
+            </xpath>
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <field name="company_id" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="personnel_employee_public_view_kanban" model="ir.ui.view">
+        <field name="name">hr.employee.public.kanban.personnel</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="hr.hr_employee_public_view_kanban"/>
+        <field name="mode">primary</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="class" add="o_personnel_kanban" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_personnel_directory" model="ir.actions.act_window">
+        <field name="name">Directory</field>
+        <field name="path">personnel-directory</field>
+        <field name="res_model">hr.employee.public</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('company_id', 'in', allowed_company_ids)]</field>
+        <field name="context">{'chat_icon': True}</field>
+        <field name="search_view_id" ref="hr.hr_employee_public_view_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'sequence': 10, 'view_id': ref('personnel_employee_public_view_kanban')}),
+            (0, 0, {'view_mode': 'list', 'sequence': 15, 'view_id': ref('personnel_employee_public_view_list')}),
+            (0, 0, {'view_mode': 'form', 'sequence': 20, 'view_id': ref('hr.hr_employee_public_view_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No one here yet</p>
+            <p>Everyone's work contact details, department and manager.</p>
+        </field>
+    </record>
+</odoo>

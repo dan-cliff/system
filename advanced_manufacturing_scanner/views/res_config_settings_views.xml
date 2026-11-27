@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Scanner options sit under the Barcode Scanner setting (Settings › Manufacturing),
+         which installs this app. -->
+    <record id="res_config_settings_view_form_mrp_scanner" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_manufacturing_scanner</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="advanced_manufacturing.res_config_settings_view_form_manufacturing"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='mrp_scanner_options']" position="inside">
+                <div class="mt-2" invisible="not module_advanced_manufacturing_scanner">
+                    <div>
+                        <field name="mrp_scanner_require_components" class="oe_inline"/>
+                        <label for="mrp_scanner_require_components" class="o_light_label ms-1"/>
+                        <div class="text-muted">Every component must be scanned (or its quantity typed) before producing.</div>
+                    </div>
+                    <div class="mt-2">
+                        <field name="mrp_scanner_ready_only" class="oe_inline"/>
+                        <label for="mrp_scanner_ready_only" class="o_light_label ms-1"/>
+                        <div class="text-muted">List only orders whose components are available (and those in progress).</div>
+                    </div>
+                    <div class="mt-1">
+                        <button name="%(scanner_app.action_scanner_home)d" type="action" string="Open the Scanner"
+                                icon="oi-arrow-right" class="btn-link"/>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

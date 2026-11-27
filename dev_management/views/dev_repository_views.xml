@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_repository_view_list" model="ir.ui.view">
+        <field name="name">dev.repository.list</field>
+        <field name="model">dev.repository</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="full_name"/>
+                <field name="default_branch" optional="show"/>
+                <field name="token_set" optional="show"/>
+                <field name="last_check" options="{'numeric': True}" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_repository_view_form" model="ir.ui.view">
+        <field name="name">dev.repository.form</field>
+        <field name="model">dev.repository</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_connection" type="object" string="Test Connection" icon="fa-plug"
+                            class="btn-primary" invisible="not token_set"/>
+                    <button name="action_sync_branches" type="object" string="Sync Branches" icon="fa-refresh"
+                            invisible="not token_set"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_releases" type="object" class="oe_stat_button" icon="fa-rocket">
+                            <field name="release_count" widget="statinfo" string="Releases"/>
+                        </button>
+                        <button name="action_open_branches" type="object" class="oe_stat_button" icon="fa-code-fork">
+                            <field name="branch_count" widget="statinfo" string="Branches"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Odoo Addons"/></h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not github_error">
+                        <strong>GitHub: </strong><field name="github_error" class="oe_inline"/>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="token_set or not id">
+                        No GitHub access token yet: nothing is sent to or read from GitHub for this repository.
+                        Add one in the GitHub Access tab to turn on draft releases, release numbers from GitHub tags,
+                        branches and merging.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="full_name" placeholder="owner/repository"/>
+                            <field name="default_branch"/>
+                            <field name="html_url" widget="url" invisible="not full_name"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="private" invisible="not last_check"/>
+                            <field name="last_check" options="{'numeric': True}" invisible="not last_check"/>
+                            <field name="token_set" invisible="1"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="GitHub Access" name="github_access" groups="dev_management.group_dev_admin">
+                            <group>
+                                <field name="github_token" password="True" placeholder="github_pat_..."/>
+                            </group>
+                            <div class="text-muted small">
+                                A fine-grained personal access token that only works on this repository. Odoo uses it
+                                to read release tags and branches, open draft releases, create ticket and release
+                                branches, merge them and publish releases.
+                            </div>
+                            <div class="text-muted small mt-1">
+                                On GitHub, choose the owner and this repository under Repository access, check
+                                Contents and Pull requests are "Read and write", then generate the token and paste
+                                it above. Only Development Administrators can see or change it.
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <a href="https://github.com/settings/personal-access-tokens/new?name=Odoo%20Development&amp;description=Lets%20Odoo%20Development%20manage%20releases%20and%20branches.&amp;contents=write&amp;pull_requests=write"
+                                   target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" role="button">
+                                    <i class="fa fa-github me-1"/>Create Access Token on GitHub
+                                </a>
+                                <button name="action_test_connection" type="object" string="Test Connection"
+                                        class="btn-link" icon="fa-plug" invisible="not token_set"/>
+                            </div>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="What is in this repository?"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_repository_view_search" model="ir.ui.view">
+        <field name="name">dev.repository.search</field>
+        <field name="model">dev.repository</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('full_name', 'ilike', self)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_repository_action" model="ir.actions.act_window">
+        <field name="name">Repositories</field>
+        <field name="res_model">dev.repository</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first GitHub repository</p>
+            <p>Give it an access token so releases can read tags, open draft releases and merge branches.</p>
+        </field>
+    </record>
+
+    <!-- Branches -->
+    <record id="dev_branch_view_list" model="ir.ui.view">
+        <field name="name">dev.branch.list</field>
+        <field name="model">dev.branch</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="repository_id"/>
+                <field name="ticket_ids" widget="many2many_tags" optional="show"/>
+                <field name="feature_ids" widget="many2many_tags" optional="show"/>
+                <field name="exists_on_github" optional="show"/>
+                <field name="pr_state" optional="show"/>
+                <field name="merge_state" widget="badge" optional="show"
+                       decoration-success="merge_state in ('merged', 'up_to_date')"
+                       decoration-danger="merge_state in ('conflict', 'missing', 'failed')"/>
+                <field name="merged_release_id" optional="hide"/>
+                <field name="html_url" widget="url" text="Open" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_branch_view_form" model="ir.ui.view">
+        <field name="name">dev.branch.form</field>
+        <field name="model">dev.branch</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_sync" type="object" string="Refresh from GitHub" icon="fa-refresh"
+                            invisible="not id or not repository_token_set"/>
+                    <button name="action_create_on_github" type="object" string="Create on GitHub" icon="fa-github"
+                            invisible="not id or exists_on_github or not repository_token_set"/>
+                    <field name="repository_token_set" invisible="1"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. feature/DEV-00012-password-reset"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="repository_id" options="{'no_create': True}"/>
+                            <field name="html_url" widget="url"/>
+                            <field name="exists_on_github"/>
+                            <field name="last_commit_sha"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="pr_url" widget="url" invisible="not pr_url"/>
+                            <field name="pr_state" invisible="not pr_state"/>
+                            <field name="merge_state" invisible="not merge_state"/>
+                            <field name="merge_message" invisible="not merge_message"/>
+                            <field name="merged_release_id" invisible="not merged_release_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="ticket_ids" widget="many2many_tags"/>
+                        <field name="feature_ids" widget="many2many_tags"/>
+                        <field name="release_ids" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_branch_view_search" model="ir.ui.view">
+        <field name="name">dev.branch.search</field>
+        <field name="model">dev.branch</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="repository_id"/>
+                <field name="ticket_ids"/>
+                <filter name="conflicts" string="Merge Problems"
+                        domain="[('merge_state', 'in', ('conflict', 'missing', 'failed'))]"/>
+                <filter name="unlinked" string="Not Linked"
+                        domain="[('ticket_ids', '=', False), ('feature_ids', '=', False)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_repository" string="Repository" context="{'group_by': 'repository_id'}"/>
+                    <filter name="group_merge" string="Release Merge" context="{'group_by': 'merge_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="dev_branch_action" model="ir.actions.act_window">
+        <field name="name">Branches</field>
+        <field name="res_model">dev.branch</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No branches yet</p>
+            <p>Use "Sync Branches" on a repository, or "Create Branch" on a ticket.</p>
+        </field>
+    </record>
+</odoo>

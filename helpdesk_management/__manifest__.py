@@ -1,6 +1,6 @@
 {
     'name': 'Helpdesk',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'category': 'Services/Helpdesk',
     'summary': 'Track, prioritise and solve customer support tickets',
     'description': """
@@ -29,10 +29,24 @@ Modelled on the Odoo Enterprise Helpdesk app.
   /helpdesk.
 * Overview dashboard per team, ticket and SLA analysis, customer ratings.
 * Ticket types, tags and stages are managed under Configuration.
+* Ticket metrics: company, team, products, source (email, website form, Help
+  Centre, direct entry, ...), customer sentiment, date raised, days open, days
+  to resolution and agent.
+* AI triage: when a Claude or Gemini key is set in General Settings, new
+  tickets are sent to the AI in the background to fill in missing details
+  (team, type, tags, priority, products), estimate the customer sentiment from
+  the tone of the ticket and recommend corrective actions. "Analyse with AI"
+  on a ticket runs it again on demand.
+* Dashboard: outstanding tickets by company and team, the user's own
+  outstanding tickets, and the average customer sentiment of their tickets
+  over the last 12 months, year to date and last 30 days.
+* Permissions per CLAUDE.md: a privilege per ticket permission (Create Only,
+  Create and Edit Own / My Team / All, View All, Delete Own / All) plus the
+  Helpdesk Administrator; standard roles ship in helpdesk_management_permission.
 """,
     'author': 'Cliffs',
     'license': 'LGPL-3',
-    'depends': ['mail', 'portal', 'rating', 'resource'],
+    'depends': ['mail', 'portal', 'rating', 'resource', 'product', 'hr'],
     'data': [
         'security/helpdesk_security.xml',
         'security/ir.model.access.csv',
@@ -41,6 +55,7 @@ Modelled on the Odoo Enterprise Helpdesk app.
         'data/mail_message_subtype_data.xml',
         'data/mail_template_data.xml',
         'data/helpdesk_data.xml',
+        'data/helpdesk_option_data.xml',
         'data/helpdesk_cron.xml',
         'views/helpdesk_option_views.xml',
         'views/helpdesk_stage_views.xml',
@@ -50,8 +65,14 @@ Modelled on the Odoo Enterprise Helpdesk app.
         'views/res_partner_views.xml',
         'views/helpdesk_portal_templates.xml',
         'report/helpdesk_report_views.xml',
+        'views/helpdesk_dashboard_views.xml',
         'views/helpdesk_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'helpdesk_management/static/src/**/*',
+        ],
+    },
     'installable': True,
     'application': True,
 }

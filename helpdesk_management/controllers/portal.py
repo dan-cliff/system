@@ -175,6 +175,7 @@ class HelpdeskCustomerPortal(CustomerPortal):
             'partner_name': kw['partner_name'].strip(),
             'partner_email': email,
             'partner_phone': (kw.get('partner_phone') or '').strip(),
+            'source_id': request.env.ref('helpdesk_management.ticket_source_website').id,
         })
         return request.render('helpdesk_management.helpdesk_ticket_submitted', {
             'ticket': ticket,

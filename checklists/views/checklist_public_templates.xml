@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Public submission pages (controllers/public.py): standalone, login-free. -->
+    <template id="public_checklist_layout" name="Public Checklist Layout">
+        <html lang="en">
+        <head>
+            <meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+            <meta name="robots" content="noindex, nofollow"/>
+            <title t-out="title or 'Checklist'"/>
+            <link rel="icon" type="image/png" href="/checklists/static/description/icon.png"/>
+            <link rel="stylesheet" href="/checklists/static/src/public/public_form.css"/>
+        </head>
+        <body>
+            <main class="cl-page">
+                <t t-out="0"/>
+            </main>
+        </body>
+        </html>
+    </template>
+
+    <template id="public_checklist_header" name="Public Checklist Header">
+        <header class="cl-header">
+            <img t-if="company and company.logo" t-att-src="'/logo.png?company=%s' % company.id"
+                 class="cl-logo" t-att-alt="company.name"/>
+            <h1 t-out="template.name"/>
+        </header>
+    </template>
+
+    <!-- ── Form ─────────────────────────────────────────────────────── -->
+    <template id="public_checklist_form" name="Public Checklist Form">
+        <t t-call="checklists.public_checklist_layout">
+            <t t-set="title" t-value="template.name"/>
+            <t t-call="checklists.public_checklist_header"/>
+            <p t-if="template.description" class="cl-intro" t-out="template.description"/>
+
+            <div t-if="errors" class="cl-alert" role="alert">
+                Some answers need another look - see the messages below.
+            </div>
+
+            <form t-att-action="form_action" method="post" enctype="multipart/form-data"
+                  class="cl-form" id="cl_public_form"
+                  t-att-data-conditions="conditions_json" t-att-data-types="types_json">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <input type="hidden" name="_tz" t-att-value="tz_link"/>
+                <!-- Left empty by people; bots fill it in. -->
+                <div class="cl-hp" aria-hidden="true">
+                    <label>Website <input type="text" name="website_url" tabindex="-1" autocomplete="off"/></label>
+                </div>
+
+                <section class="cl-card">
+                    <h2>Your details</h2>
+                    <div class="cl-grid-2">
+                        <t t-foreach="[('first_name', 'First Name', 'text', 'given-name'), ('last_name', 'Last Name', 'text', 'family-name'), ('email', 'Email', 'email', 'email'), ('phone', 'Phone Number', 'tel', 'tel')]"
+                           t-as="field">
+                            <t t-set="key" t-value="field[0]"/>
+                            <div class="cl-field" t-att-data-contact="key">
+                                <label t-att-for="'cl_' + key">
+                                    <t t-out="field[1]"/>
+                                    <span t-if="key in ('first_name', 'last_name')" class="cl-req" title="Required">*</span>
+                                </label>
+                                <input t-att-id="'cl_' + key" t-att-name="key" t-att-type="field[2]"
+                                       t-att-value="contact[key]" t-att-autocomplete="field[3]"
+                                       t-att-required="key in ('first_name', 'last_name') or None"
+                                       t-att-readonly="contact_locked[key] or None"
+                                       t-att-class="'cl-locked' if contact_locked[key] else None"
+                                       t-att-inputmode="'tel' if key == 'phone' else None"/>
+                                <div t-if="errors.get(key)" class="cl-error" t-out="errors[key]"/>
+                            </div>
+                        </t>
+                    </div>
+                    <p class="cl-hint" id="cl_contact_hint">Give your email address or phone number (or both).</p>
+                    <div t-if="errors.get('contact')" class="cl-error" id="cl_contact_error" t-out="errors['contact']"/>
+                    <div t-else="" class="cl-error" id="cl_contact_error" hidden="hidden">Enter your email address or phone number.</div>
+                </section>
+
+                <section t-if="rows" class="cl-card">
+                    <t t-foreach="rows" t-as="row">
+                        <t t-if="'full' in row">
+                            <t t-call="checklists.public_checklist_question">
+                                <t t-set="item" t-value="row['full']"/>
+                            </t>
+                        </t>
+                        <div t-else="" t-attf-class="cl-columns cl-columns-{{ column_count }}">
+                            <div t-foreach="row['columns']" t-as="column" class="cl-column">
+                                <t t-foreach="column" t-as="item">
+                                    <t t-call="checklists.public_checklist_question"/>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </section>
+
+                <div class="cl-actions">
+                    <button type="submit" class="cl-submit">Submit</button>
+                </div>
+            </form>
+            <script src="/checklists/static/src/public/public_form.js"/>
+        </t>
+    </template>
+
+    <!-- One question of the form: `item` from ChecklistPublicController._render_form. -->
+    <template id="public_checklist_question" name="Public Checklist Question">
+        <t t-set="q" t-value="item['question']"/>
+        <t t-set="kind" t-value="item['type']"/>
+        <t t-set="key" t-value="item['key']"/>
+        <t t-set="locked" t-value="item['locked']"/>
+        <t t-set="input_id" t-value="'cl_' + key"/>
+        <div t-att-class="'cl-question cl-type-%s%s' % (kind, ' cl-has-error' if item['error'] else '')"
+             t-att-data-question="q.id" t-att-data-key="key" t-att-data-locked="'1' if locked else None"
+             t-att-data-ids="','.join(map(str, item['ids'])) if kind in ('many2one', 'many2many') else None">
+
+            <!-- Layout -->
+            <div t-if="kind == 'section_title'" class="cl-section-title"
+                 t-attf-style="border-color: {{ q.layout_border_color or '#9aa5b1' }}; background-color: {{ q.layout_bg_color or '#eef2f7' }}; color: {{ q.layout_text_color or '#1f2937' }};">
+                <div class="cl-section-title-name" t-out="q.name"/>
+                <div t-if="q.description" class="cl-pre" t-out="q.description"/>
+            </div>
+            <div t-elif="kind == 'section_break'" class="cl-section-break">
+                <div t-if="q.layout_title_position == 'above'" class="cl-section-break-name" t-out="q.name"/>
+                <div class="cl-section-break-line" t-attf-style="border-top-color: {{ q.layout_line_color or '#9aa5b1' }};"/>
+                <div t-if="q.layout_title_position == 'below'" class="cl-section-break-name" t-out="q.name"/>
+            </div>
+            <div t-elif="kind == 'instructions'" class="cl-instructions" t-out="q.instructions"/>
+
+            <t t-else="">
+                <label class="cl-label" t-att-for="input_id if kind not in ('buttons', 'radio', 'slider', 'multi_select', 'multi_checkbox', 'boolean', 'geolocation', 'many2one', 'many2many') else None"
+                       t-out="q.name"/>
+                <div t-if="q.description" class="cl-description cl-pre" t-out="q.description"/>
+
+                <input t-if="kind in ('text', 'phone', 'email', 'website')" t-att-id="input_id" t-att-name="key"
+                       t-att-type="{'phone': 'tel', 'email': 'email'}.get(kind, 'text')"
+                       t-att-inputmode="'url' if kind == 'website' else None"
+                       t-att-value="item['value']" t-att-disabled="locked or None"/>
+                <textarea t-elif="kind == 'text_area'" t-att-id="input_id" t-att-name="key" rows="4"
+                          t-att-disabled="locked or None" t-out="item['value']"/>
+                <input t-elif="kind in ('number', 'integer')" t-att-id="input_id" t-att-name="key" type="number"
+                       t-att-step="'1' if kind == 'integer' else 'any'" t-att-value="item['value']"
+                       t-att-disabled="locked or None"/>
+                <div t-elif="kind in ('date', 'datetime')" class="cl-date">
+                    <input t-att-id="input_id" t-att-name="key" type="text" autocomplete="off"
+                           t-att-data-kind="kind" t-att-value="item['value']" t-att-disabled="locked or None"
+                           t-att-placeholder="'dd/mm/yyyy' if kind == 'date' else 'dd/mm/yyyy HH:MM'"
+                           t-att-pattern="'\\d{1,2}/\\d{1,2}/\\d{4}' if kind == 'date' else '\\d{1,2}/\\d{1,2}/\\d{4} \\d{1,2}:\\d{2}'"/>
+                    <t t-if="not locked">
+                        <button type="button" class="cl-date-pick" aria-label="Pick a date">
+                            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+                                <rect x="2" y="4" width="16" height="14" rx="3" fill="#3BB8FF"/>
+                                <rect x="2" y="4" width="16" height="4" rx="2" fill="#0A6CF0"/>
+                                <rect x="5" y="11" width="4" height="3" rx="1" fill="#FFFFFF"/>
+                            </svg>
+                        </button>
+                        <input class="cl-native" tabindex="-1" aria-hidden="true"
+                               t-att-type="'date' if kind == 'date' else 'datetime-local'"/>
+                    </t>
+                </div>
+                <select t-elif="kind == 'select'" t-att-id="input_id" t-att-name="key" t-att-disabled="locked or None">
+                    <option value=""/>
+                    <option t-foreach="q.option_ids" t-as="option" t-att-value="option.id"
+                            t-att-selected="option.id in item['ids'] or None" t-out="option.name"/>
+                </select>
+                <div t-elif="kind in ('buttons', 'radio', 'slider')"
+                     t-att-class="'cl-options cl-options-buttons' if kind != 'radio' else 'cl-options'"
+                     role="radiogroup">
+                    <label t-foreach="q.option_ids" t-as="option" class="cl-option"
+                           t-att-style="'--cl-btn: %s' % option.color if option.color and kind != 'radio' else None">
+                        <input type="radio" t-att-name="key" t-att-value="option.id"
+                               t-att-checked="option.id in item['ids'] or None" t-att-disabled="locked or None"/>
+                        <span t-out="option.name"/>
+                    </label>
+                </div>
+                <div t-elif="kind in ('multi_select', 'multi_checkbox')" class="cl-options">
+                    <label t-foreach="q.option_ids" t-as="option" class="cl-option">
+                        <input type="checkbox" t-att-name="key" t-att-value="option.id"
+                               t-att-checked="option.id in item['ids'] or None" t-att-disabled="locked or None"/>
+                        <span t-out="option.name"/>
+                    </label>
+                </div>
+                <label t-elif="kind == 'boolean'" class="cl-toggle">
+                    <input type="checkbox" t-att-name="key" value="1" t-att-disabled="locked or None"
+                           t-att-checked="(item['value'] or '').lower() in ('1', 'true', 'yes', 'y', 'on') or None"/>
+                    <span>Yes</span>
+                </label>
+                <div t-elif="kind == 'geolocation'" class="cl-geo">
+                    <input type="hidden" t-att-name="key" t-att-value="item['value']" t-att-disabled="locked or None"/>
+                    <button t-if="not locked" type="button" class="cl-geo-button">Use my current location</button>
+                    <span class="cl-geo-value" t-out="item['value']"/>
+                </div>
+                <input t-elif="kind == 'image'" t-att-id="input_id" t-att-name="key" type="file" accept="image/*"/>
+                <input t-elif="kind == 'file'" t-att-id="input_id" t-att-name="key" type="file"/>
+                <ul t-elif="kind in ('many2one', 'many2many')" class="cl-records">
+                    <li t-foreach="item['display']" t-as="name" t-out="name"/>
+                </ul>
+
+                <div t-if="locked or kind in ('many2one', 'many2many')" class="cl-hint">Filled in by the link.</div>
+                <div t-if="item['error']" class="cl-error" t-out="item['error']"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- ── Submitted ────────────────────────────────────────────────── -->
+    <template id="public_checklist_done" name="Public Checklist Submitted">
+        <t t-call="checklists.public_checklist_layout">
+            <t t-set="title" t-value="template.name"/>
+            <t t-set="company" t-value="template._public_company()"/>
+            <t t-call="checklists.public_checklist_header"/>
+            <section class="cl-card cl-done">
+                <h2>Thank you</h2>
+                <p t-if="template.public_thank_you" class="cl-pre" t-out="template.public_thank_you"/>
+                <p t-else="">Your checklist has been submitted.</p>
+                <p t-if="checklist" class="cl-hint">Reference: <strong t-out="checklist.name"/></p>
+                <p><a t-att-href="request.httprequest.full_path.rstrip('?')" class="cl-link">Fill in another</a></p>
+            </section>
+        </t>
+    </template>
+
+    <template id="public_checklist_unavailable" name="Public Checklist Unavailable">
+        <t t-call="checklists.public_checklist_layout">
+            <t t-set="title" t-value="'Checklist unavailable'"/>
+            <section class="cl-card cl-done">
+                <h2>This checklist isn't available</h2>
+                <p>The link may be out of date, or the checklist no longer takes submissions.
+                    Ask the person who sent it for a new link.</p>
+            </section>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Personnel takes the Employees app's place on the home screen. Employees'
+         menus are reloaded when it upgrades, and this module (which depends on
+         it) is upgraded with it, so these come back each time. The uninstall
+         hook gives Employees its own back. -->
+    <record id="hr.menu_hr_root" model="ir.ui.menu">
+        <field name="name">Personnel</field>
+        <field name="web_icon">advanced_hr,static/description/icon.png</field>
+    </record>
+
+    <!-- Replaced by Personnel's own Employees, Directory and Departments menus. -->
+    <record id="hr.menu_hr_employee_payroll" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="hr.menu_hr_employee" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="hr.menu_hr_department_kanban" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Configuration › Tags: an option list users manage themselves. -->
+    <record id="hr.menu_view_employee_category_form" model="ir.ui.menu">
+        <field name="group_ids" eval="[(5, 0, 0)]"/>
+    </record>
+
+    <!-- Badges are designed in Personnel › Configuration › ID Badges, and each
+         one is on the employee's Print menu instead of Odoo's fixed badge. -->
+    <function model="ir.actions.report" name="write"
+              eval="[[ref('hr.hr_employee_print_badge')], {'binding_model_id': False}]"/>
+</odoo>

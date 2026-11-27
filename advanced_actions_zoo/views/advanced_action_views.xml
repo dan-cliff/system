@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advanced_action_form_zoo" model="ir.ui.view">
+        <field name="name">advanced.action.form.zoo</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_checklist_id']" position="after">
+                <field name="zoo_animal_id" invisible="source_app != 'zoo'"/>
+                <field name="zoo_enclosure_id" invisible="source_app != 'zoo'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_search_zoo" model="ir.ui.view">
+        <field name="name">advanced.action.search.zoo</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='checklist_template_id']" position="after">
+                <field name="zoo_animal_id"/>
+                <field name="zoo_enclosure_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='app_checklists']" position="after">
+                <filter name="app_zoo" string="Zoo Manager" domain="[('source_app', '=', 'zoo')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_list_zoo" model="ir.ui.view">
+        <field name="name">advanced.action.list.zoo</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="zoo_animal_id" optional="show"/>
+                <field name="zoo_enclosure_id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='source_app']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Zoo Manager › Actions: filtered to Zoo Manager, filter removable. -->
+    <record id="action_advanced_action_zoo" model="ir.actions.act_window">
+        <field name="name">Actions</field>
+        <field name="res_model">advanced.action</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_advanced_action_list_zoo')}),
+            (0, 0, {'view_mode': 'kanban'}),
+            (0, 0, {'view_mode': 'form'}),
+            (0, 0, {'view_mode': 'activity'})]"/>
+        <field name="context">{'search_default_app_zoo': 1, 'search_default_open': 1, 'default_source_app': 'zoo'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Zoo Manager actions yet</p>
+            <p>Remove the Zoo Manager filter to see actions from every app.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_advanced_action_zoo" name="Actions" parent="zoo_manager.menu_zoo_manager_root"
+              action="action_advanced_action_zoo" sequence="40"
+              groups="zoo_manager.group_zoo_keeper"/>
+
+    <record id="zoo_animal_form_advanced_actions" model="ir.ui.view">
+        <field name="name">zoo.animal.form.advanced.actions</field>
+        <field name="model">zoo.animal</field>
+        <field name="inherit_id" ref="zoo_manager.zoo_animal_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_actions" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                    <field name="action_open_count" widget="statinfo" string="Open Actions"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="zoo_enclosure_form_advanced_actions" model="ir.ui.view">
+        <field name="name">zoo.enclosure.form.advanced.actions</field>
+        <field name="model">zoo.enclosure</field>
+        <field name="inherit_id" ref="zoo_manager.zoo_enclosure_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_actions" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                    <field name="action_open_count" widget="statinfo" string="Open Actions"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

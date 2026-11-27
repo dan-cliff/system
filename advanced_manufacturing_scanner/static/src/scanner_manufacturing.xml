@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="scanner_app.ScannerRoot" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_scanner_body')]" position="inside">
+            <ManufacturingPicker t-if="state.screen === 'mrp_picker'" onSelect="(id) => this.openProduction(id)"/>
+            <ManufacturingOrderScreen t-if="state.screen === 'mrp_order'" productionId="state.mrpProductionId"
+                onBack.bind="goHome"/>
+        </xpath>
+    </t>
+
+    <t t-name="advanced_manufacturing_scanner.Picker">
+        <div class="o_scanner_screen">
+            <ScanInput placeholder="'Scan a manufacturing order, or pick one below…'" onSubmit.bind="onScan"/>
+            <div class="o_scanner_picker">
+                <p class="o_scanner_subtitle" t-if="!state.loading and !state.orders.length">
+                    No manufacturing orders are ready to produce.
+                </p>
+                <t t-foreach="state.orders" t-as="order" t-key="order.id">
+                    <button class="o_scanner_picker_row" t-on-click="() => this.props.onSelect(order.id)">
+                        <span class="o_scanner_picker_title">
+                            <t t-esc="order.name"/>
+                            <span t-if="order.late" class="badge text-bg-danger ms-2">Late</span>
+                            <span t-if="!order.ready" class="badge text-bg-warning ms-2">Waiting for components</span>
+                        </span>
+                        <span class="o_scanner_picker_subtitle">
+                            <t t-esc="order.product"/> · <t t-esc="order.qty"/> <t t-esc="order.uom"/> · <t t-esc="order.state"/>
+                            <t t-if="order.scheduled"> · <t t-esc="order.scheduled"/></t>
+                        </span>
+                    </button>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="advanced_manufacturing_scanner.OrderScreen">
+        <div class="o_scanner_screen o_scanner_mrp">
+            <t t-if="!state.loading">
+                <t t-set="data" t-value="state.data"/>
+                <p class="o_scanner_subtitle">
+                    <t t-esc="data.name"/> · <t t-esc="data.product"/> ·
+                    <t t-esc="scanned"/>/<t t-esc="data.components.length"/> components scanned
+                </p>
+                <ScanInput placeholder="placeholder" onSubmit.bind="onScan"/>
+
+                <div class="o_scanner_mrp_produce">
+                    <label class="o_scanner_mrp_field">
+                        <span>Producing (<t t-esc="data.uom"/>)</span>
+                        <input type="number" class="form-control form-control-lg" min="0" step="any"
+                               t-att-value="data.qty_producing" t-on-change="onQtyChange"/>
+                        <small class="text-muted">of <t t-esc="data.qty"/> ordered</small>
+                    </label>
+                    <label class="o_scanner_mrp_field" t-if="data.tracking !== 'none'">
+                        <span><t t-if="data.tracking === 'serial'">Serial Number</t><t t-else="">Lot Number</t></span>
+                        <input type="text" class="form-control form-control-lg" t-att-value="state.lot"
+                               placeholder="Empty: numbered automatically" t-on-change="onLotChange"/>
+                    </label>
+                </div>
+
+                <div class="o_scanner_lines">
+                    <table class="table">
+                        <thead>
+                            <tr><th>Component</th><th class="text-end">Used</th><th class="text-end">Needed</th></tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="data.components" t-as="component" t-key="component.id">
+                                <tr t-att-class="lineClass(component, component_index)"
+                                    t-on-click="() => this.select(component_index)">
+                                    <td>
+                                        <t t-esc="component.product"/>
+                                        <span t-if="!component.available" class="badge text-bg-warning ms-1">Not reserved</span>
+                                    </td>
+                                    <td class="text-end" t-esc="component.done"/>
+                                    <td class="text-end"><t t-esc="component.needed"/> <small t-esc="component.uom"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <p class="o_scanner_subtitle" t-if="!data.components.length">This order has no components to scan.</p>
+                </div>
+
+                <div class="o_scanner_mrp_note" t-if="!canProduce">
+                    Scan every component before producing.
+                </div>
+                <button class="btn btn-lg btn-primary w-100 o_scanner_mrp_produce_btn" t-on-click="onProduce"
+                        t-att-disabled="!canProduce or state.producing">
+                    <i class="fa fa-check me-1"/>Produce <t t-esc="data.qty_producing"/> <t t-esc="data.uom"/>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

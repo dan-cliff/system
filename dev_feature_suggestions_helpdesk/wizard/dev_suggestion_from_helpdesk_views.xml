@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_suggestion_from_helpdesk_view_form" model="ir.ui.view">
+        <field name="name">dev.suggestion.from.helpdesk.form</field>
+        <field name="model">dev.suggestion.from.helpdesk</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="helpdesk_ticket_id" invisible="1"/>
+                <group>
+                    <field name="link_existing" widget="boolean_toggle"/>
+                    <field name="suggestion_id" invisible="not link_existing" required="link_existing"
+                           options="{'no_create': True}"/>
+                    <field name="name" invisible="link_existing" required="not link_existing"/>
+                    <field name="category_id" invisible="link_existing" options="{'no_create': True}"/>
+                </group>
+                <field name="description" invisible="link_existing" placeholder="What would the customer like to do?"/>
+                <separator string="Customer's Vote"/>
+                <group>
+                    <group>
+                        <field name="partner_id"/>
+                        <field name="importance_id" options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="note"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Save" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

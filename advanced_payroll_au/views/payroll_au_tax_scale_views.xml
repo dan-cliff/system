@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_au_tax_scale_view_list" model="ir.ui.view">
+        <field name="name">payroll.au.tax.scale.list</field>
+        <field name="model">payroll.au.tax.scale</field>
+        <field name="arch" type="xml">
+            <list string="Australian Tax Scales">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="tax_table_id"/>
+                <field name="medicare_levy"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_au_tax_scale_view_form" model="ir.ui.view">
+        <field name="name">payroll.au.tax.scale.form</field>
+        <field name="model">payroll.au.tax.scale</field>
+        <field name="arch" type="xml">
+            <form string="Australian Tax Scale">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Resident – tax-free threshold claimed"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="tax_table_id" options="{'no_create': True}"/>
+                            <field name="medicare_levy"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Who this tax scale is for..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_au_tax_scale_view_search" model="ir.ui.view">
+        <field name="name">payroll.au.tax.scale.search</field>
+        <field name="model">payroll.au.tax.scale</field>
+        <field name="arch" type="xml">
+            <search string="Australian Tax Scales">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_payroll_au_tax_scale" model="ir.actions.act_window">
+        <field name="name">Australian Tax Scales</field>
+        <field name="res_model">payroll.au.tax.scale</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a tax scale</p>
+            <p>The tax scales employees are withheld at, from their TFN declaration.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_payroll_au_tax_scales"
+              name="Australian Tax Scales"
+              parent="advanced_payroll.menu_payroll_config"
+              action="action_payroll_au_tax_scale"
+              sequence="110"/>
+</odoo>

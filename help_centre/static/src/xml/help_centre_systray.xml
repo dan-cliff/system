@@ -47,8 +47,8 @@
                     </div>
                 </div>
 
-                <!-- Tab bar (hidden when viewing an article) -->
-                <div t-if="state.activeTab !== 'article'" class="hc-tabs">
+                <!-- Tab bar (hidden when viewing an article or creating a ticket) -->
+                <div t-if="state.activeTab !== 'article' and state.activeTab !== 'ticket'" class="hc-tabs">
                     <button class="hc-tab" t-att-class="{ active: state.activeTab === 'home' }"
                             t-on-click="() => this.switchTab('home')"
                             t-att-aria-selected="state.activeTab === 'home'">
@@ -65,16 +65,6 @@
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
                         Ask AI
-                    </button>
-                    <button t-if="state.helpdeskEnabled"
-                            class="hc-tab" t-att-class="{ active: state.activeTab === 'ticket' }"
-                            t-on-click="() => this.switchTab('ticket')"
-                            t-att-aria-selected="state.activeTab === 'ticket'">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-4-4z"/>
-                            <polyline points="15 5 15 9 19 9"/>
-                        </svg>
-                        Lodge Ticket
                     </button>
                 </div>
 
@@ -128,6 +118,18 @@
                                         <div class="hc-suggestion-empty">No results found</div>
                                     </t>
                                 </div>
+                            </div>
+
+                            <!-- Create Ticket: opens the ticket form within the widget -->
+                            <div t-if="state.helpdeskEnabled" class="hc-create-ticket-cta">
+                                <span>Can't find an answer?</span>
+                                <button class="hc-create-ticket-btn" t-on-click="() => this.switchTab('ticket')">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M15 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-4-4z"/>
+                                        <polyline points="15 5 15 9 19 9"/>
+                                    </svg>
+                                    Create Ticket
+                                </button>
                             </div>
 
                             <!-- Article list -->
@@ -350,9 +352,17 @@
                         </div>
                     </t>
 
-                    <!-- ═══ LODGE TICKET PANE ═══ -->
+                    <!-- ═══ CREATE TICKET PANE ═══ -->
                     <t t-if="state.activeTab === 'ticket' and state.helpdeskEnabled">
                         <div class="hc-tab-pane-inner">
+                            <div class="hc-article-nav">
+                                <button class="hc-back-btn" t-on-click="() => this.switchTab('home')">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="15 18 9 12 15 6"/>
+                                    </svg>
+                                    Back
+                                </button>
+                            </div>
                             <div class="hc-ticket-wrap">
 
                                 <!-- Success state -->
@@ -363,7 +373,7 @@
                                             <polyline points="22 4 12 14.01 9 11.01"/>
                                         </svg>
                                         <h6>Ticket Submitted!</h6>
-                                        <p>Ticket #<t t-esc="state.ticketId"/> has been lodged. Someone will be in touch shortly.</p>
+                                        <p>Ticket #<t t-esc="state.ticketRef or state.ticketId"/> has been created. Someone will be in touch shortly.</p>
                                         <button class="hc-ticket-new-btn" t-on-click="resetTicket">Submit Another</button>
                                     </div>
                                 </t>
@@ -371,7 +381,7 @@
                                 <!-- Form -->
                                 <t t-else="">
                                     <p class="hc-ticket-intro">
-                                        Can't find what you're looking for? Lodge a support ticket and our team will get back to you.
+                                        Can't find what you're looking for? Create a support ticket and our team will get back to you.
                                     </p>
                                     <div class="mb-3">
                                         <label class="hc-form-label">Subject <span style="color:#dc3545">*</span></label>

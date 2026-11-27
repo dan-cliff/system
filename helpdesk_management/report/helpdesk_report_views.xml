@@ -6,7 +6,9 @@
             <pivot string="Ticket Analysis" sample="1">
                 <field name="team_id" type="row"/>
                 <field name="stage_id" type="col"/>
-                <field name="close_hours" type="measure" widget="float_time"/>
+                <field name="days_open" type="measure"/>
+                <field name="days_to_resolution" type="measure"/>
+                <field name="sentiment_score" type="measure"/>
             </pivot>
         </field>
     </record>
@@ -16,7 +18,7 @@
         <field name="model">helpdesk.ticket</field>
         <field name="arch" type="xml">
             <graph string="Ticket Analysis" type="bar" sample="1">
-                <field name="create_date" interval="month"/>
+                <field name="date_raised" interval="month"/>
                 <field name="team_id"/>
             </graph>
         </field>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Checklists',
-    'version': '19.0.1.7.0',
+    'version': '19.0.1.9.0',
     'category': 'Productivity',
     'summary': 'General-purpose checklists built from templates, grouped into Checklist Groups',
     'description': """
@@ -16,6 +16,18 @@
           records whose GUID already exists and creates the rest, so a file can be imported straight
           into a template to bulk-update its questions
         - Checklists print to PDF
+        - Public Submission (per template): a login-free link anyone can fill the
+          checklist in from. They give their First Name, Last Name and Email or
+          Phone Number instead of the Completed By, Asset, Company and
+          Organisation fields; the checklist is saved as Completed, with the
+          contact that has their email (or a new contact) as its Completed By
+        - Public URL Builder: links that fill in chosen contact details and
+          answers from their query string, optionally locked (read-only). Links
+          are signed, can be built for any combination of values and used for
+          any number of submissions; "New Link" on the template retires them all.
+          They can also set the fields the public form leaves out (Completed By,
+          Company, and with the add-ons the Asset and Organisation), which are
+          saved on the checklists submitted with them
 
         With Organisation Structure installed, checklists get the Division / Business Unit /
         Location / Department fields automatically (see org_structure).
@@ -26,14 +38,17 @@
         'security/checklist_security.xml',
         'security/ir.model.access.csv',
         'security/checklist_rules.xml',
+        'security/checklist_public_security.xml',
         'data/res_lang_data.xml',
         'data/checklist_sequence_data.xml',
         'report/checklist_report.xml',
         'wizard/checklist_template_import_wizard_views.xml',
         'wizard/checklist_ai_wizard_views.xml',
+        'wizard/checklist_public_url_wizard_views.xml',
         'views/checklist_group_views.xml',
         'views/checklist_template_views.xml',
         'views/checklist_views.xml',
+        'views/checklist_public_templates.xml',
         'data/checklist_template_actions.xml',
         'views/res_config_settings_views.xml',
         'views/checklist_menus.xml',

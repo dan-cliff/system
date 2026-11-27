@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- "Help me" next to the HS Code (shown only when an AI key is set). -->
+    <record id="product_template_hs_code_help" model="ir.ui.view">
+        <field name="name">product.template.form.hs_code.help</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="stock_delivery.product_template_hs_code"/>
+        <field name="arch" type="xml">
+            <field name="hs_code" position="replace">
+                <field name="hs_code_ai_available" invisible="1"/>
+                <label for="hs_code" string="HS Code"/>
+                <div class="o_row">
+                    <field name="hs_code" nolabel="1"/>
+                    <widget name="hs_code_ai_help" invisible="not hs_code_ai_available"/>
+                </div>
+            </field>
+        </field>
+    </record>
+</odoo>

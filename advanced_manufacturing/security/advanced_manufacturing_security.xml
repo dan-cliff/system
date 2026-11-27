@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions). Every permission is its own
+         privilege with one "Allowed" group, whose record rules give it its
+         meaning. They all imply the technical Manufacturing user group, which
+         opens the app (with Odoo's Manufacturing User group, which holds the
+         ACLs) and carries a deny rule per operation, so users can only do what
+         a permission opens.
+
+         Primary models: Manufacturing Orders ("Own" = created by them or they
+         are the Responsible), Bills of Materials and Unbuild Orders ("Own" =
+         created by them). "My Team" adds those created by the people under
+         them in the org chart. Child models follow their parent: work orders
+         and time logs their manufacturing order; components, by-products and
+         operations their bill of materials. Every Manufacturing Orders or
+         Unbuild Orders permission can read every bill of materials, as orders
+         are built from them.
+
+         Workflow privilege: Manufacturing Orders: Produce (checked in
+         button_mark_done). The Work Centre app (the PWA at each work centre)
+         is login free: workers identify with their ID badge or name and PIN,
+         and it records their work with the server's rights.
+
+         Users of Odoo's Manufacturing groups who have none of these
+         permissions keep Manufacturing's own access. -->
+    <data noupdate="1">
+        <record id="module_category_manufacturing" model="ir.module.category">
+            <field name="name">Manufacturing</field>
+            <field name="description">Manufacturing orders, work orders, bills of materials, work centres and the Work Centre app.</field>
+            <field name="sequence">32</field>
+        </record>
+    </data>
+
+    <record id="group_manufacturing_user" model="res.groups">
+        <field name="name">Manufacturing: User</field>
+        <field name="comment">Technical: given by every Manufacturing permission. Opens the app; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('mrp.group_mrp_user'))]"/>
+    </record>
+    <!-- ══ Manufacturing Orders ══ -->
+    <record id="privilege_production_create_only" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: Create Only</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">120</field>
+        <field name="description">Create manufacturing orders, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_production_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_create_only"/>
+        <field name="comment">Create manufacturing orders, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_production_edit_own" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">130</field>
+        <field name="description">Create manufacturing orders, and view and edit their own.</field>
+    </record>
+    <record id="group_production_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_edit_own"/>
+        <field name="comment">Create manufacturing orders, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_production_edit_team" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">140</field>
+        <field name="description">Create manufacturing orders, and view and edit their own and their team's.</field>
+    </record>
+    <record id="group_production_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_edit_team"/>
+        <field name="comment">Create manufacturing orders, and view and edit their own and their team's.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_production_edit_all" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: Create and Edit All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">150</field>
+        <field name="description">Create, view and edit every manufacturing order.</field>
+    </record>
+    <record id="group_production_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_edit_all"/>
+        <field name="comment">Create, view and edit every manufacturing order.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_production_view_all" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: View All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">160</field>
+        <field name="description">View every manufacturing order.</field>
+    </record>
+    <record id="group_production_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_view_all"/>
+        <field name="comment">View every manufacturing order.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_production_delete_own" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: Delete Own</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">170</field>
+        <field name="description">Delete their own manufacturing orders.</field>
+    </record>
+    <record id="group_production_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_delete_own"/>
+        <field name="comment">Delete their own manufacturing orders.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_production_delete_all" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: Delete All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">180</field>
+        <field name="description">Delete any manufacturing order.</field>
+    </record>
+    <record id="group_production_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_delete_all"/>
+        <field name="comment">Delete any manufacturing order.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <!-- ══ Bills of Materials ══ -->
+    <record id="privilege_bom_create_only" model="res.groups.privilege">
+        <field name="name">Bills of Materials: Create Only</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">320</field>
+        <field name="description">Create bills of materials, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_bom_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_bom_create_only"/>
+        <field name="comment">Create bills of materials, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_bom_edit_own" model="res.groups.privilege">
+        <field name="name">Bills of Materials: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">330</field>
+        <field name="description">Create bills of materials, and view and edit their own.</field>
+    </record>
+    <record id="group_bom_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_bom_edit_own"/>
+        <field name="comment">Create bills of materials, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_bom_edit_team" model="res.groups.privilege">
+        <field name="name">Bills of Materials: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">340</field>
+        <field name="description">Create bills of materials, and view and edit their own and their team's.</field>
+    </record>
+    <record id="group_bom_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_bom_edit_team"/>
+        <field name="comment">Create bills of materials, and view and edit their own and their team's.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_bom_edit_all" model="res.groups.privilege">
+        <field name="name">Bills of Materials: Create and Edit All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">350</field>
+        <field name="description">Create, view and edit every bill of materials.</field>
+    </record>
+    <record id="group_bom_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_bom_edit_all"/>
+        <field name="comment">Create, view and edit every bill of materials.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_bom_view_all" model="res.groups.privilege">
+        <field name="name">Bills of Materials: View All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">360</field>
+        <field name="description">View every bill of materials.</field>
+    </record>
+    <record id="group_bom_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_bom_view_all"/>
+        <field name="comment">View every bill of materials.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_bom_delete_own" model="res.groups.privilege">
+        <field name="name">Bills of Materials: Delete Own</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">370</field>
+        <field name="description">Delete their own bills of materials.</field>
+    </record>
+    <record id="group_bom_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_bom_delete_own"/>
+        <field name="comment">Delete their own bills of materials.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_bom_delete_all" model="res.groups.privilege">
+        <field name="name">Bills of Materials: Delete All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">380</field>
+        <field name="description">Delete any bill of materials.</field>
+    </record>
+    <record id="group_bom_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_bom_delete_all"/>
+        <field name="comment">Delete any bill of materials.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <!-- ══ Unbuild Orders ══ -->
+    <record id="privilege_unbuild_create_only" model="res.groups.privilege">
+        <field name="name">Unbuild Orders: Create Only</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">520</field>
+        <field name="description">Create unbuild orders, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_unbuild_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_unbuild_create_only"/>
+        <field name="comment">Create unbuild orders, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_unbuild_edit_own" model="res.groups.privilege">
+        <field name="name">Unbuild Orders: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">530</field>
+        <field name="description">Create unbuild orders, and view and edit their own.</field>
+    </record>
+    <record id="group_unbuild_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_unbuild_edit_own"/>
+        <field name="comment">Create unbuild orders, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_unbuild_edit_team" model="res.groups.privilege">
+        <field name="name">Unbuild Orders: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">540</field>
+        <field name="description">Create unbuild orders, and view and edit their own and their team's.</field>
+    </record>
+    <record id="group_unbuild_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_unbuild_edit_team"/>
+        <field name="comment">Create unbuild orders, and view and edit their own and their team's.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_unbuild_edit_all" model="res.groups.privilege">
+        <field name="name">Unbuild Orders: Create and Edit All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">550</field>
+        <field name="description">Create, view and edit every unbuild order.</field>
+    </record>
+    <record id="group_unbuild_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_unbuild_edit_all"/>
+        <field name="comment">Create, view and edit every unbuild order.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_unbuild_view_all" model="res.groups.privilege">
+        <field name="name">Unbuild Orders: View All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">560</field>
+        <field name="description">View every unbuild order.</field>
+    </record>
+    <record id="group_unbuild_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_unbuild_view_all"/>
+        <field name="comment">View every unbuild order.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_unbuild_delete_own" model="res.groups.privilege">
+        <field name="name">Unbuild Orders: Delete Own</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">570</field>
+        <field name="description">Delete their own unbuild orders.</field>
+    </record>
+    <record id="group_unbuild_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_unbuild_delete_own"/>
+        <field name="comment">Delete their own unbuild orders.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <record id="privilege_unbuild_delete_all" model="res.groups.privilege">
+        <field name="name">Unbuild Orders: Delete All</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">580</field>
+        <field name="description">Delete any unbuild order.</field>
+    </record>
+    <record id="group_unbuild_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_unbuild_delete_all"/>
+        <field name="comment">Delete any unbuild order.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+    <!-- ══ Workflow privileges ══ -->
+    <record id="privilege_production_produce" model="res.groups.privilege">
+        <field name="name">Manufacturing Orders: Produce</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">250</field>
+        <field name="description">Mark manufacturing orders as done (Produce), consuming the components and adding the finished products to stock. Without it users can prepare orders but not produce them.</field>
+    </record>
+    <record id="group_production_produce" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_production_produce"/>
+        <field name="comment">Mark manufacturing orders as done (Produce), consuming the components and adding the finished products to stock. Without it users can prepare orders but not produce them.</field>
+        <field name="implied_ids" eval="[(4, ref('group_manufacturing_user'))]"/>
+    </record>
+
+    <!-- ══ Manufacturing Administrator ══ -->
+    <record id="privilege_manufacturing" model="res.groups.privilege">
+        <field name="name">Manufacturing</field>
+        <field name="category_id" ref="module_category_manufacturing"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Manufacturing app.</field>
+    </record>
+    <record id="group_manufacturing_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_manufacturing"/>
+        <field name="comment">Every Manufacturing permission, including deleting any order or bill of materials and producing, plus Configuration (work centres, the Work Centre app, operations, settings, ...).</field>
+        <field name="implied_ids" eval="[(4, ref('group_production_create_only')), (4, ref('group_production_edit_own')), (4, ref('group_production_edit_team')), (4, ref('group_production_edit_all')), (4, ref('group_production_view_all')), (4, ref('group_production_delete_own')), (4, ref('group_production_delete_all')), (4, ref('group_bom_create_only')), (4, ref('group_bom_edit_own')), (4, ref('group_bom_edit_team')), (4, ref('group_bom_edit_all')), (4, ref('group_bom_view_all')), (4, ref('group_bom_delete_own')), (4, ref('group_bom_delete_all')), (4, ref('group_unbuild_create_only')), (4, ref('group_unbuild_edit_own')), (4, ref('group_unbuild_edit_team')), (4, ref('group_unbuild_edit_all')), (4, ref('group_unbuild_view_all')), (4, ref('group_unbuild_delete_own')), (4, ref('group_unbuild_delete_all')), (4, ref('group_production_produce')), (4, ref('mrp.group_mrp_manager'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Manufacturing Orders: without a permission, nothing -->
+    <record id="rule_mrp_production_deny" model="ir.rule">
+        <field name="name">Manufacturing Orders: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_production_create_only" model="ir.rule">
+        <field name="name">Manufacturing Orders: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_production_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_production_edit_own" model="ir.rule">
+        <field name="name">Manufacturing Orders: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_production_edit_team" model="ir.rule">
+        <field name="name">Manufacturing Orders: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_production_edit_all" model="ir.rule">
+        <field name="name">Manufacturing Orders: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_production_view_all" model="ir.rule">
+        <field name="name">Manufacturing Orders: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_production_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_production_delete_own" model="ir.rule">
+        <field name="name">Manufacturing Orders: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_production_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_production_delete_all" model="ir.rule">
+        <field name="name">Manufacturing Orders: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="groups" eval="[(4, ref('group_production_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Bills of Materials: without a permission, nothing -->
+    <record id="rule_mrp_bom_deny" model="ir.rule">
+        <field name="name">Bills of Materials: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_bom_create_only" model="ir.rule">
+        <field name="name">Bills of Materials: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_bom_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_edit_own" model="ir.rule">
+        <field name="name">Bills of Materials: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_edit_team" model="ir.rule">
+        <field name="name">Bills of Materials: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_edit_all" model="ir.rule">
+        <field name="name">Bills of Materials: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_view_all" model="ir.rule">
+        <field name="name">Bills of Materials: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_bom_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_delete_own" model="ir.rule">
+        <field name="name">Bills of Materials: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_delete_all" model="ir.rule">
+        <field name="name">Bills of Materials: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Unbuild Orders: without a permission, nothing -->
+    <record id="rule_mrp_unbuild_deny" model="ir.rule">
+        <field name="name">Unbuild Orders: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_unbuild_create_only" model="ir.rule">
+        <field name="name">Unbuild Orders: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_unbuild_create_only'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_unbuild_edit_own" model="ir.rule">
+        <field name="name">Unbuild Orders: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_unbuild_edit_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_unbuild_edit_team" model="ir.rule">
+        <field name="name">Unbuild Orders: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_unbuild_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_unbuild_edit_all" model="ir.rule">
+        <field name="name">Unbuild Orders: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_unbuild_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_unbuild_view_all" model="ir.rule">
+        <field name="name">Unbuild Orders: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_unbuild_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_unbuild_delete_own" model="ir.rule">
+        <field name="name">Unbuild Orders: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_unbuild_delete_own'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_unbuild_delete_all" model="ir.rule">
+        <field name="name">Unbuild Orders: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_unbuild"/>
+        <field name="groups" eval="[(4, ref('group_unbuild_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Work Orders: without a permission, nothing -->
+    <record id="rule_mrp_workorder_deny" model="ir.rule">
+        <field name="name">Work Orders: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_workorder_create_only" model="ir.rule">
+        <field name="name">Work Orders: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_production_create_only'))]"/>
+        <field name="domain_force">['|', ('production_id.create_uid', '=', user.id), ('production_id.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_workorder_edit_own" model="ir.rule">
+        <field name="name">Work Orders: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_own'))]"/>
+        <field name="domain_force">['|', ('production_id.create_uid', '=', user.id), ('production_id.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_workorder_edit_team" model="ir.rule">
+        <field name="name">Work Orders: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('production_id.create_uid', '=', user.id), ('production_id.user_id', '=', user.id), ('production_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_mrp_workorder_edit_all" model="ir.rule">
+        <field name="name">Work Orders: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_workorder_view_all" model="ir.rule">
+        <field name="name">Work Orders: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_production_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_workorder_delete_own" model="ir.rule">
+        <field name="name">Work Orders: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_production_delete_own'))]"/>
+        <field name="domain_force">['|', ('production_id.create_uid', '=', user.id), ('production_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_workorder_delete_all" model="ir.rule">
+        <field name="name">Work Orders: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('group_production_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Time Logs: without a permission, nothing -->
+    <record id="rule_mrp_workcenter_productivity_deny" model="ir.rule">
+        <field name="name">Time Logs: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_workcenter_productivity_create_only" model="ir.rule">
+        <field name="name">Time Logs: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_production_create_only'))]"/>
+        <field name="domain_force">['|', ('workorder_id', '=', False)] + ['|', ('workorder_id.production_id.create_uid', '=', user.id), ('workorder_id.production_id.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_workcenter_productivity_edit_own" model="ir.rule">
+        <field name="name">Time Logs: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_own'))]"/>
+        <field name="domain_force">['|', ('workorder_id', '=', False)] + ['|', ('workorder_id.production_id.create_uid', '=', user.id), ('workorder_id.production_id.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_workcenter_productivity_edit_team" model="ir.rule">
+        <field name="name">Time Logs: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_team'))]"/>
+        <field name="domain_force">['|', ('workorder_id', '=', False)] + ['|', '|', ('workorder_id.production_id.create_uid', '=', user.id), ('workorder_id.production_id.user_id', '=', user.id), ('workorder_id.production_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_mrp_workcenter_productivity_edit_all" model="ir.rule">
+        <field name="name">Time Logs: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_production_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_workcenter_productivity_view_all" model="ir.rule">
+        <field name="name">Time Logs: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_production_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_workcenter_productivity_delete_own" model="ir.rule">
+        <field name="name">Time Logs: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_production_delete_own'))]"/>
+        <field name="domain_force">['|', ('workorder_id', '=', False)] + ['|', ('workorder_id.production_id.create_uid', '=', user.id), ('workorder_id.production_id.user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_workcenter_productivity_delete_all" model="ir.rule">
+        <field name="name">Time Logs: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter_productivity"/>
+        <field name="groups" eval="[(4, ref('group_production_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- BoM Components: without a permission, nothing -->
+    <record id="rule_mrp_bom_line_deny" model="ir.rule">
+        <field name="name">BoM Components: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_bom_line_create_only" model="ir.rule">
+        <field name="name">BoM Components: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_bom_create_only'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_bom_line_edit_own" model="ir.rule">
+        <field name="name">BoM Components: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_own'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_bom_line_edit_team" model="ir.rule">
+        <field name="name">BoM Components: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_team'))]"/>
+        <field name="domain_force">['|', ('bom_id.create_uid', '=', user.id), ('bom_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_mrp_bom_line_edit_all" model="ir.rule">
+        <field name="name">BoM Components: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_bom_line_view_all" model="ir.rule">
+        <field name="name">BoM Components: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_bom_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_line_delete_own" model="ir.rule">
+        <field name="name">BoM Components: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_own'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_line_delete_all" model="ir.rule">
+        <field name="name">BoM Components: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- BoM By-products: without a permission, nothing -->
+    <record id="rule_mrp_bom_byproduct_deny" model="ir.rule">
+        <field name="name">BoM By-products: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_bom_byproduct_create_only" model="ir.rule">
+        <field name="name">BoM By-products: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_bom_create_only'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_bom_byproduct_edit_own" model="ir.rule">
+        <field name="name">BoM By-products: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_own'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_bom_byproduct_edit_team" model="ir.rule">
+        <field name="name">BoM By-products: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_team'))]"/>
+        <field name="domain_force">['|', ('bom_id.create_uid', '=', user.id), ('bom_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_mrp_bom_byproduct_edit_all" model="ir.rule">
+        <field name="name">BoM By-products: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_bom_byproduct_view_all" model="ir.rule">
+        <field name="name">BoM By-products: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_bom_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_byproduct_delete_own" model="ir.rule">
+        <field name="name">BoM By-products: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_own'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_bom_byproduct_delete_all" model="ir.rule">
+        <field name="name">BoM By-products: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- BoM Operations: without a permission, nothing -->
+    <record id="rule_mrp_routing_workcenter_deny" model="ir.rule">
+        <field name="name">BoM Operations: only through a Manufacturing permission</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_manufacturing_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_routing_workcenter_create_only" model="ir.rule">
+        <field name="name">BoM Operations: Create Only</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_bom_create_only'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_routing_workcenter_edit_own" model="ir.rule">
+        <field name="name">BoM Operations: Create and Edit Own</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_own'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+    </record>
+    <record id="rule_mrp_routing_workcenter_edit_team" model="ir.rule">
+        <field name="name">BoM Operations: Create and Edit My Team</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_team'))]"/>
+        <field name="domain_force">['|', ('bom_id.create_uid', '=', user.id), ('bom_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+    <record id="rule_mrp_routing_workcenter_edit_all" model="ir.rule">
+        <field name="name">BoM Operations: Create and Edit All</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_bom_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_mrp_routing_workcenter_view_all" model="ir.rule">
+        <field name="name">BoM Operations: View All</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_bom_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_mrp_routing_workcenter_delete_own" model="ir.rule">
+        <field name="name">BoM Operations: Delete Own</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_own'))]"/>
+        <field name="domain_force">[('bom_id.create_uid', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_mrp_routing_workcenter_delete_all" model="ir.rule">
+        <field name="name">BoM Operations: Delete All</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_bom_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <record id="rule_mrp_bom_read_for_orders" model="ir.rule">
+        <field name="name">Bills of Materials: readable by Manufacturing and Unbuild Orders permissions</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="groups" eval="[(4, ref('group_production_create_only')), (4, ref('group_production_edit_own')), (4, ref('group_production_edit_team')), (4, ref('group_production_edit_all')), (4, ref('group_production_view_all')), (4, ref('group_production_delete_own')), (4, ref('group_production_delete_all')), (4, ref('group_unbuild_create_only')), (4, ref('group_unbuild_edit_own')), (4, ref('group_unbuild_edit_team')), (4, ref('group_unbuild_edit_all')), (4, ref('group_unbuild_view_all')), (4, ref('group_unbuild_delete_own')), (4, ref('group_unbuild_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_mrp_bom_line_read_for_orders" model="ir.rule">
+        <field name="name">BoM Components: readable by Manufacturing and Unbuild Orders permissions</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_line"/>
+        <field name="groups" eval="[(4, ref('group_production_create_only')), (4, ref('group_production_edit_own')), (4, ref('group_production_edit_team')), (4, ref('group_production_edit_all')), (4, ref('group_production_view_all')), (4, ref('group_production_delete_own')), (4, ref('group_production_delete_all')), (4, ref('group_unbuild_create_only')), (4, ref('group_unbuild_edit_own')), (4, ref('group_unbuild_edit_team')), (4, ref('group_unbuild_edit_all')), (4, ref('group_unbuild_view_all')), (4, ref('group_unbuild_delete_own')), (4, ref('group_unbuild_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_mrp_bom_byproduct_read_for_orders" model="ir.rule">
+        <field name="name">BoM By-products: readable by Manufacturing and Unbuild Orders permissions</field>
+        <field name="model_id" ref="mrp.model_mrp_bom_byproduct"/>
+        <field name="groups" eval="[(4, ref('group_production_create_only')), (4, ref('group_production_edit_own')), (4, ref('group_production_edit_team')), (4, ref('group_production_edit_all')), (4, ref('group_production_view_all')), (4, ref('group_production_delete_own')), (4, ref('group_production_delete_all')), (4, ref('group_unbuild_create_only')), (4, ref('group_unbuild_edit_own')), (4, ref('group_unbuild_edit_team')), (4, ref('group_unbuild_edit_all')), (4, ref('group_unbuild_view_all')), (4, ref('group_unbuild_delete_own')), (4, ref('group_unbuild_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_mrp_routing_workcenter_read_for_orders" model="ir.rule">
+        <field name="name">BoM Operations: readable by Manufacturing and Unbuild Orders permissions</field>
+        <field name="model_id" ref="mrp.model_mrp_routing_workcenter"/>
+        <field name="groups" eval="[(4, ref('group_production_create_only')), (4, ref('group_production_edit_own')), (4, ref('group_production_edit_team')), (4, ref('group_production_edit_all')), (4, ref('group_production_view_all')), (4, ref('group_production_delete_own')), (4, ref('group_production_delete_all')), (4, ref('group_unbuild_create_only')), (4, ref('group_unbuild_edit_own')), (4, ref('group_unbuild_edit_team')), (4, ref('group_unbuild_edit_all')), (4, ref('group_unbuild_view_all')), (4, ref('group_unbuild_delete_own')), (4, ref('group_unbuild_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

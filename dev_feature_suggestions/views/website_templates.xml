@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vote box shared by the list and the suggestion page -->
+    <template id="feature_request_vote_box" name="Feature Request Vote Box">
+        <div class="o_dev_fr_vote text-center">
+            <div class="o_dev_fr_vote_count fw-bold fs-4" t-esc="suggestion.vote_count"/>
+            <div class="small text-muted mb-1">votes</div>
+            <t t-if="is_public">
+                <a t-attf-href="/web/login?redirect={{ suggestion.website_url }}" class="btn btn-sm btn-outline-primary">Vote</a>
+            </t>
+            <t t-elif="my_vote">
+                <form t-attf-action="{{ suggestion.website_url }}/vote" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="remove" value="1"/>
+                    <input type="hidden" name="back" t-att-value="back"/>
+                    <button type="submit" class="btn btn-sm btn-primary" title="Remove my vote">
+                        <i class="fa fa-check me-1"/>Voted
+                    </button>
+                </form>
+            </t>
+            <t t-elif="suggestion.status_id.is_closed">
+                <span class="badge text-bg-light">Closed</span>
+            </t>
+            <t t-else="">
+                <form t-attf-action="{{ suggestion.website_url }}/vote" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="back" t-att-value="back"/>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="fa fa-caret-up me-1"/>Vote
+                    </button>
+                </form>
+            </t>
+        </div>
+    </template>
+
+    <template id="feature_request_status_badge" name="Feature Request Status">
+        <span t-if="suggestion.status_id" t-attf-class="badge o_dev_fr_status o_dev_fr_status_{{ suggestion.status_id.color or 0 }}"
+              t-att-title="suggestion.status_id.website_description" t-esc="suggestion.status_id.name"/>
+        <span t-if="not suggestion.is_published" class="badge text-bg-warning">Awaiting review</span>
+    </template>
+
+    <!-- Forum index -->
+    <template id="feature_requests_index" name="Feature Requests">
+        <t t-call="website.layout">
+            <t t-set="additional_title" t-value="page_title"/>
+            <div id="wrap" class="o_dev_fr">
+                <section class="o_dev_fr_header py-5">
+                    <div class="container">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div>
+                                <h1 class="mb-2" t-esc="page_title"/>
+                                <p class="lead mb-0 text-muted" t-esc="page_intro"/>
+                            </div>
+                            <a href="/feature-requests/new" class="btn btn-primary btn-lg">
+                                <i class="fa fa-lightbulb-o me-2"/>Suggest a Feature
+                            </a>
+                        </div>
+                    </div>
+                </section>
+                <div class="container py-4">
+                    <div class="row g-4">
+                        <aside class="col-lg-3">
+                            <form action="/feature-requests" method="get" class="mb-4" role="search">
+                                <input t-if="current_category" type="hidden" name="category" t-att-value="current_category.id"/>
+                                <input t-if="current_status" type="hidden" name="status" t-att-value="current_status.id"/>
+                                <input type="hidden" name="sort" t-att-value="sort"/>
+                                <div class="input-group">
+                                    <input type="search" name="q" class="form-control" placeholder="Search ideas..."
+                                           t-att-value="q" aria-label="Search ideas"/>
+                                    <button class="btn btn-outline-secondary" type="submit" aria-label="Search">
+                                        <i class="fa fa-search"/>
+                                    </button>
+                                </div>
+                            </form>
+                            <h6 class="text-uppercase text-muted small">Categories</h6>
+                            <div class="list-group mb-4">
+                                <a t-attf-href="/feature-requests?{{ keep_query('q', 'status', 'sort') }}"
+                                   t-attf-class="list-group-item list-group-item-action {{ 'active' if not current_category else '' }}">All categories</a>
+                                <t t-foreach="categories" t-as="category">
+                                    <a t-attf-href="/feature-requests?category={{ category.id }}&amp;{{ keep_query('q', 'status', 'sort') }}"
+                                       t-attf-class="list-group-item list-group-item-action {{ 'active' if category == current_category else '' }}"
+                                       t-att-title="category.description" t-esc="category.name"/>
+                                </t>
+                            </div>
+                            <h6 class="text-uppercase text-muted small">Status</h6>
+                            <div class="list-group">
+                                <a t-attf-href="/feature-requests?{{ keep_query('q', 'category', 'sort') }}"
+                                   t-attf-class="list-group-item list-group-item-action {{ 'active' if not current_status else '' }}">All open ideas</a>
+                                <t t-foreach="statuses" t-as="status">
+                                    <a t-attf-href="/feature-requests?status={{ status.id }}&amp;{{ keep_query('q', 'category', 'sort') }}"
+                                       t-attf-class="list-group-item list-group-item-action {{ 'active' if status == current_status else '' }}"
+                                       t-att-title="status.website_description" t-esc="status.name"/>
+                                </t>
+                            </div>
+                        </aside>
+                        <div class="col-lg-9">
+                            <ul class="nav nav-pills mb-3">
+                                <t t-foreach="sorts.items()" t-as="item">
+                                    <li class="nav-item">
+                                        <a t-attf-href="/feature-requests?sort={{ item[0] }}&amp;{{ keep_query('q', 'category', 'status') }}"
+                                           t-attf-class="nav-link {{ 'active' if sort == item[0] else '' }}" t-esc="item[1]"/>
+                                    </li>
+                                </t>
+                            </ul>
+                            <div t-if="not suggestions" class="text-center text-muted py-5">
+                                <i class="fa fa-lightbulb-o fa-3x mb-3"/>
+                                <p>No ideas here yet. Be the first to suggest one!</p>
+                            </div>
+                            <div t-foreach="suggestions" t-as="suggestion" class="card o_dev_fr_card mb-3">
+                                <div class="card-body d-flex gap-3">
+                                    <t t-call="dev_feature_suggestions.feature_request_vote_box">
+                                        <t t-set="my_vote" t-value="my_votes.get(suggestion.id)"/>
+                                        <t t-set="back" t-value="'list'"/>
+                                    </t>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <h5 class="mb-1">
+                                            <a t-att-href="suggestion.website_url" class="text-reset" t-esc="suggestion.name"/>
+                                        </h5>
+                                        <div class="d-flex flex-wrap gap-2 align-items-center small mb-2">
+                                            <t t-call="dev_feature_suggestions.feature_request_status_badge"/>
+                                            <span t-if="suggestion.category_id" class="text-muted">
+                                                <i class="fa fa-tag me-1"/><t t-esc="suggestion.category_id.name"/>
+                                            </span>
+                                            <span class="text-muted">
+                                                <i class="fa fa-comment-o me-1"/><t t-esc="suggestion.comment_count"/>
+                                            </span>
+                                        </div>
+                                        <p class="text-muted mb-0 o_dev_fr_excerpt"
+                                           t-esc="(html2plaintext(suggestion.description or '') or '')[:240]"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                <t t-call="website.pager"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- One suggestion -->
+    <template id="feature_request_page" name="Feature Request">
+        <t t-call="website.layout">
+            <t t-set="additional_title" t-value="suggestion.name"/>
+            <div id="wrap" class="o_dev_fr">
+                <div class="container py-4">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/feature-requests" t-esc="page_title"/></li>
+                            <li t-if="suggestion.category_id" class="breadcrumb-item">
+                                <a t-attf-href="/feature-requests?category={{ suggestion.category_id.id }}" t-esc="suggestion.category_id.name"/>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page" t-esc="suggestion.ref"/>
+                        </ol>
+                    </nav>
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <div class="d-flex gap-3 mb-3">
+                                <t t-call="dev_feature_suggestions.feature_request_vote_box">
+                                    <t t-set="back" t-value="'page'"/>
+                                </t>
+                                <div class="flex-grow-1">
+                                    <h1 class="h2 mb-2" t-esc="suggestion.name"/>
+                                    <div class="d-flex flex-wrap gap-2 align-items-center small">
+                                        <t t-call="dev_feature_suggestions.feature_request_status_badge"/>
+                                        <span class="text-muted">
+                                            Suggested by <t t-esc="suggestion.partner_id.name or 'a customer'"/>
+                                            on <t t-esc="suggestion.create_date.strftime('%d/%m/%Y')"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div t-if="suggestion.official_response" class="alert alert-info o_dev_fr_response">
+                                <div class="fw-bold mb-1"><i class="fa fa-bullhorn me-1"/>Response from the team</div>
+                                <div t-out="suggestion.official_response"/>
+                            </div>
+                            <div t-if="suggestion.released_in_id" class="alert alert-success">
+                                <i class="fa fa-rocket me-1"/>Released in <t t-esc="suggestion.released_in_id.display_name"/>.
+                            </div>
+                            <div class="o_dev_fr_description mb-4" t-out="suggestion.description"/>
+
+                            <h4 id="comments" class="mt-4 mb-3">Comments (<t t-esc="len(messages)"/>)</h4>
+                            <div t-foreach="messages" t-as="message" class="d-flex gap-2 mb-3">
+                                <div class="o_dev_fr_avatar flex-shrink-0" t-esc="(message.author_id.name or '?')[:1].upper()"/>
+                                <div class="flex-grow-1">
+                                    <div class="small">
+                                        <strong t-esc="message.author_id.name or 'Someone'"/>
+                                        <span t-if="message.author_id.user_ids and not message.author_id.user_ids[0].share"
+                                              class="badge text-bg-primary ms-1">Team</span>
+                                        <span class="text-muted ms-1" t-esc="message.date.strftime('%d/%m/%Y %H:%M')"/>
+                                    </div>
+                                    <div t-out="message.body"/>
+                                </div>
+                            </div>
+                            <t t-if="is_public">
+                                <p class="text-muted">
+                                    <a t-attf-href="/web/login?redirect={{ suggestion.website_url }}">Sign in</a> to vote and comment.
+                                </p>
+                            </t>
+                            <form t-else="" t-attf-action="{{ suggestion.website_url }}/comment" method="post" class="mt-3">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <label for="o_dev_fr_comment" class="form-label">Add a comment</label>
+                                <textarea id="o_dev_fr_comment" name="body" class="form-control mb-2" rows="3" required="required"
+                                          placeholder="Share how you would use this, or ask a question"/>
+                                <button type="submit" class="btn btn-primary">Post Comment</button>
+                            </form>
+                        </div>
+                        <aside class="col-lg-4">
+                            <div class="card mb-3" t-if="not is_public and not suggestion.status_id.is_closed">
+                                <div class="card-body">
+                                    <h5 class="card-title" t-if="not my_vote">How important is this to you?</h5>
+                                    <h5 class="card-title" t-else="">Your vote</h5>
+                                    <form t-attf-action="{{ suggestion.website_url }}/vote" method="post">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <div class="mb-2">
+                                            <t t-set="importance_first" t-value="True"/>
+                                            <t t-foreach="importances" t-as="importance">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="importance_id"
+                                                           t-att-id="'imp_%s' % importance.id" t-att-value="importance.id"
+                                                           t-att-checked="(my_vote and my_vote.importance_id == importance) or (not my_vote and importance_first) or None"/>
+                                                    <label class="form-check-label" t-att-for="'imp_%s' % importance.id" t-esc="importance.name"/>
+                                                </div>
+                                                <t t-set="importance_first" t-value="False"/>
+                                            </t>
+                                        </div>
+                                        <textarea name="note" class="form-control mb-2" rows="3"
+                                                  placeholder="Why does it matter to you? (optional)"
+                                                  t-esc="my_vote.note if my_vote else ''"/>
+                                        <button type="submit" class="btn btn-primary w-100" t-if="not my_vote">Vote</button>
+                                        <button type="submit" class="btn btn-outline-primary w-100" t-else="">Update My Vote</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="card mb-3" t-if="suggestion.status_id">
+                                <div class="card-body">
+                                    <h6 class="text-uppercase text-muted small">Status</h6>
+                                    <p class="mb-0"><strong t-esc="suggestion.status_id.name"/></p>
+                                    <p class="small text-muted mb-0" t-esc="suggestion.status_id.website_description"/>
+                                </div>
+                            </div>
+                            <div class="card" t-if="voters">
+                                <div class="card-body">
+                                    <h6 class="text-uppercase text-muted small">Voters</h6>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <t t-foreach="voters[:24]" t-as="voter">
+                                            <span class="o_dev_fr_avatar o_dev_fr_avatar_sm" t-att-title="voter.name"
+                                                  t-esc="(voter.name or '?')[:1].upper()"/>
+                                        </t>
+                                        <span t-if="len(voters) &gt; 24" class="small text-muted align-self-center">
+                                            +<t t-esc="len(voters) - 24"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- New suggestion -->
+    <template id="feature_request_new" name="Suggest a Feature">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Suggest a Feature</t>
+            <div id="wrap" class="o_dev_fr">
+                <div class="container py-5" style="max-width: 760px;">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/feature-requests" t-esc="page_title"/></li>
+                            <li class="breadcrumb-item active" aria-current="page">Suggest a Feature</li>
+                        </ol>
+                    </nav>
+                    <h1 class="mb-3">Suggest a Feature</h1>
+                    <p class="text-muted">Describe what you'd like to be able to do and why. Others can then vote for it
+                        and add how they would use it.</p>
+                    <div t-if="error" class="alert alert-danger" t-esc="error"/>
+                    <form action="/feature-requests/new" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="mb-3">
+                            <label for="o_dev_fr_name" class="form-label">Title</label>
+                            <input id="o_dev_fr_name" type="text" name="name" class="form-control" required="required"
+                                   maxlength="200" t-att-value="name" placeholder="e.g. Export invoices to Excel"/>
+                        </div>
+                        <div class="mb-3" t-if="categories">
+                            <label for="o_dev_fr_category" class="form-label">Category</label>
+                            <select id="o_dev_fr_category" name="category_id" class="form-select">
+                                <option value="">Choose a category</option>
+                                <t t-foreach="categories" t-as="category">
+                                    <option t-att-value="category.id" t-att-selected="str(category.id) == str(category_id) or None"
+                                            t-esc="category.name"/>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="o_dev_fr_description" class="form-label">Details</label>
+                            <textarea id="o_dev_fr_description" name="description" class="form-control" rows="8"
+                                      placeholder="What problem would this solve for you? How would you use it?"
+                                      t-esc="description"/>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg">Post Suggestion</button>
+                        <a href="/feature-requests" class="btn btn-link">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

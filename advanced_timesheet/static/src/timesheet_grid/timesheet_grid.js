@@ -11,7 +11,7 @@ const { DateTime } = luxon;
 
 /**
  * The timesheet's period as a grid, like Odoo's Timesheets grid: a row per
- * project / task (plus rows filled in automatically, e.g. from Attendances),
+ * work type, or project / task (plus rows filled in automatically, e.g. from Attendances),
  * a column per day grouped into weeks. Typing hours in a cell saves at once
  * (the server adjusts that row's entries for the day).
  */
@@ -154,7 +154,7 @@ export class TimesheetGrid extends Component {
             }
             await this.orm.call("advanced.timesheet", "set_grid_cell", [
                 [this.props.record.resId],
-                { project_id: row.project_id, task_id: row.task_id, is_auto: row.is_auto },
+                { values: row.values, is_auto: row.is_auto },
                 iso,
                 hours,
             ]);

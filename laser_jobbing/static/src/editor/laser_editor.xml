@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="laser_jobbing.LaserTemplateEditor">
+        <div class="o_laser_editor mb-3" t-att-data-signature="signature">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <strong>Visual Editor</strong>
+                <span class="text-muted small">Drag a box to move it; drag its corner to resize it.</span>
+                <div class="ms-auto d-flex gap-2" t-if="!props.readonly">
+                    <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.addElement('text')">
+                        <i class="fa fa-font me-1"/>Add Text
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.addElement('image')">
+                        <i class="fa fa-picture-o me-1"/>Add Picture
+                    </button>
+                </div>
+            </div>
+            <div class="o_laser_canvas">
+                <svg t-ref="svg" xmlns="http://www.w3.org/2000/svg"/>
+            </div>
+            <div class="small text-muted mt-1" t-if="selected">
+                <t t-esc="selected.data.name"/>:
+                <t t-esc="selected.data.x_mm"/>, <t t-esc="selected.data.y_mm"/> mm,
+                <t t-esc="selected.data.width_mm"/> x <t t-esc="selected.data.height_mm"/> mm
+            </div>
+        </div>
+    </t>
+
+    <t t-name="laser_jobbing.LaserJobPreview">
+        <div class="o_laser_editor mb-3" t-att-data-signature="signature">
+            <div class="o_laser_canvas" t-if="state.data">
+                <svg t-ref="svg" xmlns="http://www.w3.org/2000/svg"/>
+            </div>
+            <p class="text-muted" t-else="">Pick a template to see the preview.</p>
+        </div>
+    </t>
+
+</templates>

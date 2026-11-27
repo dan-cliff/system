@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Soft shadow below -->
+  <ellipse cx="500" cy="905" rx="380" ry="34" fill="url(#shadow)"/>
+
+  <!-- Roster window -->
+  <g filter="url(#soft)">
+    <rect x="100" y="150" width="740" height="680" rx="72" fill="url(#header)"/>
+    <rect x="100" y="250" width="740" height="580" rx="64" fill="url(#panel)"/>
+    <rect x="100" y="250" width="740" height="80" fill="url(#panel)"/>
+  </g>
+  <rect x="150" y="166" width="640" height="18" rx="9" fill="#FFFFFF" opacity="0.18"/>
+  <!-- Binder rings -->
+  <rect x="230" y="110" width="44" height="104" rx="22" fill="#2A3F8F"/>
+  <rect x="666" y="110" width="44" height="104" rx="22" fill="#2A3F8F"/>
+  <rect x="240" y="120" width="12" height="60" rx="6" fill="#FFFFFF" opacity="0.25"/>
+  <rect x="676" y="120" width="12" height="60" rx="6" fill="#FFFFFF" opacity="0.25"/>
+
+  <!-- Day header bars -->
+  <g fill="#A9ABDC">
+    <rect x="290" y="296" width="70" height="22" rx="11"/>
+    <rect x="390" y="296" width="70" height="22" rx="11"/>
+    <rect x="490" y="296" width="70" height="22" rx="11"/>
+    <rect x="590" y="296" width="70" height="22" rx="11"/>
+    <rect x="690" y="296" width="70" height="22" rx="11"/>
+  </g>
+
+  <!-- People rows: an avatar, then shift bars across the days -->
+  <g>
+    <circle cx="200" cy="384" r="34" fill="url(#coral)"/>
+    <rect x="286" y="358" width="278" height="52" rx="26" fill="url(#coral)"/>
+    <rect x="586" y="358" width="78" height="52" rx="26" fill="url(#coral)"/>
+    <rect x="300" y="366" width="120" height="10" rx="5" fill="#FFFFFF" opacity="0.35"/>
+
+    <circle cx="200" cy="486" r="34" fill="url(#blue)"/>
+    <rect x="386" y="460" width="378" height="52" rx="26" fill="url(#blue)"/>
+    <rect x="400" y="468" width="160" height="10" rx="5" fill="#FFFFFF" opacity="0.35"/>
+
+    <circle cx="200" cy="588" r="34" fill="url(#teal)"/>
+    <rect x="286" y="562" width="178" height="52" rx="26" fill="url(#teal)"/>
+    <rect x="486" y="562" width="78" height="52" rx="26" fill="#E4E4F4"/>
+    <rect x="300" y="570" width="80" height="10" rx="5" fill="#FFFFFF" opacity="0.35"/>
+
+    <circle cx="200" cy="690" r="34" fill="#A9ABDC"/>
+    <rect x="286" y="664" width="178" height="52" rx="26" fill="url(#coral)" opacity="0.85"/>
+    <rect x="300" y="672" width="80" height="10" rx="5" fill="#FFFFFF" opacity="0.35"/>
+  </g>
+
+  <!-- Accent: leave (a sun badge) over the lower right corner -->
+  <g filter="url(#soft)">
+    <circle cx="760" cy="730" r="168" fill="url(#yellow)"/>
+  </g>
+  <circle cx="760" cy="730" r="168" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="10"/>
+  <ellipse cx="712" cy="640" rx="78" ry="30" fill="#FFFFFF" opacity="0.28"/>
+  <g fill="#FFFFFF">
+    <circle cx="760" cy="740" r="58"/>
+    <rect x="750" y="630" width="20" height="40" rx="10"/>
+    <rect x="750" y="810" width="20" height="40" rx="10"/>
+    <rect x="650" y="730" width="40" height="20" rx="10"/>
+    <rect x="830" y="730" width="40" height="20" rx="10"/>
+    <rect x="750" y="630" width="20" height="40" rx="10" transform="rotate(45 760 740)"/>
+    <rect x="750" y="630" width="20" height="40" rx="10" transform="rotate(135 760 740)"/>
+    <rect x="750" y="630" width="20" height="40" rx="10" transform="rotate(225 760 740)"/>
+    <rect x="750" y="630" width="20" height="40" rx="10" transform="rotate(315 760 740)"/>
+  </g>
+</svg>

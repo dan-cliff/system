@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_modern_crm_contract_document">
+        <t t-call="web.external_layout">
+            <t t-set="contract" t-value="contract.with_context(lang=contract.partner_id.lang)"/>
+            <t t-set="address">
+                <div t-field="contract.partner_id"
+                     t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+            </t>
+            <div class="page">
+                <h2>
+                    <span t-field="contract.title"/>
+                    <small class="text-muted"> <span t-field="contract.name"/></small>
+                </h2>
+                <div class="row mt-3 mb-4" id="informations">
+                    <div class="col-auto me-4">
+                        <strong>Start Date</strong>
+                        <div t-out="contract.start_date.strftime('%d/%m/%Y') if contract.start_date else ''"/>
+                    </div>
+                    <div class="col-auto me-4" t-if="contract.end_date">
+                        <strong>End Date</strong>
+                        <div t-out="contract.end_date.strftime('%d/%m/%Y')"/>
+                    </div>
+                    <div class="col-auto me-4" t-if="contract.term_months">
+                        <strong>Term</strong>
+                        <div><t t-out="contract.term_months"/> months</div>
+                    </div>
+                    <div class="col-auto me-4" t-if="contract.quote_id">
+                        <strong>Quote</strong>
+                        <div t-field="contract.quote_id.name"/>
+                    </div>
+                    <div class="col-auto" t-if="contract.user_id">
+                        <strong>Contact</strong>
+                        <div t-field="contract.user_id"/>
+                    </div>
+                </div>
+                <div t-field="contract.body"/>
+                <div t-if="contract.special_terms" class="mt-4">
+                    <h4>Special Terms</h4>
+                    <p t-field="contract.special_terms"/>
+                </div>
+                <div class="row mt-5" style="page-break-inside: avoid;">
+                    <div t-foreach="contract.signer_ids" t-as="signer" class="col-6 mb-4">
+                        <div t-if="signer.role" class="text-muted small" t-out="signer.role"/>
+                        <div style="height: 90px;" class="d-flex align-items-end">
+                            <img t-if="signer.signature" t-att-src="image_data_uri(signer.signature)"
+                                 style="max-height: 80px; max-width: 100%;"/>
+                        </div>
+                        <div style="border-top: 1px solid #333;" class="pt-1">
+                            <strong t-out="signer.signed_by or signer.partner_id.name"/>
+                            <div class="small" t-if="signer.signed_on">
+                                Signed <t t-out="signer._format_signed_on()"/>
+                            </div>
+                            <div class="small text-muted" t-else="">Not signed yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_modern_crm_contract">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="contract">
+                <t t-call="modern_crm.report_modern_crm_contract_document" t-lang="contract.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_modern_crm_contract" model="ir.actions.report">
+        <field name="name">Contract</field>
+        <field name="model">modern.crm.contract</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">modern_crm.report_modern_crm_contract</field>
+        <field name="report_file">modern_crm.report_modern_crm_contract</field>
+        <field name="print_report_name">'%s - %s' % (object.name, object.title)</field>
+        <field name="binding_model_id" ref="model_modern_crm_contract"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

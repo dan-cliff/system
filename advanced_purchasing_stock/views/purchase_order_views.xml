@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.purchasing.stock</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
+        <field name="arch" type="xml">
+            <!-- Stock of each product on the order lines. -->
+            <xpath expr="//page/field[@name='order_line']/list/field[@name='product_qty']" position="before">
+                <field name="purchasing_qty_on_hand" optional="show" invisible="not is_storable"/>
+                <field name="purchasing_qty_forecast" optional="hide" invisible="not is_storable"/>
+            </xpath>
+            <xpath expr="//div[@name='reminder']/following-sibling::field[@name='effective_date']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_purchasing_receipts" model="ir.actions.act_window">
+        <field name="name">Receipts</field>
+        <field name="res_model">stock.picking</field>
+        <field name="path">purchasing-receipts</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('purchase_id', '!=', False), ('picking_type_code', '=', 'incoming')]</field>
+        <field name="context">{'contact_display': 'partner_address', 'default_picking_type_code': 'incoming', 'search_default_available': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No receipts to process.</p>
+            <p>Confirmed purchase orders of storable products and consumables create receipts here.
+               Validate a receipt when the goods arrive to add them to stock.</p>
+        </field>
+    </record>
+</odoo>

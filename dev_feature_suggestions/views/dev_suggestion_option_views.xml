@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Configuration option lists (CLAUDE.md > Choice fields). -->
+
+    <record id="dev_suggestion_category_view_list" model="ir.ui.view">
+        <field name="name">dev.suggestion.category.list</field>
+        <field name="model">dev.suggestion.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="is_public"/>
+                <field name="description"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_category_view_form" model="ir.ui.view">
+        <field name="name">dev.suggestion.category.form</field>
+        <field name="model">dev.suggestion.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="is_public"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="description"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_category_action" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">dev.suggestion.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add categories</p>
+            <p>Group suggestions by product area.</p>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_status_view_list" model="ir.ui.view">
+        <field name="name">dev.suggestion.status.list</field>
+        <field name="model">dev.suggestion.status</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="is_closed"/>
+                <field name="notify_followers"/>
+                <field name="set_on_release"/>
+                <field name="fold"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_status_view_form" model="ir.ui.view">
+        <field name="name">dev.suggestion.status.form</field>
+        <field name="model">dev.suggestion.status</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="is_closed"/>
+                        <field name="notify_followers"/>
+                        <field name="set_on_release"/>
+                        <field name="fold"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="website_description"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_status_action" model="ir.actions.act_window">
+        <field name="name">Statuses</field>
+        <field name="res_model">dev.suggestion.status</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add statuses</p>
+            <p>The statuses a suggestion goes through, as customers see them.</p>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_source_view_list" model="ir.ui.view">
+        <field name="name">dev.suggestion.source.list</field>
+        <field name="model">dev.suggestion.source</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_source_view_form" model="ir.ui.view">
+        <field name="name">dev.suggestion.source.form</field>
+        <field name="model">dev.suggestion.source</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_source_action" model="ir.actions.act_window">
+        <field name="name">Sources</field>
+        <field name="res_model">dev.suggestion.source</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add sources</p>
+            <p>Where suggestions and votes come from.</p>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_importance_view_list" model="ir.ui.view">
+        <field name="name">dev.suggestion.importance.list</field>
+        <field name="model">dev.suggestion.importance</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="weight"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_importance_view_form" model="ir.ui.view">
+        <field name="name">dev.suggestion.importance.form</field>
+        <field name="model">dev.suggestion.importance</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="weight"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="dev_suggestion_importance_action" model="ir.actions.act_window">
+        <field name="name">Importance Levels</field>
+        <field name="res_model">dev.suggestion.importance</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add importance levels</p>
+            <p>How important a suggestion is to a voter, and how much their vote counts.</p>
+        </field>
+    </record>
+</odoo>

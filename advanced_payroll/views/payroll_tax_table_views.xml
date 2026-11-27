@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_tax_table_view_list" model="ir.ui.view">
+        <field name="name">payroll.tax.table.list</field>
+        <field name="model">payroll.tax.table</field>
+        <field name="arch" type="xml">
+            <list string="Tax Tables">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="country_id" optional="show"/>
+                <field name="annual_deduction" optional="show"/>
+                <field name="credit_base" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_tax_table_view_form" model="ir.ui.view">
+        <field name="name">payroll.tax.table.form</field>
+        <field name="model">payroll.tax.table</field>
+        <field name="arch" type="xml">
+            <form string="Tax Table">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Resident 2026–27"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="country_id" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="annual_deduction"/>
+                            <field name="credit_base"/>
+                            <field name="credit_rate" invisible="not credit_base"/>
+                        </group>
+                    </group>
+                    <field name="bracket_ids">
+                        <list editable="bottom">
+                            <field name="id" optional="show"/>
+                            <field name="threshold"/>
+                            <field name="rate"/>
+                        </list>
+                    </field>
+                    <field name="note" placeholder="Where the rates come from and when they apply..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_tax_table_view_search" model="ir.ui.view">
+        <field name="name">payroll.tax.table.search</field>
+        <field name="model">payroll.tax.table</field>
+        <field name="arch" type="xml">
+            <search string="Tax Tables">
+                <field name="name"/>
+                <field name="country_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_country" string="Payroll Country" context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_payroll_tax_table" model="ir.actions.act_window">
+        <field name="name">Tax Tables</field>
+        <field name="res_model">payroll.tax.table</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a tax table</p>
+            <p>Annual tax brackets used by the payroll rules worked out with a Tax Table.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Products follow the company hierarchy both ways (see
+         models/product_company.py): a company also sees its child
+         companies' products. Odoo's rule is noupdate, so it is written here
+         directly; the uninstall hook puts Odoo's rule back. -->
+    <function model="ir.rule" name="write">
+        <value eval="[ref('product.product_comp_rule')]"/>
+        <value eval="{'domain_force': &quot;['|', '|', ('company_id', '=', False), ('company_id', 'parent_of', company_ids), ('company_id', 'child_of', company_ids)]&quot;}"/>
+    </function>
+</odoo>

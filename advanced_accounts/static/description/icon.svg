@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Advanced Accounts app icon (CLAUDE.md > Icon style, illustrated): a
+       contact card showing a person (the Contacts), with an office building
+       overlapping its lower right corner (the Account they work at). -->
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F9A3A3"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#2A3F8F" flood-opacity="0.22"/>
+    </filter>
+    <filter id="shadowSmall" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <!-- Contact card -->
+  <g filter="url(#shadow)">
+    <rect x="90" y="170" width="720" height="560" rx="64" fill="url(#panel)"/>
+    <path d="M154 170h592a64 64 0 0 1 64 64v40H90v-40a64 64 0 0 1 64-64z" fill="url(#header)"/>
+    <rect x="380" y="206" width="140" height="34" rx="17" fill="#FFFFFF" opacity="0.55"/>
+  </g>
+
+  <!-- The person: a circle and a rounded body on a soft tile -->
+  <rect x="150" y="330" width="250" height="300" rx="48" fill="#F2F2FA"/>
+  <circle cx="275" cy="430" r="62" fill="url(#coral)"/>
+  <path d="M175 600c0-70 45-112 100-112s100 42 100 112z" fill="url(#coral)"/>
+  <ellipse cx="258" cy="402" rx="26" ry="15" fill="url(#shine)"/>
+
+  <!-- "Text" bars: name, job title, email, phone -->
+  <rect x="440" y="350" width="300" height="38" rx="19" fill="#A9ABDC"/>
+  <rect x="440" y="414" width="220" height="30" rx="15" fill="#A9ABDC" opacity="0.7"/>
+  <rect x="440" y="484" width="40" height="30" rx="15" fill="url(#teal)"/>
+  <rect x="496" y="484" width="190" height="30" rx="15" fill="#A9ABDC" opacity="0.7"/>
+  <rect x="440" y="544" width="40" height="30" rx="15" fill="url(#blue)"/>
+  <rect x="496" y="544" width="150" height="30" rx="15" fill="#A9ABDC" opacity="0.7"/>
+
+  <!-- Accent: the Account's office building, faceted (lit front, darker side) -->
+  <g filter="url(#shadowSmall)">
+    <path d="M640 560a28 28 0 0 1 28-28h170a28 28 0 0 1 28 28v344H640z" fill="url(#blue)"/>
+    <path d="M866 600l52 30a22 22 0 0 1 12 20v254h-64z" fill="#2A3F8F"/>
+    <rect x="640" y="880" width="290" height="40" rx="16" fill="#2A3F8F"/>
+    <path d="M668 532h170a28 28 0 0 1 28 28v30H640v-30a28 28 0 0 1 28-28z" fill="url(#shine)"/>
+    <g fill="#FFFFFF">
+      <rect x="676" y="606" width="54" height="54" rx="12"/>
+      <rect x="776" y="606" width="54" height="54" rx="12"/>
+      <rect x="676" y="692" width="54" height="54" rx="12"/>
+      <rect x="776" y="692" width="54" height="54" rx="12" opacity="0.6"/>
+    </g>
+    <rect x="718" y="784" width="70" height="96" rx="14" fill="#FFC93C"/>
+    <rect x="718" y="784" width="35" height="96" rx="14" fill="#FF9F1C" opacity="0.5"/>
+  </g>
+</svg>

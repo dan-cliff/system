@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_payroll_accounting</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="advanced_payroll.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='advanced_payroll_features']" position="before">
+                <block title="Accounting" id="advanced_payroll_accounting">
+                    <setting id="advanced_payroll_journals" string="Journals"
+                             help="Approved pay runs are posted to the Payroll journal; marking them as paid posts the payment from the payment journal (leave it empty to record payments in Accounting yourself).">
+                        <div class="row">
+                            <label for="payroll_journal_id" class="col-lg-5 o_light_label"/>
+                            <field name="payroll_journal_id" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row">
+                            <label for="payroll_payment_journal_id" class="col-lg-5 o_light_label"/>
+                            <field name="payroll_payment_journal_id" options="{'no_create': True}"/>
+                        </div>
+                        <div invisible="payroll_journal_id">
+                            <button name="action_payroll_create_journal" type="object" string="Create Payroll Journal"
+                                    icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="advanced_payroll_accounts" string="Default Accounts"
+                             help="Used for pay items and payroll rules without an account of their own (Configuration › Pay Items and Payroll Rules).">
+                        <div class="row">
+                            <label for="payroll_expense_account_id" class="col-lg-5 o_light_label"/>
+                            <field name="payroll_expense_account_id" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row">
+                            <label for="payroll_liability_account_id" class="col-lg-5 o_light_label"/>
+                            <field name="payroll_liability_account_id" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row">
+                            <label for="payroll_net_account_id" class="col-lg-5 o_light_label"/>
+                            <field name="payroll_net_account_id" options="{'no_create': True}"/>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,52 @@
+.o_laser_canvas {
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    padding: 0.5rem;
+    background-color: $gray-200;
+    background-image:
+        linear-gradient(45deg, $gray-300 25%, transparent 25%),
+        linear-gradient(-45deg, $gray-300 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, $gray-300 75%),
+        linear-gradient(-45deg, transparent 75%, $gray-300 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+
+    svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 520px;
+        touch-action: none;
+        user-select: none;
+    }
+    .o_laser_artboard {
+        fill: #ffffff;
+    }
+    .o_laser_box {
+        fill: rgba(10, 108, 240, 0.06);
+        stroke: #0a6cf0;
+        cursor: move;
+    }
+    .o_laser_box.o_laser_selected {
+        stroke: #ff5a6e;
+        fill: rgba(255, 90, 110, 0.08);
+    }
+    .o_laser_handle {
+        fill: #0a6cf0;
+        cursor: nwse-resize;
+    }
+    .o_laser_label.o_laser_tag {
+        fill: #ffffff;
+        paint-order: stroke;
+        stroke: #0a6cf0;
+        stroke-width: 0.6px;
+        opacity: 0.9;
+        font-weight: bold;
+    }
+    .o_laser_label {
+        fill: #2a3f8f;
+        opacity: 0.7;
+        pointer-events: none;
+        font-family: sans-serif;
+    }
+}

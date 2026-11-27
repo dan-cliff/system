@@ -170,14 +170,6 @@
             </svg>
             Ask AI
         </button>
-        ${this.helpdeskEnabled && this.userAuthenticated ? `
-        <button class="hc-tab" data-tab="ticket" aria-selected="false">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-4-4z"/>
-                <polyline points="15 5 15 9 19 9"/>
-            </svg>
-            Lodge Ticket
-        </button>` : ''}
     </div>
 
     <!-- Tab content -->
@@ -197,6 +189,17 @@
                 </div>
                 <div id="hc-suggestions" class="hc-suggestions" role="listbox" aria-label="Suggestions"></div>
             </div>
+            ${this.helpdeskEnabled && this.userAuthenticated ? `
+            <div class="hc-create-ticket-cta">
+                <span>Can't find an answer?</span>
+                <button id="hc-create-ticket-btn" class="hc-create-ticket-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-4-4z"/>
+                        <polyline points="15 5 15 9 19 9"/>
+                    </svg>
+                    Create Ticket
+                </button>
+            </div>` : ''}
             <div id="hc-home-content" class="hc-home-content">
                 <div class="hc-loading-spinner">
                     <div class="hc-spinner"></div>
@@ -228,13 +231,22 @@
         </div>
 
         ${this.helpdeskEnabled && this.userAuthenticated ? `
-        <!-- Lodge Ticket tab -->
+        <!-- Create Ticket form (opened from the Create Ticket button on Home) -->
         <div class="hc-tab-pane" id="hc-pane-ticket">
+            <div class="hc-article-nav">
+                <button id="hc-ticket-back" class="hc-back-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                    Back
+                </button>
+            </div>
             <div class="hc-ticket-wrap">
                 <!-- Idle / submitting form -->
                 <div id="hc-ticket-form-view">
                     <p class="hc-ticket-intro">
-                        Can't find what you're looking for? Lodge a support ticket and our team will get back to you.
+                        Can't find what you're looking for? Create a support ticket and our team will get back to you.
                     </p>
                     <div class="mb-3">
                         <label class="hc-form-label" for="hc-ticket-subject">Subject <span style="color:#dc3545">*</span></label>
@@ -351,8 +363,10 @@
             });
             this.root.querySelector('#hc-chat-send').addEventListener('click', () => this._sendChat());
 
-            // Lodge Ticket form
+            // Create Ticket button and form
             if (this.helpdeskEnabled && this.userAuthenticated) {
+                this.root.querySelector('#hc-create-ticket-btn').addEventListener('click', () => this.switchTab('ticket'));
+                this.root.querySelector('#hc-ticket-back').addEventListener('click', () => this.switchTab('home'));
                 this.root.querySelector('#hc-ticket-submit').addEventListener('click', () => this._submitTicket());
                 this.root.querySelector('#hc-ticket-subject').addEventListener('keydown', e => {
                     if (e.key === 'Enter') { e.preventDefault(); this._submitTicket(); }
@@ -438,7 +452,7 @@
                 setTimeout(() => this.root.querySelector('#hc-chat-input').focus(), 100);
             } else if (tab === 'ticket') {
                 this.root.querySelector('#hc-pane-ticket').classList.add('active');
-                this._showTabs(true);
+                this._showTabs(false);
                 setTimeout(() => this.root.querySelector('#hc-ticket-subject').focus(), 100);
             }
         }
@@ -685,7 +699,7 @@
                 });
         }
 
-        // ── Lodge Ticket tab ───────────────────────────────────────────────────
+        // ── Create Ticket form ─────────────────────────────────────────────────
 
         async _submitTicket() {
             const subjectEl  = this.root.querySelector('#hc-ticket-subject');
@@ -731,7 +745,7 @@
                 const successView = this.root.querySelector('#hc-ticket-success-view');
                 successView.classList.remove('d-none');
                 this.root.querySelector('#hc-ticket-success-msg').textContent =
-                    `Ticket #${result.ticket_id} has been lodged. Someone will be in touch shortly.`;
+                    `Ticket #${result.ticket_ref || result.ticket_id} has been created. Someone will be in touch shortly.`;
 
             } catch (e) {
                 errorEl.textContent = 'Something went wrong. Please try again.';

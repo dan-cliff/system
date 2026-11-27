@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inventory takes the place of Odoo's Inventory app on the home screen.
+         Odoo's Inventory menus are reloaded when it upgrades, and this module
+         (which depends on it) is upgraded with it, so this runs each time: the
+         menus under Odoo's Inventory root move to this app's root, and that root
+         is archived. The uninstall hook gives Odoo's Inventory its menu back. -->
+    <function model="ir.ui.menu" name="_inventory_take_over_menus"/>
+</odoo>

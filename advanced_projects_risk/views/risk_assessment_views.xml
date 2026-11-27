@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_risk_assessment_form_project" model="ir.ui.view">
+        <field name="name">risk.assessment.form.project</field>
+        <field name="model">risk.assessment</field>
+        <field name="inherit_id" ref="risk_management.view_risk_assessment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="advanced_project_id" options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_risk_assessment_list_project" model="ir.ui.view">
+        <field name="name">risk.assessment.list.project</field>
+        <field name="model">risk.assessment</field>
+        <field name="inherit_id" ref="risk_management.view_risk_assessment_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="advanced_project_id" optional="show" column_invisible="context.get('default_advanced_project_id')"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_risk_assessment_search_project" model="ir.ui.view">
+        <field name="name">risk.assessment.search.project</field>
+        <field name="model">risk.assessment</field>
+        <field name="inherit_id" ref="risk_management.view_risk_assessment_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="advanced_project_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_project_view_form_risk" model="ir.ui.view">
+        <field name="name">advanced.project.form.risk</field>
+        <field name="model">advanced.project</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_invite']" position="after">
+                <button name="action_new_risk_assessment" type="object" string="New Risk Assessment"
+                        invisible="is_template or not id" groups="risk_management.group_risk_assessment_create"/>
+            </xpath>
+            <xpath expr="//button[@name='action_open_team']" position="after">
+                <button name="action_open_risk_assessments" type="object" class="oe_stat_button" icon="fa-shield"
+                        invisible="is_template or not risk_assessment_count"
+                        groups="risk_management.group_risk_assessment_view">
+                    <field name="risk_assessment_count" widget="statinfo" string="Risk Assessments"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

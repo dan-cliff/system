@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_advanced_accounts_admin" model="permission.role">
+            <field name="name">Advanced Accounts – Administrator</field>
+            <field name="description">Everything in Advanced Accounts: create, edit and delete any Account or Contact, create users for Contacts, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_accounts.res_groups_privilege_advanced_accounts'), 'group_id': ref('advanced_accounts.group_advanced_accounts_manager')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_create_only'), 'group_id': ref('advanced_accounts.group_advanced_account_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_edit_own'), 'group_id': ref('advanced_accounts.group_advanced_account_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_edit_team'), 'group_id': ref('advanced_accounts.group_advanced_account_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_edit_all'), 'group_id': ref('advanced_accounts.group_advanced_account_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_view_all'), 'group_id': ref('advanced_accounts.group_advanced_account_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_delete_own'), 'group_id': ref('advanced_accounts.group_advanced_account_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_delete_all'), 'group_id': ref('advanced_accounts.group_advanced_account_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_create_only'), 'group_id': ref('advanced_accounts.group_advanced_contact_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_edit_own'), 'group_id': ref('advanced_accounts.group_advanced_contact_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_edit_team'), 'group_id': ref('advanced_accounts.group_advanced_contact_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_edit_all'), 'group_id': ref('advanced_accounts.group_advanced_contact_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_view_all'), 'group_id': ref('advanced_accounts.group_advanced_contact_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_delete_own'), 'group_id': ref('advanced_accounts.group_advanced_contact_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_delete_all'), 'group_id': ref('advanced_accounts.group_advanced_contact_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_create_user'), 'group_id': ref('advanced_accounts.group_advanced_contact_create_user')})
+            ]"/>
+        </record>
+        <record id="role_advanced_accounts_manager" model="permission.role">
+            <field name="name">Advanced Accounts – Manager</field>
+            <field name="description">Create, view and edit their own and their team's Accounts and Contacts. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_edit_team'), 'group_id': ref('advanced_accounts.group_advanced_account_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_edit_team'), 'group_id': ref('advanced_accounts.group_advanced_contact_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_advanced_accounts_employee" model="permission.role">
+            <field name="name">Advanced Accounts – Employee</field>
+            <field name="description">Create, view and edit their own Accounts and Contacts. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_account_edit_own'), 'group_id': ref('advanced_accounts.group_advanced_account_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_accounts.privilege_advanced_contact_edit_own'), 'group_id': ref('advanced_accounts.group_advanced_contact_edit_own')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

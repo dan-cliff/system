@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Risk actions follow their Risk's assessment, as before (risk_security.xml). -->
+    <record id="rule_advanced_action_risk_own" model="ir.rule">
+        <field name="name">Actions: Risk Assessments, assigned, own, owned, approving or collaborating</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_own'))]"/>
+        <field name="domain_force">[
+            ('risk_line_id', '!=', False),
+            '|', '|', '|', '|',
+            ('user_ids', 'in', [user.id]),
+            ('risk_assessment_id.create_uid', '=', user.id),
+            ('risk_assessment_id.assessor_id', '=', user.id),
+            ('risk_assessment_id.approver_id', '=', user.id),
+            ('risk_assessment_id.collaborator_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_advanced_action_risk_any" model="ir.rule">
+        <field name="name">Actions: Risk Assessments, any risk action (Update or Delete)</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('risk_management.group_risk_assessment_update')), (4, ref('risk_management.group_risk_assessment_delete'))]"/>
+        <field name="domain_force">[('risk_line_id', '!=', False)]</field>
+    </record>
+</odoo>

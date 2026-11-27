@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The shared "Leave Requests" calendar: Calendar lists calendars by
+         contact, so every leave event has this contact as an attendee. -->
+    <record id="partner_leave_requests_calendar" model="res.partner">
+        <field name="name">Leave Requests</field>
+        <field name="is_company" eval="False"/>
+        <field name="active" eval="True"/>
+        <field name="comment">Shared calendar of the Rostering leave requests (Rostering - Calendar).</field>
+    </record>
+</odoo>

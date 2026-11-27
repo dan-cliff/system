@@ -1,0 +1,16 @@
+.o_bulk_scan {
+    .o_bulk_scan_results {
+        max-height: 50vh;
+        overflow-y: auto;
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 0.5rem;
+    }
+    .o_bulk_scan_failed .o_bulk_scan_message {
+        color: var(--danger, #FF5A6E);
+    }
+    thead th {
+        position: sticky;
+        top: 0;
+        background: var(--o-view-background-color, #fff);
+    }
+}

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_checklists" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.talent.checklists</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="modern_recruitment.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='talent_job_boards']" position="after">
+                <block title="Checklists" name="talent_checklists">
+                    <setting id="talent_checklist_setting" string="Integrate Checklists with Talent"
+                             company_dependent="1"
+                             help="Send pre-employment screening questionnaires (checklist templates) to applicants.">
+                        <field name="talent_checklist_enabled"/>
+                        <div class="content-group mt-2" invisible="not talent_checklist_enabled">
+                            <div class="row">
+                                <label for="talent_checklist_group_ids" string="Checklist Groups"
+                                       class="col-lg-4 o_light_label"/>
+                                <field name="talent_checklist_group_ids" widget="many2many_tags"
+                                       class="col-lg-8" options="{'no_create': True}"
+                                       placeholder="The groups Talent can send templates from"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                Their templates can be sent to applicants from the applicant's chatter
+                                (Send Questionnaire).
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

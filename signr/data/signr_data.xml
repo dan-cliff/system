@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_signr_request" model="ir.sequence">
+            <field name="name">Sign Requests</field>
+            <field name="code">signr.request</field>
+            <field name="prefix">SR/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Starting document types: admins add, rename and archive their own -->
+        <record id="document_type_contract" model="signr.document.type">
+            <field name="name">Contract</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="document_type_employment_contract" model="signr.document.type">
+            <field name="name">Employment Contract</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="document_type_order_form" model="signr.document.type">
+            <field name="name">Order Form</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="document_type_change_request" model="signr.document.type">
+            <field name="name">Change Request</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="document_type_agreement" model="signr.document.type">
+            <field name="name">Agreement</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="document_type_acknowledgement" model="signr.document.type">
+            <field name="name">Policy Acknowledgement</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="document_type_consent" model="signr.document.type">
+            <field name="name">Consent Form</field>
+            <field name="sequence">70</field>
+        </record>
+    </data>
+
+    <record id="ir_cron_signr_expire" model="ir.cron">
+        <field name="name">Sign'r: expire sign requests past their Sign Before date</field>
+        <field name="model_id" ref="model_signr_request"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

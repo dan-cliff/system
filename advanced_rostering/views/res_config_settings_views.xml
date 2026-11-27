@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_rostering</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="47"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Rostering" id="advanced_rostering" string="Rostering"
+                     name="advanced_rostering" groups="advanced_rostering.group_rostering_admin">
+                    <block title="Rosters" id="advanced_rostering_block">
+                        <setting id="advanced_rostering_cycle" string="Publish Rosters"
+                                 help="How often rosters are published. Each roster covers one week, fortnight, calendar month or calendar quarter, and new Roster Templates are designed for the same cycle.">
+                            <field name="rostering_cycle" widget="radio"/>
+                            <div class="mt-2" invisible="rostering_cycle in ('monthly', 'quarterly')">
+                                <label for="rostering_period_start" class="o_light_label me-2"/>
+                                <field name="rostering_period_start" options="{'numeric': True}"
+                                       required="rostering_cycle not in ('monthly', 'quarterly')"/>
+                            </div>
+                        </setting>
+                        <setting id="advanced_rostering_full_day_hours" string="Full Day Hours"
+                                 invisible="module_advanced_rostering_hr"
+                                 help="Hours off for each whole day of leave. With Personnel switched on, the Full Time Equivalent of the company's working hours (Personnel settings) is used instead.">
+                            <field name="rostering_leave_hours_per_day" widget="float_time" class="oe_inline"/>
+                            <span class="ms-1">hours a day</span>
+                        </setting>
+                        <setting id="advanced_rostering_notify" string="Notify Staff on Publishing"
+                                 help="When a roster is published, everyone on it gets a notification to check their shifts.">
+                            <field name="rostering_notify_publish"/>
+                        </setting>
+                    </block>
+                    <block title="Public Holidays" id="advanced_rostering_holidays">
+                        <setting id="advanced_rostering_holiday_multiplier" string="Default Pay Multiplier"
+                                 help="Penalty rate given to new public holidays: standard pay × this factor. Change it on each holiday in Configuration › Public Holidays.">
+                            <div class="o_row">
+                                <span>Standard Pay ×</span>
+                                <field name="rostering_holiday_pay_multiplier" class="oe_inline"/>
+                            </div>
+                        </setting>
+                        <setting id="advanced_rostering_holiday_import" string="Import Public Holidays"
+                                 help="Fill the Public Holidays library automatically from Nager.Date (date.nager.at), a free public holiday service, with the country and states each holiday applies to. Checked every week for this year and next; pay multipliers you set are kept.">
+                            <field name="rostering_holiday_import"/>
+                            <div class="mt-2" invisible="not rostering_holiday_import">
+                                <label for="rostering_holiday_country_ids" class="o_light_label me-2"/>
+                                <field name="rostering_holiday_country_ids" widget="many2many_tags"
+                                       options="{'no_create': True}" placeholder="The company's country"/>
+                                <div>
+                                    <button name="action_rostering_import_holidays" type="object"
+                                            string="Import Now" icon="oi-arrow-right" class="btn-link"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Works With" id="advanced_rostering_features">
+                        <setting id="advanced_rostering_feature_hr" string="Personnel"
+                                 invisible="not rostering_advanced_hr_installed"
+                                 help="Roster and grant leave to Personnel employees, show each person's Manager, send leave requests to the Manager for approval and add My Team's Rosters.">
+                            <field name="module_advanced_rostering_hr"/>
+                            <div class="text-muted mt-1" invisible="module_advanced_rostering_hr">
+                                Without it, people are users and submitted leave waits in Leave Requests › To Approve
+                                for everyone with Leave Requests: Approve.
+                            </div>
+                        </setting>
+                        <setting id="advanced_rostering_feature_attendance" string="On Site"
+                                 invisible="not rostering_advanced_attendance_installed"
+                                 help="Compare rostered shifts with On Site attendances: who attended, who was late and who was absent. Also switches on Personnel.">
+                            <field name="module_advanced_rostering_attendance"/>
+                        </setting>
+                        <setting id="advanced_rostering_feature_timesheet" string="Timesheets"
+                                 invisible="not rostering_advanced_timesheet_installed"
+                                 help="Fill timesheets from the published roster and approved leave, booked to the Work Types of their Duties and Leave Types.">
+                            <field name="module_advanced_rostering_timesheet"/>
+                        </setting>
+                        <setting id="advanced_rostering_feature_calendar" string="Calendar"
+                                 invisible="not rostering_calendar_installed"
+                                 help="Show leave requests in the Calendar app: in each person's calendar with their status, and in a shared Leave Requests calendar that only shows the requests each user can see in Rostering.">
+                            <field name="module_advanced_rostering_calendar"/>
+                        </setting>
+                        <setting id="advanced_rostering_feature_none" string="No other apps yet"
+                                 invisible="rostering_advanced_hr_installed or rostering_advanced_attendance_installed or rostering_advanced_timesheet_installed or rostering_calendar_installed"
+                                 help="Install Personnel, On Site, Timesheets or Calendar to switch on what Rostering can do with them here.">
+                            <field name="rostering_advanced_hr_installed" invisible="1"/>
+                            <field name="rostering_advanced_attendance_installed" invisible="1"/>
+                            <field name="rostering_advanced_timesheet_installed" invisible="1"/>
+                            <field name="rostering_calendar_installed" invisible="1"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_rostering_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'advanced_rostering', 'bin_size': False}</field>
+    </record>
+</odoo>

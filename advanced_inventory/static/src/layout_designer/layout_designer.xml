@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_inventory.LayoutDesigner">
+        <div class="o_inventory_layout_designer" tabindex="0" t-on-keydown="onKeydown">
+            <!-- Top bar -->
+            <div class="o_ild_topbar d-flex flex-wrap align-items-center gap-2">
+                <button type="button" class="btn btn-link o_ild_back" t-on-click="back" title="Back">
+                    <i class="fa fa-arrow-left"/>
+                </button>
+                <div class="o_ild_title me-2">
+                    <div class="small text-muted">Warehouse Layout</div>
+                    <div class="fw-bold fs-5" t-esc="state.warehouse.name"/>
+                </div>
+                <span class="o_ild_toolbar_label">Add</span>
+                <t t-foreach="state.levels" t-as="level" t-key="level.key">
+                    <button type="button" class="btn btn-light btn-sm" t-att-disabled="!canAdd(level.key)"
+                            t-att-title="addTitle(level.key)" t-on-click="() => this.addNode(level.key)">
+                        <i t-attf-class="fa {{ levelIcons[level.key] }} me-1"/><t t-esc="level.label"/>
+                    </button>
+                </t>
+                <span class="flex-grow-1"/>
+                <button type="button" t-attf-class="btn btn-sm {{ state.showPath ? 'btn-secondary' : 'btn-light' }}"
+                        t-on-click="() => { state.showPath = !state.showPath; }" title="Show the walk through the warehouse">
+                    <i class="fa fa-map-signs me-1"/>Walk Path
+                </button>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="numberWalk" t-att-disabled="state.saving"
+                        title="Number the walk through the warehouse: picking and put-away follow it">
+                    <i class="fa fa-sort-numeric-asc me-1"/>Number Walk Order
+                </button>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-light" t-on-click="() => this.zoomBy(0.8)" title="Zoom out"><i class="fa fa-search-minus"/></button>
+                    <button type="button" class="btn btn-light" t-on-click="fit" title="Fit the floor"><i class="fa fa-arrows-alt"/></button>
+                    <button type="button" class="btn btn-light" t-on-click="() => this.zoomBy(1.25)" title="Zoom in"><i class="fa fa-search-plus"/></button>
+                </div>
+                <span t-if="state.dirty" class="badge rounded-pill text-bg-warning">Unsaved</span>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="discard" t-att-disabled="!state.dirty">Discard</button>
+                <button type="button" class="btn btn-primary btn-sm" t-on-click="() => this.save()" t-att-disabled="state.saving or !state.dirty">
+                    <i t-if="state.saving" class="fa fa-spinner fa-spin me-1"/>Save
+                </button>
+            </div>
+
+            <div t-if="state.loading" class="p-5 text-center text-muted"><i class="fa fa-spinner fa-spin me-2"/>Loading the layout…</div>
+            <div t-else="" class="o_ild_body">
+                <!-- Every room, aisle, shelf and tote -->
+                <div class="o_ild_tree">
+                    <input type="search" class="form-control form-control-sm mb-2" placeholder="Find a location…"
+                           t-model="state.search"/>
+                    <div class="o_ild_counts small text-muted mb-2">
+                        <t t-foreach="state.levels" t-as="level" t-key="level.key">
+                            <span class="me-2"><i t-attf-class="fa {{ levelIcons[level.key] }} me-1"/><t t-esc="counts[level.key]"/></span>
+                        </t>
+                    </div>
+                    <div t-if="!state.nodes.length" class="text-muted small p-2">
+                        Start with a room (or an aisle if the warehouse is one open space), then add aisles,
+                        the shelves in each aisle and the totes on each shelf.
+                    </div>
+                    <t t-call="advanced_inventory.LayoutDesignerTree">
+                        <t t-set="parentId" t-value="false"/>
+                        <t t-set="depth" t-value="0"/>
+                    </t>
+                </div>
+
+                <!-- Floor plan -->
+                <div class="o_ild_canvas" t-on-pointerdown="() => this.select(false)">
+                    <div class="o_ild_floor" t-att-style="floorStyle">
+                        <t t-foreach="drawn" t-as="node" t-key="node.id">
+                            <div t-att-class="nodeClass(node)" t-att-style="nodeStyle(node)"
+                                 t-on-pointerdown="(ev) => this.onNodePointerDown(ev, node)">
+                                <div class="o_ild_node_label" t-if="showLabel(node)">
+                                    <span class="o_ild_code" t-esc="node.code or node.name"/>
+                                    <span t-if="node.walk and state.showPath and node.level !== 'room'" class="o_ild_walk" t-esc="node.walk"/>
+                                </div>
+                                <div t-if="node.level === 'shelf' and totesOf(node).length" class="o_ild_totes">
+                                    <t t-foreach="totesOf(node)" t-as="tote" t-key="tote.id">
+                                        <span t-attf-class="o_ild_tote {{ tote.id === state.selectedId ? 'o_ild_selected' : '' }} {{ tote.contents.length ? 'o_ild_stocked' : '' }}"
+                                              t-att-title="tote.name" t-att-style="'--node-color:' + nodeColor(tote)"
+                                              t-on-pointerdown.stop="() => this.select(tote)"/>
+                                    </t>
+                                </div>
+                                <t t-if="node.id === state.selectedId">
+                                    <span class="o_ild_handle o_ild_handle_e" t-on-pointerdown="(ev) => this.onNodePointerDown(ev, node, 'e')"/>
+                                    <span class="o_ild_handle o_ild_handle_s" t-on-pointerdown="(ev) => this.onNodePointerDown(ev, node, 's')"/>
+                                    <span class="o_ild_handle o_ild_handle_se" t-on-pointerdown="(ev) => this.onNodePointerDown(ev, node, 'se')"/>
+                                </t>
+                            </div>
+                        </t>
+                        <svg t-if="state.showPath and walkPoints.length" class="o_ild_path" width="100%" height="100%">
+                            <polyline t-att-points="walkPolyline" class="o_ild_path_line"/>
+                            <t t-foreach="walkPoints" t-as="point" t-key="point.id">
+                                <circle t-att-cx="point.x" t-att-cy="point.y" r="9" class="o_ild_path_stop"/>
+                                <text t-att-x="point.x" t-att-y="point.y + 3.5" class="o_ild_path_number" t-esc="point.index"/>
+                            </t>
+                        </svg>
+                    </div>
+                    <div class="o_ild_hint small text-muted mt-2">
+                        Drag to move (what is inside moves too), drag the edges to resize. Arrow keys nudge 10 cm
+                        (Shift: 1 m), Delete removes, Ctrl+D duplicates, Ctrl+S saves. Grid: 1 m.
+                        <t t-if="walkStale"> <b>Number the walk order</b> after changing the layout so picking and put-away follow it.</t>
+                    </div>
+                </div>
+
+                <!-- Properties -->
+                <div class="o_ild_props">
+                    <t t-if="!selected">
+                        <div class="o_ild_panel_title">Floor</div>
+                        <div class="d-flex gap-2 mb-2">
+                            <div>
+                                <label class="o_ild_label">Width (m)</label>
+                                <input type="number" step="1" min="1" max="2000" class="form-control form-control-sm"
+                                       t-att-value="state.warehouse.floor_width" t-on-change="(ev) => this.setFloor('floor_width', ev)"/>
+                            </div>
+                            <div>
+                                <label class="o_ild_label">Depth (m)</label>
+                                <input type="number" step="1" min="1" max="2000" class="form-control form-control-sm"
+                                       t-att-value="state.warehouse.floor_depth" t-on-change="(ev) => this.setFloor('floor_depth', ev)"/>
+                            </div>
+                        </div>
+                        <div class="small text-muted mb-3">
+                            Everything is stored under <b t-esc="state.warehouse.root_name"/>. Pick a room, aisle, shelf or tote
+                            on the plan or in the list to change it.
+                        </div>
+                        <div class="o_ild_section">Labels</div>
+                        <div class="d-flex flex-wrap gap-1">
+                            <t t-foreach="state.levels" t-as="level" t-key="level.key">
+                                <button type="button" class="btn btn-light btn-sm" t-att-disabled="!counts[level.key]"
+                                        t-on-click="() => this.printLevelLabels(level.key)">
+                                    <i class="fa fa-print me-1"/>All <t t-esc="level.label"/> Labels
+                                </button>
+                            </t>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <t t-set="node" t-value="selected"/>
+                        <div class="o_ild_panel_title d-flex align-items-center">
+                            <i t-attf-class="fa fa-fw me-1 {{ levelIcons[node.level] }}"/>
+                            <span class="flex-grow-1"><t t-esc="levelLabel(node.level)"/></span>
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" t-on-click="duplicateSelected" title="Duplicate"
+                                    t-if="node.level !== 'room'"><i class="fa fa-clone"/></button>
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger" t-on-click="removeSelected" title="Remove"><i class="fa fa-trash"/></button>
+                        </div>
+                        <label class="o_ild_label">Name</label>
+                        <input type="text" class="form-control form-control-sm mb-2" t-att-value="node.name"
+                               t-on-change="(ev) => this.setProp('name', ev.target.value)"/>
+                        <div class="d-flex gap-2 mb-2">
+                            <div class="flex-grow-1">
+                                <label class="o_ild_label">Code</label>
+                                <input type="text" maxlength="12" class="form-control form-control-sm" t-att-value="node.code"
+                                       t-on-change="(ev) => this.setProp('code', ev.target.value)"/>
+                            </div>
+                            <div class="flex-grow-1">
+                                <label class="o_ild_label">Barcode</label>
+                                <input type="text" class="form-control form-control-sm" t-att-value="node.barcode"
+                                       placeholder="Made on save" t-on-change="(ev) => this.setProp('barcode', ev.target.value)"/>
+                            </div>
+                        </div>
+                        <t t-if="node.level !== 'room'">
+                            <label class="o_ild_label">Inside</label>
+                            <select class="form-select form-select-sm mb-2" t-on-change="onParentChange">
+                                <option t-if="canBeTopLevel(node)" value="" t-att-selected="!node.parent_id">The warehouse</option>
+                                <t t-foreach="validParents(node)" t-as="parent" t-key="parent.id">
+                                    <option t-att-value="parent.id" t-att-selected="node.parent_id === parent.id"
+                                            t-esc="levelLabel(parent.level) + ': ' + parent.name"/>
+                                </t>
+                            </select>
+                        </t>
+                        <t t-if="node.level !== 'tote'">
+                            <div class="o_ild_section">Position and size (m)</div>
+                            <div class="o_ild_grid4 mb-2">
+                                <t t-foreach="[['x', 'X'], ['y', 'Y'], ['w', 'Width'], ['h', 'Depth']]" t-as="dim" t-key="dim[0]">
+                                    <div>
+                                        <label class="o_ild_label" t-esc="dim[1]"/>
+                                        <input type="number" step="0.1" class="form-control form-control-sm" t-att-value="node[dim[0]]"
+                                               t-on-change="(ev) => this.setNumber(dim[0], ev, dim[0] === 'w' or dim[0] === 'h' ? 0.05 : -10000)"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <button type="button" class="btn btn-light btn-sm mb-2" t-on-click="rotateSelected">
+                                <i class="fa fa-repeat me-1"/>Turn 90°
+                            </button>
+                        </t>
+                        <t t-else="">
+                            <div class="o_ild_section">Order on the shelf</div>
+                            <div class="btn-group btn-group-sm mb-2">
+                                <button type="button" class="btn btn-light" t-on-click="() => this.moveTote(-1)"><i class="fa fa-arrow-left me-1"/>Earlier</button>
+                                <button type="button" class="btn btn-light" t-on-click="() => this.moveTote(1)">Later<i class="fa fa-arrow-right ms-1"/></button>
+                            </div>
+                        </t>
+                        <label class="o_ild_label">Colour</label>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <button type="button" t-attf-class="o_ild_swatch o_ild_swatch_none {{ !node.color ? 'active' : '' }}"
+                                    title="Default" t-on-click="() => this.setProp('color', '')"/>
+                            <t t-foreach="swatches" t-as="swatch" t-key="swatch">
+                                <button type="button" t-attf-class="o_ild_swatch {{ node.color === swatch ? 'active' : '' }}"
+                                        t-att-style="'background:' + swatch" t-att-title="swatch" t-on-click="() => this.setProp('color', swatch)"/>
+                            </t>
+                        </div>
+                        <div class="small text-muted mb-2" t-if="node.walk">Walk order: <b t-esc="node.walk"/></div>
+
+                        <div class="o_ild_section">Stock here</div>
+                        <div t-if="!node.contents.length" class="small text-muted mb-2">Empty.</div>
+                        <table t-else="" class="table table-sm small mb-2">
+                            <tr t-foreach="node.contents" t-as="row" t-key="row_index">
+                                <td t-esc="row[0]"/>
+                                <td class="text-end" t-esc="row[1]"/>
+                            </tr>
+                        </table>
+                        <t t-if="node.slots.length">
+                            <div class="o_ild_section">Assigned products</div>
+                            <ul class="small ps-3 mb-2">
+                                <li t-foreach="node.slots" t-as="slot" t-key="slot_index" t-esc="slot"/>
+                            </ul>
+                        </t>
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="printLabel">
+                                <i class="fa fa-print me-1"/>Print Label
+                            </button>
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="openLocation"
+                                    t-att-disabled="!isSaved(node)">
+                                <i class="fa fa-external-link me-1"/>Open Location
+                            </button>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- One level of the location list (calls itself for what is inside). -->
+    <t t-name="advanced_inventory.LayoutDesignerTree">
+        <t t-foreach="childrenOf(parentId)" t-as="node" t-key="node.id">
+            <t t-if="matchesSearch(node)">
+                <div t-attf-class="o_ild_row d-flex align-items-center gap-1 {{ node.id === state.selectedId ? 'active' : '' }}"
+                     t-att-style="'padding-left:' + (0.4 + depth * 1.1) + 'rem'" t-on-click="() => this.select(node)">
+                    <t t-set="kids" t-value="childrenOf(node.id)"/>
+                    <span class="o_ild_caret" t-on-click="(ev) => this.toggleCollapse(node, ev)">
+                        <i t-if="kids.length" t-attf-class="fa fa-fw {{ state.collapsed[node.id] ? 'fa-caret-right' : 'fa-caret-down' }}"/>
+                        <i t-else="" class="fa fa-fw"/>
+                    </span>
+                    <i t-attf-class="fa fa-fw {{ levelIcons[node.level] }}"/>
+                    <span class="text-truncate flex-grow-1"><t t-esc="node.name"/></span>
+                    <span t-if="node.contents.length" class="o_ild_dot" title="Holds stock"/>
+                    <span t-if="node.walk" class="o_ild_row_walk" t-esc="node.walk"/>
+                </div>
+                <t t-if="!state.collapsed[node.id] and kids.length">
+                    <t t-call="advanced_inventory.LayoutDesignerTree">
+                        <t t-set="parentId" t-value="node.id"/>
+                        <t t-set="depth" t-value="depth + 1"/>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </t>
+</templates>

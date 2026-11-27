@@ -41,82 +41,37 @@ class MeetingActionItem(models.Model):
         ('done', 'Done'),
         ('cancelled', 'Cancelled'),
     ], string='Status', default='open', required=True)
-    task_id = fields.Many2one(
-        'project.task',
-        string='To-Do Task',
+    activity_id = fields.Many2one(
+        'mail.activity',
+        string='To-Do Activity',
         readonly=True,
-        help='Linked Odoo To-Do task created from this action item.',
-    )
-    task_state = fields.Char(
-        string='To-Do Status',
-        compute='_compute_task_state',
+        ondelete='set null',
+        help='To-Do activity scheduled on the meeting for the assignee of this action item.',
     )
 
-    @api.depends('task_id', 'task_id.stage_id')
-    def _compute_task_state(self):
-        for item in self:
-            if item.task_id:
-                item.task_state = item.task_id.stage_id.name or ''
-            else:
-                item.task_state = ''
+    def _assigned_user(self):
+        self.ensure_one()
+        if not self.assigned_to_id:
+            return self.env.user
+        return self.env['res.users'].search(
+            [('partner_id', '=', self.assigned_to_id.id)], limit=1
+        ) or self.env.user
 
     def action_create_todo(self):
-        """Create a personal To-Do task linked to this action item."""
+        """Schedule a To-Do activity on the meeting for the action item's assignee."""
         self.ensure_one()
-        if self.task_id:
-            raise UserError(_('A To-Do task already exists for this action item.'))
-
-        # Find the personal stage (To-Do uses project.task with no project)
-        Stage = self.env['project.task.type']
-        stage = Stage.search([('name', 'ilike', 'To Do')], limit=1)
-        if not stage:
-            stage = Stage.search([], limit=1)
-
-        # Determine user from partner
-        user = self.env['res.users'].search(
-            [('partner_id', '=', self.assigned_to_id.id)], limit=1
-        ) if self.assigned_to_id else self.env.user
-
-        task_vals = {
-            'name': self.name,
-            'description': self.description or '',
-            'date_deadline': self.due_date,
-            'user_ids': [(4, user.id)],
-            'priority': self.priority or '0',
-            'project_id': False,  # Personal task = To-Do
-        }
-        if stage:
-            task_vals['stage_id'] = stage.id
-
-        task = self.env['project.task'].create(task_vals)
-        self.task_id = task.id
-
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'project.task',
-            'res_id': task.id,
-            'view_mode': 'form',
-            'target': 'new',
-        }
-
-    def action_open_todo(self):
-        """Open the linked To-Do task."""
-        self.ensure_one()
-        if not self.task_id:
-            return self.action_create_todo()
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'project.task',
-            'res_id': self.task_id.id,
-            'view_mode': 'form',
-            'target': 'new',
-        }
+        if self.activity_id:
+            raise UserError(_('A To-Do activity already exists for this action item.'))
+        activity = self.meeting_id.activity_schedule(
+            'mail.mail_activity_data_todo',
+            date_deadline=self.due_date or fields.Date.context_today(self),
+            summary=self.name,
+            note=self.description or '',
+            user_id=self._assigned_user().id,
+        )
+        self.activity_id = activity
+        return True
 
     def action_mark_done(self):
         self.write({'state': 'done'})
-        for item in self.filtered('task_id'):
-            done_stage = self.env['project.task.type'].search(
-                [('name', 'ilike', 'done')], limit=1
-            )
-            if done_stage:
-                item.task_id.stage_id = done_stage
+        self.activity_id.action_feedback(feedback=_('Action item marked as done.'))

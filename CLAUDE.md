@@ -18,12 +18,42 @@ for every module we create or edit.
   reports, exports, emails), use `%d/%m/%Y` / `%d/%m/%Y %H:%M`, never
   `%Y-%m-%d` or `%m/%d/%Y`.
 - Store dates as Odoo `Date` / `Datetime` fields, never as text.
+- Year selectors: store a year as a `Date` field holding 1 January of that
+  year (never an `Integer` or text), and show it with the `year_date`
+  widget from the `web_year_date` module (depend on it):
+  `<field name="year" widget="year_date"/>`. The picker offers years only,
+  the field shows just the year (e.g. 2026) and saves 1 January. Normalise
+  values written in code to 1 January (see
+  `advanced_inventory/models/collection.py`), group by `year:year`, and
+  use `<filter date="year"/>` in searches.
 
 ## List views
 
 - Every list view starts with the record ID: make
   `<field name="id" optional="show"/>` the first column, before any other
   field (a `handle` widget for `sequence` may sit in front of it).
+
+## Reports menu (Report Builder)
+
+Every app has a **Reports** menu where Report Builder (`report_builder`)
+saves the app's custom reports.
+
+- Add it to the app's root menu as a plain folder: no action, no `groups`,
+  e.g. `<menuitem id="menu_<app>_reports" name="Reports"
+  parent="menu_<app>_root" sequence="..."/>`. Don't depend on
+  `report_builder` for it.
+- It must only show when it holds reports. Odoo already hides a menu that
+  has no action and no visible children, so the folder stays invisible
+  until Report Builder places a report under it (it can only get reports
+  once Report Builder is installed). Never give it an action, a
+  placeholder child or an empty-state page, as that would make it show
+  while empty.
+- Place it last, directly before the app's **Configuration** / **Settings**
+  menu (give it a sequence between the menu before it and Configuration).
+  If the app has no Configuration or Settings menu, make it the app's last
+  menu.
+- It is separate from any built-in **Reporting** menu (analysis views) the
+  app already has; keep both.
 
 ## Permissions (privileges and roles)
 
@@ -182,11 +212,138 @@ Size and format:
   page open".
 - Render it as a full-screen `main_components` overlay so it sits above
   dialogs. Modules depending on `risk_management` reuse `aiProgress` from
-  `@risk_management/ai_progress/ai_progress`; others follow the same pattern
+  `@risk_management/ai_progress/ai_progress`, and modules depending on
+  `dev_management` reuse `dev.ai.mixin` with the `dev_ai_action` widget
+  (`@dev_management/ai_progress/ai_progress`); others follow the same pattern
   (the checklists AI generator overlay is another example).
 - This also covers AI calls made as a side effect (e.g. on save): move them to
   an explicit action with the overlay, or run them in the background so they
   never block the user without explanation.
+
+### AI keys
+
+Every AI feature is switched on only when at least one AI key is set, and the
+app must keep working without one.
+
+- Find the key in this order, preferring Claude/Anthropic and falling back
+  to Google Gemini: the Claude key in Settings › General Settings ›
+  Integrations (`claude_ai_settings.api_key`), the Anthropic key of the Odoo
+  AI app (`ai.anthropic_key`), the Gemini key in General Settings
+  (`claude_ai_settings.gemini_api_key`), then the Google key of the Odoo AI
+  app (`ai.google_key`). The first key found picks the provider.
+- Read these system parameters directly. Don't depend on
+  `claude_ai_settings` or the Odoo AI app (`ai`) just to get a key, so the
+  app installs and works when neither is installed.
+- Handle having no AI gracefully, whether no AI app is installed or no key is
+  set:
+  - hide the AI buttons (an `ai_available` compute, with
+    `invisible="not ai_available"` on the widget);
+  - skip background AI jobs silently and fall back to the non-AI behaviour
+    (e.g. a release keeps its number as its name);
+  - show a note where the AI would be configured (e.g. next to the app's AI
+    settings) saying where to add a key;
+  - make any direct call raise a friendly `UserError` that says where to add
+    a key, never a traceback.
+- `dev_management/models/dev_ai.py` implements this (`ai_credentials`,
+  `dev.ai._available()`); reuse it in modules that depend on
+  `dev_management`, and copy it elsewhere.
+
+## Actions (Actions app)
+
+Every action, task or follow-up an app raises (corrective actions, actions
+on risks, …) is stored in the **Actions** app's common model,
+`advanced.action` (module `advanced_actions`), never in an actions model of
+the app's own. Incidents, Risk Management, Injury Management, Zoo Manager and
+Checklists already do (`advanced_actions_incident`, `advanced_actions_risk`,
+`advanced_actions_injury`, `advanced_actions_zoo`; Checklists is built into
+`advanced_actions`).
+
+An action has a Title (`name`), Description, Assigned To (`user_ids`,
+Many2many: any one of them can complete it), Due At (`date_deadline`,
+Datetime), Status (`state`: open / in_progress / done / cancelled, a
+statusbar), Created By / Created At, a Required Checklist
+(`checklist_template_id`; completing the checklist completes the action) and
+chatter. "Duplicate for Users" gives several users an action each.
+
+When an app needs actions and Actions is installed, add a bridge module
+`advanced_actions_<app>` (`depends: [<app>, 'advanced_actions']`,
+`auto_install: True`; copy `advanced_actions_zoo`, or
+`advanced_actions_incident` when moving an existing model's records):
+
+- On `advanced.action`: a Many2one to the app's record (e.g.
+  `incident_id`, `ondelete='cascade'`), the app in `source_app`
+  (`selection_add=[('<app>', '<App>')], ondelete={'<app>': 'set default'}`)
+  and the link in `_action_sources()` (`super() + [('<field>', '<app>')]`),
+  so the action's App, Company and Organisation follow that record. Add
+  app-specific fields there too (e.g. Incidents' Control Type).
+- On the app's record: `action_ids = fields.One2many('advanced.action',
+  '<field>')` and an Actions stat button or tab.
+- The app's own **Actions** menu opens `advanced.action` filtered to the app
+  by default, with the filter removable to show every action: add
+  `<filter name="app_<app>" domain="[('source_app', '=', '<app>')]"/>` to
+  the Actions search view (after `app_checklists`) and give the menu's
+  window action `context="{'search_default_app_<app>': 1,
+  'search_default_open': 1, 'default_source_app': '<app>'}"` and, if useful,
+  a `mode="primary"` list view with the app's columns.
+- Access: give the app's groups the ACL on `advanced.action` they had on
+  their records, plus `ir.rule`s limited to the app's actions that follow the
+  parent record's rules (e.g. `[('incident_id', '!=', False), …]`, or
+  `[('source_app', '=', '<app>')]` when the parent has none). The Actions app
+  denies everything else.
+- Never send action emails from the app. Actions sends its Notification
+  Templates, or Workflow Automation does when it is installed.
+- Without Actions installed, an app either has no actions or keeps a simple
+  model of its own. The bridge moves those records into Actions on install
+  (`advanced.action._transfer_records` in a `post_init_hook`) and back in an
+  `uninstall_hook`.
+
+## Customers and contacts (Advanced Accounts)
+
+Customers, vendors and the people we deal with are **Accounts**
+(`advanced.account`, companies) and **Contacts** (`advanced.contact`, people
+linked to an Account) from the **Advanced Accounts** app
+(`advanced_accounts`), not the standard Contacts app. Both keep their
+details on a `res.partner` (`_inherits`), and a user made for a Contact is
+built on that same partner, so they stay in sync. Our own users and
+employees are never Contacts: fields meant to pick an employee or user stay
+as they are. Employees come from **Personnel** (`advanced_hr`, which takes
+over from the Employees app on Odoo's own `hr.employee`): depend on
+`advanced_hr`, not `hr`, wherever Advanced Accounts needs employees.
+
+Whenever an app we create or update has a customer, vendor or contact
+field (or should have one):
+
+- Put the change in an optional support app `advanced_accounts_<app>`
+  named "Remap <App> Contacts to Advanced Accounts" (`depends:
+  ['advanced_accounts', '<app>']`, **not** `auto_install`), and add its
+  `module_advanced_accounts_<app>` toggle to the Advanced Accounts settings
+  page (`advanced_accounts/models/res_config_settings.py` and
+  `views/res_config_settings_views.xml`), so each app is switched on by
+  choice. The app itself keeps its `res.partner` field and works without
+  Advanced Accounts.
+- One customer per record: inherit `advanced.accounts.mixin`, which adds
+  `adv_account_id` and `adv_contact_id`. Set `_adv_partner_field` to the
+  partner field they stand in for (`False` when the record has none: the
+  fields are then its own), and `_adv_account_partner_field` when the
+  record keeps the Account in a separate partner field (see
+  `advanced_accounts_crm`). Several partner fields, or ones that aren't
+  "the customer" (e.g. an asset's Supplier, Manufacturer, Owner): inherit
+  `advanced.accounts.remap.mixin` and list `{new field: partner field}` in
+  `_adv_remap` (see `advanced_accounts_asset`).
+- Views: put the Account and Contact fields just before the partner field,
+  with the same `readonly` / `invisible` conditions, and make the partner
+  field `invisible="adv_account_id or adv_contact_id or not partner_id"`
+  (it then only shows for a partner that isn't an Account or Contact, such
+  as one of our users). Lists: Account and Contact columns before the
+  partner column, which becomes `optional="hide"`. Searches: the two
+  fields and an "Account" group-by.
+- Behaviour comes from the mixins: picking an Account limits the Contacts
+  to that Account; picking a Contact fills in its Account; the Contact
+  picker lists "Contact Name (Account Name)" while the chosen Contact
+  shows its name only; the partner field follows, and partners made by
+  other code join Advanced Accounts automatically.
+- Need a login for a Contact? Use the Contact's "Create User" (a portal
+  user on the Contact's partner), never a separate partner.
 
 ## Choice fields
 

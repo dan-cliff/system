@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Project actions follow the project's permissions (on the project, as for its
+         tasks and phases) and the task permissions (on the task they are raised from).
+         The Project user group holds the ACL; without one of these rules (or an Actions
+         permission) nothing opens. Customers (portal) have no access at all. -->
+    <record id="rule_advanced_action_project_create_only" model="ir.rule">
+        <field name="name">Actions: Projects Create Only</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_create_only'))]"/>
+        <field name="domain_force">[('project_id', '!=', False), '|', '|', ('project_id.create_uid', '=', user.id), ('project_id.user_id', '=', user.id), ('project_id.collaborator_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_task_create_only" model="ir.rule">
+        <field name="name">Actions: Project Tasks Create Only</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_task_create_only'))]"/>
+        <field name="domain_force">[('project_task_id', '!=', False), '|', ('project_task_id.create_uid', '=', user.id), ('project_task_id.user_ids', 'in', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_edit_own" model="ir.rule">
+        <field name="name">Actions: Projects Create and Edit Own</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_edit_own'))]"/>
+        <field name="domain_force">[('project_id', '!=', False), '|', '|', ('project_id.create_uid', '=', user.id), ('project_id.user_id', '=', user.id), ('project_id.collaborator_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_task_edit_own" model="ir.rule">
+        <field name="name">Actions: Project Tasks Create and Edit Own</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_task_edit_own'))]"/>
+        <field name="domain_force">[('project_task_id', '!=', False), '|', ('project_task_id.create_uid', '=', user.id), ('project_task_id.user_ids', 'in', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_edit_team" model="ir.rule">
+        <field name="name">Actions: Projects Create and Edit My Team</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_edit_team'))]"/>
+        <field name="domain_force">[('project_id', '!=', False), '|', '|', '|', '|', ('project_id.create_uid', '=', user.id), ('project_id.user_id', '=', user.id), ('project_id.collaborator_ids.partner_id', '=', user.partner_id.id), ('project_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('project_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_task_edit_team" model="ir.rule">
+        <field name="name">Actions: Project Tasks Create and Edit My Team</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_task_edit_team'))]"/>
+        <field name="domain_force">[('project_task_id', '!=', False), '|', '|', '|', ('project_task_id.create_uid', '=', user.id), ('project_task_id.user_ids', 'in', user.id), ('project_task_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('project_task_id.user_ids.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_edit_all" model="ir.rule">
+        <field name="name">Actions: Projects Create and Edit All</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_edit_all'))]"/>
+        <field name="domain_force">[('project_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_task_edit_all" model="ir.rule">
+        <field name="name">Actions: Project Tasks Create and Edit All</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_task_edit_all'))]"/>
+        <field name="domain_force">[('project_task_id', '!=', False)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_view_all" model="ir.rule">
+        <field name="name">Actions: Projects View All</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_view_all'))]"/>
+        <field name="domain_force">[('project_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_task_view_all" model="ir.rule">
+        <field name="name">Actions: Project Tasks View All</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_task_view_all'))]"/>
+        <field name="domain_force">[('project_task_id', '!=', False)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_delete_own" model="ir.rule">
+        <field name="name">Actions: Projects Delete Own</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_delete_own'))]"/>
+        <field name="domain_force">[('project_id', '!=', False), '|', '|', ('project_id.create_uid', '=', user.id), ('project_id.user_id', '=', user.id), ('project_id.collaborator_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_task_delete_own" model="ir.rule">
+        <field name="name">Actions: Project Tasks Delete Own</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_task_delete_own'))]"/>
+        <field name="domain_force">[('project_task_id', '!=', False), '|', ('project_task_id.create_uid', '=', user.id), ('project_task_id.user_ids', 'in', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_delete_all" model="ir.rule">
+        <field name="name">Actions: Projects Delete All</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_delete_all'))]"/>
+        <field name="domain_force">[('project_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+    <record id="rule_advanced_action_project_task_delete_all" model="ir.rule">
+        <field name="name">Actions: Project Tasks Delete All</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('advanced_projects.group_advanced_project_task_delete_all'))]"/>
+        <field name="domain_force">[('project_task_id', '!=', False)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+</odoo>

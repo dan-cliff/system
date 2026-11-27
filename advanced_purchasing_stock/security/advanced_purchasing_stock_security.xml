@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Receiving goes through Inventory's receipts. Warehouse staff need to read
+         the confirmed orders they receive against (validating a receipt reads and
+         updates the order lines' received quantities). -->
+    <record id="privilege_purchase_order_receive" model="res.groups.privilege">
+        <field name="name">Receipts: Receive Products</field>
+        <field name="category_id" ref="advanced_purchasing.module_category_purchasing"/>
+        <field name="sequence">230</field>
+        <field name="description">Open the receipts of purchase orders and validate them, adding the received products to stock. Includes viewing confirmed purchase orders.</field>
+    </record>
+    <record id="group_purchase_order_receive" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_purchase_order_receive"/>
+        <field name="comment">Open the receipts of purchase orders and validate them, adding the received products to stock. Includes viewing confirmed purchase orders.</field>
+        <field name="implied_ids" eval="[(4, ref('advanced_purchasing.group_purchasing_user')), (4, ref('stock.group_stock_user'))]"/>
+    </record>
+    <record id="advanced_purchasing.group_purchasing_admin" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_purchase_order_receive'))]"/>
+    </record>
+
+    <record id="rule_purchase_order_receive" model="ir.rule">
+        <field name="name">Purchase Orders: Receive Products (confirmed orders)</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="groups" eval="[(4, ref('group_purchase_order_receive'))]"/>
+        <field name="domain_force">[('state', '=', 'purchase')]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_purchase_order_line_receive" model="ir.rule">
+        <field name="name">Purchase Order Lines: Receive Products (confirmed orders)</field>
+        <field name="model_id" ref="purchase.model_purchase_order_line"/>
+        <field name="groups" eval="[(4, ref('group_purchase_order_receive'))]"/>
+        <field name="domain_force">[('order_id.state', '=', 'purchase')]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

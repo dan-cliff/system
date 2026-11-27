@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_employee_view_form_ca" model="ir.ui.view">
+        <field name="name">payroll.employee.form.ca</field>
+        <field name="model">payroll.employee</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_employee_view_form"/>
+        <field name="arch" type="xml">
+            <page name="pay" position="after">
+                <page string="Canada" name="payroll_ca" invisible="country_code != 'CA'">
+                    <group>
+                        <group string="Employee" name="ca_employee">
+                            <field name="ca_sin"/>
+                            <field name="ca_province_id" options="{'no_create': True}"
+                                   required="country_code == 'CA'"/>
+                            <field name="ca_cpp_exempt"/>
+                            <field name="ca_ei_exempt"/>
+                        </group>
+                        <group string="TD1 Claim Amounts" name="ca_td1">
+                            <field name="ca_td1_federal"/>
+                            <field name="ca_td1_provincial"/>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

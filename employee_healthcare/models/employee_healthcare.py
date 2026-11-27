@@ -241,6 +241,14 @@ class EmployeeHealthcare(models.Model):
     )
 
     # ── Indicator evaluation ──────────────────────────────────────────────
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        # Evaluate indicators for new records too (e.g. the record created
+        # automatically with a new employee), not only on later saves.
+        records.action_evaluate_healthcare_indicators()
+        return records
+
     def write(self, vals):
         result = super().write(vals)
         # Re-evaluate indicators after every save, but skip when the write

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A starting Project Template (Configuration > Project Templates); noupdate so it
+         can be changed or archived. Dates are shifted to each new project's start date. -->
+    <data noupdate="1">
+        <record id="template_customer_onboarding" model="advanced.project">
+            <field name="name">Customer Onboarding</field>
+            <field name="is_template" eval="True"/>
+            <field name="user_id" eval="False"/>
+            <field name="date_start">2026-01-05</field>
+            <field name="date_end">2026-02-05</field>
+            <field name="description" type="html"><p>Kick-off, discovery, build and go-live for a new customer.</p></field>
+        </record>
+        <record id="template_customer_onboarding_phase_kickoff" model="advanced.project.phase">
+            <field name="name">Kick-off</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="sequence">10</field>
+            <field name="color">#8E5CF0</field>
+        </record>
+        <record id="template_customer_onboarding_phase_discovery" model="advanced.project.phase">
+            <field name="name">Discovery</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="sequence">20</field>
+            <field name="color">#3BB8FF</field>
+        </record>
+        <record id="template_customer_onboarding_phase_build" model="advanced.project.phase">
+            <field name="name">Build</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="sequence">30</field>
+            <field name="color">#14C9A5</field>
+        </record>
+        <record id="template_customer_onboarding_phase_golive" model="advanced.project.phase">
+            <field name="name">Go Live</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="sequence">40</field>
+            <field name="color">#FF9F1C</field>
+        </record>
+        <record id="template_customer_onboarding_task_kickoff_meeting" model="advanced.project.task">
+            <field name="name">Kick-off meeting</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_kickoff"/>
+            <field name="sequence">10</field>
+            <field name="date_start">2026-01-05</field>
+            <field name="date_end">2026-01-05</field>
+        </record>
+        <record id="template_customer_onboarding_task_kickoff_plan" model="advanced.project.task">
+            <field name="name">Agree project plan and dates</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_kickoff"/>
+            <field name="sequence">20</field>
+            <field name="date_start">2026-01-06</field>
+            <field name="date_end">2026-01-07</field>
+            <field name="is_milestone" eval="True"/>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_kickoff_meeting')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_discovery_workshop" model="advanced.project.task">
+            <field name="name">Requirements workshop</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_discovery"/>
+            <field name="sequence">30</field>
+            <field name="date_start">2026-01-08</field>
+            <field name="date_end">2026-01-09</field>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_kickoff_plan')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_discovery_data" model="advanced.project.task">
+            <field name="name">Collect customer data and documents</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_discovery"/>
+            <field name="sequence">40</field>
+            <field name="date_start">2026-01-08</field>
+            <field name="date_end">2026-01-12</field>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_kickoff_plan')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_discovery_signoff" model="advanced.project.task">
+            <field name="name">Sign off requirements</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_discovery"/>
+            <field name="sequence">50</field>
+            <field name="date_start">2026-01-13</field>
+            <field name="date_end">2026-01-13</field>
+            <field name="is_milestone" eval="True"/>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_discovery_workshop'), ref('template_customer_onboarding_task_discovery_data')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_build_config" model="advanced.project.task">
+            <field name="name">Configure and build</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_build"/>
+            <field name="sequence">60</field>
+            <field name="date_start">2026-01-14</field>
+            <field name="date_end">2026-01-23</field>
+            <field name="customer_visible" eval="False"/>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_discovery_signoff')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_build_review" model="advanced.project.task">
+            <field name="name">Internal review</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_build"/>
+            <field name="sequence">70</field>
+            <field name="date_start">2026-01-24</field>
+            <field name="date_end">2026-01-25</field>
+            <field name="customer_visible" eval="False"/>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_build_config')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_build_uat" model="advanced.project.task">
+            <field name="name">Customer testing</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_build"/>
+            <field name="sequence">80</field>
+            <field name="date_start">2026-01-26</field>
+            <field name="date_end">2026-01-30</field>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_build_review')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_golive_training" model="advanced.project.task">
+            <field name="name">Training</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_golive"/>
+            <field name="sequence">90</field>
+            <field name="date_start">2026-01-31</field>
+            <field name="date_end">2026-02-01</field>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_build_uat')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_golive_launch" model="advanced.project.task">
+            <field name="name">Go live</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_golive"/>
+            <field name="sequence">100</field>
+            <field name="date_start">2026-02-02</field>
+            <field name="date_end">2026-02-02</field>
+            <field name="is_milestone" eval="True"/>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_golive_training')])]"/>
+        </record>
+        <record id="template_customer_onboarding_task_golive_handover" model="advanced.project.task">
+            <field name="name">Handover and close</field>
+            <field name="project_id" ref="template_customer_onboarding"/>
+            <field name="phase_id" ref="template_customer_onboarding_phase_golive"/>
+            <field name="sequence">110</field>
+            <field name="date_start">2026-02-03</field>
+            <field name="date_end">2026-02-05</field>
+            <field name="parent_ids" eval="[(6, 0, [ref('template_customer_onboarding_task_golive_launch')])]"/>
+        </record>
+    </data>
+</odoo>

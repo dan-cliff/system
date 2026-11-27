@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_hr.BadgeDesignerField">
+        <div class="o_personnel_badge_designer" t-on-keydown="onCanvasKeydown">
+            <!-- Toolbar -->
+            <div class="o_pbd_toolbar d-flex flex-wrap align-items-center gap-1 mb-2" t-if="!readonly">
+                <span class="o_pbd_toolbar_label me-1">Add</span>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.addElement('text')" title="Add text">
+                    <i class="fa fa-font me-1"/>Text
+                </button>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.addElement('field')" title="Add a field of the employee">
+                    <i class="fa fa-database me-1"/>Field
+                </button>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.addElement('image')" title="Add the employee's photo">
+                    <i class="fa fa-user me-1"/>Photo
+                </button>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.addElement('logo')" title="Add the company's logo">
+                    <i class="fa fa-building-o me-1"/>Logo
+                </button>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.addElement('qr')" title="Add a QR code">
+                    <i class="fa fa-qrcode me-1"/>QR Code
+                </button>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.addElement('barcode')" title="Add a barcode">
+                    <i class="fa fa-barcode me-1"/>Barcode
+                </button>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.addElement('shape')" title="Add a shape">
+                    <i class="fa fa-square-o me-1"/>Shape
+                </button>
+                <span class="flex-grow-1"/>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.zoom(-0.5)" title="Zoom out"><i class="fa fa-search-minus"/></button>
+                <span class="o_pbd_zoom small text-muted"><t t-esc="Math.round(state.zoom * 100)"/>%</span>
+                <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.zoom(0.5)" title="Zoom in"><i class="fa fa-search-plus"/></button>
+                <button type="button" t-attf-class="btn btn-sm {{ state.showGrid ? 'btn-secondary' : 'btn-light' }}"
+                        t-on-click="() => { state.showGrid = !state.showGrid; }" title="Show the 5 mm grid">
+                    <i class="fa fa-th"/>
+                </button>
+            </div>
+
+            <div class="o_pbd_body d-flex flex-column flex-xl-row gap-3">
+                <!-- Layers -->
+                <div class="o_pbd_layers">
+                    <div class="o_pbd_panel_title">Layers</div>
+                    <div t-if="!state.elements.length" class="text-muted small p-2">Add text, fields, photos and codes from the toolbar.</div>
+                    <t t-foreach="state.elements.slice().reverse()" t-as="el" t-key="el.id">
+                        <div t-attf-class="o_pbd_layer d-flex align-items-center gap-2 {{ el.id === state.selectedId ? 'active' : '' }}"
+                             t-on-click="() => this.select(el)">
+                            <i t-attf-class="fa fa-fw {{ elementIcon(el) }}"/>
+                            <span class="text-truncate" t-esc="elementLabel(el)"/>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Canvas -->
+                <div class="o_pbd_canvas_wrap flex-grow-1" t-on-pointerdown="() => this.select(false)">
+                    <div class="o_pbd_stage" t-att-style="stageStyle" tabindex="0">
+                        <div class="o_pbd_page" t-ref="canvas" t-att-style="pageStyle">
+                            <div t-if="state.showGrid" class="o_pbd_grid"/>
+                            <t t-foreach="state.elements" t-as="el" t-key="el.id">
+                                <div t-attf-class="o_pbd_element o_pbd_{{ el.type }} {{ el.id === state.selectedId ? 'o_pbd_selected' : '' }}"
+                                     t-att-style="elementStyle(el)"
+                                     t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el)">
+                                    <div t-if="el.type === 'text'" class="o_pbd_text_cell" t-att-style="textCellStyle(el)">
+                                        <t t-foreach="textLines(el)" t-as="line" t-key="line_index"><t t-esc="line"/><br t-if="!line_last"/></t>
+                                    </div>
+                                    <div t-if="(el.type === 'image' or el.type === 'qr' or el.type === 'barcode') and !(state.preview.elements[el.id] or {}).src and !(el.type === 'image' and el.source === 'custom' and el.src)"
+                                         class="o_pbd_empty d-flex align-items-center justify-content-center">
+                                        <i t-attf-class="fa {{ elementIcon(el) }}"/>
+                                    </div>
+                                    <t t-if="el.id === state.selectedId and !readonly">
+                                        <t t-foreach="handles" t-as="handle" t-key="handle">
+                                            <span t-attf-class="o_pbd_handle o_pbd_handle_{{ handle }}"
+                                                  t-on-pointerdown="(ev) => this.onElementPointerDown(ev, el, handle)"/>
+                                        </t>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="o_pbd_hint small text-muted mt-2" t-if="!readonly">
+                        Drag to move, drag the handles to resize (Shift keeps the shape, Alt moves in 0.1 mm steps).
+                        Arrow keys nudge, Delete removes, Ctrl+D duplicates.
+                        <t t-if="state.preview.company_name"> Branding: <b t-esc="state.preview.company_name"/>.</t>
+                    </div>
+                </div>
+
+                <!-- Properties -->
+                <div class="o_pbd_props">
+                    <t t-if="selected" t-set="el" t-value="selected"/>
+                    <t t-if="!selected">
+                        <div class="o_pbd_panel_title">Page</div>
+                        <label class="o_pbd_label">Size</label>
+                        <select class="form-select form-select-sm mb-2" t-on-change="onPresetChange" t-att-disabled="readonly">
+                            <t t-foreach="presets" t-as="preset" t-key="preset.key">
+                                <option t-att-value="preset.key" t-att-selected="currentPreset === preset.key" t-esc="preset.label"/>
+                            </t>
+                            <option value="custom" t-att-selected="currentPreset === 'custom'">Custom size</option>
+                        </select>
+                        <div class="d-flex gap-2 mb-2 align-items-end">
+                            <div>
+                                <label class="o_pbd_label">Width (mm)</label>
+                                <input type="number" step="0.1" min="10" max="450" class="form-control form-control-sm"
+                                       t-att-value="pageWidth" t-on-change="(ev) => this.onPageNumber('page_width', ev)" t-att-disabled="readonly"/>
+                            </div>
+                            <div>
+                                <label class="o_pbd_label">Height (mm)</label>
+                                <input type="number" step="0.1" min="10" max="450" class="form-control form-control-sm"
+                                       t-att-value="pageHeight" t-on-change="(ev) => this.onPageNumber('page_height', ev)" t-att-disabled="readonly"/>
+                            </div>
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="swapOrientation" title="Swap portrait / landscape" t-att-disabled="readonly">
+                                <i class="fa fa-exchange"/>
+                            </button>
+                        </div>
+                        <label class="o_pbd_label">Background</label>
+                        <t t-call="advanced_hr.BadgeDesignerColor">
+                            <t t-set="value" t-value="record.data.background_color"/>
+                            <t t-set="onPick" t-value="(value) => this.onPageColor(value)"/>
+                            <t t-set="allowTransparent" t-value="false"/>
+                        </t>
+                        <p class="small text-muted mt-3 mb-0">
+                            Pick an element on the badge to change it. Text can mix words with employee fields:
+                            <code>{{ name }}</code> is replaced by the employee's details when printing.
+                        </p>
+                    </t>
+                    <t t-else="">
+                        <div class="o_pbd_panel_title d-flex align-items-center">
+                            <i t-attf-class="fa fa-fw me-1 {{ elementIcon(el) }}"/>
+                            <span class="flex-grow-1" t-esc="elementLabel(el)"/>
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" t-on-click="() => this.moveLayer(1)" title="Bring forward" t-if="!readonly"><i class="fa fa-arrow-up"/></button>
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" t-on-click="() => this.moveLayer(-1)" title="Send backward" t-if="!readonly"><i class="fa fa-arrow-down"/></button>
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1" t-on-click="duplicateSelected" title="Duplicate" t-if="!readonly"><i class="fa fa-clone"/></button>
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger" t-on-click="removeSelected" title="Delete" t-if="!readonly"><i class="fa fa-trash"/></button>
+                        </div>
+
+                        <!-- Content -->
+                        <t t-if="el.type === 'text'">
+                            <label class="o_pbd_label">Text</label>
+                            <textarea class="form-control form-control-sm mb-1" rows="3" t-att-value="el.text"
+                                      t-on-change="(ev) => this.setProp('text', ev.target.value)" t-att-disabled="readonly"/>
+                            <t t-call="advanced_hr.BadgeDesignerFieldPicker"><t t-set="target" t-value="'text'"/></t>
+                        </t>
+                        <t t-if="el.type === 'qr' or el.type === 'barcode'">
+                            <label class="o_pbd_label"><t t-if="el.type === 'qr'">QR code content</t><t t-else="">Barcode content</t></label>
+                            <input type="text" class="form-control form-control-sm mb-1" t-att-value="el.value"
+                                   t-on-change="(ev) => this.setProp('value', ev.target.value)" t-att-disabled="readonly"
+                                   placeholder="e.g. {{ barcode }} or https://example.com/staff/{{ id }}"/>
+                            <t t-call="advanced_hr.BadgeDesignerFieldPicker"><t t-set="target" t-value="'value'"/></t>
+                            <div class="small text-muted mb-2" t-if="el.type === 'barcode'">Code 128: letters, digits and punctuation.</div>
+                        </t>
+                        <t t-if="el.type === 'image'">
+                            <label class="o_pbd_label">Picture</label>
+                            <select class="form-select form-select-sm mb-1" t-on-change="(ev) => this.setProp('source', ev.target.value)" t-att-disabled="readonly">
+                                <option value="employee_photo" t-att-selected="el.source === 'employee_photo'">Employee photo</option>
+                                <option value="company_logo" t-att-selected="el.source === 'company_logo'">Company logo</option>
+                                <option value="custom" t-att-selected="el.source === 'custom'">Uploaded picture</option>
+                            </select>
+                            <label t-if="el.source === 'custom' and !readonly" class="btn btn-light btn-sm mb-2">
+                                <i class="fa fa-upload me-1"/>Upload a picture
+                                <input type="file" accept="image/png,image/jpeg,image/gif,image/svg+xml" class="d-none" t-on-change="onImageUpload"/>
+                            </label>
+                            <label class="o_pbd_label">Fit</label>
+                            <div class="btn-group btn-group-sm mb-2 d-flex">
+                                <button type="button" t-attf-class="btn {{ el.fit !== 'cover' ? 'btn-secondary' : 'btn-light' }}" t-on-click="() => this.setProp('fit', 'contain')" t-att-disabled="readonly">Whole picture</button>
+                                <button type="button" t-attf-class="btn {{ el.fit === 'cover' ? 'btn-secondary' : 'btn-light' }}" t-on-click="() => this.setProp('fit', 'cover')" t-att-disabled="readonly">Fill the box</button>
+                            </div>
+                        </t>
+
+                        <!-- Text formatting -->
+                        <t t-if="el.type === 'text'">
+                            <div class="o_pbd_section">Format</div>
+                            <div class="d-flex gap-2 mb-2">
+                                <select class="form-select form-select-sm" t-on-change="(ev) => this.setProp('font', ev.target.value)" t-att-disabled="readonly">
+                                    <t t-foreach="fonts" t-as="font" t-key="font">
+                                        <option t-att-value="font" t-att-selected="(el.font || 'Lato') === font" t-esc="font"/>
+                                    </t>
+                                </select>
+                                <div class="input-group input-group-sm o_pbd_size">
+                                    <input type="number" step="0.5" min="2" max="200" class="form-control" t-att-value="el.size || 10"
+                                           t-on-change="(ev) => this.setNumber('size', ev, 2, 200)" t-att-disabled="readonly"/>
+                                    <span class="input-group-text">pt</span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" t-attf-class="btn {{ el.bold ? 'btn-secondary' : 'btn-light' }}" t-on-click="() => this.toggleProp('bold')" title="Bold" t-att-disabled="readonly"><i class="fa fa-bold"/></button>
+                                    <button type="button" t-attf-class="btn {{ el.italic ? 'btn-secondary' : 'btn-light' }}" t-on-click="() => this.toggleProp('italic')" title="Italic" t-att-disabled="readonly"><i class="fa fa-italic"/></button>
+                                    <button type="button" t-attf-class="btn {{ el.underline ? 'btn-secondary' : 'btn-light' }}" t-on-click="() => this.toggleProp('underline')" title="Underline" t-att-disabled="readonly"><i class="fa fa-underline"/></button>
+                                    <button type="button" t-attf-class="btn {{ el.uppercase ? 'btn-secondary' : 'btn-light' }}" t-on-click="() => this.toggleProp('uppercase')" title="Capitals" t-att-disabled="readonly"><i class="fa fa-text-height"/></button>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <t t-foreach="['left', 'center', 'right']" t-as="align" t-key="align">
+                                        <button type="button" t-attf-class="btn {{ (el.align || 'left') === align ? 'btn-secondary' : 'btn-light' }}"
+                                                t-on-click="() => this.setProp('align', align)" t-att-title="align" t-att-disabled="readonly">
+                                            <i t-attf-class="fa fa-align-{{ align }}"/>
+                                        </button>
+                                    </t>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <t t-foreach="[['top', 'fa-long-arrow-up'], ['middle', 'fa-arrows-v'], ['bottom', 'fa-long-arrow-down']]" t-as="valign" t-key="valign[0]">
+                                        <button type="button" t-attf-class="btn {{ (el.valign || 'middle') === valign[0] ? 'btn-secondary' : 'btn-light' }}"
+                                                t-on-click="() => this.setProp('valign', valign[0])" t-att-title="valign[0]" t-att-disabled="readonly">
+                                            <i t-attf-class="fa {{ valign[1] }}"/>
+                                        </button>
+                                    </t>
+                                </div>
+                            </div>
+                            <label class="o_pbd_label">Line spacing</label>
+                            <input type="number" step="0.05" min="0.5" max="4" class="form-control form-control-sm mb-2" t-att-value="el.line_height || 1.15"
+                                   t-on-change="(ev) => this.setNumber('line_height', ev, 0.5, 4)" t-att-disabled="readonly"/>
+                            <label class="o_pbd_label">Text colour</label>
+                            <t t-call="advanced_hr.BadgeDesignerColor">
+                                <t t-set="value" t-value="el.color || '#2A3F8F'"/>
+                                <t t-set="onPick" t-value="(value) => this.setProp('color', value)"/>
+                                <t t-set="allowTransparent" t-value="false"/>
+                            </t>
+                        </t>
+
+                        <!-- Colours -->
+                        <t t-if="el.type === 'shape'">
+                            <label class="o_pbd_label">Fill</label>
+                            <t t-call="advanced_hr.BadgeDesignerColor">
+                                <t t-set="value" t-value="el.fill"/>
+                                <t t-set="onPick" t-value="(value) => this.setProp('fill', value)"/>
+                                <t t-set="allowTransparent" t-value="true"/>
+                            </t>
+                        </t>
+                        <t t-if="el.type !== 'shape'">
+                            <label class="o_pbd_label">Background</label>
+                            <t t-call="advanced_hr.BadgeDesignerColor">
+                                <t t-set="value" t-value="el.background || 'transparent'"/>
+                                <t t-set="onPick" t-value="(value) => this.setProp('background', value)"/>
+                                <t t-set="allowTransparent" t-value="true"/>
+                            </t>
+                        </t>
+
+                        <!-- Box -->
+                        <div class="o_pbd_section">Position and size (mm)</div>
+                        <div class="o_pbd_grid4 mb-2">
+                            <t t-foreach="[['x', 'X'], ['y', 'Y'], ['w', 'Width'], ['h', 'Height']]" t-as="dim" t-key="dim[0]">
+                                <div>
+                                    <label class="o_pbd_label" t-esc="dim[1]"/>
+                                    <input type="number" step="0.1" class="form-control form-control-sm" t-att-value="el[dim[0]]"
+                                           t-on-change="(ev) => this.setNumber(dim[0], ev, dim[0] === 'w' or dim[0] === 'h' ? 0.5 : -1000, 1000)" t-att-disabled="readonly"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1 mb-2" t-if="!readonly">
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.align('left')" title="Align to the left edge"><i class="fa fa-step-backward"/></button>
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.align('hcenter')" title="Centre across"><i class="fa fa-arrows-h"/></button>
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.align('right')" title="Align to the right edge"><i class="fa fa-step-forward"/></button>
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.align('top')" title="Align to the top"><i class="fa fa-step-backward fa-rotate-90"/></button>
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.align('vcenter')" title="Centre down"><i class="fa fa-arrows-v"/></button>
+                            <button type="button" class="btn btn-light btn-sm" t-on-click="() => this.align('bottom')" title="Align to the bottom"><i class="fa fa-step-forward fa-rotate-90"/></button>
+                        </div>
+                        <div class="o_pbd_grid4 mb-2">
+                            <div>
+                                <label class="o_pbd_label">Rotate (°)</label>
+                                <input type="number" step="1" min="-360" max="360" class="form-control form-control-sm" t-att-value="el.rotate || 0"
+                                       t-on-change="(ev) => this.setNumber('rotate', ev, -360, 360)" t-att-disabled="readonly"/>
+                            </div>
+                            <div>
+                                <label class="o_pbd_label">Corners</label>
+                                <input type="number" step="0.5" min="0" max="500" class="form-control form-control-sm" t-att-value="el.radius || 0"
+                                       t-on-change="(ev) => this.setNumber('radius', ev, 0, 500)" t-att-disabled="readonly"/>
+                            </div>
+                            <div>
+                                <label class="o_pbd_label">Border</label>
+                                <input type="number" step="0.1" min="0" max="20" class="form-control form-control-sm" t-att-value="el.border_width || 0"
+                                       t-on-change="(ev) => this.setNumber('border_width', ev, 0, 20)" t-att-disabled="readonly"/>
+                            </div>
+                            <div>
+                                <label class="o_pbd_label">Opacity</label>
+                                <input type="number" step="0.05" min="0" max="1" class="form-control form-control-sm" t-att-value="el.opacity === undefined ? 1 : el.opacity"
+                                       t-on-change="(ev) => this.setNumber('opacity', ev, 0, 1)" t-att-disabled="readonly"/>
+                            </div>
+                        </div>
+                        <t t-if="el.border_width">
+                            <label class="o_pbd_label">Border colour</label>
+                            <t t-call="advanced_hr.BadgeDesignerColor">
+                                <t t-set="value" t-value="el.border_color || '#2A3F8F'"/>
+                                <t t-set="onPick" t-value="(value) => this.setProp('border_color', value)"/>
+                                <t t-set="allowTransparent" t-value="false"/>
+                            </t>
+                        </t>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- A colour: the company's colours, the house palette or any colour. -->
+    <t t-name="advanced_hr.BadgeDesignerColor">
+        <div class="o_pbd_colors d-flex flex-wrap align-items-center gap-1 mb-2">
+            <button type="button" t-attf-class="o_pbd_swatch o_pbd_swatch_company {{ value === 'company_primary' ? 'active' : '' }}"
+                    t-att-style="'background:' + color('company_primary', '#5B3DB8')" title="Company colour"
+                    t-on-click="() => onPick('company_primary')" t-att-disabled="readonly">
+                <i class="fa fa-building-o"/>
+            </button>
+            <button type="button" t-attf-class="o_pbd_swatch o_pbd_swatch_company {{ value === 'company_secondary' ? 'active' : '' }}"
+                    t-att-style="'background:' + color('company_secondary', '#14A3A3')" title="Company second colour"
+                    t-on-click="() => onPick('company_secondary')" t-att-disabled="readonly">
+                <i class="fa fa-building-o"/>
+            </button>
+            <button t-if="allowTransparent" type="button" t-attf-class="o_pbd_swatch o_pbd_swatch_none {{ value === 'transparent' ? 'active' : '' }}"
+                    title="None" t-on-click="() => onPick('transparent')" t-att-disabled="readonly"/>
+            <t t-foreach="swatches" t-as="swatch" t-key="swatch">
+                <button type="button" t-attf-class="o_pbd_swatch {{ value === swatch ? 'active' : '' }}"
+                        t-att-style="'background:' + swatch" t-att-title="swatch" t-on-click="() => onPick(swatch)" t-att-disabled="readonly"/>
+            </t>
+            <input type="color" class="o_pbd_color_input" title="Any colour"
+                   t-att-value="value and value.startsWith('#') and value.length === 7 ? value : '#2A3F8F'"
+                   t-on-change="(ev) => onPick(ev.target.value.toUpperCase())" t-att-disabled="readonly"/>
+        </div>
+    </t>
+
+    <!-- Insert a field of the employee as {{ field.path }}. -->
+    <t t-name="advanced_hr.BadgeDesignerFieldPicker">
+        <div class="o_pbd_field_picker d-flex align-items-center gap-1 mb-2" t-if="!readonly">
+            <div class="flex-grow-1 min-w-0">
+                <ModelFieldSelector resModel="'hr.employee'" path="state.fieldPath" readonly="false"
+                                    update="(path) => this.updateFieldPath(path)" followRelations="true"/>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm text-nowrap" t-on-click="() => this.insertField(target)"
+                    title="Insert this field">
+                <i class="fa fa-plus me-1"/>Insert
+            </button>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_leave_refuse_wizard_view_form" model="ir.ui.view">
+        <field name="name">rostering.leave.refuse.wizard.form</field>
+        <field name="model">rostering.leave.refuse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Refuse Leave Request">
+                <field name="leave_id" invisible="1"/>
+                <group>
+                    <field name="reason" placeholder="Tell them why the leave cannot be approved..."/>
+                </group>
+                <footer>
+                    <button name="action_refuse" type="object" string="Refuse" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

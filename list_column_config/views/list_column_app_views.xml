@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="list_column_app_view_list" model="ir.ui.view">
+        <field name="name">list.column.app.list</field>
+        <field name="model">list.column.app</field>
+        <field name="arch" type="xml">
+            <list string="App Permissions" create="0" delete="0">
+                <header>
+                    <button name="action_sync_apps" type="object" string="Sync Apps" display="always"/>
+                </header>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="menu_id" optional="hide"/>
+                <field name="privilege_id"/>
+                <field name="category_id" optional="show"/>
+                <field name="is_fallback" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="list_column_app_view_form" model="ir.ui.view">
+        <field name="name">list.column.app.form</field>
+        <field name="model">list.column.app</field>
+        <field name="arch" type="xml">
+            <form string="App Permission" create="0" delete="0">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="menu_id" invisible="is_fallback"/>
+                            <field name="is_fallback" invisible="not is_fallback"/>
+                        </group>
+                        <group>
+                            <field name="privilege_id"/>
+                            <field name="category_id"/>
+                            <field name="group_id"/>
+                        </group>
+                    </group>
+                    <separator string="Users Allowed (including Administrators)"/>
+                    <field name="user_ids" readonly="1">
+                        <list>
+                            <field name="id" optional="show"/>
+                            <field name="name"/>
+                            <field name="login"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_list_column_app" model="ir.actions.act_window">
+        <field name="name">App Permissions</field>
+        <field name="res_model">list.column.app</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No apps yet</p>
+            <p>Click "Sync Apps" to give every app its "List Columns: Customise" privilege.</p>
+        </field>
+    </record>
+</odoo>

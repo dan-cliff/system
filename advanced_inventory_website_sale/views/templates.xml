@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The Collection filter: a dropdown in the shop's top bar, built like the
+         Sort By dropdown. Links keep the other filters (keep()). -->
+    <template id="collection_dropdown" name="Collection Dropdown">
+        <div t-if="all_collections" t-attf-class="o_wsale_collection_dropdown dropdown {{_classes}}">
+            <t t-set="_current" t-value="all_collections.filtered(lambda c: c.id == current_collection)[:1]"/>
+            <t t-set="_label">Collection</t>
+            <a role="button" href="#" t-attf-class="dropdown-toggle btn px-2 {{_current and 'text-primary'}}"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="d-md-none"><t t-out="_current.name if _current else _label"/></span>
+                <small class="d-none d-md-inline opacity-75"><t t-out="_label"/>:</small>
+                <span class="d-none d-md-inline">
+                    <t t-if="_current" t-out="_current.name"/>
+                    <t t-else="">All</t>
+                </span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end" role="menu">
+                <a role="menuitem" rel="noindex,nofollow" t-att-href="keep(collection=0)"
+                   t-attf-class="dropdown-item {{not _current and 'active'}}">All collections</a>
+                <t t-foreach="all_collections" t-as="collection">
+                    <a role="menuitem" rel="noindex,nofollow" t-att-href="keep(collection=collection.id)"
+                       t-attf-class="dropdown-item d-flex justify-content-between gap-3 {{collection.id == current_collection and 'active'}}">
+                        <span t-field="collection.name"/>
+                        <small t-if="collection.season_id or collection.year" class="opacity-75">
+                            <t t-esc="collection.season_id.name or ''"/> <t t-esc="collection.year.year if collection.year else ''"/>
+                        </small>
+                    </a>
+                </t>
+            </div>
+        </div>
+    </template>
+
+    <!-- Shop top bar: Collection before Sort By. Switch it
+         off in the shop's editor (Customize › Filter by Collection). -->
+    <template id="filter_products_collections" inherit_id="website_sale.products" active="True"
+              name="Filter by Collection">
+        <xpath expr="//t[@t-call='website_sale.sort']" position="before">
+            <t t-call="advanced_inventory_website_sale.collection_dropdown"/>
+        </xpath>
+    </template>
+
+    <!-- The same in the shop's optional floating bar. -->
+    <template id="filter_products_collections_floating" inherit_id="website_sale.floating_bar"
+              name="Filter by Collection (floating bar)">
+        <xpath expr="//t[@t-call='website_sale.sort']" position="before">
+            <t t-if="is_view_active('advanced_inventory_website_sale.filter_products_collections')"
+               t-call="advanced_inventory_website_sale.collection_dropdown"/>
+        </xpath>
+    </template>
+</odoo>

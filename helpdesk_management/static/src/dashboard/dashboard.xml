@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="helpdesk_management.Dashboard">
+        <div class="o_helpdesk_dashboard h-100 overflow-auto" t-ref="root">
+            <t t-set="data" t-value="state.data"/>
+            <div class="o_helpdesk_dashboard_banner">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <h2 class="mb-0">Helpdesk</h2>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light" t-on-click="openMyTickets">My Tickets</button>
+                        <button class="btn btn-primary" t-on-click="newTicket">New Ticket</button>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12 col-lg-3">
+                        <button class="o_helpdesk_dashboard_card o_helpdesk_dashboard_mine w-100 h-100"
+                                t-on-click="openMyTickets">
+                            <span class="o_helpdesk_dashboard_label">Assigned to Me, Outstanding</span>
+                            <span class="o_helpdesk_dashboard_big" t-esc="data.my_open_count"/>
+                            <span class="small">of <t t-esc="data.open_count"/> outstanding tickets</span>
+                        </button>
+                    </div>
+                    <div t-if="data.multi_company" class="col-12 col-md-6 col-lg-4">
+                        <div class="o_helpdesk_dashboard_card h-100">
+                            <span class="o_helpdesk_dashboard_label">Outstanding by Company</span>
+                            <t t-call="helpdesk_management.DashboardRows">
+                                <t t-set="rows" t-value="data.by_company"/>
+                                <t t-set="field" t-value="'company_id'"/>
+                            </t>
+                        </div>
+                    </div>
+                    <div t-attf-class="col-12 {{ data.multi_company ? 'col-md-6 col-lg-5' : 'col-lg-9' }}">
+                        <div class="o_helpdesk_dashboard_card h-100">
+                            <span class="o_helpdesk_dashboard_label">Outstanding by Team</span>
+                            <t t-call="helpdesk_management.DashboardRows">
+                                <t t-set="rows" t-value="data.by_team"/>
+                                <t t-set="field" t-value="'team_id'"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="o_helpdesk_dashboard_body">
+                <h4 class="mb-3">Average Customer Sentiment of My Tickets</h4>
+                <div class="row g-3">
+                    <div t-foreach="charts" t-as="chart" t-key="chart.key" class="col-12 col-xl-4">
+                        <div class="o_helpdesk_dashboard_chart_card h-100">
+                            <div class="d-flex justify-content-between align-items-baseline mb-2">
+                                <h5 class="mb-0" t-esc="chart.title"/>
+                                <a href="#" class="small" t-on-click.prevent="openMySentiment">
+                                    <t t-esc="data.charts[chart.key].ticket_count"/> rated tickets
+                                </a>
+                            </div>
+                            <div class="o_helpdesk_dashboard_average" t-attf-style="color: {{ chart.color }};">
+                                <t t-esc="sentimentLabel(data.charts[chart.key].average)"/>
+                            </div>
+                            <div class="o_helpdesk_dashboard_chart">
+                                <canvas t-att-data-chart="chart.key"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="helpdesk_management.DashboardRows">
+        <div t-if="!rows.length" class="text-muted mt-2">No outstanding tickets.</div>
+        <ul t-else="" class="list-unstyled mb-0 mt-2 o_helpdesk_dashboard_rows">
+            <li t-foreach="rows" t-as="row" t-key="row_index">
+                <a href="#" class="d-flex justify-content-between" t-on-click.prevent="() => this.openRow(field, row)">
+                    <span class="text-truncate me-2" t-esc="row.name"/>
+                    <span class="badge rounded-pill o_helpdesk_dashboard_count" t-esc="row.count"/>
+                </a>
+            </li>
+        </ul>
+    </t>
+</templates>

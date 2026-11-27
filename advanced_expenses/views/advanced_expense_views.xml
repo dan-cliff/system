@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_expense_view_list" model="ir.ui.view">
+        <field name="name">advanced.expense.list</field>
+        <field name="model">advanced.expense</field>
+        <field name="arch" type="xml">
+            <list string="Expenses" multi_edit="1" sample="1"
+                  decoration-muted="state == 'refused'">
+                <header>
+                    <button name="action_submit" type="object" string="Submit"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            groups="advanced_expenses.group_expense_approve,advanced_expenses.group_expense_approve_any"/>
+                    <button name="action_mark_paid" type="object" string="Mark as Paid"
+                            groups="advanced_expenses.group_expense_pay"/>
+                    <button name="action_print" type="object" string="Print Expense Claim"/>
+                </header>
+                <field name="id" optional="show"/>
+                <field name="reference" optional="show" readonly="1"/>
+                <field name="date" options="{'numeric': True}" readonly="state not in ('draft', 'refused')"/>
+                <field name="employee_id" widget="many2one_avatar_employee" readonly="state not in ('draft', 'refused')"/>
+                <field name="name" readonly="state not in ('draft', 'refused')"/>
+                <field name="category_id" readonly="state not in ('draft', 'refused')"/>
+                <field name="vendor_id" optional="hide"/>
+                <field name="paid_by" optional="show" readonly="state not in ('draft', 'refused')"/>
+                <field name="department_id" optional="hide"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company" readonly="1"/>
+                <field name="activity_ids" widget="list_activity" optional="show"/>
+                <field name="tax_amount" optional="hide" sum="Tax" readonly="1"/>
+                <field name="total_amount_company" sum="Total" optional="show" readonly="1"/>
+                <field name="total_amount" optional="hide" readonly="1"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="company_currency_id" column_invisible="True"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'" decoration-warning="state == 'submitted'"
+                       decoration-primary="state == 'approved'" decoration-success="state == 'paid'"
+                       decoration-danger="state == 'refused'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_form" model="ir.ui.view">
+        <field name="name">advanced.expense.form</field>
+        <field name="model">advanced.expense</field>
+        <field name="arch" type="xml">
+            <form string="Expense">
+                <field name="can_approve" invisible="1"/>
+                <field name="can_pay" invisible="1"/>
+                <field name="is_mine" invisible="1"/>
+                <field name="ai_available" invisible="1"/>
+                <field name="has_fixed_cost" invisible="1"/>
+                <field name="company_currency_id" invisible="1"/>
+                <field name="is_multiple_currency" invisible="1"/>
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                            invisible="state not in ('draft', 'refused')"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            invisible="not can_approve"/>
+                    <button name="action_refuse" type="object" string="Refuse" invisible="not can_approve"/>
+                    <button name="action_mark_paid" type="object" string="Mark as Paid" class="btn-primary"
+                            invisible="not can_pay" groups="advanced_expenses.group_expense_pay"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state not in ('submitted', 'refused', 'approved')"/>
+                    <button name="action_print" type="object" string="Print Expense Claim" invisible="not id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,paid"/>
+                </header>
+                <div class="alert alert-warning mb-0" role="alert" invisible="not duplicate_expense_ids">
+                    <field name="duplicate_expense_ids" invisible="1"/>
+                    This may be a duplicate: another expense of this employee has the same date and total.
+                    <button name="action_open_duplicates" type="object" string="See the expenses" class="btn-link p-0 align-baseline"/>
+                </div>
+                <div class="alert alert-danger mb-0" role="alert" invisible="state != 'refused' or not refused_reason">
+                    <strong>Refused:</strong> <field name="refused_reason" class="d-inline"/>
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="expense_receipt_ai" invisible="not ai_available or state not in ('draft', 'refused')"/>
+                    <div class="oe_title">
+                        <span class="text-muted" invisible="not id"><field name="reference" readonly="1"/></span>
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Lunch with a customer"
+                                   readonly="state not in ('draft', 'refused')"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="amount">
+                            <field name="category_id" options="{'no_create': True}"
+                                   readonly="state not in ('draft', 'refused')"/>
+                            <label for="quantity" invisible="not has_fixed_cost"/>
+                            <div class="o_row" invisible="not has_fixed_cost">
+                                <field name="quantity" readonly="state not in ('draft', 'refused')"/>
+                                <field name="unit_name" class="text-muted" invisible="not unit_name"/>
+                                <span class="text-muted">at</span>
+                                <field name="unit_cost" readonly="1" force_save="1"/>
+                            </div>
+                            <label for="total_amount"/>
+                            <div class="o_row">
+                                <field name="total_amount" readonly="has_fixed_cost or state not in ('draft', 'refused')"
+                                       force_save="1"/>
+                                <field name="currency_id" options="{'no_create': True, 'no_open': True}"
+                                       groups="base.group_multi_currency"
+                                       readonly="state not in ('draft', 'refused')"/>
+                            </div>
+                            <field name="total_amount_company" invisible="not is_multiple_currency"/>
+                            <field name="tax_amount" readonly="state not in ('draft', 'refused')"/>
+                        </group>
+                        <group name="details">
+                            <field name="employee_id" widget="many2one_avatar_employee"
+                                   readonly="state not in ('draft', 'refused')"/>
+                            <field name="date" options="{'numeric': True}"
+                                   readonly="state not in ('draft', 'refused')"/>
+                            <field name="paid_by" widget="radio" readonly="state not in ('draft', 'refused')"/>
+                            <field name="vendor_id" readonly="state in ('paid',)"/>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   readonly="state not in ('draft', 'refused')"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status" invisible="not category_description">
+                        <field name="category_description"/>
+                    </div>
+                    <notebook>
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="Anything the approver should know..."/>
+                        </page>
+                        <page string="Approval" name="approval">
+                            <group>
+                                <group>
+                                    <field name="approver_user_id" widget="many2one_avatar_user"/>
+                                    <field name="submitted_date" options="{'numeric': True}"/>
+                                    <field name="approved_by_id" widget="many2one_avatar_user"/>
+                                    <field name="approved_date" options="{'numeric': True}"/>
+                                </group>
+                                <group>
+                                    <field name="paid_date" options="{'numeric': True}"/>
+                                    <field name="department_id"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="o_attachment_preview"/>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_kanban" model="ir.ui.view">
+        <field name="name">advanced.expense.kanban</field>
+        <field name="model">advanced.expense</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <field name="currency_id"/>
+                <field name="company_currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="name" class="fw-bold"/>
+                            <field name="total_amount_company" widget="monetary" class="fw-bold"/>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted">
+                            <span><field name="employee_id"/> · <field name="category_id"/></span>
+                            <field name="date" options="{'numeric': True}"/>
+                        </div>
+                        <footer>
+                            <field name="activity_ids" widget="kanban_activity"/>
+                            <field name="state" widget="label_selection" class="ms-auto"
+                                   options="{'classes': {'draft': 'info', 'submitted': 'warning', 'approved': 'primary', 'paid': 'success', 'refused': 'danger'}}"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_pivot" model="ir.ui.view">
+        <field name="name">advanced.expense.pivot</field>
+        <field name="model">advanced.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Expenses Analysis" sample="1">
+                <field name="category_id" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="total_amount_company" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_graph" model="ir.ui.view">
+        <field name="name">advanced.expense.graph</field>
+        <field name="model">advanced.expense</field>
+        <field name="arch" type="xml">
+            <graph string="Expenses Analysis" sample="1">
+                <field name="date" interval="month"/>
+                <field name="category_id"/>
+                <field name="total_amount_company" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_activity" model="ir.ui.view">
+        <field name="name">advanced.expense.activity</field>
+        <field name="model">advanced.expense</field>
+        <field name="arch" type="xml">
+            <activity string="Expenses">
+                <templates>
+                    <div t-name="activity-box">
+                        <div class="d-flex justify-content-between">
+                            <field name="name" class="o_text_block"/>
+                            <field name="total_amount" widget="monetary"/>
+                        </div>
+                        <field name="employee_id" class="text-muted"/>
+                    </div>
+                </templates>
+                <field name="currency_id"/>
+            </activity>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_search" model="ir.ui.view">
+        <field name="name">advanced.expense.search</field>
+        <field name="model">advanced.expense</field>
+        <field name="arch" type="xml">
+            <search string="Expenses">
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('reference', 'ilike', self)]"/>
+                <field name="employee_id"/>
+                <field name="category_id"/>
+                <field name="vendor_id"/>
+                <field name="department_id"/>
+                <filter name="my_expenses" string="My Expenses"
+                        domain="['|', ('employee_id.user_id', '=', uid), ('create_uid', '=', uid)]"/>
+                <filter name="my_team" string="My Team"
+                        domain="[('employee_id.parent_id.user_id', '=', uid)]"/>
+                <filter name="my_approvals" string="I Approve" domain="[('approver_user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="draft" string="To Submit" domain="[('state', 'in', ('draft', 'refused'))]"/>
+                <filter name="submitted" string="To Approve" domain="[('state', '=', 'submitted')]"/>
+                <filter name="approved" string="To Pay" domain="[('state', '=', 'approved')]"/>
+                <filter name="paid" string="Paid" domain="[('state', '=', 'paid')]"/>
+                <filter name="refused" string="Refused" domain="[('state', '=', 'refused')]"/>
+                <separator/>
+                <filter name="paid_by_employee" string="Paid by Employee" domain="[('paid_by', '=', 'employee')]"/>
+                <filter name="paid_by_company" string="Paid by Company" domain="[('paid_by', '=', 'company')]"/>
+                <separator/>
+                <filter name="date" string="Expense Date" date="date"/>
+                <group>
+                    <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_paid_by" string="Paid By" context="{'group_by': 'paid_by'}"/>
+                    <filter name="group_department" string="Department" context="{'group_by': 'department_id'}"/>
+                    <filter name="group_date" string="Expense Date" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══ Actions ══ -->
+    <record id="action_expense_my" model="ir.actions.act_window">
+        <field name="name">My Expenses</field>
+        <field name="res_model">advanced.expense</field>
+        <field name="view_mode">list,kanban,form,pivot,graph,activity</field>
+        <field name="search_view_id" ref="advanced_expense_view_search"/>
+        <field name="context">{'search_default_my_expenses': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Record an expense</p>
+            <p>Add what you spent, attach a photo or PDF of the receipt and submit it for approval.
+               With an AI key set, Read Receipt with AI fills the expense in from the receipt.</p>
+        </field>
+    </record>
+
+    <record id="action_expense_to_approve" model="ir.actions.act_window">
+        <field name="name">Expenses to Approve</field>
+        <field name="res_model">advanced.expense</field>
+        <field name="view_mode">list,kanban,form,pivot,graph,activity</field>
+        <field name="search_view_id" ref="advanced_expense_view_search"/>
+        <field name="context">{'search_default_submitted': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing to approve</p>
+            <p>Expenses your team submits wait here for your approval.</p>
+        </field>
+    </record>
+
+    <record id="action_expense_to_pay" model="ir.actions.act_window">
+        <field name="name">Expenses to Pay</field>
+        <field name="res_model">advanced.expense</field>
+        <field name="view_mode">list,kanban,form,pivot,graph</field>
+        <field name="search_view_id" ref="advanced_expense_view_search"/>
+        <field name="context">{'search_default_approved': 1, 'search_default_group_employee': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing to pay</p>
+            <p>Approved expenses wait here until they are reimbursed or paid.</p>
+        </field>
+    </record>
+
+    <record id="action_expense_all" model="ir.actions.act_window">
+        <field name="name">Expenses</field>
+        <field name="res_model">advanced.expense</field>
+        <field name="view_mode">list,kanban,form,pivot,graph,activity</field>
+        <field name="search_view_id" ref="advanced_expense_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No expenses yet</p>
+            <p>Expenses you can see show here.</p>
+        </field>
+    </record>
+
+    <record id="action_expense_analysis" model="ir.actions.act_window">
+        <field name="name">Expenses Analysis</field>
+        <field name="res_model">advanced.expense</field>
+        <field name="view_mode">pivot,graph,list,form</field>
+        <field name="search_view_id" ref="advanced_expense_view_search"/>
+        <field name="context">{'search_default_date': 1}</field>
+    </record>
+</odoo>

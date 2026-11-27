@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advanced_action_list" model="ir.ui.view">
+        <field name="name">advanced.action.list</field>
+        <field name="model">advanced.action</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('done', 'cancelled')" decoration-danger="is_overdue"
+                  multi_edit="1" sample="1">
+                <header>
+                    <button name="%(action_advanced_action_assign_wizard)d" type="action"
+                            string="Create for Several Users" display="always"/>
+                </header>
+                <field name="id" optional="show"/>
+                <field name="priority" widget="priority" optional="show"/>
+                <field name="name"/>
+                <field name="source_app" optional="show"/>
+                <field name="source_display" optional="show"/>
+                <field name="user_ids" widget="many2many_avatar_user" optional="show"/>
+                <field name="date_deadline" options="{'numeric': True}" optional="show"/>
+                <field name="checklist_template_id" optional="hide"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                <field name="create_uid" string="Created By" optional="show"/>
+                <field name="create_date" string="Created At" options="{'numeric': True}" optional="hide"/>
+                <field name="date_done" options="{'numeric': True}" optional="hide"/>
+                <field name="activity_ids" widget="list_activity" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'open'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="is_overdue" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_form" model="ir.ui.view">
+        <field name="name">advanced.action.form</field>
+        <field name="model">advanced.action</field>
+        <field name="arch" type="xml">
+            <form string="Action">
+                <header>
+                    <button name="action_start" type="object" string="Start"
+                            class="btn-secondary" invisible="state != 'open'"/>
+                    <button name="action_open_checklist" type="object" string="Start Checklist"
+                            class="btn-primary" invisible="not checklist_template_id or checklist_id or state in ('done', 'cancelled')"/>
+                    <button name="action_open_checklist" type="object" string="Open Checklist"
+                            class="btn-secondary" invisible="not checklist_id"/>
+                    <button name="action_done" type="object" string="Mark Done"
+                            class="btn-primary" invisible="state in ('done', 'cancelled') or (checklist_template_id and checklist_state != 'done')"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_reopen" type="object" string="Reopen"
+                            invisible="state not in ('done', 'cancelled')"/>
+                    <button name="action_duplicate_for_users" type="object" string="Duplicate for Users"
+                            invisible="not id"/>
+                    <field name="state" widget="statusbar" options="{'clickable': '1'}"
+                           statusbar_visible="open,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_source" type="object" class="oe_stat_button"
+                                icon="fa-external-link" invisible="not source_display">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Raised From</span>
+                                <span class="o_stat_value"><field name="source_display" readonly="1"/></span>
+                            </div>
+                        </button>
+                        <button name="action_open_copies" type="object" class="oe_stat_button"
+                                icon="fa-users" invisible="copy_count == 0">
+                            <field name="copy_count" widget="statinfo" string="Copies"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="is_overdue" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Replace the guard rail on the stairs"/></h1>
+                    </div>
+                    <group name="main">
+                        <group name="assignment">
+                            <field name="user_ids" widget="many2many_avatar_user"/>
+                            <field name="date_deadline" options="{'numeric': True}"
+                                   decoration-danger="is_overdue"/>
+                            <field name="priority" widget="priority"/>
+                            <field name="tag_ids" widget="many2many_tags"
+                                   options="{'color_field': 'color', 'no_create_edit': True}"/>
+                        </group>
+                        <group name="checklist">
+                            <field name="checklist_template_id"/>
+                            <field name="checklist_id" invisible="not checklist_id" readonly="1"/>
+                            <field name="checklist_state" invisible="not checklist_id"/>
+                            <field name="create_uid" string="Created By" readonly="1" invisible="not id"/>
+                            <field name="create_date" string="Created At" readonly="1" invisible="not id"
+                                   options="{'numeric': True}"/>
+                            <field name="date_done" invisible="not date_done" options="{'numeric': True}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group name="source" string="Raised From">
+                        <group name="source_left">
+                            <field name="source_app" readonly="1"/>
+                            <field name="source_checklist_id" invisible="source_app != 'checklists'"/>
+                        </group>
+                        <group name="source_right">
+                            <field name="origin_id" invisible="not origin_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="What needs to be done, and how…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_kanban" model="ir.ui.view">
+        <field name="name">advanced.action.kanban</field>
+        <field name="model">advanced.action</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" sample="1" quick_create="false">
+                <field name="state"/>
+                <field name="is_overdue"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex">
+                            <field name="name" class="fw-bold fs-5 flex-grow-1"/>
+                            <field name="priority" widget="priority"/>
+                        </div>
+                        <field name="source_display" class="text-muted"/>
+                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <footer class="pt-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="activity_ids" widget="kanban_activity"/>
+                                <field name="date_deadline" options="{'numeric': True}"/>
+                            </div>
+                            <field name="user_ids" widget="many2many_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_activity" model="ir.ui.view">
+        <field name="name">advanced.action.activity</field>
+        <field name="model">advanced.action</field>
+        <field name="arch" type="xml">
+            <activity string="Actions">
+                <templates>
+                    <div t-name="activity-box">
+                        <field name="name" display="full" class="o_text_block"/>
+                    </div>
+                </templates>
+            </activity>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_search" model="ir.ui.view">
+        <field name="name">advanced.action.search</field>
+        <field name="model">advanced.action</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="user_ids"/>
+                <field name="tag_ids"/>
+                <field name="checklist_template_id"/>
+                <field name="create_uid" string="Created By"/>
+                <filter name="my_actions" string="My Actions" domain="[('user_ids', 'in', uid)]"/>
+                <filter name="created_by_me" string="Created by Me" domain="[('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter name="open" string="Open" domain="[('state', 'in', ('open', 'in_progress'))]"/>
+                <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="overdue" string="Overdue" domain="[('is_overdue', '=', True)]"/>
+                <separator/>
+                <!-- One filter per app; each app's Actions menu starts with its own on. -->
+                <filter name="app_general" string="Actions App" domain="[('source_app', '=', 'general')]"/>
+                <filter name="app_checklists" string="Checklists" domain="[('source_app', '=', 'checklists')]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_app" string="App" context="{'group_by': 'source_app'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_user" string="Assigned To" context="{'group_by': 'user_ids'}"/>
+                    <filter name="group_deadline" string="Due At" context="{'group_by': 'date_deadline:day'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_advanced_action_my" model="ir.actions.act_window">
+        <field name="name">My Actions</field>
+        <field name="res_model">advanced.action</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="context">{'search_default_my_actions': 1, 'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No actions for you</p>
+            <p>Actions assigned to you, from every app, show here.</p>
+        </field>
+    </record>
+
+    <record id="action_advanced_action" model="ir.actions.act_window">
+        <field name="name">All Actions</field>
+        <field name="res_model">advanced.action</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an action</p>
+            <p>Actions from every app are kept here: assign them, give them a due time and a checklist to complete.</p>
+        </field>
+    </record>
+
+    <!-- The Checklists app's Actions: filtered to Checklists, filter removable. -->
+    <record id="action_advanced_action_checklists" model="ir.actions.act_window">
+        <field name="name">Actions</field>
+        <field name="res_model">advanced.action</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="context">{'search_default_app_checklists': 1, 'search_default_open': 1, 'default_source_app': 'checklists'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No checklist actions yet</p>
+            <p>Actions raised from checklists show here. Remove the Checklists filter to see actions from every app.</p>
+        </field>
+    </record>
+
+    <!-- Checklists: the actions raised from a checklist -->
+    <record id="checklist_view_form_inherit_advanced_actions" model="ir.ui.view">
+        <field name="name">checklist.checklist.form.advanced.actions</field>
+        <field name="model">checklist.checklist</field>
+        <field name="inherit_id" ref="checklists.checklist_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Actions" name="advanced_actions">
+                    <field name="action_ids" context="{'default_source_checklist_id': id}">
+                        <list editable="bottom" decoration-muted="state in ('done', 'cancelled')"
+                              decoration-danger="is_overdue">
+                            <field name="id" optional="show" readonly="1"/>
+                            <field name="priority" widget="priority" optional="show"/>
+                            <field name="name"/>
+                            <field name="user_ids" widget="many2many_avatar_user"/>
+                            <field name="date_deadline" options="{'numeric': True}"/>
+                            <field name="checklist_template_id" optional="hide"/>
+                            <field name="state" widget="badge"
+                                   decoration-info="state == 'open'"
+                                   decoration-warning="state == 'in_progress'"
+                                   decoration-success="state == 'done'"/>
+                            <field name="is_overdue" column_invisible="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

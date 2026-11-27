@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- One page per employee. Every ID badge has its own print action (made
+         by advanced.hr.badge.template) that renders this template with its
+         layout; the styles come from advanced.hr.badge.template._badge_render. -->
+    <template id="report_badge">
+        <t t-call="web.html_container">
+            <style>
+                html, body, body.container, body.container-fluid, #wrapwrap, main {
+                    margin: 0 !important; padding: 0 !important; max-width: none !important; width: auto !important;
+                }
+                .o_personnel_badge_page { margin: 0; padding: 0; }
+            </style>
+            <t t-foreach="docs" t-as="employee">
+                <t t-set="badge" t-value="badges[employee.id]"/>
+                <div class="o_personnel_badge_page" t-att-style="badge['page_style'] + ('' if employee_last else ';page-break-after:always')">
+                    <t t-foreach="badge['elements']" t-as="element">
+                        <div t-if="element['type'] == 'text'" t-att-style="element['style']">
+                            <div t-att-style="element['cell_style']"><t t-foreach="element['lines']" t-as="line"><t t-esc="line"/><br t-if="not line_last"/></t></div>
+                        </div>
+                        <div t-else="" t-att-style="element['style']"/>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

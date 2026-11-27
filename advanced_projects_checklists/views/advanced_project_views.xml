@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tasks: the Required Checklist, a button to start it and the task's checklists. -->
+    <record id="advanced_project_task_view_form_checklists" model="ir.ui.view">
+        <field name="name">advanced.project.task.form.checklists</field>
+        <field name="model">advanced.project.task</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_task_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='stage_id']" position="before">
+                <button name="action_start_checklist" type="object" string="Start Checklist" class="btn-primary"
+                        invisible="not checklist_template_id or stage_category in ('done', 'cancelled')"
+                        groups="checklists.group_checklist_user"/>
+                <field name="stage_category" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='planned_hours']" position="after">
+                <field name="checklist_template_id" options="{'no_create': True}"
+                       groups="checklists.group_checklist_user"/>
+            </xpath>
+            <xpath expr="//page[@name='links']" position="after">
+                <page string="Checklists" name="checklists" groups="checklists.group_checklist_user">
+                    <p class="text-muted">Completing the Required Checklist marks the task as done.</p>
+                    <field name="checklist_ids" readonly="1">
+                        <list decoration-success="state == 'done'">
+                            <field name="id" optional="show"/>
+                            <field name="name"/>
+                            <field name="template_id"/>
+                            <field name="checklist_date" options="{'numeric': True}"/>
+                            <field name="date_due" options="{'numeric': True}" optional="show"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="state" widget="badge"
+                                   decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="advanced_project_task_view_list_checklists" model="ir.ui.view">
+        <field name="name">advanced.project.task.list.checklists</field>
+        <field name="model">advanced.project.task</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_task_view_list"/>
+        <field name="arch" type="xml">
+            <field name="stage_id" position="before">
+                <field name="checklist_template_id" optional="hide" groups="checklists.group_checklist_user"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Projects: the checklists completed for their tasks. -->
+    <record id="advanced_project_view_form_checklists" model="ir.ui.view">
+        <field name="name">advanced.project.form.checklists</field>
+        <field name="model">advanced.project</field>
+        <field name="inherit_id" ref="advanced_projects.advanced_project_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_team']" position="after">
+                <button name="action_open_checklists" type="object" class="oe_stat_button" icon="fa-check-square-o"
+                        invisible="is_template" groups="checklists.group_checklist_user">
+                    <field name="checklist_done_count" widget="statinfo" string="Checklists"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

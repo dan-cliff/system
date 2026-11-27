@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="purpleH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/><stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="coralDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF5A6E"/><stop offset="1" stop-color="#E8405A"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FBB8B8"/><stop offset="1" stop-color="#F9A3A3"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="yellowV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/><stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="blueH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3BB8FF"/><stop offset="0.5" stop-color="#1E90F8"/><stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/><stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A55B0"/><stop offset="1" stop-color="#2A3F8F"/>
+    </linearGradient>
+    <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E5CF0"/><stop offset="1" stop-color="#8E2F7A"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF5A6E"/><stop offset="0.5" stop-color="#8E5CF0"/><stop offset="1" stop-color="#3BB8FF"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+    <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#2A3F8F" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <g transform="translate(-2 -37) scale(0.94)">
+  <ellipse cx="512" cy="912" rx="380" ry="34" fill="url(#shadow)"/>
+
+  <!-- Main object: a support ticket with punched notches and a perforation -->
+  <mask id="notches">
+    <rect width="1024" height="1024" fill="#FFFFFF"/>
+    <circle cx="96" cy="470" r="58" fill="#000000"/>
+    <circle cx="824" cy="470" r="58" fill="#000000"/>
+  </mask>
+  <g filter="url(#soft)">
+    <g mask="url(#notches)">
+      <rect x="96" y="220" width="728" height="500" rx="70" fill="url(#rim)"/>
+      <rect x="132" y="256" width="656" height="428" rx="44" fill="url(#panel)"/>
+    </g>
+  </g>
+  <rect x="170" y="236" width="560" height="12" rx="6" fill="#FFFFFF" opacity="0.3"/>
+  <!-- perforation between the stub and the body -->
+  <g fill="#A9ABDC">
+    <rect x="322" y="292" width="14" height="40" rx="7"/>
+    <rect x="322" y="356" width="14" height="40" rx="7"/>
+    <rect x="322" y="420" width="14" height="40" rx="7"/>
+    <rect x="322" y="484" width="14" height="40" rx="7"/>
+    <rect x="322" y="548" width="14" height="40" rx="7"/>
+    <rect x="322" y="612" width="14" height="40" rx="7"/>
+  </g>
+  <!-- stub: a priority star badge -->
+  <circle cx="232" cy="470" r="62" fill="url(#coral)"/>
+  <path d="M232 428 L244 456 L274 459 L251 479 L258 509 L232 493 L206 509 L213 479 L190 459 L220 456 Z"
+        fill="#FFFFFF" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+  <!-- ticket text -->
+  <rect x="380" y="320" width="330" height="34" rx="17" fill="#A9ABDC"/>
+  <rect x="380" y="380" width="250" height="26" rx="13" fill="#C9CAEA"/>
+  <rect x="380" y="440" width="300" height="26" rx="13" fill="#C9CAEA"/>
+  <rect x="380" y="520" width="150" height="44" rx="22" fill="url(#teal)"/>
+  <rect x="400" y="536" width="110" height="12" rx="6" fill="#FFFFFF" opacity="0.85"/>
+
+  <!-- Accent: a support headset overlapping the lower right corner -->
+  <g filter="url(#lift)">
+    <path d="M610 720 A170 170 0 0 1 950 720" fill="none" stroke="url(#navy)" stroke-width="44"
+          stroke-linecap="round"/>
+    <rect x="562" y="676" width="112" height="186" rx="52" fill="url(#blue)"/>
+    <rect x="886" y="676" width="112" height="186" rx="52" fill="url(#blue)"/>
+    <rect x="598" y="704" width="40" height="130" rx="20" fill="#FFFFFF" opacity="0.35"/>
+    <path d="M622 852 Q640 920 740 920" fill="none" stroke="url(#navy)" stroke-width="28"
+          stroke-linecap="round"/>
+    <rect x="726" y="890" width="96" height="58" rx="29" fill="url(#coral)"/>
+  </g>
+  <rect x="922" y="704" width="40" height="130" rx="20" fill="#FFFFFF" opacity="0.35"/>
+  </g>
+</svg>

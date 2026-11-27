@@ -506,6 +506,33 @@ class TestCustomDashboard(TransactionCase):
         widget.user_filter_path = 'user_id'
         self.assertNotIn('error', widget.get_widget_data()[widget.id])
 
+    def test_user_filter_through_a_many2many_field(self):
+        people = self._hierarchy()
+        me, report, boss = people['me'][0], people['report'][0], people['boss'][0]
+        Group = self.env['res.groups']
+        groups = Group.create([
+            {'name': 'CD Mine', 'user_ids': [(6, 0, me.ids)]},
+            {'name': 'CD Shared', 'user_ids': [(6, 0, (me | boss).ids)]},
+            {'name': 'CD Report', 'user_ids': [(6, 0, report.ids)]},
+            {'name': 'CD Nobody'},
+        ])
+        widget = self.env['custom.dashboard.widget'].create({
+            'dashboard_id': self.dashboard.id,
+            'type_id': self.env.ref('custom_dashboard.widget_type_table').id,
+            'name': 'Groups',
+            'model_id': self.env['ir.model']._get('res.groups').id,
+            'domain': "[('id', 'in', %s)]" % groups.ids,
+            'groupby_field_id': self.env['ir.model.fields']._get('res.groups', 'name').id,
+            'user_filter_scope': 'self',
+            'user_filter_path': 'user_ids',
+        })
+        data_env = self.env(user=me)
+        # a record counts when the viewer is one of its users
+        self.assertEqual(sorted(widget._get_widget_data(data_env)[widget.id]['labels']), ['CD Mine', 'CD Shared'])
+        widget.user_filter_scope = 'extended_team'
+        self.assertEqual(sorted(widget._get_widget_data(data_env)[widget.id]['labels']),
+                         ['CD Mine', 'CD Report', 'CD Shared'])
+
 
     def test_record_colours_for_groups_and_series(self):
         company = self.env.company

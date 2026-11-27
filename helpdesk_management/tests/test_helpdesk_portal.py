@@ -36,6 +36,7 @@ class TestHelpdeskPortal(HttpCase):
         self.assertIn(ticket.ticket_ref, response.text)
         self.assertEqual(ticket.team_id, self.team)
         self.assertEqual(ticket.partner_id.email, 'walk.in@example.com')
+        self.assertEqual(ticket.source_id, self.env.ref('helpdesk_management.ticket_source_website'))
         self.assertIn('&lt;two&gt;', str(ticket.description), 'the description is escaped')
 
     def test_public_form_validation_and_honeypot(self):

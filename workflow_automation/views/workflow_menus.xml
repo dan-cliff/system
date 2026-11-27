@@ -35,6 +35,10 @@
         groups="workflow_automation.group_workflow_manager,base.group_system"/>
 
     <!-- Configuration submenu — visible to managers and system admins -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_wf_app_reports" name="Reports" parent="menu_wf_app_root" sequence="89"/>
+
     <menuitem
         id="menu_wf_configuration"
         name="Configuration"

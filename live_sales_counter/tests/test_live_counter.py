@@ -2,6 +2,7 @@ import json
 from datetime import date, datetime
 from unittest.mock import patch
 
+from odoo.exceptions import AccessError
 from odoo.tests import HttpCase, new_test_user, tagged
 from odoo.tests.common import TransactionCase
 
@@ -90,7 +91,10 @@ class TestLiveCounter(LiveCounterCommon):
         self.assertEqual([c['name'] for c in data['channels']], ['Shop Team'])
 
     def test_untaxed_amounts(self):
-        tax = self.env['account.tax'].create({'name': 'VAT 20', 'amount': 20.0, 'type_tax_use': 'sale'})
+        tax_group = self.env['account.tax.group'].create({'name': 'VAT'})
+        tax = self.env['account.tax'].create({
+            'name': 'VAT 20', 'amount': 20.0, 'type_tax_use': 'sale', 'tax_group_id': tax_group.id,
+        })
         order = self._sell(qty=1)
         order.order_line.tax_ids = tax
         self.counter.tax_included = False
@@ -120,14 +124,35 @@ class TestLiveCounter(LiveCounterCommon):
         self.assertEqual(location.state, 'failed')
 
     def test_private_access(self):
-        user = new_test_user(self.env, 'lsc_user', groups='base.group_user,live_sales_counter.group_live_counter_user')
+        viewer = new_test_user(self.env, 'lsc_viewer', groups='base.group_user,live_sales_counter.group_live_counter_view_all')
+        base_only = new_test_user(self.env, 'lsc_base', groups='base.group_user,live_sales_counter.group_live_counter_user')
         outsider = new_test_user(self.env, 'lsc_outsider', groups='base.group_user')
         public = self.env.ref('base.public_user')
-        self.assertTrue(self.counter._can_view(user))
+        self.assertTrue(self.counter._can_view(viewer))
+        self.assertFalse(self.counter._can_view(base_only))
         self.assertFalse(self.counter._can_view(outsider))
         self.assertFalse(self.counter._can_view(public))
         self.counter.visibility = 'public'
         self.assertTrue(self.counter._can_view(public))
+
+    def test_permissions(self):
+        Counter = self.env['live.counter']
+        owner = new_test_user(self.env, 'lsc_owner', groups='base.group_user,live_sales_counter.group_live_counter_edit_own')
+        other = new_test_user(self.env, 'lsc_other', groups='base.group_user,live_sales_counter.group_live_counter_edit_own')
+        mine = Counter.with_user(owner).create({'name': 'Mine', 'include_pos_orders': False})
+        mine.name = 'Still mine'
+        self.assertTrue(mine._can_view(owner))
+        self.assertFalse(mine._can_view(other))
+        self.assertFalse(Counter.with_user(other).search([('id', '=', mine.id)]))
+        with self.assertRaises(AccessError):
+            mine.unlink()
+        # Without any permission the technical group sees nothing.
+        nobody = new_test_user(self.env, 'lsc_nobody', groups='base.group_user,live_sales_counter.group_live_counter_user')
+        self.assertFalse(Counter.with_user(nobody).search([]))
+
+    def test_open_buttons_stay_on_this_site(self):
+        self.assertEqual(self.counter.action_open_page()['url'], f'/live-sales/{self.counter.access_token}')
+        self.assertEqual(self.counter.action_open_demo()['url'], f'/live-sales/{self.counter.access_token}?demo=1')
 
     def test_new_link(self):
         token = self.counter.access_token

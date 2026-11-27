@@ -11,6 +11,10 @@
               action="action_iot_node" sequence="1"/>
 
     <!-- ─── Configuration (Administrators) ─────────────────────────────── -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_iot_reports" name="Reports" parent="menu_iot_root" sequence="89"/>
+
     <menuitem id="menu_iot_config" name="Configuration" parent="menu_iot_root"
               groups="group_iot_admin" sequence="90"/>
     <menuitem id="menu_iot_settings" name="Settings" parent="menu_iot_config"

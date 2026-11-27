@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Purchasing extends Purchase's own views, so everything other apps add to
+         them (Inventory, Advanced Accounts, ...) shows here too. -->
+
+    <!-- ── Form ───────────────────────────────────────────────────────── -->
+    <record id="purchase_order_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.purchasing</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <!-- Approvals follow the order's route (Spend Levels), not Odoo's Purchase Administrator. -->
+            <xpath expr="//header/button[@name='button_approve']" position="attributes">
+                <attribute name="groups"></attribute>
+                <attribute name="invisible">not purchasing_can_approve</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='button_approve']" position="after">
+                <field name="purchasing_can_approve" invisible="1"/>
+                <button name="action_purchasing_send_back" type="object" string="Send Back"
+                        invisible="not purchasing_can_approve" data-hotkey="w"/>
+            </xpath>
+            <!-- The Purchase Order PDF: downloaded straight away, in the order company's branding. -->
+            <xpath expr="//header/button[@name='%(purchase.action_report_purchase_order)d']" position="replace">
+                <button name="action_print_purchasing_order" string="Print" type="object" groups="base.group_user"
+                        data-hotkey="k" invisible="state != 'purchase'"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-info mb-0" role="status" invisible="state != 'to approve'">
+                    Waiting for approval: <field name="purchasing_approval_route" class="fw-bold"/>
+                </div>
+                <div class="alert alert-warning mb-0" role="alert"
+                     invisible="state not in ('draft', 'sent') or not purchasing_rejection_reason">
+                    <strong>Sent back:</strong> <field name="purchasing_rejection_reason"/>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='purchase_delivery_invoice']" position="after">
+                <page string="Approval" name="purchasing_approval"
+                      invisible="not purchasing_spend_level_id and state not in ('to approve', 'purchase')">
+                    <group>
+                        <group name="purchasing_approval_route">
+                            <field name="purchasing_spend_level_id"/>
+                            <field name="purchasing_approval_needed"/>
+                            <field name="purchasing_approval_route"/>
+                            <field name="purchasing_approver_ids" widget="many2many_avatar_user"
+                                   invisible="not purchasing_approver_ids"/>
+                        </group>
+                        <group name="purchasing_approval_result">
+                            <field name="purchasing_approved_by_id" widget="many2one_avatar_user"
+                                   invisible="not purchasing_approved_by_id"/>
+                            <field name="date_approve" string="Approved On" options="{'numeric': True}"
+                                   invisible="state != 'purchase'"/>
+                            <field name="purchasing_balance_owing" invisible="state != 'purchase'"/>
+                            <field name="purchasing_rejection_reason" invisible="not purchasing_rejection_reason"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            <!-- dd/mm/yyyy dates -->
+            <xpath expr="//sheet//field[@name='date_order']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//div[@name='date_approve']/field[@name='date_approve']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//div[@name='date_planned_div']/field[@name='date_planned']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='date_planned']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='date_planned']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── Lists: the ID first, dd/mm/yyyy dates ───────────────────────── -->
+    <record id="purchase_order_kpis_tree" model="ir.ui.view">
+        <field name="name">purchase.order.list.kpis.purchasing</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_kpis_tree"/>
+        <field name="arch" type="xml">
+            <field name="priority" position="before">
+                <field name="id" optional="show"/>
+            </field>
+            <field name="date_approve" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="date_planned" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="invoice_status" position="after">
+                <field name="purchasing_spend_level_id" optional="hide"/>
+                <field name="purchasing_balance_owing" optional="hide" sum="Estimated Balance Owing"
+                       column_invisible="context.get('quotation_only', False)"/>
+            </field>
+            <xpath expr="//header" position="inside">
+                <button name="action_create_invoice" type="object" string="Create Bills"
+                        invisible="context.get('quotation_only', False)"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_tree" model="ir.ui.view">
+        <field name="name">purchase.order.list.purchasing</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="priority" position="before">
+                <field name="id" optional="show"/>
+            </field>
+            <field name="date_order" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="date_approve" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="date_planned" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_view_tree" model="ir.ui.view">
+        <field name="name">purchase.order.view.list.purchasing</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="priority" position="before">
+                <field name="id" optional="show"/>
+            </field>
+            <field name="date_order" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="date_approve" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="date_planned" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_line_tree" model="ir.ui.view">
+        <field name="name">purchase.order.line.list.purchasing</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_order_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <field name="date_planned" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_history_tree" model="ir.ui.view">
+        <field name="name">purchase.order.line.history.list.purchasing</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_history_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <field name="date_approve" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_line_form2" model="ir.ui.view">
+        <field name="name">purchase.order.line.form.purchasing</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_order_line_form2"/>
+        <field name="arch" type="xml">
+            <field name="date_order" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="date_planned" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <!-- ── Searches ───────────────────────────────────────────────────── -->
+    <record id="view_purchase_order_filter" model="ir.ui.view">
+        <field name="name">purchase.order.filter.purchasing</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <filter name="to_approve" position="after">
+                <filter name="my_approvals" string="Waiting for My Approval"
+                        domain="[('state', '=', 'to approve'), ('purchasing_approver_ids', 'in', [uid])]"/>
+                <filter name="balance_owing" string="Balance Owing"
+                        domain="[('purchasing_balance_owing', '>', 0)]"/>
+            </filter>
+            <xpath expr="//search" position="inside">
+                <field name="purchasing_spend_level_id"/>
+                <group>
+                    <filter name="group_spend_level" string="Spend Level" context="{'group_by': 'purchasing_spend_level_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_view_search" model="ir.ui.view">
+        <field name="name">purchase.order.search.purchasing</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <!-- The overview cards on the Purchase Orders list use these. -->
+                <filter name="my_purchases" string="My Purchases" domain="[('user_id', '=', uid)]" invisible="1"/>
+                <filter name="draft_rfqs" string="New" domain="[('state', '=', 'draft')]" invisible="1"/>
+                <filter name="waiting_rfqs" string="Sent" domain="[('state', '=', 'sent')]" invisible="1"/>
+                <filter name="late" string="Late" invisible="1"
+                        domain="[('state', 'in', ['draft', 'sent', 'to approve']), ('date_order', '&lt;', 'now')]"/>
+                <filter name="not_acknowledged" string="Not Acknowledged" invisible="1"
+                        domain="[('state', 'in', ['purchase', 'done']), ('acknowledged', '=', False)]"/>
+                <filter name="late_receipt" string="Late Receipts" invisible="1"
+                        domain="[('state', 'in', ['purchase', 'done']), ('is_late', '=', True)]"/>
+                <filter name="to_approve" string="To Approve" domain="[('state', '=', 'to approve')]"/>
+                <filter name="my_approvals" string="Waiting for My Approval"
+                        domain="[('state', '=', 'to approve'), ('purchasing_approver_ids', 'in', [uid])]"/>
+                <filter name="balance_owing" string="Balance Owing"
+                        domain="[('purchasing_balance_owing', '>', 0)]"/>
+                <field name="purchasing_spend_level_id"/>
+                <group>
+                    <filter name="group_spend_level" string="Spend Level" context="{'group_by': 'purchasing_spend_level_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── To Approve ─────────────────────────────────────────────────── -->
+    <record id="action_purchasing_to_approve" model="ir.actions.act_window">
+        <field name="name">To Approve</field>
+        <field name="res_model">purchase.order</field>
+        <field name="path">purchasing-to-approve</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="purchase.purchase_order_tree"/>
+        <field name="search_view_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="domain">[('state', '=', 'to approve')]</field>
+        <field name="context">{'search_default_my_approvals': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing waiting for your approval.</p>
+            <p>Orders above the buyer's spend delegation, or in a Spend Level that needs approval,
+               wait here for their approvers.</p>
+        </field>
+    </record>
+</odoo>

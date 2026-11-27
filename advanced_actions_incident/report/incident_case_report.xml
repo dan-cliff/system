@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Corrective actions are Actions now: their fields have Actions' names. -->
+    <template id="report_incident_full_document_advanced_actions"
+              inherit_id="incident_management.report_incident_full_document">
+        <xpath expr="//t[@t-foreach='case.corrective_action_ids']" position="replace">
+            <t t-foreach="case.corrective_action_ids" t-as="action">
+                <tr t-att-class="'action-done' if action.state == 'done' else ('action-overdue' if action.is_overdue else '')">
+                    <td style="text-align: center;">⬤</td>
+                    <td style="white-space: pre-wrap;"><t t-esc="action.name or '—'"/></td>
+                    <td><t t-esc="action.control_type_id.name or ''"/></td>
+                    <td><t t-esc="', '.join(action.user_ids.mapped('name'))"/></td>
+                    <td>
+                        <t t-if="action.date_deadline">
+                            <span t-field="action.date_deadline" t-options='{"widget": "datetime", "format": "dd/MM/yyyy HH:mm"}'/>
+                        </t>
+                        <t t-else="">—</t>
+                    </td>
+                    <td><span t-field="action.state"/></td>
+                    <td>
+                        <t t-if="action.date_done">
+                            <span t-field="action.date_done" t-options='{"widget": "datetime", "format": "dd/MM/yyyy HH:mm"}'/>
+                        </t>
+                        <t t-else="">—</t>
+                    </td>
+                </tr>
+                <t t-if="action.completion_notes">
+                    <tr t-att-class="'action-done' if action.state == 'done' else ('action-overdue' if action.is_overdue else '')">
+                        <td></td>
+                        <td colspan="6" style="font-size: 7.5pt; color: #555; padding-top: 0; padding-bottom: 6px;">
+                            <em>Notes: <t t-esc="action.completion_notes"/></em>
+                        </td>
+                    </tr>
+                </t>
+            </t>
+        </xpath>
+    </template>
+</odoo>

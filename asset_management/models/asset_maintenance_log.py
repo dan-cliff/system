@@ -20,6 +20,12 @@ class AssetMaintenanceLog(models.Model):
         ondelete='cascade',
         index=True,
     )
+    company_id = fields.Many2one(
+        related='asset_id.company_id',
+        store=True,
+        index=True,
+        string='Company',
+    )
     date = fields.Date(string='Date Performed', required=True, default=fields.Date.context_today)
     date_due = fields.Date(string='Date Due')
     performed_by = fields.Many2one(

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_product_slot_list" model="ir.ui.view">
+        <field name="name">advanced.inventory.product.slot.list</field>
+        <field name="model">advanced.inventory.product.slot</field>
+        <field name="arch" type="xml">
+            <list string="Storage Slots" editable="bottom" decoration-warning="needs_refill">
+                <field name="id" optional="show"/>
+                <field name="walk_sequence" string="Walk" optional="show"/>
+                <field name="product_id"/>
+                <field name="location_id" options="{'no_create': True}"/>
+                <field name="warehouse_id" optional="show"/>
+                <field name="is_primary"/>
+                <field name="min_qty" optional="show"/>
+                <field name="max_qty" optional="show"/>
+                <field name="qty_on_hand"/>
+                <field name="needs_refill" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_product_slot_search" model="ir.ui.view">
+        <field name="name">advanced.inventory.product.slot.search</field>
+        <field name="model">advanced.inventory.product.slot</field>
+        <field name="arch" type="xml">
+            <search string="Storage Slots">
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="warehouse_id"/>
+                <filter name="primary" string="Main Slots" domain="[('is_primary', '=', True)]"/>
+                <group>
+                    <filter name="group_warehouse" string="Warehouse" context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_location" string="Location" context="{'group_by': 'location_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_product_slot" model="ir.actions.act_window">
+        <field name="name">Storage Slots</field>
+        <field name="res_model">advanced.inventory.product.slot</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_product_slot_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Assign products to their shelves and totes</p>
+            <p>A product's main slot in a warehouse is where receipts put it away. Picking finds it there,
+               and both follow the warehouse's walk order.</p>
+        </field>
+    </record>
+</odoo>

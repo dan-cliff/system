@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_custom_dashboard_form_projects" model="ir.ui.view">
+        <field name="name">custom.dashboard.form.projects</field>
+        <field name="model">custom.dashboard</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='refresh_interval']" position="after">
+                <field name="show_in_projects"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Each widget's filter: the field that links its records to a project. -->
+    <record id="view_custom_dashboard_widget_form_projects" model="ir.ui.view">
+        <field name="name">custom.dashboard.widget.form.projects</field>
+        <field name="model">custom.dashboard.widget</field>
+        <field name="inherit_id" ref="custom_dashboard.view_custom_dashboard_widget_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_filter_scope']/../.." position="after">
+                <group invisible="not model_id" string="Project Filter">
+                    <group>
+                        <field name="project_field_path" widget="field_selector"
+                               options="{'model': 'model_name', 'follow_relations': True}"
+                               placeholder="Not filtered by project"/>
+                    </group>
+                    <div class="text-muted small">
+                        Opened from a project, this widget only shows that project's records.
+                        Opened from the Dashboards app, it is not filtered by project.
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

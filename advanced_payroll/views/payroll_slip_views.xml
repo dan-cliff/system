@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_slip_view_list" model="ir.ui.view">
+        <field name="name">payroll.slip.list</field>
+        <field name="model">payroll.slip</field>
+        <field name="arch" type="xml">
+            <list string="Payslips" create="0">
+                <field name="id" optional="show"/>
+                <field name="employee_id"/>
+                <field name="run_id" optional="show"/>
+                <field name="country_id" optional="hide"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="payment_date" optional="show" options="{'numeric': True}"/>
+                <field name="hours" optional="hide" sum="Total"/>
+                <field name="gross_amount" sum="Total"/>
+                <field name="tax_amount" optional="show" sum="Total"/>
+                <field name="deduction_amount" optional="hide" sum="Total"/>
+                <field name="net_amount" sum="Total"/>
+                <field name="employer_amount" optional="hide" sum="Total"/>
+                <field name="cost_amount" optional="hide" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'"
+                       decoration-warning="state == 'approved'" decoration-success="state == 'paid'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_slip_view_form" model="ir.ui.view">
+        <field name="name">payroll.slip.form</field>
+        <field name="model">payroll.slip</field>
+        <field name="arch" type="xml">
+            <form string="Payslip">
+                <header>
+                    <button name="action_compute" type="object" string="Compute" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="%(advanced_payroll.action_report_payslip)d" type="action" string="Print PDF"
+                            invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group name="employee">
+                            <field name="run_id" readonly="id" options="{'no_create': True}"/>
+                            <field name="payroll_employee_id" readonly="id or state != 'draft'" options="{'no_create': True}"/>
+                            <field name="employee_id"/>
+                            <field name="country_id"/>
+                            <field name="country_code" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group name="period">
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <field name="date_end" options="{'numeric': True}"/>
+                            <field name="payment_date" options="{'numeric': True}"/>
+                            <field name="pay_frequency_id"/>
+                            <field name="computed_date" options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pay" name="lines">
+                            <field name="line_ids" readonly="state != 'draft'" class="o_field_highlight">
+                                <list editable="bottom" decoration-muted="category == 'employer'"
+                                      decoration-danger="category in ('tax', 'deduction')">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="show"/>
+                                    <field name="pay_item_id" readonly="rule_id" options="{'no_create': True}"/>
+                                    <field name="rule_id" optional="hide"/>
+                                    <field name="name"/>
+                                    <field name="category" readonly="pay_item_id or rule_id"/>
+                                    <field name="source" optional="show"/>
+                                    <field name="quantity" readonly="source != 'manual'"/>
+                                    <field name="rate" readonly="source != 'manual'"/>
+                                    <field name="base_amount" optional="hide"/>
+                                    <field name="amount" readonly="source != 'manual'" sum="Total"/>
+                                    <field name="is_taxable" optional="hide"/>
+                                    <field name="retirement_eligible" optional="hide"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer" name="totals">
+                                <field name="gross_amount"/>
+                                <field name="reimbursement_amount"/>
+                                <field name="tax_amount"/>
+                                <field name="deduction_amount"/>
+                                <field name="net_amount" class="oe_subtotal_footer_separator"/>
+                                <field name="employer_amount"/>
+                                <field name="cost_amount"/>
+                            </group>
+                        </page>
+                        <page string="Note" name="note">
+                            <field name="note" placeholder="Printed on the payslip..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_slip_view_search" model="ir.ui.view">
+        <field name="name">payroll.slip.search</field>
+        <field name="model">payroll.slip</field>
+        <field name="arch" type="xml">
+            <search string="Payslips">
+                <field name="employee_id"/>
+                <field name="run_id"/>
+                <field name="country_id"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="paid" string="Paid" domain="[('state', '=', 'paid')]"/>
+                <separator/>
+                <filter name="date_start" string="Period" date="date_start"/>
+                <group>
+                    <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_run" string="Pay Run" context="{'group_by': 'run_id'}"/>
+                    <filter name="group_country" string="Payroll Country" context="{'group_by': 'country_id'}"/>
+                    <filter name="group_status" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_period" string="Period" context="{'group_by': 'date_start:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="payroll_slip_view_pivot" model="ir.ui.view">
+        <field name="name">payroll.slip.pivot</field>
+        <field name="model">payroll.slip</field>
+        <field name="arch" type="xml">
+            <pivot string="Payslip Analysis" sample="1">
+                <field name="date_start" interval="month" type="col"/>
+                <field name="employee_id" type="row"/>
+                <field name="gross_amount" type="measure"/>
+                <field name="tax_amount" type="measure"/>
+                <field name="net_amount" type="measure"/>
+                <field name="cost_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="payroll_slip_view_graph" model="ir.ui.view">
+        <field name="name">payroll.slip.graph</field>
+        <field name="model">payroll.slip</field>
+        <field name="arch" type="xml">
+            <graph string="Payslip Analysis" type="bar" stacked="1" sample="1">
+                <field name="date_start" interval="month"/>
+                <field name="cost_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_payroll_slip" model="ir.actions.act_window">
+        <field name="name">Payslips</field>
+        <field name="res_model">payroll.slip</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No payslips yet</p>
+            <p>Payslips are made by pay runs: open a pay run and generate its payslips.</p>
+        </field>
+    </record>
+
+    <record id="action_payroll_slip_my" model="ir.actions.act_window">
+        <field name="name">My Payslips</field>
+        <field name="res_model">payroll.slip</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_id', '=', uid), ('state', 'in', ('approved', 'paid'))]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No payslips yet</p>
+            <p>Your payslips show here once their pay run is approved.</p>
+        </field>
+    </record>
+
+    <record id="action_payroll_slip_analysis" model="ir.actions.act_window">
+        <field name="name">Payslip Analysis</field>
+        <field name="res_model">payroll.slip</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="domain">[('state', 'in', ('approved', 'paid'))]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+</odoo>

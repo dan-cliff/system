@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_payroll_run" model="ir.sequence">
+        <field name="name">Pay Run</field>
+        <field name="code">payroll.run</field>
+        <field name="prefix">PR/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <data noupdate="1">
+        <!-- Pay frequencies -->
+        <record id="pay_frequency_weekly" model="payroll.pay.frequency">
+            <field name="name">Weekly</field>
+            <field name="code">WEEKLY</field>
+            <field name="sequence">10</field>
+            <field name="interval_unit">week</field>
+            <field name="interval_count">1</field>
+            <field name="periods_per_year">52</field>
+        </record>
+        <record id="pay_frequency_fortnightly" model="payroll.pay.frequency">
+            <field name="name">Fortnightly</field>
+            <field name="code">FORTNIGHTLY</field>
+            <field name="sequence">20</field>
+            <field name="interval_unit">week</field>
+            <field name="interval_count">2</field>
+            <field name="periods_per_year">26</field>
+        </record>
+        <record id="pay_frequency_semi_monthly" model="payroll.pay.frequency">
+            <field name="name">Semi-Monthly</field>
+            <field name="code">SEMIMONTHLY</field>
+            <field name="sequence">30</field>
+            <field name="interval_unit">semi_month</field>
+            <field name="interval_count">1</field>
+            <field name="periods_per_year">24</field>
+        </record>
+        <record id="pay_frequency_monthly" model="payroll.pay.frequency">
+            <field name="name">Monthly</field>
+            <field name="code">MONTHLY</field>
+            <field name="sequence">40</field>
+            <field name="interval_unit">month</field>
+            <field name="interval_count">1</field>
+            <field name="periods_per_year">12</field>
+        </record>
+
+        <!-- Pay items offered in every country -->
+        <record id="pay_item_ordinary" model="payroll.pay.item">
+            <field name="name">Ordinary Hours</field>
+            <field name="code">ORD</field>
+            <field name="sequence">10</field>
+            <field name="category">earning</field>
+            <field name="calculation">hours</field>
+            <field name="rate_multiplier">1.0</field>
+        </record>
+        <record id="pay_item_overtime_15" model="payroll.pay.item">
+            <field name="name">Overtime (Time and a Half)</field>
+            <field name="code">OT15</field>
+            <field name="sequence">20</field>
+            <field name="category">earning</field>
+            <field name="calculation">hours</field>
+            <field name="rate_multiplier">1.5</field>
+            <field name="retirement_eligible" eval="False"/>
+        </record>
+        <record id="pay_item_overtime_20" model="payroll.pay.item">
+            <field name="name">Overtime (Double Time)</field>
+            <field name="code">OT20</field>
+            <field name="sequence">21</field>
+            <field name="category">earning</field>
+            <field name="calculation">hours</field>
+            <field name="rate_multiplier">2.0</field>
+            <field name="retirement_eligible" eval="False"/>
+        </record>
+        <record id="pay_item_leave" model="payroll.pay.item">
+            <field name="name">Paid Leave</field>
+            <field name="code">LEAVE</field>
+            <field name="sequence">30</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+            <field name="rate_multiplier">1.0</field>
+        </record>
+        <record id="pay_item_public_holiday" model="payroll.pay.item">
+            <field name="name">Public Holiday</field>
+            <field name="code">PH</field>
+            <field name="sequence">35</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+            <field name="rate_multiplier">1.0</field>
+        </record>
+        <record id="pay_item_bonus" model="payroll.pay.item">
+            <field name="name">Bonus</field>
+            <field name="code">BONUS</field>
+            <field name="sequence">40</field>
+            <field name="category">earning</field>
+            <field name="calculation">amount</field>
+            <field name="retirement_eligible" eval="False"/>
+        </record>
+        <record id="pay_item_allowance" model="payroll.pay.item">
+            <field name="name">Allowance</field>
+            <field name="code">ALW</field>
+            <field name="sequence">50</field>
+            <field name="category">allowance</field>
+            <field name="calculation">amount</field>
+            <field name="retirement_eligible" eval="False"/>
+        </record>
+        <record id="pay_item_reimbursement" model="payroll.pay.item">
+            <field name="name">Reimbursement</field>
+            <field name="code">REIMB</field>
+            <field name="sequence">60</field>
+            <field name="category">reimbursement</field>
+            <field name="calculation">amount</field>
+            <field name="is_taxable" eval="False"/>
+            <field name="retirement_eligible" eval="False"/>
+        </record>
+        <record id="pay_item_deduction" model="payroll.pay.item">
+            <field name="name">Deduction</field>
+            <field name="code">DED</field>
+            <field name="sequence">70</field>
+            <field name="category">deduction</field>
+            <field name="calculation">amount</field>
+            <field name="is_taxable" eval="False"/>
+            <field name="retirement_eligible" eval="False"/>
+        </record>
+    </data>
+</odoo>

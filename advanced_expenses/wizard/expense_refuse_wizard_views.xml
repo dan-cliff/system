@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_expense_refuse_wizard_view_form" model="ir.ui.view">
+        <field name="name">advanced.expense.refuse.wizard.form</field>
+        <field name="model">advanced.expense.refuse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Refuse Expense">
+                <field name="expense_ids" invisible="1"/>
+                <p class="text-muted">The employee sees the reason on the expense and can correct it and submit it again.</p>
+                <field name="reason" placeholder="Why is the expense refused?" required="1"/>
+                <footer>
+                    <button name="action_refuse" type="object" string="Refuse" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

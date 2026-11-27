@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="signr_request_view_form" model="ir.ui.view">
+        <field name="name">signr.request.form.advanced_accounts</field>
+        <field name="model">signr.request</field>
+        <field name="inherit_id" ref="signr.signr_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//field[@name='document_type_id']" position="after">
+                <field name="adv_account_id" readonly="state != 'draft'" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" readonly="state != 'draft'" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="signr_request_view_list" model="ir.ui.view">
+        <field name="name">signr.request.list.advanced_accounts</field>
+        <field name="model">signr.request</field>
+        <field name="inherit_id" ref="signr.signr_request_view_list"/>
+        <field name="arch" type="xml">
+            <field name="recipient_names" position="before">
+                <field name="adv_account_id" optional="show"/>
+                <field name="adv_contact_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="signr_request_view_search" model="ir.ui.view">
+        <field name="name">signr.request.search.advanced_accounts</field>
+        <field name="model">signr.request</field>
+        <field name="inherit_id" ref="signr.signr_request_view_search"/>
+        <field name="arch" type="xml">
+            <field name="signer_ids" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <xpath expr="//search" position="inside">
+                <group>
+                    <filter name="group_adv_account" string="Account" context="{'group_by': 'adv_account_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

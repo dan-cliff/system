@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- With Personnel, Create and Edit My Team also covers the orders of the
+         employees under theirs in the org chart (created by them or with them as
+         Buyer). Rules of different groups are OR-ed, so these add to
+         advanced_purchasing's rules. -->
+    <record id="rule_purchase_order_edit_team_org_chart" model="ir.rule">
+        <field name="name">Purchase Orders: Create and Edit My Team (org chart)</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="groups" eval="[(4, ref('advanced_purchasing.group_purchase_order_edit_team'))]"/>
+        <field name="domain_force">['|', ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_purchase_order_line_edit_team_org_chart" model="ir.rule">
+        <field name="name">Purchase Order Lines: Create and Edit My Team (org chart)</field>
+        <field name="model_id" ref="purchase.model_purchase_order_line"/>
+        <field name="groups" eval="[(4, ref('advanced_purchasing.group_purchase_order_edit_team'))]"/>
+        <field name="domain_force">['|', ('order_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('order_id.user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+    </record>
+</odoo>

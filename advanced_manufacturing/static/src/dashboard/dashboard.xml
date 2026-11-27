@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_manufacturing.Dashboard">
+        <div class="o_manufacturing_dashboard">
+            <div t-if="state.loading" class="p-5 text-center text-muted"><i class="fa fa-spinner fa-spin me-2"/>Loading…</div>
+            <t t-else="">
+                <div class="o_mdb_header d-flex flex-wrap align-items-center gap-2">
+                    <h2 class="mb-0 me-auto">Manufacturing</h2>
+                    <button t-if="state.data.can_create" class="btn btn-primary btn-sm" t-on-click="newOrder">
+                        <i class="fa fa-plus me-1"/>New Manufacturing Order
+                    </button>
+                    <button class="btn btn-light btn-sm" t-on-click="load" title="Refresh"><i class="fa fa-refresh"/></button>
+                </div>
+
+                <h4>Manufacturing Orders</h4>
+                <div class="o_mdb_cards">
+                    <t t-foreach="state.data.cards" t-as="card" t-key="card.key">
+                        <button t-attf-class="o_mdb_card o_mdb_tone_{{ card.tone }}" t-on-click="() => this.openCard(card)">
+                            <span class="o_mdb_count" t-esc="card.count"/>
+                            <span class="o_mdb_label" t-esc="card.label"/>
+                        </button>
+                    </t>
+                </div>
+
+                <h4>Work Centres</h4>
+                <div t-if="!state.data.workcenters.length" class="o_mdb_empty">
+                    No work centres yet. Add them under Configuration › Work Centres (turn on Work Orders in Settings first).
+                </div>
+                <div class="o_mdb_workcenters">
+                    <t t-foreach="state.data.workcenters" t-as="wc" t-key="wc.id">
+                        <div t-attf-class="o_mdb_wc o_mdb_wc_{{ wc.working_state }}">
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="me-auto">
+                                    <div class="o_mdb_wc_name" t-esc="wc.name"/>
+                                    <div class="o_mdb_wc_meta" t-esc="lastContact(wc)"/>
+                                </div>
+                                <span t-if="wc.working_state === 'blocked'" class="badge text-bg-danger">Blocked</span>
+                                <span t-elif="wc.progress" class="badge text-bg-success">Working</span>
+                                <span t-else="" class="badge text-bg-light">Idle</span>
+                            </div>
+                            <div class="o_mdb_wc_stats" t-on-click="() => this.openWorkorders(wc)">
+                                <span><b t-esc="wc.progress"/> in progress</span>
+                                <span><b t-esc="wc.queued"/> waiting</span>
+                            </div>
+                            <div t-if="wc.workers.length" class="o_mdb_wc_workers">
+                                <i class="fa fa-user me-1"/><t t-esc="wc.workers.join(', ')"/>
+                            </div>
+                            <div t-if="wc.failed" class="o_mdb_wc_failed">
+                                <i class="fa fa-exclamation-triangle me-1"/><t t-esc="wc.failed"/> synced records need checking
+                            </div>
+                            <div t-if="wc.url" class="d-flex gap-2 mt-2">
+                                <button class="btn btn-sm btn-secondary" t-on-click="() => this.openApp(wc)">
+                                    <i class="fa fa-tablet me-1"/>Open Work Centre App
+                                </button>
+                                <button class="btn btn-sm btn-light" t-on-click="() => this.copyLink(wc)" title="Copy link">
+                                    <i class="fa fa-link"/>
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -70,4 +70,9 @@
               action="action_injury_medical_certificate_all"
               sequence="70"
               groups="injury_management.group_injury_user"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it.
+         The app has no Configuration menu, so it comes last. -->
+    <menuitem id="menu_injury_reports" name="Reports" parent="menu_injury_root" sequence="90"/>
 </odoo>

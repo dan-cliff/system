@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_standard_shift_view_list" model="ir.ui.view">
+        <field name="name">rostering.standard.shift.list</field>
+        <field name="model">rostering.standard.shift</field>
+        <field name="arch" type="xml">
+            <list string="Standard Shifts">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="break_hours" widget="float_time" optional="show"/>
+                <field name="paid_hours" widget="float_time"/>
+                <field name="duty_id" optional="show"/>
+                <field name="color" widget="color_picker" optional="hide"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="rostering_standard_shift_view_form" model="ir.ui.view">
+        <field name="name">rostering.standard.shift.form</field>
+        <field name="model">rostering.standard.shift</field>
+        <field name="arch" type="xml">
+            <form string="Standard Shift">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Early Shift"/></h1>
+                    </div>
+                    <group>
+                        <group string="Times">
+                            <field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                            <field name="duration" widget="float_time"/>
+                        </group>
+                        <group string="Hours">
+                            <field name="break_hours" widget="float_time"/>
+                            <field name="paid_hours" widget="float_time"/>
+                            <field name="duty_id" options="{'no_create': True}"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <separator string="Breaks"/>
+                    <field name="break_ids">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="paid"/>
+                        </list>
+                    </field>
+                    <p class="text-muted">A shift ending at or before its start time ends the next day (e.g. 22:00 – 06:00).</p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="rostering_standard_shift_view_search" model="ir.ui.view">
+        <field name="name">rostering.standard.shift.search</field>
+        <field name="model">rostering.standard.shift</field>
+        <field name="arch" type="xml">
+            <search string="Standard Shifts">
+                <field name="name"/>
+                <field name="duty_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_duty" string="Duty" context="{'group_by': 'duty_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rostering_standard_shift" model="ir.actions.act_window">
+        <field name="name">Standard Shifts</field>
+        <field name="res_model">rostering.standard.shift</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a standard shift</p>
+            <p>Standard shifts set the start time, end time and breaks once, so every shift of that kind is the same.</p>
+        </field>
+    </record>
+</odoo>

@@ -186,9 +186,10 @@ captions; "pivot_hide_none_rows", "pivot_hide_none_columns", \
 - "user_filter_scope": {user_scopes} - limits records to the person viewing \
 the dashboard ("self"), their manager, their team (people they manage) or \
 their extended team (themselves and everyone below them). \
-"user_filter_path": dotted many2one path from the model to a res.users or \
-hr.employee record (e.g. "user_id"); null when the model is res.users or \
-hr.employee. Use it for "my ..." requests.
+"user_filter_path": dotted many2one or many2many path from the model to a \
+res.users or hr.employee record (e.g. "user_id", or "user_ids" for assignees: \
+a record then counts when any of its users is in scope); null when the model \
+is res.users or hr.employee. Use it for "my ..." requests.
 - "target": a goal value for KPI and gauge cards; "gauge_min", "gauge_max": \
 the gauge range.
 - "decimals", "prefix", "suffix": number formatting (e.g. prefix "{currency}" \

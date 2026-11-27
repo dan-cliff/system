@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Timesheets - Employees',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.1.1',
     'category': 'Services/Timesheets',
     'summary': 'Timesheets per employee, with optional approval by their Manager',
     'description': """

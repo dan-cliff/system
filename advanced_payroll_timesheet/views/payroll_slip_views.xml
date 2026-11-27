@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_slip_view_form_timesheet" model="ir.ui.view">
+        <field name="name">payroll.slip.form.timesheet</field>
+        <field name="model">payroll.slip</field>
+        <field name="inherit_id" ref="advanced_payroll.payroll_slip_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_open_timesheets" type="object" class="oe_stat_button" icon="fa-clock-o"
+                        invisible="not timesheet_count">
+                    <field name="timesheet_count" widget="statinfo" string="Timesheets"/>
+                </button>
+            </div>
+            <div name="button_box" position="before">
+                <field name="payroll_from_timesheets" invisible="1"/>
+                <div class="alert alert-warning mb-2" role="alert" invisible="not timesheet_pending_count">
+                    <field name="timesheet_pending_count" class="oe_inline fw-bold"/>
+                    timesheet(s) of this pay period are not approved yet, so their hours are not paid. The payslip
+                    is refreshed when they are approved.
+                </div>
+            </div>
+        </field>
+    </record>
+</odoo>

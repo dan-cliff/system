@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_timesheet_view_form" model="ir.ui.view">
+        <field name="name">advanced.timesheet.form.rostering</field>
+        <field name="model">advanced.timesheet</field>
+        <field name="inherit_id" ref="advanced_timesheet.advanced_timesheet_view_form"/>
+        <field name="arch" type="xml">
+            <button name="action_submit" position="after">
+                <button name="action_fill_from_roster" type="object" string="Fill from Roster"
+                        invisible="not id or state != 'draft'"
+                        help="Add the published shifts and approved leave of this period that are not on the timesheet yet."/>
+            </button>
+        </field>
+    </record>
+</odoo>

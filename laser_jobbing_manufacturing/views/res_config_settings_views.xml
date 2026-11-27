@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.laser_jobbing_manufacturing</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="laser_jobbing.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='laser_jobs']" position="inside">
+                <setting id="laser_auto_production"
+                         help="Confirming a laser job whose product has a bill of materials creates and confirms a manufacturing order for it, unless the order it comes from already made one.">
+                    <field name="laser_auto_production"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

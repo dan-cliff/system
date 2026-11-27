@@ -22,6 +22,12 @@ class AssetDefect(models.Model):
         index=True,
         tracking=True,
     )
+    company_id = fields.Many2one(
+        related='asset_id.company_id',
+        store=True,
+        index=True,
+        string='Company',
+    )
     date = fields.Date(string='Reported Date', required=True, default=fields.Date.context_today)
     date_due = fields.Date(string='Due Date')
     reported_by = fields.Many2one(

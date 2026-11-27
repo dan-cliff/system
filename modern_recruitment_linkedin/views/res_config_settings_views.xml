@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_linkedin" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.talent.linkedin</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="modern_recruitment.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='talent_linkedin_setting']" position="inside">
+                <div class="content-group mt-2" invisible="not module_modern_recruitment_linkedin">
+                    <div class="row">
+                        <label for="linkedin_company_page_id" class="col-lg-4 o_light_label"/>
+                        <field name="linkedin_company_page_id" class="col-lg-8" placeholder="e.g. 12345678"/>
+                    </div>
+                    <div class="row mt-2">
+                        <label for="linkedin_feed_url" class="col-lg-4 o_light_label"/>
+                        <field name="linkedin_feed_url" class="col-lg-8" widget="CopyClipboardChar" readonly="1"/>
+                    </div>
+                    <button name="action_linkedin_new_feed_key" type="object" class="btn-link ps-0 mt-1"
+                            icon="fa-refresh" string="New Feed Address"
+                            confirm="The current feed address stops working: give LinkedIn the new one. Continue?"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

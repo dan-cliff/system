@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_timesheet_onsite</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="advanced_timesheet.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <block id="advanced_timesheet_block" position="inside">
+                <setting id="advanced_timesheet_onsite_sync"
+                         help="Every finished On Site attendance becomes an entry on the employee's timesheet for that day (an Attendance row on the grid), kept up to date when the attendance changes. Manual entries are still allowed. Turning this on fills in existing attendances.">
+                    <field name="advanced_timesheet_attendance_sync"/>
+                </setting>
+            </block>
+        </field>
+    </record>
+</odoo>

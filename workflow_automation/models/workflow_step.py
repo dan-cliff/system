@@ -1,5 +1,7 @@
 # Part of Cliff's Country Crafts. See LICENSE file for full copyright and licensing details.
 
+import datetime
+import html
 import json
 import logging
 import re
@@ -8,16 +10,27 @@ import string
 import traceback
 import time as _time
 
+import pytz
 import requests
+from markupsafe import Markup, escape
 from requests.exceptions import RequestException
 
 from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 from odoo.tools import safe_eval
 
 _logger = logging.getLogger(__name__)
 
 # Regex for {{expression}} template rendering
 _TEMPLATE_RE = re.compile(r'\{\{(.+?)\}\}')
+def _html_unescape(text):
+    return html.unescape(text or '')
+
+
+# <t t-out="expr">default</t> as inserted by the HTML editor's Dynamic Placeholder
+_T_OUT_RE = re.compile(
+    r'<t\b[^>]*?\bt-out="([^"]*)"[^>]*?(?:/>|>(.*?)</t>)', re.DOTALL | re.IGNORECASE,
+)
 
 # Headers redacted in the API call log for the API Call step type
 _API_SENSITIVE_HEADERS = frozenset({
@@ -279,7 +292,7 @@ class WfStep(models.Model):
     target_relation_field_id = fields.Many2one(
         'ir.model.fields',
         string='Relation Field',
-        domain="[('model_id', '=', workflow_id.model_id), ('ttype', 'in', ['many2one', 'many2many', 'one2many'])]",
+        domain="[('model_id', '=', workflow_model_id), ('ttype', 'in', ['many2one', 'many2many', 'one2many'])]",
         help='Field on the trigger record pointing to the target record(s).',
     )
     target_model_id = fields.Many2one(
@@ -290,6 +303,16 @@ class WfStep(models.Model):
     target_domain = fields.Char(
         string='Target Domain',
         default='[]',
+    )
+
+    # Field pickers filter on this: a client-side domain can't follow
+    # 'workflow_id.model_id', so the trigger model is exposed directly.
+    workflow_model_id = fields.Many2one(
+        'ir.model',
+        string='Workflow Model',
+        related='workflow_id.model_id',
+        readonly=True,
+        store=False,
     )
 
     # Computed helpers — expose model technical names for the domain widget.
@@ -373,7 +396,8 @@ class WfStep(models.Model):
 
     activity_type_id = fields.Many2one('mail.activity.type', string='Activity Type')
     activity_summary = fields.Char(string='Summary')
-    activity_note = fields.Html(string='Note')
+    # sanitize='email_outgoing' keeps the editor's <t t-out> placeholders
+    activity_note = fields.Html(string='Note', sanitize='email_outgoing')
     activity_deadline_days = fields.Integer(string='Deadline (days)', default=1)
     activity_user_type = fields.Selection(
         selection=[
@@ -388,7 +412,7 @@ class WfStep(models.Model):
     activity_user_field_id = fields.Many2one(
         'ir.model.fields',
         string='User Field',
-        domain="[('model_id', '=', workflow_id.model_id), ('ttype', '=', 'many2one'), ('relation', '=', 'res.users')]",
+        domain="[('model_id', '=', workflow_model_id), ('ttype', '=', 'many2one'), ('relation', '=', 'res.users')]",
         help='Field on the trigger record holding the user to assign the activity to.',
     )
 
@@ -404,7 +428,8 @@ class WfStep(models.Model):
         string='Post As',
         default='comment',
     )
-    message_body = fields.Html(string='Message Body')
+    message_subject = fields.Char(string='Subject')
+    message_body = fields.Html(string='Message Body', sanitize='email_outgoing')
 
     # ------------------------------------------------------------------ #
     # Bus notification fields                                              #
@@ -419,6 +444,10 @@ class WfStep(models.Model):
         ],
         string='Notification Level',
         default='info',
+    )
+    notification_title = fields.Char(
+        string='Notification Title',
+        default=lambda self: _('Workflow Notification'),
     )
     notification_message = fields.Char(string='Notification Message')
     notification_target = fields.Selection(
@@ -454,21 +483,29 @@ class WfStep(models.Model):
         string='Email Template',
     )
     email_subject = fields.Char(string='Subject')
-    email_body = fields.Html(string='Email Body')
+    email_body = fields.Html(string='Email Body', sanitize='email_outgoing')
     email_to_type = fields.Selection(
         selection=[
+            ('template', "Template's Recipients"),
             ('field', 'Field on Record'),
             ('specific_users', 'Specific Users'),
         ],
         string='Send To',
-        default='field',
-        help='How the recipient(s) are determined for inline emails.',
+        compute='_compute_email_to_type',
+        store=True,
+        readonly=False,
+        precompute=True,
+        help="How the recipient(s) are determined. Template's Recipients "
+             "uses the To / Cc set on the email template.",
     )
     email_to_field_id = fields.Many2one(
         'ir.model.fields',
         string='To (field)',
-        domain="[('model_id', '=', workflow_id.model_id)]",
-        help='Field on the trigger record that holds the recipient email address.',
+        domain="[('model_id', '=', workflow_model_id), '|', ('ttype', '=', 'char'), "
+               "'&', ('ttype', 'in', ['many2one', 'many2many', 'one2many']), "
+               "('relation', 'in', ['res.users', 'res.partner'])]",
+        help='Field on the trigger record that holds the recipient: an email '
+             'address, or a user or contact (one or several).',
     )
     email_to_user_ids = fields.Many2many(
         'res.users',
@@ -478,6 +515,30 @@ class WfStep(models.Model):
         string='Recipients',
         help='Send the email to these specific users.',
     )
+
+    @api.depends('email_type')
+    def _compute_email_to_type(self):
+        for step in self:
+            if step.email_type == 'template':
+                # Keep a recipient choice that is filled in; otherwise the
+                # template decides who receives it.
+                if not (step.email_to_type == 'specific_users'
+                        or (step.email_to_type == 'field' and step.email_to_field_id)):
+                    step.email_to_type = 'template'
+            elif step.email_to_type in (False, 'template'):
+                step.email_to_type = 'field'
+
+    @api.constrains('step_type', 'email_type', 'email_to_type')
+    def _check_email_to_type(self):
+        for step in self:
+            if (step.step_type == 'send_email' and step.email_type == 'inline'
+                    and step.email_to_type == 'template'):
+                raise ValidationError(_(
+                    "Step '%s': an inline email has no template, so choose "
+                    "who to send it to (Field on Record or Specific Users).",
+                    step.name,
+                ))
+
     # Report attachments for Send Email
     email_attach_report_ids = fields.Many2many(
         'report.builder',
@@ -639,7 +700,7 @@ class WfStep(models.Model):
     sub_workflow_record_field_id = fields.Many2one(
         'ir.model.fields',
         string='Sub-Workflow Record Field',
-        domain="[('model_id', '=', workflow_id.model_id)]",
+        domain="[('model_id', '=', workflow_model_id)]",
     )
 
     # ------------------------------------------------------------------ #
@@ -918,8 +979,7 @@ class WfStep(models.Model):
                 elif stype == 'send_email':
                     target_records = step_sudo._resolve_target_records(record, run_context)
                     step_sudo._exec_send_email(target_records, record, run_context)
-                    if (step_sudo.email_type == 'inline'
-                            and step_sudo.email_to_type == 'specific_users'):
+                    if step_sudo.email_to_type == 'specific_users':
                         n_users = len(step_sudo.email_to_user_ids.filtered('email'))
                         result_summary = 'Email sent to %d specific user(s)' % n_users
                     else:
@@ -1225,8 +1285,8 @@ class WfStep(models.Model):
                     "wf.step '%s' — could not resolve user from field '%s'", self.name, fname,
                 )
 
-        summary = self._render_template(self.activity_summary or '', eval_ctx)
-        note = self._render_template(self.activity_note or '', eval_ctx)
+        summary = self._render_template(self.activity_summary or '', eval_ctx, display=True)
+        note = Markup(self._render_template(self.activity_note or '', eval_ctx, html=True))
 
         for trec in target_records:
             if hasattr(trec, 'activity_schedule'):
@@ -1250,11 +1310,11 @@ class WfStep(models.Model):
         if not target_records:
             return
 
-        from markupsafe import Markup
         eval_ctx = self._get_eval_context(record, run_context)
+        subject = self._render_template(self.message_subject or '', eval_ctx, display=True)
         # _render_template returns a plain str; re-wrap as Markup so Odoo's
         # mail system treats the content as trusted HTML instead of escaping it.
-        body = Markup(self._render_template(self.message_body or '', eval_ctx))
+        body = Markup(self._render_template(self.message_body or '', eval_ctx, html=True))
 
         # Append report names if configured
         if self.include_report_names:
@@ -1271,6 +1331,8 @@ class WfStep(models.Model):
             if hasattr(trec, 'message_post'):
                 try:
                     kwargs = {'body': body}
+                    if subject:
+                        kwargs['subject'] = subject
                     if subtype:
                         kwargs['subtype_id'] = subtype.id
                     trec.message_post(**kwargs)
@@ -1284,7 +1346,8 @@ class WfStep(models.Model):
         """Send a bus (web push) notification to configured users."""
         self.ensure_one()
         eval_ctx = self._get_eval_context(record, run_context)
-        message = self._render_template(self.notification_message or '', eval_ctx)
+        title = self._render_template(self.notification_title or '', eval_ctx, display=True)
+        message = self._render_template(self.notification_message or '', eval_ctx, display=True)
         level = self.notification_level or 'info'
 
         # Append report names if configured
@@ -1303,7 +1366,7 @@ class WfStep(models.Model):
             return
 
         payload = {
-            'title':   _('Workflow Notification'),
+            'title':   title or _('Workflow Notification'),
             'message': message,
             'type':    level,
             'sticky':  False,
@@ -1326,6 +1389,9 @@ class WfStep(models.Model):
             self.email_type == 'template'
             or self.email_to_type != 'specific_users'
         )
+        if self.email_type == 'template' and not self.email_template_id:
+            _logger.warning("wf.step '%s' — no email template set; skipping", self.name)
+            return
         if needs_target_records and not target_records:
             return
 
@@ -1371,12 +1437,28 @@ class WfStep(models.Model):
                             self.name, report.name,
                         )
 
-        if self.email_type == 'template' and self.email_template_id:
+        if self.email_type == 'template':
             for trec in target_records:
+                # The template's own To / Cc unless the step picks recipients
+                email_to = False
+                if self.email_to_type != 'template':
+                    email_to = ','.join(self._get_email_recipients(trec))
+                    if not email_to:
+                        _logger.warning(
+                            "wf.step '%s' — no recipient email address for %s #%d; skipping",
+                            self.name, trec._name, trec.id,
+                        )
+                        continue
                 try:
                     mail_id = self.email_template_id.send_mail(trec.id, force_send=False)
+                    mail = self.env['mail.mail'].browse(mail_id)
+                    if email_to:
+                        mail.write({
+                            'email_to': email_to,
+                            'email_cc': False,
+                            'recipient_ids': [(5, 0, 0)],
+                        })
                     if attachment_ids:
-                        mail = self.env['mail.mail'].browse(mail_id)
                         mail.write({'attachment_ids': [(4, aid) for aid in attachment_ids]})
                         # Pin on-the-fly attachments to this mail.message
                         if on_the_fly_attachment_ids:
@@ -1392,8 +1474,8 @@ class WfStep(models.Model):
                     )
         else:
             # Inline email
-            subject = self._render_template(self.email_subject or '', eval_ctx)
-            body_html = self._render_template(self.email_body or '', eval_ctx)
+            subject = self._render_template(self.email_subject or '', eval_ctx, display=True)
+            body_html = self._render_template(self.email_body or '', eval_ctx, html=True)
 
             # Append report names to body if configured
             if self.include_report_names:
@@ -1403,14 +1485,13 @@ class WfStep(models.Model):
 
             if self.email_to_type == 'specific_users':
                 # Send one email addressed to all selected users
-                recipients = self.email_to_user_ids.filtered('email')
-                if not recipients:
+                email_to = ','.join(self._get_email_recipients(record))
+                if not email_to:
                     _logger.warning(
                         "wf.step '%s' — no recipient email addresses found on selected users; skipping",
                         self.name,
                     )
                     return
-                email_to = ','.join(recipients.mapped('email'))
                 try:
                     mail_vals = {
                         'subject': subject,
@@ -1436,19 +1517,7 @@ class WfStep(models.Model):
             else:
                 # Resolve recipient from a field on each target record
                 for trec in target_records:
-                    email_to = False
-                    if self.email_to_field_id:
-                        try:
-                            email_to = trec[self.email_to_field_id.name]
-                            if hasattr(email_to, 'email'):
-                                email_to = email_to.email
-                            elif hasattr(email_to, 'mapped'):
-                                email_to = ','.join(email_to.mapped('email'))
-                        except Exception:
-                            _logger.warning(
-                                "wf.step '%s' — could not resolve email_to from field", self.name,
-                            )
-
+                    email_to = ','.join(self._get_email_recipients(trec))
                     if not email_to:
                         _logger.warning(
                             "wf.step '%s' — no recipient email address for %s #%d; skipping",
@@ -1480,6 +1549,31 @@ class WfStep(models.Model):
                             "wf.step '%s' — error sending inline email to '%s'",
                             self.name, email_to,
                         )
+
+    def _get_email_recipients(self, trec):
+        """Email addresses a Send Email step goes to for ``trec``.
+
+        Specific Users: the selected users. Field on Record: the address in a
+        text field, or the users / contacts in a relational field.
+        """
+        self.ensure_one()
+        if self.email_to_type == 'specific_users':
+            return [e for e in self.email_to_user_ids.mapped('email') if e]
+        if self.email_to_type != 'field' or not self.email_to_field_id or not trec:
+            return []
+        try:
+            value = trec[self.email_to_field_id.name]
+        except Exception:
+            _logger.warning(
+                "wf.step '%s' — could not resolve email_to from field '%s'",
+                self.name, self.email_to_field_id.name,
+            )
+            return []
+        if isinstance(value, models.BaseModel):
+            if 'email' not in value._fields:
+                return []
+            return [e for e in value.mapped('email') if e]
+        return [value.strip()] if isinstance(value, str) and value.strip() else []
 
     def _exec_python_code(self, record, run_context):
         """Execute arbitrary Python code and return the value of 'result'."""
@@ -1942,35 +2036,96 @@ class WfStep(models.Model):
     # Template rendering                                                   #
     # ------------------------------------------------------------------ #
 
-    def _render_template(self, template_str, eval_ctx):
+    def _render_template(self, template_str, eval_ctx, html=False, display=False):
         """Render a string containing ``{{expression}}`` placeholders.
 
         Each ``{{expr}}`` block is replaced by the result of evaluating *expr*
-        in *eval_ctx* via safe_eval.
+        in *eval_ctx* via safe_eval. ``{{expr ||| default}}`` (as inserted by
+        the field selector) falls back to *default* when the value is empty.
 
         Args:
             template_str: The template string.
             eval_ctx: The evaluation context dict.
+            html: The template is HTML (an Html field): also render the
+                editor's ``<t t-out="expr">default</t>`` placeholders and
+                escape the inserted values. Implies *display*.
+            display: Format values for people to read (dates as dd/mm/yyyy,
+                records by name, empty values as nothing) instead of ``str()``.
 
         Returns:
             The rendered string.
         """
-        if not template_str or '{{' not in template_str:
-            return template_str or ''
+        if not template_str:
+            return ''
+        display = display or html
 
-        def replacer(match):
-            expr = match.group(1).strip()
+        def evaluate(expr, default=''):
+            if html:
+                expr = _html_unescape(expr)
             try:
-                value = safe_eval.safe_eval(expr, eval_ctx)
-                return str(value) if value is not None else ''
+                value = safe_eval.safe_eval(expr.strip(), eval_ctx)
             except Exception:
                 _logger.warning(
                     "wf.step '%s' — error rendering template expression '{{%s}}'",
                     self.name if self else '?', expr,
                 )
-                return ''
+                return default
+            if display:
+                value = self._format_placeholder_value(value)
+            elif value is None:
+                value = ''
+            if value == '':
+                return default
+            return str(escape(value)) if html else str(value)
 
+        def replacer(match):
+            expr, sep, default = match.group(1).partition('|||')
+            if html and sep:
+                default = str(escape(_html_unescape(default.strip())))
+            return evaluate(expr, default.strip())
+
+        if html and 't-out' in template_str:
+            template_str = _T_OUT_RE.sub(
+                lambda m: evaluate(m.group(1), m.group(2) or ''), template_str,
+            )
+        if '{{' not in template_str:
+            return template_str
         return _TEMPLATE_RE.sub(replacer, template_str)
+
+    def _format_placeholder_value(self, value):
+        """Text shown for a placeholder's value in a message, email or activity."""
+        if value is None or value is False:
+            return ''
+        if isinstance(value, models.BaseModel):
+            return ', '.join(name for name in value.mapped('display_name') if name)
+        if isinstance(value, datetime.datetime):
+            return self._wf_format_datetime(value)
+        if isinstance(value, datetime.date):
+            return value.strftime('%d/%m/%Y')
+        return value
+
+    def _wf_format_datetime(self, value, tz=False, dt_format=False, lang_code=False):
+        """Format a datetime as dd/mm/yyyy HH:MM in *tz* (default: the user's).
+
+        Exposed to placeholders as ``format_datetime``, matching the signature
+        the HTML editor's Dynamic Placeholder uses for datetime fields.
+        """
+        if not value:
+            return ''
+        value = fields.Datetime.to_datetime(value)
+        try:
+            zone = pytz.timezone(tz or self.env.user.tz or 'UTC')
+        except pytz.UnknownTimeZoneError:
+            zone = pytz.utc
+        if value.tzinfo is None:
+            value = pytz.utc.localize(value)
+        return value.astimezone(zone).strftime('%d/%m/%Y %H:%M')
+
+    def _wf_format_date(self, value, date_format=False, lang_code=False):
+        """Format a date as dd/mm/yyyy (``format_date`` in placeholders)."""
+        if not value:
+            return ''
+        return fields.Date.to_date(value).strftime('%d/%m/%Y')
 
     # ------------------------------------------------------------------ #
     # Eval context                                                         #
@@ -1991,6 +2146,9 @@ class WfStep(models.Model):
             'env': self.env,
             'record': record,   # may be None
             'model': record,    # may be None
+            'object': record,   # used by the field selector's placeholders
+            'format_date': self._wf_format_date,
+            'format_datetime': self._wf_format_datetime,
             'step': self,
             'workflow': run_context.get('workflow') if run_context else None,
             'trigger_type': run_context.get('trigger_type') if run_context else None,

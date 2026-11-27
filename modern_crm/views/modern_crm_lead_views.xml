@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="modern_crm_lead_view_list" model="ir.ui.view">
+        <field name="name">modern.crm.lead.list</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="arch" type="xml">
+            <list string="Leads" sample="1" multi_edit="1">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="company_name"/>
+                <field name="job_title" optional="hide"/>
+                <field name="email" optional="show"/>
+                <field name="phone" optional="show"/>
+                <field name="lead_source_id" optional="show"/>
+                <field name="rating_id" optional="show" widget="badge"/>
+                <field name="industry_id" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'new'"
+                       decoration-warning="state in ('working', 'nurturing')"
+                       decoration-success="state == 'converted'" decoration-muted="state == 'disqualified'"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="activity_ids" widget="list_activity" optional="show"/>
+                <field name="create_date" string="Created On" options="{'numeric': True}" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_view_kanban" model="ir.ui.view">
+        <field name="name">modern.crm.lead.kanban</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" highlight_color="color" sample="1" group_create="0"
+                    group_delete="0" group_edit="0" records_draggable="0" class="o_kanban_small_column">
+                <templates>
+                    <t t-name="menu">
+                        <a role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                        <field name="color" widget="kanban_color_picker"/>
+                    </t>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold fs-5"/>
+                        <field name="company_name" class="text-muted"/>
+                        <div class="small">
+                            <field name="email"/>
+                        </div>
+                        <field name="rating_id" widget="badge" invisible="not rating_id" class="small"/>
+                        <footer class="pt-1">
+                            <div class="d-flex align-items-center gap-1">
+                                <field name="activity_ids" widget="kanban_activity"/>
+                                <field name="lead_source_id" class="small text-muted"/>
+                            </div>
+                            <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_view_form" model="ir.ui.view">
+        <field name="name">modern.crm.lead.form</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="arch" type="xml">
+            <form string="Lead">
+                <header>
+                    <button name="action_convert" type="object" string="Convert" class="btn-primary"
+                            invisible="state in ('converted', 'disqualified')"/>
+                    <button name="action_set_working" type="object" string="Working"
+                            invisible="state != 'new'"/>
+                    <button name="action_set_nurturing" type="object" string="Nurture"
+                            invisible="state not in ('new', 'working')"/>
+                    <button name="action_disqualify" type="object" string="Disqualify"
+                            invisible="state in ('converted', 'disqualified')"/>
+                    <button name="action_reopen" type="object" string="Reopen"
+                            invisible="state not in ('disqualified', 'nurturing')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,working,nurturing,converted"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_opportunity" type="object" class="oe_stat_button"
+                                icon="fa-handshake-o" invisible="not converted_opportunity_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Opportunity</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Converted" bg_color="text-bg-success"
+                            invisible="state != 'converted'"/>
+                    <widget name="web_ribbon" title="Disqualified" bg_color="text-bg-secondary"
+                            invisible="state != 'disqualified'"/>
+                    <div class="oe_title">
+                        <h1>
+                            <div class="d-flex gap-2">
+                                <field name="first_name" placeholder="First name"/>
+                                <field name="last_name" placeholder="Last name" required="not company_name"/>
+                            </div>
+                        </h1>
+                        <field name="name" invisible="1"/>
+                        <h3><field name="company_name" placeholder="Company"/></h3>
+                    </div>
+                    <group>
+                        <group string="Contact">
+                            <field name="job_title"/>
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="mobile" widget="phone"/>
+                            <field name="website" widget="url"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group string="Lead">
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="team_id"/>
+                            <field name="lead_source_id"/>
+                            <field name="rating_id" options="{'no_create': True}"/>
+                            <field name="industry_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'disqualified'">
+                        <group>
+                            <field name="disqualify_reason_id"/>
+                            <field name="disqualify_note"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Details" name="details">
+                            <field name="description" placeholder="What are they looking for? Notes from your conversations..."/>
+                        </page>
+                        <page string="Address and Company" name="address">
+                            <group>
+                                <group string="Address">
+                                    <field name="street" placeholder="Street..."/>
+                                    <field name="street2" placeholder="Street 2..."/>
+                                    <field name="city"/>
+                                    <field name="state_id" options="{'no_create': True}"/>
+                                    <field name="zip"/>
+                                    <field name="country_id" options="{'no_create': True}"/>
+                                </group>
+                                <group string="Company Profile">
+                                    <field name="annual_revenue"/>
+                                    <field name="employee_count"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Marketing" name="marketing">
+                            <group>
+                                <group>
+                                    <field name="campaign_id"/>
+                                    <field name="medium_id"/>
+                                    <field name="source_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Conversion" name="conversion" invisible="state != 'converted'">
+                            <group>
+                                <group>
+                                    <field name="converted_date" options="{'numeric': True}"/>
+                                    <field name="converted_account_id"/>
+                                    <field name="converted_contact_id"/>
+                                    <field name="converted_opportunity_id"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_view_search" model="ir.ui.view">
+        <field name="name">modern.crm.lead.search</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="arch" type="xml">
+            <search string="Leads">
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('company_name', 'ilike', self), ('email', 'ilike', self)]"/>
+                <field name="company_name"/>
+                <field name="user_id"/>
+                <field name="lead_source_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="my_leads" string="My Leads" domain="[('user_id', '=', uid)]"/>
+                <filter name="unassigned" string="Unassigned" domain="[('user_id', '=', False)]"/>
+                <separator/>
+                <filter name="open" string="Open" domain="[('state', 'in', ('new', 'working', 'nurturing'))]"/>
+                <filter name="new" string="New" domain="[('state', '=', 'new')]"/>
+                <filter name="nurturing" string="Nurturing" domain="[('state', '=', 'nurturing')]"/>
+                <filter name="converted" string="Converted" domain="[('state', '=', 'converted')]"/>
+                <filter name="disqualified" string="Disqualified" domain="[('state', '=', 'disqualified')]"/>
+                <separator/>
+                <filter name="activities_overdue" string="Late Activities" domain="[('my_activity_date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="create_date" string="Created On" date="create_date"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_user" string="Lead Owner" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_source" string="Lead Source" context="{'group_by': 'lead_source_id'}"/>
+                    <filter name="group_rating" string="Rating" context="{'group_by': 'rating_id'}"/>
+                    <filter name="group_industry" string="Industry" context="{'group_by': 'industry_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_view_pivot" model="ir.ui.view">
+        <field name="name">modern.crm.lead.pivot</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="arch" type="xml">
+            <pivot string="Leads" sample="1">
+                <field name="lead_source_id" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_view_graph" model="ir.ui.view">
+        <field name="name">modern.crm.lead.graph</field>
+        <field name="model">modern.crm.lead</field>
+        <field name="arch" type="xml">
+            <graph string="Leads" type="bar" sample="1">
+                <field name="lead_source_id"/>
+                <field name="state"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_action" model="ir.actions.act_window">
+        <field name="name">Leads</field>
+        <field name="res_model">modern.crm.lead</field>
+        <field name="view_mode">list,kanban,form,pivot,graph,activity</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first lead</p>
+            <p>Leads are prospects you have not qualified yet: work and nurture them, then convert them
+                into an account, a contact and an opportunity.</p>
+        </field>
+    </record>
+
+    <record id="modern_crm_lead_action_my" model="ir.actions.act_window">
+        <field name="name">My Leads</field>
+        <field name="res_model">modern.crm.lead</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="context">{'search_default_my_leads': 1, 'search_default_open': 1}</field>
+    </record>
+
+    <record id="modern_crm_lead_action_analysis" model="ir.actions.act_window">
+        <field name="name">Lead Analysis</field>
+        <field name="res_model">modern.crm.lead</field>
+        <field name="view_mode">graph,pivot,list</field>
+    </record>
+</odoo>

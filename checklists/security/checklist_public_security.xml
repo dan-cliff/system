@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Public URL Builder: for the people who manage templates. Here rather
+         than in ir.model.access.csv, which loads before the Template Author group. -->
+    <record id="access_checklist_public_url_wizard_author" model="ir.model.access">
+        <field name="name">checklist.public.url.wizard author</field>
+        <field name="model_id" ref="model_checklist_public_url_wizard"/>
+        <field name="group_id" ref="group_checklist_template_author"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="access_checklist_public_url_wizard_admin" model="ir.model.access">
+        <field name="name">checklist.public.url.wizard admin</field>
+        <field name="model_id" ref="model_checklist_public_url_wizard"/>
+        <field name="group_id" ref="group_checklist_admin"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="access_checklist_public_url_wizard_line_author" model="ir.model.access">
+        <field name="name">checklist.public.url.wizard.line author</field>
+        <field name="model_id" ref="model_checklist_public_url_wizard_line"/>
+        <field name="group_id" ref="group_checklist_template_author"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="access_checklist_public_url_wizard_line_admin" model="ir.model.access">
+        <field name="name">checklist.public.url.wizard.line admin</field>
+        <field name="model_id" ref="model_checklist_public_url_wizard_line"/>
+        <field name="group_id" ref="group_checklist_admin"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

@@ -40,6 +40,10 @@
               sequence="30"/>
 
     <!-- ══ Configuration / Settings ════════════════════════════════════════ -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_asset_reports" name="Reports" parent="menu_asset_root" sequence="89"/>
+
     <menuitem id="menu_asset_config"
               name="Configuration"
               parent="menu_asset_root"

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="modern_crm_contract_view_list" model="ir.ui.view">
+        <field name="name">modern.crm.contract.list</field>
+        <field name="model">modern.crm.contract</field>
+        <field name="arch" type="xml">
+            <list string="Contracts" sample="1">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="partner_id"/>
+                <field name="opportunity_id" optional="show"/>
+                <field name="start_date" options="{'numeric': True}"/>
+                <field name="end_date" options="{'numeric': True}" optional="show"/>
+                <field name="term_months" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'out_for_signature'"
+                       decoration-success="state in ('signed', 'activated')" decoration-danger="state == 'declined'"
+                       decoration-muted="state in ('expired', 'cancelled')"/>
+                <field name="signed_date" options="{'numeric': True}" optional="hide"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="modern_crm_contract_view_form" model="ir.ui.view">
+        <field name="name">modern.crm.contract.form</field>
+        <field name="model">modern.crm.contract</field>
+        <field name="arch" type="xml">
+            <form string="Contract">
+                <header>
+                    <button name="action_send_for_signature" type="object" string="Send for Signature"
+                            class="btn-primary" invisible="state != 'draft'"
+                            groups="modern_crm.group_modern_crm_contract_send"/>
+                    <button name="action_generate_text" type="object" string="Fill in from Template"
+                            invisible="state != 'draft' or not template_id"
+                            confirm="Replace the contract text with the template's?"/>
+                    <button name="action_activate" type="object" string="Activate" class="btn-primary"
+                            invisible="state != 'signed'" groups="modern_crm.group_modern_crm_contract_activate"/>
+                    <button name="action_activate" type="object" string="Activate Without Signature"
+                            invisible="state != 'draft'" groups="modern_crm.group_modern_crm_contract_activate"
+                            confirm="Activate this contract without collecting signatures (e.g. signed on paper)?"/>
+                    <button name="action_print" type="object" string="Print"/>
+                    <button name="action_cancel_signature" type="object" string="Cancel Signature Request"
+                            invisible="state not in ('out_for_signature', 'declined')"
+                            groups="modern_crm.group_modern_crm_contract_send"/>
+                    <button name="action_set_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('activated', 'expired', 'cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,out_for_signature,signed,activated"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_signed_document" type="object" class="oe_stat_button"
+                                icon="fa-file-pdf-o" invisible="not signed_document_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Signed PDF</span>
+                            </div>
+                        </button>
+                    </div>
+                    <field name="signed_document_id" invisible="1"/>
+                    <div class="oe_title">
+                        <span class="text-muted"><field name="name" readonly="1"/></span>
+                        <h1><field name="title" placeholder="e.g. Sales Agreement 2026" readonly="state != 'draft'"/></h1>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'declined'">
+                        A signer declined this contract. See why in the Signers tab, then change it and send it again.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="opportunity_id" readonly="state != 'draft'"/>
+                            <field name="quote_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="template_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="start_date" options="{'numeric': True}" readonly="state not in ('draft', 'signed')"/>
+                            <field name="term_months" readonly="state not in ('draft', 'signed')"/>
+                            <field name="end_date" options="{'numeric': True}"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Contract Text" name="body">
+                            <field name="body" readonly="state != 'draft'" class="oe-bordered-editor"
+                                   placeholder="Pick a template, or write the contract here..."/>
+                            <separator string="Special Terms"/>
+                            <field name="special_terms" readonly="state != 'draft'"
+                                   placeholder="Anything agreed for this customer only..."/>
+                        </page>
+                        <page string="Signers" name="signers">
+                            <div class="text-muted mb-2" invisible="state != 'draft'">
+                                Each signer gets their own link to sign, in signing order. Leave this empty to ask
+                                the opportunity's primary contact (and the template's countersigner).
+                                <button name="action_add_default_signers" type="object" string="Add the usual signers"
+                                        class="btn-link p-0 align-baseline" invisible="signer_ids"/>
+                            </div>
+                            <field name="signer_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="hide"/>
+                                    <field name="partner_id"/>
+                                    <field name="email" optional="show"/>
+                                    <field name="role"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'sent'"
+                                           decoration-success="state == 'signed'" decoration-danger="state == 'declined'"/>
+                                    <field name="sent_on" options="{'numeric': True}" optional="hide"/>
+                                    <field name="signed_by" optional="show"/>
+                                    <field name="signed_on" options="{'numeric': True}" optional="show"/>
+                                    <field name="decline_reason" optional="show"/>
+                                    <field name="signer_ip" optional="hide"/>
+                                    <field name="sign_url" widget="CopyClipboardChar" optional="hide"
+                                           groups="base.group_system"/>
+                                </list>
+                                <form string="Signer">
+                                    <group>
+                                        <group>
+                                            <field name="partner_id"/>
+                                            <field name="role"/>
+                                            <field name="sequence"/>
+                                            <field name="state" readonly="1"/>
+                                        </group>
+                                        <group>
+                                            <field name="sent_on" options="{'numeric': True}"/>
+                                            <field name="signed_by"/>
+                                            <field name="signed_on" options="{'numeric': True}"/>
+                                            <field name="signer_ip"/>
+                                            <field name="decline_reason"/>
+                                        </group>
+                                    </group>
+                                    <field name="signature" widget="image" readonly="1" invisible="not signature"/>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="History" name="history">
+                            <group>
+                                <group>
+                                    <field name="sent_date" options="{'numeric': True}"/>
+                                    <field name="signed_date" options="{'numeric': True}"/>
+                                </group>
+                                <group>
+                                    <field name="activated_date" options="{'numeric': True}"/>
+                                    <field name="activated_by_id"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="modern_crm_contract_view_search" model="ir.ui.view">
+        <field name="name">modern.crm.contract.search</field>
+        <field name="model">modern.crm.contract</field>
+        <field name="arch" type="xml">
+            <search string="Contracts">
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('title', 'ilike', self), ('partner_id', 'child_of', self)]"/>
+                <field name="partner_id"/>
+                <field name="opportunity_id"/>
+                <field name="user_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="my_contracts" string="My Contracts" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="out_for_signature" string="Out for Signature" domain="[('state', '=', 'out_for_signature')]"/>
+                <filter name="declined" string="Declined" domain="[('state', '=', 'declined')]"/>
+                <filter name="signed" string="Signed" domain="[('state', '=', 'signed')]"/>
+                <filter name="activated" string="Activated" domain="[('state', '=', 'activated')]"/>
+                <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
+                <separator/>
+                <filter name="start_date" string="Start Date" date="start_date"/>
+                <filter name="end_date" string="End Date" date="end_date"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_partner" string="Account" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_user" string="Contract Owner" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_end_date" string="End Date" context="{'group_by': 'end_date:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="modern_crm_contract_action" model="ir.actions.act_window">
+        <field name="name">Contracts</field>
+        <field name="res_model">modern.crm.contract</field>
+        <field name="view_mode">list,form,activity</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first contract</p>
+            <p>Create a contract from a template, send it to your customer to sign online, and
+                activate it once it is signed.</p>
+        </field>
+    </record>
+</odoo>

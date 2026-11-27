@@ -15,6 +15,12 @@ class AssetUsageLog(models.Model):
         index=True,
         domain=[('eff_usage_tracking', '=', True)],
     )
+    company_id = fields.Many2one(
+        related='asset_id.company_id',
+        store=True,
+        index=True,
+        string='Company',
+    )
     date = fields.Date(string='Date', required=True, default=fields.Date.context_today)
     source = fields.Selection(
         selection=[

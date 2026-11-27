@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Canadian payroll, 2026 (provincial tables 2025). Shipped as noupdate
+         data so administrators can update the rates each year. -->
+    <data noupdate="1">
+        <record id="payroll_country_ca" model="payroll.country">
+            <field name="name">Canada</field>
+            <field name="code">CA</field>
+            <field name="country_id" ref="base.ca"/>
+            <field name="sequence">40</field>
+            <field name="tax_year_start_month">1</field>
+            <field name="tax_year_start_day">1</field>
+            <field name="default_pay_frequency_id" ref="advanced_payroll.pay_frequency_fortnightly"/>
+            <field name="standard_hours_per_week">40</field>
+            <field name="ordinary_pay_item_id" ref="advanced_payroll.pay_item_ordinary"/>
+            <field name="note">&lt;p&gt;Calendar tax year. Federal rates for 2026, provincial tables for 2025: check them against the CRA's payroll deductions formulas (T4127) each year.&lt;/p&gt;</field>
+        </record>
+
+        <!-- Pay items -->
+        <record id="pay_item_ca_vacation_pay" model="payroll.pay.item">
+            <field name="name">Vacation Pay (4%)</field>
+            <field name="code">CA_VAC</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">30</field>
+            <field name="category">leave</field>
+            <field name="calculation">amount</field>
+            <field name="description">Vacation pay paid out on each payslip: enter 4% (or the employee's rate) of their wages.</field>
+        </record>
+        <record id="pay_item_ca_vacation" model="payroll.pay.item">
+            <field name="name">Vacation</field>
+            <field name="code">CA_VACT</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">31</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+        <record id="pay_item_ca_sick" model="payroll.pay.item">
+            <field name="name">Sick Leave</field>
+            <field name="code">CA_SICK</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">32</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+
+        <!-- Tax tables -->
+        <record id="tax_table_ca_federal" model="payroll.tax.table">
+            <field name="name">Federal (2026)</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">10</field>
+            <field name="credit_base">16452</field>
+            <field name="note">2026: 14% to $58,523, 20.5% to $117,045, 26% to $181,440, 29% to $258,482, then 33%; basic personal amount $16,452.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 14}),
+                (0, 0, {'threshold': 58523, 'rate': 20.5}),
+                (0, 0, {'threshold': 117045, 'rate': 26}),
+                (0, 0, {'threshold': 181440, 'rate': 29}),
+                (0, 0, {'threshold': 258482, 'rate': 33})]"/>
+        </record>
+        <record id="tax_table_ca_on" model="payroll.tax.table">
+            <field name="name">Ontario (2025)</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">20</field>
+            <field name="credit_base">12747</field>
+            <field name="note">2025: 5.05% to $52,886, 9.15% to $105,775, 11.16% to $150,000, 12.16% to $220,000, then 13.16%; basic personal amount $12,747. Ontario surtax and health premium not included.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 5.05}),
+                (0, 0, {'threshold': 52886, 'rate': 9.15}),
+                (0, 0, {'threshold': 105775, 'rate': 11.16}),
+                (0, 0, {'threshold': 150000, 'rate': 12.16}),
+                (0, 0, {'threshold': 220000, 'rate': 13.16})]"/>
+        </record>
+        <record id="tax_table_ca_bc" model="payroll.tax.table">
+            <field name="name">British Columbia (2025)</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">30</field>
+            <field name="credit_base">12932</field>
+            <field name="note">2025: 5.06% to $49,279, 7.7% to $98,560, 10.5% to $113,158, 12.29% to $137,407, 14.7% to $186,306, 16.8% to $259,829, then 20.5%; basic personal amount $12,932.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 5.06}),
+                (0, 0, {'threshold': 49279, 'rate': 7.7}),
+                (0, 0, {'threshold': 98560, 'rate': 10.5}),
+                (0, 0, {'threshold': 113158, 'rate': 12.29}),
+                (0, 0, {'threshold': 137407, 'rate': 14.7}),
+                (0, 0, {'threshold': 186306, 'rate': 16.8}),
+                (0, 0, {'threshold': 259829, 'rate': 20.5})]"/>
+        </record>
+        <record id="tax_table_ca_ab" model="payroll.tax.table">
+            <field name="name">Alberta (2025)</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">40</field>
+            <field name="credit_base">22323</field>
+            <field name="credit_rate">10</field>
+            <field name="note">2025: 8% to $60,000, 10% to $151,234, 12% to $181,481, 13% to $241,974, 14% to $362,961, then 15%; basic personal amount $22,323, credited at 10%.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 8}),
+                (0, 0, {'threshold': 60000, 'rate': 10}),
+                (0, 0, {'threshold': 151234, 'rate': 12}),
+                (0, 0, {'threshold': 181481, 'rate': 13}),
+                (0, 0, {'threshold': 241974, 'rate': 14}),
+                (0, 0, {'threshold': 362961, 'rate': 15})]"/>
+        </record>
+
+        <!-- Provinces -->
+        <record id="province_on" model="payroll.ca.province">
+            <field name="name">Ontario</field>
+            <field name="sequence">10</field>
+            <field name="state_id" ref="base.state_ca_on"/>
+            <field name="tax_table_id" ref="tax_table_ca_on"/>
+        </record>
+        <record id="province_bc" model="payroll.ca.province">
+            <field name="name">British Columbia</field>
+            <field name="sequence">20</field>
+            <field name="state_id" ref="base.state_ca_bc"/>
+            <field name="tax_table_id" ref="tax_table_ca_bc"/>
+        </record>
+        <record id="province_ab" model="payroll.ca.province">
+            <field name="name">Alberta</field>
+            <field name="sequence">30</field>
+            <field name="state_id" ref="base.state_ca_ab"/>
+            <field name="tax_table_id" ref="tax_table_ca_ab"/>
+        </record>
+
+        <!-- Rules -->
+        <record id="rule_ca_fit" model="payroll.rule">
+            <field name="name">Federal Income Tax</field>
+            <field name="code">CA_FIT</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">10</field>
+            <field name="category">tax</field>
+            <field name="compute_method">brackets</field>
+            <field name="base">taxable</field>
+            <field name="tax_table_id" ref="tax_table_ca_federal"/>
+            <field name="description">Federal tax on annualised taxable pay, less the TD1 federal claim at the lowest rate.</field>
+        </record>
+        <record id="rule_ca_pit" model="payroll.rule">
+            <field name="name">Provincial Income Tax</field>
+            <field name="code">CA_PIT</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">11</field>
+            <field name="category">tax</field>
+            <field name="compute_method">brackets</field>
+            <field name="base">taxable</field>
+            <field name="description">Tax of the employee's province of employment, less the TD1 provincial claim at the lowest rate.</field>
+        </record>
+        <record id="rule_ca_cpp" model="payroll.rule">
+            <field name="name">CPP</field>
+            <field name="code">CA_CPP</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">20</field>
+            <field name="category">deduction</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">5.95</field>
+            <field name="annual_exemption">3500</field>
+            <field name="annual_cap">71100</field>
+            <field name="description">5.95% of pensionable earnings above the basic exemption ($3,500 a year), up to the 2026 YMPE ($74,600 less the exemption).</field>
+        </record>
+        <record id="rule_ca_cpp2" model="payroll.rule">
+            <field name="name">CPP2</field>
+            <field name="code">CA_CPP2</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">21</field>
+            <field name="category">deduction</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">4</field>
+            <field name="annual_threshold">74600</field>
+            <field name="annual_cap">85000</field>
+            <field name="description">4% of pensionable earnings between the 2026 YMPE ($74,600) and YAMPE ($85,000).</field>
+        </record>
+        <record id="rule_ca_ei" model="payroll.rule">
+            <field name="name">EI</field>
+            <field name="code">CA_EI</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">30</field>
+            <field name="category">deduction</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">1.63</field>
+            <field name="annual_cap">68900</field>
+            <field name="description">1.63% of insurable earnings up to the 2026 maximum ($68,900).</field>
+        </record>
+        <record id="rule_ca_cpp_employer" model="payroll.rule">
+            <field name="name">CPP (Employer)</field>
+            <field name="code">CA_CPP_ER</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">50</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">5.95</field>
+            <field name="annual_exemption">3500</field>
+            <field name="annual_cap">71100</field>
+        </record>
+        <record id="rule_ca_cpp2_employer" model="payroll.rule">
+            <field name="name">CPP2 (Employer)</field>
+            <field name="code">CA_CPP2_ER</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">51</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">4</field>
+            <field name="annual_threshold">74600</field>
+            <field name="annual_cap">85000</field>
+        </record>
+        <record id="rule_ca_ei_employer" model="payroll.rule">
+            <field name="name">EI (Employer)</field>
+            <field name="code">CA_EI_ER</field>
+            <field name="country_id" ref="payroll_country_ca"/>
+            <field name="sequence">52</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">gross</field>
+            <field name="rate">2.282</field>
+            <field name="annual_cap">68900</field>
+            <field name="description">1.4 × the employee's EI premium.</field>
+        </record>
+    </data>
+</odoo>

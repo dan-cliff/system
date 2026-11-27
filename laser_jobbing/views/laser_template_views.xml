@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_laser_template_list" model="ir.ui.view">
+        <field name="name">laser.template.list</field>
+        <field name="model">laser.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="id" optional="show"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="operation"/>
+                <field name="width_mm" optional="show"/>
+                <field name="height_mm" optional="show"/>
+                <field name="material_id" optional="show"/>
+                <field name="element_count" string="Elements" optional="show"/>
+                <field name="base_filename" string="Base File" optional="hide"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laser_template_element_form" model="ir.ui.view">
+        <field name="name">laser.template.element.form</field>
+        <field name="model">laser.template.element</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group string="Element">
+                        <field name="name" placeholder="e.g. Name"/>
+                        <field name="element_type"/>
+                        <field name="customer_editable"/>
+                        <field name="required"/>
+                        <field name="help_text" placeholder="e.g. Up to 12 letters"/>
+                        <field name="key" groups="base.group_no_one"/>
+                        <field name="operation" invisible="1"/>
+                    </group>
+                    <group string="Position on the design (mm from the top left)">
+                        <field name="x_mm"/>
+                        <field name="y_mm"/>
+                        <field name="width_mm"/>
+                        <field name="height_mm"/>
+                    </group>
+                </group>
+                <group invisible="element_type != 'text'">
+                    <group string="Text">
+                        <field name="default_text"/>
+                        <field name="max_length"/>
+                        <field name="multiline"/>
+                    </group>
+                    <group string="Font">
+                        <field name="font_id"/>
+                        <field name="font_size_mm"/>
+                        <field name="auto_fit"/>
+                        <field name="text_align"/>
+                        <field name="color" widget="color"/>
+                    </group>
+                </group>
+                <group invisible="element_type != 'image'">
+                    <group string="Picture / Artwork">
+                        <field name="image_fit"/>
+                        <field name="default_image" filename="default_image_filename"/>
+                        <field name="default_image_filename" invisible="1"/>
+                    </group>
+                    <group>
+                        <div class="text-muted" colspan="2">
+                            <span invisible="operation not in ('cut', 'score')">Cutting and scoring templates take .svg artwork.</span>
+                            <span invisible="operation != 'engrave'">Engraving templates take png, jpg, jpeg, bmp, webp, tif, tiff, gif or heic pictures. The job's file keeps the format of the picture uploaded.</span>
+                        </div>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laser_template_form" model="ir.ui.view">
+        <field name="name">laser.template.form</field>
+        <field name="model">laser.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_jobs" type="object" class="oe_stat_button" icon="fa-bolt">
+                            <field name="job_count" widget="statinfo" string="Jobs"/>
+                        </button>
+                        <button name="action_view_products" type="object" class="oe_stat_button" icon="fa-cube">
+                            <field name="product_count" widget="statinfo" string="Products"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Engraved Chopping Board"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="operation" widget="radio" options="{'horizontal': true}"/>
+                            <field name="output_format_info"/>
+                            <field name="material_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <label for="width_mm" string="Size (mm)"/>
+                            <div class="o_row">
+                                <field name="width_mm" nolabel="1"/> x <field name="height_mm" nolabel="1"/>
+                            </div>
+                            <field name="dpi" invisible="operation != 'engrave'"/>
+                            <field name="grayscale" invisible="operation != 'engrave'"/>
+                            <field name="base_file" filename="base_filename"/>
+                            <field name="base_filename" invisible="1"/>
+                            <field name="active" invisible="1"/>
+                            <field name="laser_visual_editor" invisible="1"/>
+                            <field name="write_date" invisible="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info mb-3" role="status" invisible="laser_visual_editor">
+                        Place the elements below with their position in mm, or switch on the
+                        <strong>Visual Editor for Employees</strong> in Settings › Laser Jobbing to drag them on the design.
+                    </div>
+                    <widget name="laser_template_editor" invisible="not laser_visual_editor"/>
+                    <notebook>
+                        <page string="Variable Elements" name="elements">
+                            <field name="element_ids">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="element_type"/>
+                                    <field name="customer_editable"/>
+                                    <field name="required"/>
+                                    <field name="x_mm" optional="show"/>
+                                    <field name="y_mm" optional="show"/>
+                                    <field name="width_mm" optional="show"/>
+                                    <field name="height_mm" optional="show"/>
+                                    <field name="default_text" optional="show"/>
+                                    <field name="font_id" optional="show"/>
+                                    <field name="font_size_mm" optional="hide"/>
+                                    <field name="text_align" optional="hide"/>
+                                    <field name="auto_fit" optional="hide"/>
+                                    <field name="multiline" optional="hide"/>
+                                    <field name="max_length" optional="hide"/>
+                                    <field name="color" widget="color" optional="hide"/>
+                                    <field name="image_fit" optional="hide"/>
+                                    <field name="default_image" invisible="1"/>
+                                    <field name="default_image_filename" invisible="1"/>
+                                    <field name="write_date" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="description" placeholder="How to set up the machine, where to place the piece..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laser_template_search" model="ir.ui.view">
+        <field name="name">laser.template.search</field>
+        <field name="model">laser.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="material_id"/>
+                <filter name="engrave" string="Engraving" domain="[('operation', '=', 'engrave')]"/>
+                <filter name="cut" string="Cutting" domain="[('operation', '=', 'cut')]"/>
+                <filter name="score" string="Scoring" domain="[('operation', '=', 'score')]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_operation" string="Operation" context="{'group_by': 'operation'}"/>
+                    <filter name="group_material" string="Material" context="{'group_by': 'material_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laser_template" model="ir.actions.act_window">
+        <field name="name">Laser Templates</field>
+        <field name="res_model">laser.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Upload a base design to personalise</p>
+            <p>A template is a base design (an .svg for cutting and scoring, a picture for engraving) with
+               variable elements, such as a name or a photo, that customers or employees fill in for each job.</p>
+        </field>
+    </record>
+</odoo>

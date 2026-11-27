@@ -31,19 +31,19 @@
                         <tbody>
                             <tr t-if="!data.rows.length">
                                 <td t-att-colspan="data.days.length + 2" class="text-muted fst-italic py-3">
-                                    No hours yet. Add a line for a project or task, then type the hours into the days.
+                                    No hours yet. Add a line for what you worked on, then type the hours into the days.
                                 </td>
                             </tr>
                             <tr t-foreach="data.rows" t-as="row" t-key="row.key"
                                 t-att-class="{ 'o_timesheet_grid_auto': row.is_auto }">
                                 <td class="o_timesheet_grid_label">
-                                    <div class="fw-bold text-truncate" t-att-title="row.project">
+                                    <div class="fw-bold text-truncate" t-att-title="row.title">
                                         <i t-if="row.is_auto" class="fa fa-lock me-1 text-muted"
                                            title="Filled in automatically"/>
-                                        <t t-esc="row.project"/>
+                                        <t t-esc="row.title"/>
                                     </div>
-                                    <div t-if="row.task" class="text-muted small text-truncate" t-att-title="row.task"
-                                         t-esc="row.task"/>
+                                    <div t-if="row.subtitle" class="text-muted small text-truncate" t-att-title="row.subtitle"
+                                         t-esc="row.subtitle"/>
                                 </td>
                                 <td t-foreach="data.days" t-as="iso" t-key="iso" class="o_timesheet_grid_cell"
                                     t-att-class="cellClass(iso)">

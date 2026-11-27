@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Incidents' corrective actions follow their incident: the same
+         confidentiality as the incident itself (incident_security.xml). -->
+    <record id="rule_advanced_action_incident_confidential" model="ir.rule">
+        <field name="name">Actions: Incidents users, incidents they can see</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('incident_management.group_incident_user'))]"/>
+        <field name="domain_force">[
+            ('incident_id', '!=', False),
+            '|', '|', '|',
+                ('incident_id.is_confidential', '=', False),
+                ('incident_id.reporter_id', '=', user.id),
+                ('incident_id.responsible_manager_id', '=', user.id),
+                ('incident_id.confidential_user_ids', 'in', [user.id]),
+        ]</field>
+    </record>
+    <record id="rule_advanced_action_incident_bypass" model="ir.rule">
+        <field name="name">Actions: Incidents confidential bypass, all incidents</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('incident_management.group_incident_confidential_bypass')), (4, ref('incident_management.group_incident_admin'))]"/>
+        <field name="domain_force">[('incident_id', '!=', False)]</field>
+    </record>
+</odoo>

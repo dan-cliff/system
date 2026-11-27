@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Odoo's "Stock Barcode Database" installs an Odoo Enterprise module, so on
+         Community it unticks itself on save. Inventory's own Barcode Database
+         takes its place. -->
+    <record id="res_config_settings_view_form_barcode_lookup" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.advanced_inventory.barcode_lookup</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <setting id="process_stock_barcodelookup" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </setting>
+            <setting id="process_stock_barcodelookup" position="after">
+                <setting id="inventory_barcode_lookup" string="Barcode Database"
+                         help="Fill in new products from their barcode"
+                         documentation="https://www.barcodelookup.com/api-documentation">
+                    <field name="inventory_barcodelookup_api_key" password="True" class="w-100"
+                           placeholder="Your barcodelookup.com API key"/>
+                    <div class="text-muted mt-2">
+                        Typing or scanning a barcode on a product fills in its name, description,
+                        picture, weight and category from
+                        <a href="https://www.barcodelookup.com" target="_blank">barcodelookup.com</a>,
+                        and the Scanner app's Look Up offers to create a product for a barcode you don't stock yet.
+                    </div>
+                    <div class="text-muted mt-1" invisible="inventory_barcodelookup_api_key">
+                        <i class="fa fa-info-circle"/> Off until you add a key: sign up at barcodelookup.com,
+                        copy the API key from your account and paste it here.
+                    </div>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

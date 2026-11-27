@@ -23,6 +23,10 @@
               groups="emergency_broadcast.group_eb_user"/>
 
     <!-- ── Configuration ─────────────────────────────────────────────── -->
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_eb_reports" name="Reports" parent="menu_eb_root" sequence="89"/>
+
     <menuitem id="menu_eb_configuration"
               name="Configuration"
               parent="menu_eb_root"

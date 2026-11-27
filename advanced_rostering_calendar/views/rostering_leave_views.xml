@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_leave_view_form_calendar" model="ir.ui.view">
+        <field name="name">rostering.leave.form.calendar</field>
+        <field name="model">rostering.leave</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_open_calendar_event" type="object" class="oe_stat_button" icon="fa-calendar-o"
+                        invisible="not id or state in ('refused', 'cancelled')">
+                    <div class="o_stat_info"><span class="o_stat_text">Calendar</span></div>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

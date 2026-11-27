@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Gives new apps their List Columns privilege. Triggered whenever a
+         top-level menu is added or removed, and daily as a safety net. -->
+    <record id="ir_cron_list_column_sync_apps" model="ir.cron">
+        <field name="name">List Columns: Sync App Permissions</field>
+        <field name="model_id" ref="model_list_column_app"/>
+        <field name="state">code</field>
+        <field name="code">model._sync_apps()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

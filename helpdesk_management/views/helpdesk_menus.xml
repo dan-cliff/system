@@ -2,10 +2,13 @@
     <menuitem id="menu_helpdesk_root"
               name="Helpdesk"
               web_icon="helpdesk_management,static/description/icon.png"
+              action="helpdesk_dashboard_action"
               groups="group_helpdesk_user"
               sequence="75"/>
 
-    <menuitem id="menu_helpdesk_overview" name="Overview" parent="menu_helpdesk_root"
+    <menuitem id="menu_helpdesk_dashboard" name="Dashboard" parent="menu_helpdesk_root"
+              action="helpdesk_dashboard_action" sequence="5"/>
+    <menuitem id="menu_helpdesk_overview" name="Team Overview" parent="menu_helpdesk_root"
               action="helpdesk_team_action_overview" sequence="10"/>
 
     <menuitem id="menu_helpdesk_tickets" name="Tickets" parent="menu_helpdesk_root" sequence="20"/>
@@ -23,6 +26,10 @@
     <menuitem id="menu_helpdesk_rating" name="Customer Ratings" parent="menu_helpdesk_reporting"
               action="helpdesk_rating_action" sequence="30"/>
 
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_helpdesk_reports" name="Reports" parent="menu_helpdesk_root" sequence="85"/>
+
     <menuitem id="menu_helpdesk_config" name="Configuration" parent="menu_helpdesk_root"
               groups="group_helpdesk_manager" sequence="90"/>
     <menuitem id="menu_helpdesk_team" name="Teams" parent="menu_helpdesk_config"
@@ -35,4 +42,8 @@
               action="helpdesk_ticket_type_action" sequence="40"/>
     <menuitem id="menu_helpdesk_tag" name="Tags" parent="menu_helpdesk_config"
               action="helpdesk_tag_action" sequence="50"/>
+    <menuitem id="menu_helpdesk_ticket_source" name="Ticket Sources" parent="menu_helpdesk_config"
+              action="helpdesk_ticket_source_action" sequence="60"/>
+    <menuitem id="menu_helpdesk_sentiment" name="Customer Sentiments" parent="menu_helpdesk_config"
+              action="helpdesk_sentiment_action" sequence="70"/>
 </odoo>

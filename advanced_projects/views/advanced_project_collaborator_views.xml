@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A project's team. People join through Invite, which checks customers'
+         permissions; the Access column flags anyone who cannot open the project. -->
+    <record id="advanced_project_collaborator_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.collaborator.list</field>
+        <field name="model">advanced.project.collaborator</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-warning="access_state != 'ok'">
+                <header>
+                    <button name="action_invite_from_context" type="object" string="Invite" class="btn-primary"
+                            display="always"/>
+                </header>
+                <field name="id" optional="show"/>
+                <field name="partner_id"/>
+                <field name="project_id" column_invisible="context.get('default_project_id')"/>
+                <field name="collaborator_type" widget="badge"
+                       decoration-info="collaborator_type == 'colleague'"
+                       decoration-success="collaborator_type == 'customer'"/>
+                <field name="email" optional="show"/>
+                <field name="access_state" widget="badge" decoration-success="access_state == 'ok'"
+                       decoration-warning="access_state != 'ok'"/>
+                <field name="access_message" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="can_fix_access" column_invisible="1"/>
+                <button name="action_fix_access" type="object" string="Update Permissions" icon="fa-unlock-alt"
+                        class="btn-link" invisible="not can_fix_access"
+                        confirm="Give this customer the Project Customer permission set (a portal login and access to the projects they are a Customer on)?"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_collaborator_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.collaborator.form</field>
+        <field name="model">advanced.project.collaborator</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_fix_access" type="object" string="Update Permissions" class="btn-primary"
+                            invisible="not can_fix_access"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="access_state == 'ok'">
+                        <field name="access_message" readonly="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" readonly="id"/>
+                            <field name="collaborator_type"/>
+                            <field name="email"/>
+                        </group>
+                        <group>
+                            <field name="project_id" readonly="id"/>
+                            <field name="user_id"/>
+                            <field name="access_state"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="can_fix_access" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="advanced_project_collaborator_view_search" model="ir.ui.view">
+        <field name="name">advanced.project.collaborator.search</field>
+        <field name="model">advanced.project.collaborator</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="project_id"/>
+                <filter string="Colleagues" name="colleagues" domain="[('collaborator_type', '=', 'colleague')]"/>
+                <filter string="Customers" name="customers" domain="[('collaborator_type', '=', 'customer')]"/>
+                <group>
+                    <filter string="Type" name="group_type" context="{'group_by': 'collaborator_type'}"/>
+                    <filter string="Project" name="group_project" context="{'group_by': 'project_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="advanced_project_collaborator_action" model="ir.actions.act_window">
+        <field name="name">Team</field>
+        <field name="res_model">advanced.project.collaborator</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Invite people to the project</p>
+            <p>Colleagues join with their permissions as they are; customers see only the projects they are a
+                Customer on, through the customer portal.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Signing page: each signer opens it from their own link. -->
+    <template id="sign_page" name="Sign'r: Sign Document">
+        <t t-call="web.frontend_layout">
+            <t t-set="title" t-value="sign_request.title"/>
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <div class="container o_signr_sign py-4">
+                <div t-if="message == 'signed'" class="alert alert-success" role="status">
+                    Thank you, <t t-out="signer.signed_by"/>: your signature has been recorded.
+                    <t t-if="sign_request.state == 'signed'">Everyone has now signed; a signed copy is on its way to you.</t>
+                    <t t-else="">We will email you the signed copy once everyone has signed.</t>
+                </div>
+                <div t-if="message == 'declined'" class="alert alert-warning" role="status">
+                    You declined to sign this document. We have let <t t-out="sign_request.user_id.name or company.name"/> know.
+                </div>
+                <div t-if="sign_request.state == 'cancelled' or (signer.state == 'cancelled' and not message and sign_request.state != 'expired')" class="alert alert-secondary" role="status">
+                    This signature request was withdrawn. Contact <t t-out="sign_request.user_id.name or company.name"/> if you have any questions.
+                </div>
+                <div t-if="expired and sign_request.state in ('sent', 'expired') and signer.state != 'signed'" class="alert alert-secondary" role="status">
+                    This signature request has expired. Contact <t t-out="sign_request.user_id.name or company.name"/> for a new one.
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <div>
+                        <div class="text-muted small" t-out="company.name"/>
+                        <h2 class="mb-0" t-out="sign_request.title"/>
+                        <div class="text-muted">
+                            <t t-out="sign_request.name"/>
+                            <t t-if="sign_request.expiry_date and sign_request.state == 'sent'"> · Sign before
+                                <t t-out="sign_request.expiry_date.strftime('%d/%m/%Y')"/></t>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-secondary" t-attf-href="/signr/sign/#{signer.id}/#{token}/document" target="_blank">
+                            <i class="fa fa-external-link me-1"/> Open
+                        </a>
+                        <a class="btn btn-secondary" t-attf-href="/signr/sign/#{signer.id}/#{token}/document?download=1">
+                            <i class="fa fa-download me-1"/> Download PDF
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <iframe class="o_signr_document" t-attf-src="/signr/sign/#{signer.id}/#{token}/document"
+                            t-att-title="sign_request.title"/>
+                </div>
+
+                <h4>Signatures</h4>
+                <ul class="list-group mb-4">
+                    <li t-foreach="sign_request.signer_ids" t-as="s" class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong t-out="s.signed_by or s.partner_id.name"/>
+                            <span t-if="s.role" class="text-muted"> - <t t-out="s.role"/></span>
+                            <div t-if="s.signed_on" class="small text-muted">Signed <t t-out="s._format_signed_on()"/></div>
+                        </div>
+                        <span t-if="s.state == 'signed'" class="badge text-bg-success">Signed</span>
+                        <span t-elif="s.state == 'declined'" class="badge text-bg-danger">Declined</span>
+                        <span t-elif="s.state == 'sent'" class="badge text-bg-info">Awaiting signature</span>
+                        <span t-elif="s.state == 'waiting'" class="badge text-bg-light">Waiting</span>
+                    </li>
+                </ul>
+
+                <div t-if="can_sign" class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4>Sign</h4>
+                                <p class="text-muted">Read the document above, then type your full name and draw or
+                                    adopt your signature. By signing you agree to the document.</p>
+                                <t t-call="portal.signature_form">
+                                    <t t-set="call_url" t-value="'/signr/sign/%s/%s/accept' % (signer.id, token)"/>
+                                    <t t-set="default_name" t-value="signer.partner_id.name"/>
+                                    <t t-set="send_label">Sign Document</t>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4>Decline</h4>
+                                <form t-attf-action="/signr/sign/#{signer.id}/#{token}/decline" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="decline_reason" class="form-control mb-2" rows="3"
+                                              placeholder="Tell us why, or what you would like changed"/>
+                                    <button type="submit" class="btn btn-outline-danger">Decline to Sign</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div t-elif="signer.state in ('waiting', 'sent') and sign_request.state == 'sent' and not expired" class="alert alert-info" role="status">
+                    Someone else signs before you: we will email you when it is your turn.
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="sign_invalid" name="Sign'r: Invalid Signing Link">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <div class="container py-5 text-center">
+                <h2>This signing link is not valid</h2>
+                <p class="text-muted">It may have been replaced by a newer request. Use the link in the latest
+                    email you received, or contact the sender.</p>
+            </div>
+        </t>
+    </template>
+</odoo>

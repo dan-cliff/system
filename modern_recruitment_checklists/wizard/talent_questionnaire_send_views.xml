@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="talent_questionnaire_send_view_form" model="ir.ui.view">
+        <field name="name">talent.questionnaire.send.form</field>
+        <field name="model">talent.questionnaire.send</field>
+        <field name="arch" type="xml">
+            <form string="Send Questionnaire">
+                <field name="allowed_template_ids" invisible="1"/>
+                <field name="applicant_id" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="allowed_template_ids">
+                    No questionnaires to send: add templates to the Checklist Groups picked in
+                    Settings › Talent › Checklists.
+                </div>
+                <group>
+                    <group>
+                        <field name="partner_name" string="To"/>
+                        <field name="email_from" widget="email"/>
+                    </group>
+                    <group>
+                        <field name="canned_response_id" options="{'no_create': True}" placeholder="Optional"/>
+                        <field name="date_due" options="{'numeric': True}"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="template_ids" widget="many2many_tags" options="{'no_create': True}"
+                           placeholder="Pick the questionnaires to send"/>
+                    <field name="subject"/>
+                </group>
+                <field name="body" class="o_talent_questionnaire_body" options="{'height': 200}"/>
+                <div class="text-muted small mt-1">
+                    A button to each questionnaire is added below the message. The applicant fills it
+                    in online, without logging in.
+                </div>
+                <footer>
+                    <button name="action_send" type="object" string="Send" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Show dates as dd/mm/yyyy and times on the 24-hour clock. Odoo formats every
+         date and timestamp from the user's language (timestamps become
+         dd/mm/yyyy HH:MM:SS). noupdate so a later change made in Settings is kept. -->
+    <data noupdate="1">
+        <record id="base.lang_en" model="res.lang">
+            <field name="date_format">%d/%m/%Y</field>
+            <field name="time_format">%H:%M:%S</field>
+        </record>
+    </data>
+</odoo>

@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <list string="Live Sales Counters">
                 <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
                 <field name="name"/>
                 <field name="visibility"/>
                 <field name="period"/>
@@ -28,7 +29,7 @@
                     <button name="action_open_demo" type="object" string="Preview with Demo Sales"
                             invisible="not id"/>
                     <button name="action_regenerate_token" type="object" string="New Link"
-                            invisible="not id" groups="live_sales_counter.group_live_counter_manager"
+                            invisible="not id"
                             confirm="Screens and people using the current link will need the new link. Continue?"/>
                 </header>
                 <sheet>

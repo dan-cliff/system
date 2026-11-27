@@ -7,4 +7,24 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
     </record>
+
+    <!-- Triggered as soon as tickets are created (when an AI key is set); the
+         hourly run picks up anything left over. -->
+    <record id="ir_cron_helpdesk_ai_triage" model="ir.cron">
+        <field name="name">Helpdesk: AI triage of new tickets</field>
+        <field name="model_id" ref="model_helpdesk_ticket"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_ai_triage()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+    </record>
+
+    <record id="ir_cron_helpdesk_days_open" model="ir.cron">
+        <field name="name">Helpdesk: update Days Open</field>
+        <field name="model_id" ref="model_helpdesk_ticket"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_refresh_days_open()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
 </odoo>

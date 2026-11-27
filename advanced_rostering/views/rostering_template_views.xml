@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_template_view_list" model="ir.ui.view">
+        <field name="name">rostering.template.list</field>
+        <field name="model">rostering.template</field>
+        <field name="arch" type="xml">
+            <list string="Roster Templates">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="cycle"/>
+                <field name="line_count" string="Shifts"/>
+                <field name="total_hours" widget="float_time" optional="show"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="rostering_template_view_form" model="ir.ui.view">
+        <field name="name">rostering.template.form</field>
+        <field name="model">rostering.template</field>
+        <field name="arch" type="xml">
+            <form string="Roster Template">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Standard Week"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="cycle"/>
+                            <field name="week_count"/>
+                        </group>
+                        <group>
+                            <field name="total_hours" widget="float_time"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Shifts" name="shifts">
+                            <p class="text-muted">
+                                Week 1 is the first 7 days of a roster period, week 2 the next 7, and so on.
+                                Leave the person empty for a shift to assign later.
+                            </p>
+                            <field name="line_ids" context="{'default_template_id': id}">
+                                <list editable="bottom">
+                                    <field name="week"/>
+                                    <field name="weekday"/>
+                                    <field name="user_id" options="{'no_create': True}"/>
+                                    <field name="standard_shift_id" options="{'no_create': True}"/>
+                                    <field name="start_time" widget="float_time" optional="show"/>
+                                    <field name="end_time" widget="float_time" optional="show"/>
+                                    <field name="duty_id" options="{'no_create': True}"/>
+                                    <field name="paid_hours" widget="float_time" sum="Total" optional="show"/>
+                                    <field name="note" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="description" placeholder="When to use this template..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="rostering_template_view_search" model="ir.ui.view">
+        <field name="name">rostering.template.search</field>
+        <field name="model">rostering.template</field>
+        <field name="arch" type="xml">
+            <search string="Roster Templates">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_cycle" string="Cycle" context="{'group_by': 'cycle'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rostering_template" model="ir.actions.act_window">
+        <field name="name">Roster Templates</field>
+        <field name="res_model">rostering.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Design a standard roster</p>
+            <p>A roster template lays out a whole cycle (from Settings) of standard shifts. Apply it to a draft roster to fill it in one go.</p>
+        </field>
+    </record>
+</odoo>

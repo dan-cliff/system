@@ -33,7 +33,8 @@ class Checklist(models.Model):
 
     @api.constrains('asset_id', 'template_id')
     def _check_asset_required(self):
-        for checklist in self:
+        # Public submissions have no asset field.
+        for checklist in self.filtered(lambda c: not c.is_public):
             template = checklist.template_id
             if template.asset_enabled and template.asset_required and not checklist.asset_id:
                 raise ValidationError(self.env._(

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Email ──────────────────────────────────────────────────────── -->
+
+    <!-- The Send Questionnaire message, before it is edited. -->
+    <template id="questionnaire_message" name="Talent: Questionnaire Message">
+        <p>Hello <t t-out="applicant.partner_name or ''"/>,</p>
+        <p>
+            Thank you for applying<t t-if="applicant.job_id"> for <strong t-out="applicant.job_id.name"/></t>.
+            Before we take your application further, please answer a few questions.
+        </p>
+    </template>
+
+    <!-- A button per questionnaire, added below the message when it is sent. -->
+    <template id="questionnaire_links" name="Talent: Questionnaire Links">
+        <div style="margin: 16px 0;">
+            <t t-foreach="checklists" t-as="checklist">
+                <p style="margin: 0 0 12px 0;">
+                    <a t-att-href="checklist.talent_url"
+                       style="display: inline-block; padding: 10px 18px; border-radius: 999px; background-color: #5B3DB8; color: #FFFFFF; text-decoration: none; font-weight: 600;">
+                        <t t-out="checklist.template_id.name"/>
+                    </a>
+                </p>
+            </t>
+            <p t-if="date_due" style="margin: 0; color: #6c757d;">
+                Please complete <t t-out="'it' if len(checklists) == 1 else 'them'"/> by
+                <strong t-out="date_due.strftime('%d/%m/%Y')"/>.
+            </p>
+        </div>
+    </template>
+
+    <!-- ── Online questionnaire (public, opened from the email) ──────── -->
+
+    <template id="questionnaire_page" name="Talent: Questionnaire">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="title" t-value="checklist.template_id.name"/>
+            <div class="o_talent_q_page">
+                <div class="o_talent_q_card">
+                    <header class="o_talent_q_header">
+                        <img t-if="company.logo" class="o_talent_q_logo" alt="Logo"
+                             t-attf-src="/web/binary/company_logo?company={{ company.id }}"/>
+                        <h1 class="o_talent_q_title" t-out="checklist.template_id.name"/>
+                        <p class="o_talent_q_subtitle">
+                            <t t-out="applicant.partner_name or ''"/>
+                            <t t-if="applicant.job_id"> · <t t-out="applicant.job_id.name"/></t>
+                            · <t t-out="company.name"/>
+                        </p>
+                        <p t-if="checklist.template_id.description" class="o_talent_q_intro"
+                           t-out="checklist.template_id.description"/>
+                    </header>
+
+                    <t t-if="checklist.state == 'done'">
+                        <div class="o_talent_q_done">
+                            <div class="o_talent_q_done_tick" aria-hidden="true">✓</div>
+                            <h2>Thank you</h2>
+                            <p>Your answers were sent to <t t-out="company.name"/>. You can close this page.</p>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div t-if="saved" class="alert alert-success" role="status">
+                            Your answers are saved. Come back to this page from the email to finish.
+                        </div>
+                        <p t-if="checklist.date_due" class="o_talent_q_due">
+                            Please complete by <strong t-out="checklist.date_due.strftime('%d/%m/%Y')"/>.
+                        </p>
+                        <form method="post" enctype="multipart/form-data" class="o_talent_questionnaire"
+                              t-att-action="'/talent/questionnaire/%s/%s' % (checklist.id, token)">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <t t-foreach="items" t-as="item">
+                                <t t-call="modern_recruitment_checklists.questionnaire_line"/>
+                            </t>
+                            <div class="o_talent_q_actions">
+                                <button type="submit" name="talent_action" value="save" class="btn o_talent_q_save" formnovalidate="formnovalidate">
+                                    Save and finish later
+                                </button>
+                                <button type="submit" name="talent_action" value="submit" class="btn btn-primary">
+                                    Submit answers
+                                </button>
+                            </div>
+                        </form>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="questionnaire_line" name="Talent: Questionnaire Question">
+        <t t-set="line" t-value="item['line']"/>
+        <t t-set="kind" t-value="line.question_type"/>
+        <t t-set="key" t-value="'line_%s' % line.id"/>
+        <div t-attf-class="o_talent_q_line o_talent_q_{{ kind }}"
+             t-att-data-line-id="line.id"
+             t-att-data-question-id="line.question_id.id or ''"
+             t-att-data-type="kind"
+             t-att-data-conditional="'1' if line.conditional else '0'"
+             t-att-data-logic="line.condition_logic or 'all'"
+             t-att-data-rules="item['rules']"
+             t-att-data-context="item['context']">
+            <t t-if="kind == 'section_title'">
+                <h2 class="o_talent_q_section" t-out="line.name"
+                    t-attf-style="color: {{ line.layout_text_color or 'inherit' }}; background-color: {{ line.layout_bg_color or 'transparent' }}; border-color: {{ line.layout_border_color or 'transparent' }};"/>
+            </t>
+            <t t-elif="kind == 'section_break'">
+                <h3 t-if="line.layout_title_position == 'above'" class="o_talent_q_break_title" t-out="line.name"/>
+                <hr t-attf-style="border-color: {{ line.layout_line_color or '#A9ABDC' }};"/>
+                <h3 t-if="line.layout_title_position == 'below'" class="o_talent_q_break_title" t-out="line.name"/>
+            </t>
+            <t t-elif="kind == 'instructions'">
+                <div class="o_talent_q_instructions" t-out="line.instructions"
+                     t-attf-style="color: {{ line.layout_text_color or 'inherit' }}; background-color: {{ line.layout_bg_color or 'transparent' }}; border-color: {{ line.layout_border_color or 'transparent' }};"/>
+            </t>
+            <t t-else="">
+                <label class="o_talent_q_label" t-att-for="key" t-out="line.name"/>
+                <p t-if="line.description" class="o_talent_q_help" t-out="line.description"/>
+                <t t-set="value" t-value="item['value']"/>
+
+                <input t-if="kind == 'text'" type="text" class="form-control" t-att-id="key" t-att-name="key" t-att-value="value"/>
+                <textarea t-elif="kind == 'text_area'" class="form-control" rows="4" t-att-id="key" t-att-name="key" t-out="value"/>
+                <input t-elif="kind == 'number'" type="number" step="any" class="form-control" t-att-id="key" t-att-name="key" t-att-value="value"/>
+                <input t-elif="kind == 'integer'" type="number" step="1" class="form-control" t-att-id="key" t-att-name="key" t-att-value="value"/>
+                <input t-elif="kind == 'date'" type="text" class="form-control" inputmode="numeric" placeholder="dd/mm/yyyy"
+                       pattern="\d{1,2}/\d{1,2}/\d{4}" title="dd/mm/yyyy" t-att-id="key" t-att-name="key" t-att-value="value"/>
+                <input t-elif="kind == 'datetime'" type="text" class="form-control" placeholder="dd/mm/yyyy HH:MM"
+                       pattern="\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{2}" title="dd/mm/yyyy HH:MM" t-att-id="key" t-att-name="key" t-att-value="value"/>
+                <input t-elif="kind == 'phone'" type="tel" class="form-control" autocomplete="tel" t-att-id="key" t-att-name="key" t-att-value="value"/>
+                <input t-elif="kind == 'email'" type="email" class="form-control" autocomplete="email" t-att-id="key" t-att-name="key" t-att-value="value"/>
+                <input t-elif="kind == 'website'" type="url" class="form-control" placeholder="https://" t-att-id="key" t-att-name="key" t-att-value="value"/>
+
+                <select t-elif="kind == 'select'" class="form-select" t-att-id="key" t-att-name="key">
+                    <option value="">Choose…</option>
+                    <t t-foreach="item['options']" t-as="option">
+                        <option t-att-value="option.id" t-att-selected="option.id == value" t-out="option.name"/>
+                    </t>
+                </select>
+
+                <div t-elif="kind in ('buttons', 'radio', 'slider')" t-attf-class="o_talent_q_choices {{ 'o_talent_q_pills' if kind != 'radio' else '' }}" role="radiogroup" t-att-id="key">
+                    <t t-foreach="item['options']" t-as="option">
+                        <label class="o_talent_q_choice" t-att-style="option.color and '--talent-choice: %s' % option.color">
+                            <input type="radio" t-att-name="key" t-att-value="option.id" t-att-checked="option.id == value"/>
+                            <span t-out="option.name"/>
+                        </label>
+                    </t>
+                </div>
+
+                <div t-elif="kind in ('multi_select', 'multi_checkbox')" class="o_talent_q_choices" t-att-id="key">
+                    <t t-foreach="item['options']" t-as="option">
+                        <label class="o_talent_q_choice">
+                            <input type="checkbox" t-att-name="key" t-att-value="option.id" t-att-checked="option.id in (value or [])"/>
+                            <span t-out="option.name"/>
+                        </label>
+                    </t>
+                </div>
+
+                <div t-elif="kind == 'boolean'" class="form-check form-switch">
+                    <input type="hidden" t-att-name="key" value="0"/>
+                    <input type="checkbox" class="form-check-input" role="switch" value="1" t-att-id="key" t-att-name="key" t-att-checked="bool(value) or None"/>
+                    <label class="form-check-label" t-att-for="key">Yes</label>
+                </div>
+
+                <div t-elif="kind == 'geolocation'" class="o_talent_q_geo">
+                    <input type="hidden" class="o_talent_q_lat" t-att-name="key + '_lat'" t-att-value="value and value[0]"/>
+                    <input type="hidden" class="o_talent_q_lng" t-att-name="key + '_lng'" t-att-value="value and value[1]"/>
+                    <button type="button" class="btn btn-outline-primary o_talent_q_geo_button">Share my location</button>
+                    <span class="o_talent_q_geo_text ms-2 text-muted" t-out="value and '%.5f, %.5f' % value or ''"/>
+                </div>
+
+                <div t-elif="kind in ('image', 'file')" class="o_talent_q_upload">
+                    <input type="file" class="form-control" t-att-id="key" t-att-name="key"
+                           t-att-accept="'image/*' if kind == 'image' else None"
+                           t-att-data-has-value="'1' if value else '0'"/>
+                    <small t-if="value" class="text-muted">Already uploaded<t t-if="kind == 'file'">: <t t-out="value"/></t>. Choose a file to replace it.</small>
+                </div>
+            </t>
+        </div>
+    </template>
+
+    <template id="questionnaire_invalid" name="Talent: Questionnaire Unavailable">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="title">Questionnaire unavailable</t>
+            <div class="o_talent_q_page">
+                <div class="o_talent_q_card o_talent_q_done">
+                    <h2>This questionnaire is not available</h2>
+                    <p>The link may be wrong or the questionnaire withdrawn. Contact the person who sent it to you.</p>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

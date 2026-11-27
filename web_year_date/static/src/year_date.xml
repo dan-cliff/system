@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_year_date.YearDateField">
+        <span t-if="props.readonly" t-esc="formattedValue"/>
+        <DateTimeInput t-else=""
+                       value="value"
+                       type="'date'"
+                       format="'yyyy'"
+                       minPrecision="'years'"
+                       maxPrecision="'decades'"
+                       placeholder="props.placeholder or 'e.g. 2026'"
+                       class="'o_input'"
+                       onChange.bind="onChange"
+                       onApply.bind="onChange"/>
+    </t>
+</templates>

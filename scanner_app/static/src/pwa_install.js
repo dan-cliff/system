@@ -25,7 +25,7 @@ function injectManifestLink() {
 
     const meta = document.createElement("meta");
     meta.name = "theme-color";
-    meta.content = "#37474F";
+    meta.content = "#5B2E9E";
     document.head.appendChild(meta);
 }
 

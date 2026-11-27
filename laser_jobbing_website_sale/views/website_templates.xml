@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- The personaliser on the product page. Expects laser_product (product.template). -->
+    <template id="laser_personaliser" name="Laser Personaliser">
+        <t t-set="laser" t-value="laser_product._laser_shop_editor()"/>
+        <div class="o_laser_personaliser card mb-4"
+             t-att-data-product-template-id="laser_product.id"
+             t-att-data-visual="'1' if laser['visual'] else '0'"
+             t-att-data-editor="laser['data_json']">
+            <div class="card-body">
+                <h5 class="card-title mb-1">
+                    <i class="fa fa-magic me-2" role="img" aria-label="Personalise"/>Personalise it
+                </h5>
+                <p class="text-muted small mb-3">
+                    Add your own words and pictures. We make it exactly as shown in the preview.
+                </p>
+                <div class="row g-3">
+                    <div class="col-md-6 order-md-2">
+                        <t t-if="laser['visual']">
+                            <div class="o_laser_canvas">
+                                <svg class="o_laser_svg" xmlns="http://www.w3.org/2000/svg" role="img"
+                                     aria-label="Preview of your design"/>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="o_laser_canvas o_laser_server_preview d-flex align-items-center justify-content-center">
+                                <img class="o_laser_preview_img d-none img-fluid" alt="Preview of your design"/>
+                                <p class="o_laser_preview_hint text-muted small m-3 text-center">
+                                    Fill in your personalisation and press <strong>Preview</strong> to see it.
+                                </p>
+                            </div>
+                        </t>
+                    </div>
+                    <!-- Not a <form>: on the product page this sits inside the shop's add-to-cart form. -->
+                    <div class="col-md-6 o_laser_fields">
+                        <t t-foreach="laser['elements']" t-as="element">
+                            <div class="mb-3">
+                                <label class="form-label" t-attf-for="laser_el_{{element.id}}">
+                                    <t t-out="element.name"/>
+                                    <span t-if="element.required" class="text-danger" aria-hidden="true">*</span>
+                                </label>
+                                <t t-if="element.element_type == 'text'">
+                                    <textarea t-if="element.multiline" rows="3" class="form-control o_laser_text"
+                                              t-attf-id="laser_el_{{element.id}}"
+                                              t-attf-name="text_{{element.id}}"
+                                              t-att-data-element-id="element.id"
+                                              t-att-maxlength="element.max_length or None"
+                                              t-att-required="element.required or None"
+                                              t-out="element.default_text or ''"/>
+                                    <input t-else="" type="text" class="form-control o_laser_text"
+                                           t-attf-id="laser_el_{{element.id}}"
+                                           t-attf-name="text_{{element.id}}"
+                                           t-att-data-element-id="element.id"
+                                           t-att-maxlength="element.max_length or None"
+                                           t-att-required="element.required or None"
+                                           t-att-value="element.default_text or ''"/>
+                                </t>
+                                <t t-else="">
+                                    <input type="file" class="form-control o_laser_file"
+                                           t-attf-id="laser_el_{{element.id}}"
+                                           t-attf-name="image_{{element.id}}"
+                                           t-att-data-element-id="element.id"
+                                           t-att-accept="laser['accept']"
+                                           t-att-required="element.required or None"/>
+                                </t>
+                                <div class="form-text">
+                                    <t t-if="element.help_text"><t t-out="element.help_text"/> </t>
+                                    <t t-if="element.element_type == 'text' and element.max_length">
+                                        Up to <t t-out="element.max_length"/> characters.
+                                    </t>
+                                    <t t-if="element.element_type == 'image'">
+                                        <t t-out="laser['accept'].replace(',', ', ')"/>, up to <t t-out="laser['max_mb']"/> MB.
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-4">
+                                <label class="form-label" t-attf-for="laser_qty_{{laser_product.id}}">Quantity</label>
+                                <input type="number" min="1" step="1" value="1" class="form-control o_laser_quantity"
+                                       t-attf-id="laser_qty_{{laser_product.id}}"/>
+                            </div>
+                            <div class="col-8 d-flex gap-2 justify-content-end">
+                                <button t-if="not laser['visual']" type="button" class="btn btn-secondary o_laser_preview_btn">
+                                    <i class="fa fa-eye me-1"/>Preview
+                                </button>
+                                <button type="button" class="btn btn-primary o_laser_add_to_cart">
+                                    <i class="fa fa-shopping-cart me-1"/>Add to cart
+                                </button>
+                            </div>
+                        </div>
+                        <div class="o_laser_progress d-none small text-muted mt-3" role="status" aria-live="polite">
+                            <i class="fa fa-spinner fa-spin me-2"/>Making your design... please keep this page open.
+                        </div>
+                        <div class="o_laser_error alert alert-danger d-none mt-3" role="alert"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Product page: personalised products are added to the cart from the personaliser -->
+    <template id="laser_product_cta" inherit_id="website_sale.cta_wrapper" name="Laser Personaliser on Product Page">
+        <xpath expr="//div[@id='o_wsale_cta_wrapper']" position="before">
+            <t t-set="laser_product" t-value="product and (product.product_tmpl_id if product._name == 'product.product' else product)"/>
+            <t t-if="laser_product and laser_product.laser_shop_personalised">
+                <t t-call="laser_jobbing_website_sale.laser_personaliser"/>
+            </t>
+        </xpath>
+        <xpath expr="//div[@id='o_wsale_cta_wrapper']" position="attributes">
+            <attribute name="t-att-class" add="(' d-none' if product and product.laser_shop_personalised else '')" separator=" + "/>
+        </xpath>
+    </template>
+
+    <template id="laser_products_item" inherit_id="website_sale.products_item" name="Personalised Products in Shop Grid">
+        <xpath expr="//div[hasclass('product_price')]" position="after">
+            <span t-if="product.laser_shop_personalised" class="badge text-bg-light">
+                <i class="fa fa-magic me-1"/>Personalise it
+            </span>
+        </xpath>
+    </template>
+
+</odoo>

@@ -1,6 +1,7 @@
 """Tests for individual wf.step execution types."""
 import datetime
 from odoo.tests.common import TransactionCase
+from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 
 
@@ -377,6 +378,57 @@ class TestWorkflowSteps(TransactionCase):
         result = step._render_template("{{undefined_var.something}}", {})
         self.assertEqual(result, "")
 
+    def test_render_template_field_selector_placeholders(self):
+        """Placeholders inserted by the field selector render, with defaults."""
+        step = self.env['wf.step'].create({
+            'workflow_id': self.wf.id,
+            'name': 'Field Selector',
+            'step_type': 'stop_workflow',
+        })
+        self.partner.write({'name': 'A & B', 'function': False})
+        ctx = step._get_eval_context(self.partner, {})
+
+        # Char / Text fields: {{object.path ||| default}}
+        self.assertEqual(
+            step._render_template("Hi {{object.name}}", ctx, display=True), "Hi A & B",
+        )
+        self.assertEqual(
+            step._render_template("{{object.function ||| n/a}}", ctx, display=True), "n/a",
+        )
+        # Html fields: the editor's <t t-out> elements, values escaped
+        body = (
+            '<p><t t-out="object.name"></t> / '
+            '<t t-out="object.function">No job</t></p>'
+        )
+        self.assertEqual(
+            step._render_template(body, ctx, html=True), "<p>A &amp; B / No job</p>",
+        )
+
+    def test_render_template_display_formats(self):
+        """Dates show as dd/mm/yyyy and records by name in messages."""
+        step = self.env['wf.step'].create({
+            'workflow_id': self.wf.id,
+            'name': 'Formats',
+            'step_type': 'stop_workflow',
+        })
+        self.env.user.tz = 'UTC'
+        ctx = {
+            'd': datetime.date(2026, 3, 4),
+            'dt': datetime.datetime(2026, 3, 4, 5, 6, 7),
+            'object': self.partner,
+            'format_datetime': step._wf_format_datetime,
+        }
+        render = step._render_template
+        self.assertEqual(render("{{d}}", ctx, display=True), "04/03/2026")
+        self.assertEqual(render("{{dt}}", ctx, display=True), "04/03/2026 05:06")
+        self.assertEqual(
+            render("{{format_datetime(dt, tz='Australia/Sydney')}}", ctx, display=True),
+            "04/03/2026 16:06",
+        )
+        self.assertEqual(render("{{object}}", ctx, display=True), self.partner.display_name)
+        # Without display formatting (API calls) values keep their str()
+        self.assertEqual(render("{{d}}", ctx), "2026-03-04")
+
     # ------------------------------------------------------------------ #
     # Trigger sub-workflow                                                 #
     # ------------------------------------------------------------------ #
@@ -403,3 +455,71 @@ class TestWorkflowSteps(TransactionCase):
 
         sub_log = self.env['wf.execution.log'].search([('workflow_id', '=', sub_wf.id)])
         self.assertTrue(sub_log, "Sub-workflow should have an execution log")
+
+    # ------------------------------------------------------------------ #
+    # send_email recipients                                                #
+    # ------------------------------------------------------------------ #
+
+    def _email_step(self, vals):
+        vals.update({'workflow_id': self.wf.id, 'name': 'Email', 'step_type': 'send_email'})
+        return self.env['wf.step'].create(vals)
+
+    def test_email_to_type_follows_email_type(self):
+        """Template emails default to the template's recipients, inline to a field."""
+        step = self._email_step({'email_type': 'template'})
+        self.assertEqual(step.email_to_type, 'template')
+        step.email_type = 'inline'
+        self.assertEqual(step.email_to_type, 'field')
+
+    def test_email_inline_rejects_template_recipients(self):
+        """An inline email can't use the template's recipients."""
+        with self.assertRaises(ValidationError):
+            self._email_step({'email_type': 'inline', 'email_to_type': 'template'})
+
+    def test_email_recipients_specific_users(self):
+        """Specific Users sends to the selected users' addresses, for any email type."""
+        user = self.env.user
+        user.partner_id.email = 'wf-user@example.com'
+        for email_type in ('template', 'inline'):
+            step = self._email_step({
+                'email_type': email_type,
+                'email_to_type': 'specific_users',
+                'email_to_user_ids': [(6, 0, user.ids)],
+            })
+            self.assertEqual(step.email_to_type, 'specific_users')
+            self.assertEqual(step._get_email_recipients(self.partner), ['wf-user@example.com'])
+
+    def test_email_recipients_from_fields(self):
+        """Field on Record reads a text field or the users / contacts in a relational field."""
+        self.partner.email = 'wf-partner@example.com'
+        self.env.user.partner_id.email = 'wf-user@example.com'
+        self.partner.user_id = self.env.user
+        fields_by_name = {
+            f.name: f for f in self.env['ir.model.fields'].search([
+                ('model', '=', 'res.partner'), ('name', 'in', ['email', 'user_id', 'child_ids']),
+            ])
+        }
+        cases = [
+            ('email', ['wf-partner@example.com']),
+            ('user_id', ['wf-user@example.com']),
+        ]
+        for field_name, expected in cases:
+            step = self._email_step({
+                'email_type': 'inline',
+                'email_to_type': 'field',
+                'email_to_field_id': fields_by_name[field_name].id,
+            })
+            self.assertEqual(step._get_email_recipients(self.partner), expected)
+
+        # A one2many with several contacts sends to all of them
+        self.env['res.partner'].create([
+            {'name': 'WF Child A', 'parent_id': self.partner.id, 'email': 'a@example.com'},
+            {'name': 'WF Child B', 'parent_id': self.partner.id, 'email': 'b@example.com'},
+        ])
+        step = self._email_step({
+            'email_type': 'template',
+            'email_to_type': 'field',
+            'email_to_field_id': fields_by_name['child_ids'].id,
+        })
+        recipients = step._get_email_recipients(self.partner)
+        self.assertTrue({'a@example.com', 'b@example.com'} <= set(recipients))

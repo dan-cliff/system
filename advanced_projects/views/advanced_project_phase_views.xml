@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Phases group a project's tasks; edited on the project's Plan tab. -->
+    <record id="advanced_project_phase_view_list" model="ir.ui.view">
+        <field name="name">advanced.project.phase.list</field>
+        <field name="model">advanced.project.phase</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="project_id" column_invisible="context.get('default_project_id')"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="task_count"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="color" widget="color" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="advanced_project_phase_view_form" model="ir.ui.view">
+        <field name="name">advanced.project.phase.form</field>
+        <field name="model">advanced.project.phase</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Discovery"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="color" widget="color"/>
+                        </group>
+                        <group>
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <field name="date_end" options="{'numeric': True}"/>
+                            <field name="progress" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="What this phase covers..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

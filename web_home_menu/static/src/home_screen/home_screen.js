@@ -1,5 +1,5 @@
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
 import { user } from "@web/core/user";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -34,6 +34,10 @@ export class HomeScreen extends Component {
         });
         this.draggedAppId = null;
         onWillStart(() => Promise.all([this.loadLayout(), this.loadQuickLinks()]));
+        // On a full page load the menu service first gives the copy of the
+        // menus saved in the browser, then swaps in the server's once it
+        // arrives: redraw so the apps and icons aren't left out of date.
+        useBus(this.env.bus, "MENUS:APP-CHANGED", () => this.render());
         // Let the navbar know the home screen is showing, so it can hide its
         // own menus/waffle button and only keep a few systray icons visible.
         onMounted(() => this.env.bus.trigger("HOME_MENU:VISIBILITY", { isVisible: true }));

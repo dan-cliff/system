@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ai_message_drafter.AiMessageDialog">
+        <Dialog title.translate="Write a Message with AI" size="'lg'" contentClass="'o_ai_message_dialog'">
+            <div t-if="context.helpdesk" class="alert alert-info d-flex gap-2 mb-3" role="status">
+                <i class="fa fa-life-ring mt-1" aria-hidden="true"/>
+                <div>
+                    The AI reads this ticket's
+                    <t t-if="context.helpdesk_parts.length" t-esc="context.helpdesk_parts.join(', ').toLowerCase()"/>
+                    <t t-else="">description and AI insights</t>
+                    and suggests a reply to the customer. Add instructions below, or leave them blank.
+                </div>
+            </div>
+            <label class="form-label fw-bold" for="o_ai_message_prompt">What should the message say?</label>
+            <textarea id="o_ai_message_prompt" class="form-control mb-2" rows="4"
+                      t-model="state.prompt" t-att-placeholder="promptPlaceholder"
+                      t-att-readonly="state.draft and 'readonly'"/>
+            <div t-if="!state.draft" class="d-flex justify-content-end">
+                <button type="button" class="btn btn-primary" t-on-click="() => this.runAi()">
+                    <i class="fa fa-magic me-1"/>Fix with AI
+                </button>
+            </div>
+            <t t-else="">
+                <label class="form-label fw-bold mt-2">AI draft</label>
+                <p class="text-muted small mb-1">Edit the message here as you like before copying it to the chatter.</p>
+                <div class="o_ai_message_editor border rounded mb-3">
+                    <Wysiwyg t-key="state.editorKey" config="editorConfig" onLoad.bind="onEditorLoad"
+                             class="'o_ai_message_wysiwyg'" contentClass="'o_ai_message_content p-2'"/>
+                </div>
+                <label class="form-label fw-bold" for="o_ai_message_changes">Request changes</label>
+                <textarea id="o_ai_message_changes" class="form-control mb-2" rows="2"
+                          t-model="state.changes"
+                          placeholder="e.g. Make it shorter and more formal, and mention the warranty."/>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-secondary" t-on-click="() => this.runAi(true)">
+                        <i class="fa fa-magic me-1"/>Request Changes
+                    </button>
+                </div>
+            </t>
+            <t t-set-slot="footer">
+                <button t-if="state.draft" type="button" class="btn btn-primary" t-on-click="copyToChatter">
+                    <i class="fa fa-clipboard me-1"/>Copy to Chatter
+                </button>
+                <button type="button" class="btn btn-secondary" t-on-click="() => this.props.close()">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="ai_message_drafter.AiProgressOverlay">
+        <div t-if="state.active" class="o_ai_message_progress" role="status" aria-live="polite">
+            <div class="o_ai_message_progress_card">
+                <div class="o_ai_message_progress_orb" aria-hidden="true">
+                    <i class="fa fa-magic"/>
+                </div>
+                <h3 class="mt-3 mb-3" t-esc="state.title"/>
+                <ol class="list-unstyled text-start mb-3">
+                    <li t-foreach="state.steps" t-as="step" t-key="step_index"
+                        t-attf-class="o_ai_message_progress_step o_ai_message_progress_step_{{ stepStatus(step_index) }}">
+                        <span class="o_ai_message_progress_icon">
+                            <i t-if="stepStatus(step_index) === 'done'" class="fa fa-check"/>
+                            <i t-elif="stepStatus(step_index) === 'active'" class="fa fa-circle-o-notch fa-spin"/>
+                            <i t-else="" class="fa fa-circle-thin"/>
+                        </span>
+                        <span t-esc="step"/>
+                    </li>
+                </ol>
+                <p class="text-muted small mb-0">
+                    This can take a few minutes - please keep this page open. <t t-esc="elapsed"/>
+                </p>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ai_message_drafter.Chatter" t-inherit="mail.Chatter" t-inherit-mode="extension">
+        <xpath expr="//span[hasclass('o-mail-Chatter-topbarGrow')]" position="before">
+            <button t-if="showAiMessageButton" class="o-mail-Chatter-aiMessage btn btn-secondary text-nowrap ms-1"
+                    t-att-class="{ 'my-2': !props.compactHeight }"
+                    t-att-disabled="!state.thread.canPostMessage and props.threadId"
+                    title="Draft a message with AI" t-on-click="openAiMessageDialog">
+                <i class="fa fa-magic me-1"/>AI Message
+            </button>
+        </xpath>
+    </t>
+</templates>

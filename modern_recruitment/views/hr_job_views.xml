@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="talent_job_view_kanban" model="ir.ui.view">
+        <field name="name">hr.job.kanban.talent</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr_recruitment.view_hr_job_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="class" add="o_talent_job_kanban" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Job Positions list: ID first (after the drag handle). -->
+    <record id="talent_job_view_list" model="ir.ui.view">
+        <field name="name">hr.job.list.talent</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr.view_hr_job_tree"/>
+        <field name="arch" type="xml">
+            <field name="sequence" position="after">
+                <field name="id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="talent_job_view_form" model="ir.ui.view">
+        <field name="name">hr.job.form.talent</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr.view_hr_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class" add="o_talent_job_form" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

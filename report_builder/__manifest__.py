@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Report Builder',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'summary': 'Build custom reports from any model with flexible output formats',
     'description': """
 Report Builder allows administrators and report authors to design custom reports

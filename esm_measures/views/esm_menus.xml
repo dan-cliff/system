@@ -31,6 +31,10 @@
               action="action_esm_evp_inspection"
               sequence="40"/>
 
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_esm_reports" name="Reports" parent="menu_esm_root" sequence="99"/>
+
     <menuitem id="menu_esm_config"
               name="Configuration"
               parent="menu_esm_root"

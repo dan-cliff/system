@@ -1,0 +1,84 @@
+// Helpdesk dashboard (see dashboard.js). Colours from the house palette.
+.o_helpdesk_dashboard {
+    background: $o-webclient-background-color;
+}
+
+.o_helpdesk_dashboard_banner {
+    padding: 1.5rem;
+    color: #ffffff;
+    background: linear-gradient(120deg, #5B3DB8 0%, #0A6CF0 55%, #14A3A3 100%);
+
+    h2 {
+        color: #ffffff;
+    }
+}
+
+.o_helpdesk_dashboard_card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.25rem;
+    border: 0;
+    border-radius: 1rem;
+    text-align: start;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(4px);
+
+    a {
+        color: #ffffff;
+    }
+}
+
+button.o_helpdesk_dashboard_card:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.o_helpdesk_dashboard_label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+
+.o_helpdesk_dashboard_big {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.o_helpdesk_dashboard_rows {
+    max-height: 9.5rem;
+    overflow-y: auto;
+
+    li + li {
+        margin-top: 0.3rem;
+    }
+}
+
+.o_helpdesk_dashboard_count {
+    color: #2A3F8F;
+    background: #F2F2FA;
+}
+
+.o_helpdesk_dashboard_body {
+    padding: 1.5rem;
+}
+
+.o_helpdesk_dashboard_chart_card {
+    padding: 1rem 1.25rem;
+    border-radius: 1rem;
+    background: $o-view-background-color;
+    box-shadow: 0 0.25rem 1rem rgba(42, 63, 143, 0.08);
+}
+
+.o_helpdesk_dashboard_average {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.o_helpdesk_dashboard_chart {
+    position: relative;
+    height: 16rem;
+}

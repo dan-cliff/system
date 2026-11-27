@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Manufacturing users work on Manufacturing's actions (what they may do
+         with them comes from the ACL, as for the app's own records). -->
+    <record id="rule_advanced_action_manufacturing" model="ir.rule">
+        <field name="name">Actions: Manufacturing users, Manufacturing actions</field>
+        <field name="model_id" ref="advanced_actions.model_advanced_action"/>
+        <field name="groups" eval="[(4, ref('mrp.group_mrp_user'))]"/>
+        <field name="domain_force">[('source_app', '=', 'manufacturing')]</field>
+    </record>
+</odoo>

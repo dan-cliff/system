@@ -82,6 +82,8 @@ USER_SCOPES = [
     ('extended_team', 'My Extended Team'),
 ]
 USER_FILTER_MODELS = ('res.users', 'hr.employee')
+# Links a user filter can follow: single users and several (e.g. Assignees)
+USER_FILTER_FIELD_TYPES = ('many2one', 'many2many')
 
 
 class CustomDashboardWidget(models.Model):
@@ -129,7 +131,8 @@ class CustomDashboardWidget(models.Model):
     user_filter_path = fields.Char(
         string='User Field',
         help='The user or employee on the record to check, e.g. Responsible User or Employee. '
-             'Leave empty when the model is Users or Employees.',
+             'It can be a field holding several users (e.g. Assignees): the record then counts '
+             'when any of them is in the scope. Leave empty when the model is Users or Employees.',
     )
     groupby_field_id = fields.Many2one(
         'ir.model.fields', string='Group By', ondelete='set null',
@@ -443,14 +446,16 @@ class CustomDashboardWidget(models.Model):
         target = Model._name
         for name in path.split('.') if path else []:
             field = self.env[target]._fields.get(name)
-            if not field or field.type != 'many2one':
-                raise UserError(_('"%s" is not a path of single links to a user or employee.', path))
+            if not field or field.type not in USER_FILTER_FIELD_TYPES:
+                raise UserError(_('"%s" is not a path of links to a user or employee.', path))
             target = field.comodel_name
         if target not in USER_FILTER_MODELS:
             if not path:
                 raise UserError(_('Choose the user or employee field to filter on.'))
             raise UserError(_('"%s" must lead to a user or an employee.', path))
         ids = self._user_scope_ids(Model.env, target)
+        # On a many2many field (e.g. Assignees) this keeps the records where
+        # any of the selected users is in the scope.
         return [(path or 'id', 'in', ids)]
 
     def _user_scope_ids(self, env, target):

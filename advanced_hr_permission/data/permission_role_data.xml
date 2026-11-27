@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_personnel_admin" model="permission.role">
+            <field name="name">Personnel – Administrator</field>
+            <field name="description">Everything in Personnel: create, edit and delete any employee or department, private details, the Audit Trail and Configuration (ID badges, job positions, plans, ...).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_personnel'), 'group_id': ref('advanced_hr.group_personnel_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_create_only'), 'group_id': ref('advanced_hr.group_employee_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_edit_own'), 'group_id': ref('advanced_hr.group_employee_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_edit_team'), 'group_id': ref('advanced_hr.group_employee_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_edit_all'), 'group_id': ref('advanced_hr.group_employee_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_view_all'), 'group_id': ref('advanced_hr.group_employee_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_delete_own'), 'group_id': ref('advanced_hr.group_employee_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_delete_all'), 'group_id': ref('advanced_hr.group_employee_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_create_only'), 'group_id': ref('advanced_hr.group_department_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_edit_own'), 'group_id': ref('advanced_hr.group_department_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_edit_team'), 'group_id': ref('advanced_hr.group_department_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_edit_all'), 'group_id': ref('advanced_hr.group_department_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_view_all'), 'group_id': ref('advanced_hr.group_department_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_delete_own'), 'group_id': ref('advanced_hr.group_department_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_delete_all'), 'group_id': ref('advanced_hr.group_department_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_audit_trail_view'), 'group_id': ref('advanced_hr.group_audit_trail_view')})
+            ]"/>
+        </record>
+        <record id="role_personnel_manager" model="permission.role">
+            <field name="name">Personnel – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s employees and departments (work information). No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_edit_team'), 'group_id': ref('advanced_hr.group_employee_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_edit_team'), 'group_id': ref('advanced_hr.group_department_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_personnel_employee" model="permission.role">
+            <field name="name">Personnel – Employee</field>
+            <field name="description">Create, view and edit their own employee profile (work information) and the departments they manage. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_edit_own'), 'group_id': ref('advanced_hr.group_employee_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_edit_own'), 'group_id': ref('advanced_hr.group_department_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_personnel_officer" model="permission.role">
+            <field name="name">Personnel – HR Officer</field>
+            <field name="description">Create, view and edit every employee, private details included, and every department. No deleting, no Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_edit_all'), 'group_id': ref('advanced_hr.group_employee_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_edit_all'), 'group_id': ref('advanced_hr.group_department_edit_all')})
+            ]"/>
+        </record>
+        <record id="role_personnel_auditor" model="permission.role">
+            <field name="name">Personnel – Auditor</field>
+            <field name="description">View every employee, private details included, every department and their Audit Trail.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_employee_view_all'), 'group_id': ref('advanced_hr.group_employee_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_department_view_all'), 'group_id': ref('advanced_hr.group_department_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_hr.privilege_audit_trail_view'), 'group_id': ref('advanced_hr.group_audit_trail_view')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

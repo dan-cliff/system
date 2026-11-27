@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spend_level_view_list" model="ir.ui.view">
+        <field name="name">advanced.purchasing.spend.level.list</field>
+        <field name="model">advanced.purchasing.spend.level</field>
+        <field name="arch" type="xml">
+            <list string="Spend Levels">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="unlimited" optional="show"/>
+                <field name="amount_limit" invisible="unlimited"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="approver_level"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spend_level_view_form" model="ir.ui.view">
+        <field name="name">advanced.purchasing.spend.level.form</field>
+        <field name="model">advanced.purchasing.spend.level</field>
+        <field name="arch" type="xml">
+            <form string="Spend Level">
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Level 2"/></h1>
+                    </div>
+                    <group>
+                        <group name="limit">
+                            <field name="unlimited"/>
+                            <field name="amount_limit" invisible="unlimited" required="not unlimited"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group name="approval">
+                            <field name="approver_level"/>
+                            <field name="company_id" groups="base.group_multi_company" placeholder="Every company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="When this level applies, who holds it, ..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="spend_level_view_search" model="ir.ui.view">
+        <field name="name">advanced.purchasing.spend.level.search</field>
+        <field name="model">advanced.purchasing.spend.level</field>
+        <field name="arch" type="xml">
+            <search string="Spend Levels">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_approver_level" string="Approved By" context="{'group_by': 'approver_level'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_spend_level" model="ir.actions.act_window">
+        <field name="name">Spend Levels</field>
+        <field name="res_model">advanced.purchasing.spend.level</field>
+        <field name="path">purchasing-spend-levels</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a Spend Level</p>
+            <p>Spend Levels are bands of order value. An order falls in the lowest level whose Spend
+               Limit covers its total, and the level says who approves it: no one, or the buyer's
+               1st, 2nd, 3rd or 4th Up Manager. With Personnel, each employee also holds a level as
+               their own spend delegation.</p>
+        </field>
+    </record>
+</odoo>

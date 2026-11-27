@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Added after the signed document: who signed, when, from where, and
+         the fingerprint of the document they were sent. -->
+    <record id="action_report_signr_certificate" model="ir.actions.report">
+        <field name="name">Signing Certificate</field>
+        <field name="model">signr.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">signr.report_signr_certificate</field>
+        <field name="report_file">signr.report_signr_certificate</field>
+        <field name="print_report_name">'%s - Signing Certificate' % object.name.replace('/', '-')</field>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_signr_certificate">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-size: 10pt;">
+                        <div class="row mb-3">
+                            <div class="col-8">
+                                <h3 class="mb-0">Signing Certificate</h3>
+                                <div t-out="doc.title"/>
+                            </div>
+                            <div class="col-4 text-end">
+                                <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)"
+                                     style="max-height: 50px; max-width: 180px;" alt="Logo"/>
+                            </div>
+                        </div>
+                        <table class="table table-sm table-borderless mb-3">
+                            <tr><th style="width: 30%;">Reference</th><td t-out="doc.name"/></tr>
+                            <tr><th>Template</th><td t-out="doc.template_id.name"/></tr>
+                            <tr t-if="doc.res_name"><th>Raised From</th>
+                                <td><t t-out="doc.res_model_id.name"/>: <t t-out="doc.res_name"/></td></tr>
+                            <tr><th>Sent By</th><td><t t-out="doc.user_id.name"/> (<t t-out="doc.company_id.name"/>)</td></tr>
+                            <tr><th>Sent On</th>
+                                <td t-out="doc.sent_date and context_timestamp(doc.sent_date).strftime('%d/%m/%Y %H:%M') or ''"/></tr>
+                            <tr><th>Completed On</th>
+                                <td t-out="doc.signed_date and context_timestamp(doc.signed_date).strftime('%d/%m/%Y %H:%M') or ''"/></tr>
+                            <tr><th>Document Fingerprint (SHA-256)</th>
+                                <td style="word-break: break-all; font-family: monospace;" t-out="doc.document_hash"/></tr>
+                        </table>
+
+                        <h5>Signatures</h5>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Signer</th>
+                                    <th>Signs As</th>
+                                    <th>Signature</th>
+                                    <th>Signed On</th>
+                                    <th>Signed From (IP)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="doc.signer_ids" t-as="signer">
+                                    <td>
+                                        <strong t-out="signer.signed_by or signer.partner_id.name"/>
+                                        <div class="text-muted" t-out="signer.partner_id.email"/>
+                                    </td>
+                                    <td t-out="signer.role"/>
+                                    <td>
+                                        <img t-if="signer.signature" t-att-src="image_data_uri(signer.signature)"
+                                             style="max-height: 50px; max-width: 200px;" alt="Signature"/>
+                                    </td>
+                                    <td t-out="signer._format_signed_on()"/>
+                                    <td t-out="signer.signer_ip"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="text-muted small">
+                            Each signer opened the document from a private link sent to their email address, typed
+                            their name and drew or adopted their signature. Times are in each signer's time zone.
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

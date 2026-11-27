@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Employee > Payroll: which public holiday jurisdictions apply (Settings ›
+         Rostering › Public Holiday Jurisdictions on Employees). -->
+    <record id="hr_employee_view_form_rostering" model="ir.ui.view">
+        <field name="name">hr.employee.form.rostering</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='payroll_information']/group[@name='payroll_group']" position="after">
+                <field name="rostering_jurisdictions_enabled" invisible="1"/>
+                <group name="rostering_public_holidays" string="Public Holidays"
+                       invisible="not rostering_jurisdictions_enabled">
+                    <field name="rostering_holiday_jurisdiction_ids" widget="many2many_tags"
+                           options="{'no_create': True}"
+                           placeholder="The company's country and state"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

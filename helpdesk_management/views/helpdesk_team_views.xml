@@ -85,11 +85,12 @@
         <field name="arch" type="xml">
             <list>
                 <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
                 <field name="name"/>
                 <field name="alias_email" optional="show"/>
                 <field name="member_ids" widget="many2many_avatar_user" optional="show"/>
                 <field name="assign_method" optional="show"/>
-                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="active" column_invisible="True"/>
             </list>
         </field>
@@ -142,6 +143,7 @@
                             <field name="stage_ids" context="{'default_team_id': id}">
                                 <list>
                                     <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="show"/>
                                     <field name="name"/>
                                     <field name="fold"/>
                                     <field name="template_id"/>
@@ -165,6 +167,7 @@
                             </group>
                             <field name="sla_ids" invisible="not use_sla" context="{'default_team_id': id}">
                                 <list>
+                                    <field name="id" optional="show"/>
                                     <field name="name"/>
                                     <field name="priority"/>
                                     <field name="ticket_type_ids" widget="many2many_tags"/>
@@ -202,12 +205,16 @@
                 <filter string="My Teams" name="my_teams" domain="[('member_ids', 'in', uid)]"/>
                 <separator/>
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
             </search>
         </field>
     </record>
 
     <record id="helpdesk_team_action_overview" model="ir.actions.act_window">
-        <field name="name">Helpdesk Overview</field>
+        <field name="name">Team Overview</field>
         <field name="res_model">helpdesk.team</field>
         <field name="view_mode">kanban,form</field>
         <field name="view_id" ref="helpdesk_team_view_kanban"/>

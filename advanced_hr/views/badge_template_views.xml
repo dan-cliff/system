@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="badge_template_view_list" model="ir.ui.view">
+        <field name="name">advanced.hr.badge.template.list</field>
+        <field name="model">advanced.hr.badge.template</field>
+        <field name="arch" type="xml">
+            <list string="ID Badges">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show" placeholder="Every company"/>
+                <field name="page_width" optional="show"/>
+                <field name="page_height" optional="show"/>
+                <field name="element_count" string="Elements" optional="hide"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="badge_template_view_form" model="ir.ui.view">
+        <field name="name">advanced.hr.badge.template.form</field>
+        <field name="model">advanced.hr.badge.template</field>
+        <field name="arch" type="xml">
+            <form string="ID Badge" class="o_personnel_badge_form">
+                <header>
+                    <button name="action_print_preview" type="object" string="Print Preview" class="btn-secondary"
+                            invisible="not id"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Staff Badge"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" placeholder="Every company"
+                                   options="{'no_create': True}"/>
+                            <field name="preview_employee_id" options="{'no_create': True}"
+                                   domain="company_id and [('company_id', '=', company_id)] or []"/>
+                        </group>
+                        <group>
+                            <field name="page_width" invisible="1"/>
+                            <field name="page_height" invisible="1"/>
+                            <field name="background_color" invisible="1"/>
+                            <field name="background_image" widget="image" options="{'size': [0, 48]}"/>
+                            <field name="report_action_id" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                    <field name="layout" widget="personnel_badge_designer" nolabel="1" class="w-100"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="badge_template_view_search" model="ir.ui.view">
+        <field name="name">advanced.hr.badge.template.search</field>
+        <field name="model">advanced.hr.badge.template</field>
+        <field name="arch" type="xml">
+            <search string="ID Badges">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <filter name="all_companies" string="Every Company" domain="[('company_id', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_badge_template" model="ir.actions.act_window">
+        <field name="name">ID Badges</field>
+        <field name="res_model">advanced.hr.badge.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="badge_template_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Design an ID badge</p>
+            <p>Lay out the badge with employee fields, photos, the company logo and colours, QR codes and barcodes.
+               Each badge is on the employee's Print menu: a badge with a company only for that company's employees,
+               one without for everyone.</p>
+        </field>
+    </record>
+</odoo>

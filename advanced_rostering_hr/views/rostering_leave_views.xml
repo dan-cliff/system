@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rostering_leave_view_list" model="ir.ui.view">
+        <field name="name">rostering.leave.list.hr</field>
+        <field name="model">rostering.leave</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_view_list"/>
+        <field name="arch" type="xml">
+            <field name="person_name" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </field>
+            <field name="user_id" position="before">
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="manager_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="rostering_leave_view_form" model="ir.ui.view">
+        <field name="name">rostering.leave.form.hr</field>
+        <field name="model">rostering.leave</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='person']/field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='person']/field[@name='user_id']" position="before">
+                <field name="employee_id" widget="many2one_avatar_employee" options="{'no_create': True}"
+                       readonly="state != 'draft'" required="1"/>
+                <field name="manager_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="rostering_leave_view_form_request" model="ir.ui.view">
+        <field name="name">rostering.leave.form.request.hr</field>
+        <field name="model">rostering.leave</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_view_form_request"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='person']/field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='person']/field[@name='user_id']" position="before">
+                <field name="employee_id" widget="many2one_avatar_employee" options="{'no_create': True}"
+                       required="1"/>
+                <field name="manager_id" string="Approver"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="rostering_leave_view_calendar" model="ir.ui.view">
+        <field name="name">rostering.leave.calendar.hr</field>
+        <field name="model">rostering.leave</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_view_calendar"/>
+        <field name="arch" type="xml">
+            <field name="person_name" position="after">
+                <field name="employee_id" filters="1" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="rostering_leave_view_search" model="ir.ui.view">
+        <field name="name">rostering.leave.search.hr</field>
+        <field name="model">rostering.leave</field>
+        <field name="inherit_id" ref="advanced_rostering.rostering_leave_view_search"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="replace">
+                <field name="employee_id"/>
+                <field name="manager_id"/>
+            </field>
+            <filter name="my_leave" position="after">
+                <filter name="my_team" string="My Team" domain="[('in_my_team', '=', True)]"/>
+            </filter>
+            <filter name="group_person" position="after">
+                <filter name="group_manager" string="Manager" context="{'group_by': 'manager_id'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

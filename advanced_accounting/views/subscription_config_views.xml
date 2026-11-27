@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The option lists of Subscriptions, under Configuration › Subscriptions -->
+
+    <!-- ============ Templates ============ -->
+    <record id="sale_subscription_template_form" model="ir.ui.view">
+        <field name="name">sale.subscription.template.form</field>
+        <field name="model">sale.subscription.template</field>
+        <field name="arch" type="xml">
+            <form string="Subscription Template">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_subscription_ids" type="object" class="oe_stat_button"
+                                icon="fa-refresh">
+                            <field name="subscription_count" widget="statinfo" string="Subscriptions"/>
+                        </button>
+                        <button name="action_view_product_ids" type="object" class="oe_stat_button" icon="fa-cube">
+                            <field name="product_ids_count" widget="statinfo" string="Products"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Monthly"/></h1>
+                    </div>
+                    <group>
+                        <group name="recurrence" string="Recurrence">
+                            <label for="recurring_interval"/>
+                            <div class="o_row">
+                                <field name="recurring_interval" class="oe_inline"/>
+                                <field name="recurring_rule_type" class="oe_inline"/>
+                            </div>
+                            <field name="recurring_rule_boundary" widget="radio"/>
+                            <field name="recurring_rule_count" invisible="recurring_rule_boundary != 'limited'"/>
+                        </group>
+                        <group name="invoicing" string="Invoicing">
+                            <field name="invoicing_mode"/>
+                            <field name="invoice_mail_template_id" invisible="invoicing_mode != 'invoice_send'"
+                                   options="{'no_create': True}"/>
+                            <field name="code"/>
+                        </group>
+                    </group>
+                    <group string="Terms and Conditions">
+                        <field name="description" nolabel="1" colspan="2"
+                               placeholder="Copied onto the subscriptions and printed on their invoices..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sale_subscription_template_tree" model="ir.ui.view">
+        <field name="name">sale.subscription.template.list</field>
+        <field name="model">sale.subscription.template</field>
+        <field name="arch" type="xml">
+            <list string="Subscription Templates">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="recurring_interval" string="Every"/>
+                <field name="recurring_rule_type" string="Period"/>
+                <field name="recurring_rule_boundary"/>
+                <field name="invoicing_mode" optional="show"/>
+                <field name="subscription_count" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sale_subscription_template_search" model="ir.ui.view">
+        <field name="name">sale.subscription.template.search</field>
+        <field name="model">sale.subscription.template</field>
+        <field name="arch" type="xml">
+            <search string="Subscription Templates">
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Period" name="group_period" context="{'group_by': 'recurring_rule_type'}"/>
+                    <filter string="Invoicing" name="group_invoicing" context="{'group_by': 'invoicing_mode'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="sale_subscription_template_act_window" model="ir.actions.act_window">
+        <field name="name">Subscription Templates</field>
+        <field name="res_model">sale.subscription.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a subscription template</p>
+            <p>A template says how often a subscription is invoiced, for how long and how its invoices are made.</p>
+        </field>
+    </record>
+
+    <!-- ============ Stages ============ -->
+    <record id="view_subscription_stage_tree" model="ir.ui.view">
+        <field name="name">sale.subscription.stage.list</field>
+        <field name="model">sale.subscription.stage</field>
+        <field name="arch" type="xml">
+            <list string="Subscription Stages">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="type"/>
+                <field name="fold" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_subscription_stage_form" model="ir.ui.view">
+        <field name="name">sale.subscription.stage.form</field>
+        <field name="model">sale.subscription.stage</field>
+        <field name="arch" type="xml">
+            <form string="Subscription Stage">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="type"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="fold"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="What this stage means..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_subscription_stage_search" model="ir.ui.view">
+        <field name="name">sale.subscription.stage.search</field>
+        <field name="model">sale.subscription.stage</field>
+        <field name="arch" type="xml">
+            <search string="Subscription Stages">
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="subscription_stage_action" model="ir.actions.act_window">
+        <field name="name">Subscription Stages</field>
+        <field name="res_model">sale.subscription.stage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============ Tags ============ -->
+    <record id="view_sale_subscription_tag_tree" model="ir.ui.view">
+        <field name="name">sale.subscription.tag.list</field>
+        <field name="model">sale.subscription.tag</field>
+        <field name="arch" type="xml">
+            <list string="Subscription Tags" editable="bottom">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="color" widget="color_picker"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sale_subscription_tag_form" model="ir.ui.view">
+        <field name="name">sale.subscription.tag.form</field>
+        <field name="model">sale.subscription.tag</field>
+        <field name="arch" type="xml">
+            <form string="Subscription Tag">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sale_subscription_tag_search" model="ir.ui.view">
+        <field name="name">sale.subscription.tag.search</field>
+        <field name="model">sale.subscription.tag</field>
+        <field name="arch" type="xml">
+            <search string="Subscription Tags">
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="subscription_tag_action" model="ir.actions.act_window">
+        <field name="name">Subscription Tags</field>
+        <field name="res_model">sale.subscription.tag</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============ Close reasons ============ -->
+    <record id="view_subscription_close_reason_tree" model="ir.ui.view">
+        <field name="name">sale.subscription.close.reason.list</field>
+        <field name="model">sale.subscription.close.reason</field>
+        <field name="arch" type="xml">
+            <list string="Close Reasons" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_subscription_close_reason_form" model="ir.ui.view">
+        <field name="name">sale.subscription.close.reason.form</field>
+        <field name="model">sale.subscription.close.reason</field>
+        <field name="arch" type="xml">
+            <form string="Close Reason">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_subscription_close_reason_search" model="ir.ui.view">
+        <field name="name">sale.subscription.close.reason.search</field>
+        <field name="model">sale.subscription.close.reason</field>
+        <field name="arch" type="xml">
+            <search string="Close Reasons">
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="subscription_close_reason_action" model="ir.actions.act_window">
+        <field name="name">Close Reasons</field>
+        <field name="res_model">sale.subscription.close.reason</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

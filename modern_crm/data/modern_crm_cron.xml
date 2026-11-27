@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_modern_crm_contract_expire" model="ir.cron">
+        <field name="name">CRM: expire contracts past their end date</field>
+        <field name="model_id" ref="model_modern_crm_contract"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_contracts()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

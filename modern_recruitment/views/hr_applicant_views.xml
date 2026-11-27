@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Applications list: ID first, dd/mm/yyyy dates, Company shown. -->
+    <record id="talent_applicant_view_list" model="ir.ui.view">
+        <field name="name">hr.applicant.list.talent</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.crm_case_tree_view_job"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="class" add="o_talent_list" separator=" "/>
+            </xpath>
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <field name="create_date" position="attributes">
+                <attribute name="options">{'show_time': False, 'numeric': True}</attribute>
+            </field>
+            <field name="activity_date_deadline" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="availability" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <xpath expr="//field[@name='company_id'][@groups='base.group_multi_company']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="talent_applicant_view_list_activity" model="ir.ui.view">
+        <field name="name">hr.applicant.list.activity.talent</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_tree_activity"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <field name="id" optional="show"/>
+            </xpath>
+            <field name="activity_date_deadline" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <!-- Applicant form: avatar beside the name, dd/mm/yyyy dates. -->
+    <record id="talent_applicant_view_form" model="ir.ui.view">
+        <field name="name">hr.applicant.form.talent</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class" add="o_talent_applicant_form" separator=" "/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="attributes">
+                <attribute name="class" add="o_talent_title" separator=" "/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]//h1/field[@name='partner_name']" position="before">
+                <field name="talent_initials" class="o_talent_avatar o_talent_avatar_lg" invisible="not id" readonly="1"/>
+            </xpath>
+            <xpath expr="//group/group/field[@name='date_closed']" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </xpath>
+            <field name="availability" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+            <field name="meeting_display_date" position="attributes">
+                <attribute name="options">{'numeric': True}</attribute>
+            </field>
+        </field>
+    </record>
+
+    <!-- Applicant cards: avatar, name and job together, contact and applied date below. -->
+    <record id="talent_kanban_view_applicant" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.talent</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="class" add="o_talent_kanban" separator=" "/>
+            </xpath>
+            <xpath expr="//kanban/field[@name='color']" position="after">
+                <field name="talent_initials"/>
+                <field name="email_from"/>
+                <field name="partner_phone"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']/field[@name='partner_name']" position="before">
+                <div class="o_talent_card_head d-flex align-items-center gap-2 mb-1">
+                    <span class="o_talent_avatar" t-attf-data-color="{{ record.id.raw_value % 8 }}" t-esc="record.talent_initials.value"/>
+                    <div class="d-flex flex-column min-w-0 flex-grow-1">
+                        <xpath expr="//t[@t-name='card']/field[@name='partner_name']" position="move"/>
+                        <xpath expr="//t[@t-name='card']/field[@name='job_id']" position="move"/>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//t[@t-name='card']/field[@name='categ_ids']" position="before">
+                <div class="o_talent_card_meta d-flex flex-wrap gap-2 small text-muted mb-1">
+                    <span t-if="record.email_from.raw_value" class="text-truncate" t-att-title="record.email_from.value">
+                        <i class="fa fa-envelope-o me-1" role="img" aria-label="Email"/><t t-esc="record.email_from.value"/>
+                    </span>
+                    <span t-if="record.partner_phone.raw_value">
+                        <i class="fa fa-phone me-1" role="img" aria-label="Phone"/><t t-esc="record.partner_phone.value"/>
+                    </span>
+                    <span title="Applied on">
+                        <i class="fa fa-calendar-o me-1" role="img" aria-label="Applied on"/><field name="create_date" class="d-inline-block" options="{'show_time': False, 'numeric': True}"/>
+                    </span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

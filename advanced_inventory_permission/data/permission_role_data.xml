@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_inventory_admin" model="permission.role">
+            <field name="name">Inventory – Administrator</field>
+            <field name="description">Everything in Inventory: create, edit and delete any transfer or cost analysis, validate transfers, apply counted quantities, and Configuration (warehouses, layout, storage slots, labels and signage).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_inventory'), 'group_id': ref('advanced_inventory.group_inventory_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_create_only'), 'group_id': ref('advanced_inventory.group_transfer_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_edit_own'), 'group_id': ref('advanced_inventory.group_transfer_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_edit_team'), 'group_id': ref('advanced_inventory.group_transfer_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_edit_all'), 'group_id': ref('advanced_inventory.group_transfer_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_view_all'), 'group_id': ref('advanced_inventory.group_transfer_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_delete_own'), 'group_id': ref('advanced_inventory.group_transfer_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_delete_all'), 'group_id': ref('advanced_inventory.group_transfer_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_create_only'), 'group_id': ref('advanced_inventory.group_cost_analysis_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_edit_own'), 'group_id': ref('advanced_inventory.group_cost_analysis_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_edit_team'), 'group_id': ref('advanced_inventory.group_cost_analysis_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_edit_all'), 'group_id': ref('advanced_inventory.group_cost_analysis_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_view_all'), 'group_id': ref('advanced_inventory.group_cost_analysis_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_delete_own'), 'group_id': ref('advanced_inventory.group_cost_analysis_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_delete_all'), 'group_id': ref('advanced_inventory.group_cost_analysis_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_validate'), 'group_id': ref('advanced_inventory.group_transfer_validate')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_adjustment_apply'), 'group_id': ref('advanced_inventory.group_adjustment_apply')})
+            ]"/>
+        </record>
+        <record id="role_inventory_manager" model="permission.role">
+            <field name="name">Inventory – Manager</field>
+            <field name="description">Create, view and edit their own and their team&apos;s transfers and cost analyses. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_edit_team'), 'group_id': ref('advanced_inventory.group_transfer_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_edit_team'), 'group_id': ref('advanced_inventory.group_cost_analysis_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_inventory_employee" model="permission.role">
+            <field name="name">Inventory – Employee</field>
+            <field name="description">Create, view and edit their own transfers and cost analyses. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_edit_own'), 'group_id': ref('advanced_inventory.group_transfer_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_cost_analysis_edit_own'), 'group_id': ref('advanced_inventory.group_cost_analysis_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_inventory_operator" model="permission.role">
+            <field name="name">Inventory – Warehouse Operator</field>
+            <field name="description">Receive, pick, put away and deliver: create, view and edit every transfer and validate them.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_edit_all'), 'group_id': ref('advanced_inventory.group_transfer_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_validate'), 'group_id': ref('advanced_inventory.group_transfer_validate')})
+            ]"/>
+        </record>
+        <record id="role_inventory_controller" model="permission.role">
+            <field name="name">Inventory – Stock Controller</field>
+            <field name="description">View every transfer and apply counted quantities (physical inventory and completed stocktakes).</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_transfer_view_all'), 'group_id': ref('advanced_inventory.group_transfer_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_inventory.privilege_adjustment_apply'), 'group_id': ref('advanced_inventory.group_adjustment_apply')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

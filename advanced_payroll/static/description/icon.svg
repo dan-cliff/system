@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="coin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="coinEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF9F1C"/>
+      <stop offset="1" stop-color="#E8860A"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Soft shadow below -->
+  <ellipse cx="500" cy="910" rx="370" ry="34" fill="url(#shadow)"/>
+
+  <!-- Payslip -->
+  <g filter="url(#soft)">
+    <rect x="140" y="110" width="600" height="760" rx="64" fill="url(#panel)"/>
+    <path d="M204 110 H676 A64 64 0 0 1 740 174 V250 H140 V174 A64 64 0 0 1 204 110 Z" fill="url(#header)"/>
+  </g>
+  <rect x="190" y="130" width="500" height="18" rx="9" fill="#FFFFFF" opacity="0.22"/>
+  <!-- Employee avatar and name bars in the header -->
+  <circle cx="230" cy="186" r="40" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="230" cy="174" r="15" fill="#0A6CF0"/>
+  <path d="M204 212 A26 22 0 0 1 256 212 Z" fill="#0A6CF0"/>
+  <rect x="300" y="160" width="220" height="24" rx="12" fill="#FFFFFF" opacity="0.9"/>
+  <rect x="300" y="196" width="140" height="18" rx="9" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- Earnings rows: label bar and amount bar -->
+  <g>
+    <rect x="200" y="310" width="230" height="26" rx="13" fill="#A9ABDC"/>
+    <rect x="560" y="310" width="120" height="26" rx="13" fill="url(#teal)"/>
+    <rect x="200" y="380" width="180" height="26" rx="13" fill="#A9ABDC"/>
+    <rect x="580" y="380" width="100" height="26" rx="13" fill="url(#teal)"/>
+    <rect x="200" y="450" width="210" height="26" rx="13" fill="#A9ABDC"/>
+    <rect x="600" y="450" width="80" height="26" rx="13" fill="url(#coral)"/>
+  </g>
+  <!-- Divider and net pay -->
+  <rect x="200" y="520" width="480" height="8" rx="4" fill="#E4E4F4"/>
+  <rect x="200" y="566" width="150" height="34" rx="17" fill="#2A3F8F"/>
+  <rect x="200" y="640" width="120" height="22" rx="11" fill="#A9ABDC" opacity="0.7"/>
+  <rect x="200" y="690" width="170" height="22" rx="11" fill="#A9ABDC" opacity="0.7"/>
+
+  <!-- Accent: a stack of coins over the lower right corner -->
+  <g filter="url(#soft)">
+    <ellipse cx="760" cy="822" rx="150" ry="52" fill="url(#coinEdge)"/>
+    <rect x="610" y="770" width="300" height="52" fill="url(#coinEdge)"/>
+    <ellipse cx="760" cy="770" rx="150" ry="52" fill="url(#coin)"/>
+    <ellipse cx="760" cy="742" rx="150" ry="52" fill="url(#coinEdge)"/>
+    <rect x="610" y="690" width="300" height="52" fill="url(#coinEdge)"/>
+    <ellipse cx="760" cy="690" rx="150" ry="52" fill="url(#coin)"/>
+    <ellipse cx="760" cy="662" rx="150" ry="52" fill="url(#coinEdge)"/>
+    <rect x="610" y="610" width="300" height="52" fill="url(#coinEdge)"/>
+    <ellipse cx="760" cy="610" rx="150" ry="52" fill="url(#coin)"/>
+  </g>
+  <ellipse cx="760" cy="610" rx="96" ry="30" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="12"/>
+  <ellipse cx="712" cy="592" rx="46" ry="12" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="640" y="700" width="60" height="12" rx="6" fill="#FFFFFF" opacity="0.25"/>
+  <rect x="640" y="780" width="60" height="12" rx="6" fill="#FFFFFF" opacity="0.25"/>
+</svg>

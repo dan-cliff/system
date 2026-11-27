@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Each old field shows only while it holds a partner that isn't an
+         Account / Contact (e.g. one of our own users), so nothing is lost. -->
+    <record id="view_asset_asset_form" model="ir.ui.view">
+        <field name="name">asset.asset.form.advanced_accounts</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <field name="supplier_id" position="before">
+                <field name="adv_supplier_id" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="supplier_id" position="attributes">
+                <attribute name="invisible">adv_supplier_id or not supplier_id</attribute>
+            </field>
+            <field name="manufacturer_id" position="before">
+                <field name="adv_manufacturer_id" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="manufacturer_id" position="attributes">
+                <attribute name="invisible">adv_manufacturer_id or not manufacturer_id</attribute>
+            </field>
+            <field name="owner_id" position="before">
+                <field name="adv_owner_id" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="owner_id" position="attributes">
+                <attribute name="invisible">adv_owner_id or not owner_id</attribute>
+            </field>
+            <field name="assigned_to_id" position="before">
+                <field name="adv_assigned_to_id" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="assigned_to_id" position="attributes">
+                <attribute name="string">Assigned To (Employee)</attribute>
+                <attribute name="invisible">adv_assigned_to_id or not assigned_to_id</attribute>
+            </field>
+            <field name="sw_supplier_id" position="before">
+                <field name="adv_sw_supplier_id" string="Supplier" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="sw_supplier_id" position="attributes">
+                <attribute name="invisible">adv_sw_supplier_id or not sw_supplier_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_asset_asset_list" model="ir.ui.view">
+        <field name="name">asset.asset.list.advanced_accounts</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_list"/>
+        <field name="arch" type="xml">
+            <field name="owner_id" position="before">
+                <field name="adv_owner_id" optional="show"/>
+                <field name="adv_assigned_to_id" optional="show"/>
+                <field name="adv_supplier_id" optional="hide"/>
+                <field name="adv_manufacturer_id" optional="hide"/>
+            </field>
+            <field name="owner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Owner (Partner)</attribute>
+            </field>
+            <field name="assigned_to_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Assigned To (Employee)</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_asset_asset_search" model="ir.ui.view">
+        <field name="name">asset.asset.search.advanced_accounts</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="adv_owner_id"/>
+                <field name="adv_assigned_to_id"/>
+                <field name="adv_supplier_id"/>
+                <field name="adv_manufacturer_id"/>
+                <group>
+                    <filter name="group_adv_owner" string="Owner" context="{'group_by': 'adv_owner_id'}"/>
+                    <filter name="group_adv_assigned_to" string="Assigned To" context="{'group_by': 'adv_assigned_to_id'}"/>
+                    <filter name="group_adv_supplier" string="Supplier" context="{'group_by': 'adv_supplier_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_asset_maintenance_log_form" model="ir.ui.view">
+        <field name="name">asset.maintenance.log.form.advanced_accounts</field>
+        <field name="model">asset.maintenance.log</field>
+        <field name="inherit_id" ref="asset_management.view_asset_maintenance_log_form"/>
+        <field name="arch" type="xml">
+            <field name="supplier_id" position="before">
+                <field name="adv_supplier_id" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="supplier_id" position="attributes">
+                <attribute name="invisible">adv_supplier_id or not supplier_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_asset_maintenance_log_search" model="ir.ui.view">
+        <field name="name">asset.maintenance.log.search.advanced_accounts</field>
+        <field name="model">asset.maintenance.log</field>
+        <field name="inherit_id" ref="asset_management.view_asset_maintenance_log_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="adv_supplier_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

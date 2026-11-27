@@ -96,23 +96,28 @@ class ResConfigSettings(models.TransientModel):
     module_hr_timesheet = fields.Boolean(string='Install Timesheets Module')
     module_crm = fields.Boolean(string='Install CRM Module')
     module_sale_management = fields.Boolean(string='Install Sales Module')
-    module_hr_expense = fields.Boolean(string='Install Expenses Module')
+    module_advanced_expenses = fields.Boolean(string='Install Expenses Module')
     module_maintenance = fields.Boolean(string='Install Maintenance / Equipment Module')
     module_social = fields.Boolean(string='Install Social Marketing Module')
 
+    # Integration toggle -> module it installs.
+    _VP_INTEGRATION_MODULES = {
+        'vp_use_project': 'module_project',
+        'vp_use_timesheets': 'module_hr_timesheet',
+        'vp_use_crm': 'module_crm',
+        'vp_use_expenses': 'module_advanced_expenses',
+        'vp_use_maintenance': 'module_maintenance',
+        'vp_use_social': 'module_social',
+    }
+
     def set_values(self):
-        # Enabling an integration automatically queues the required module for
-        # installation. Users should never have to tick a separate checkbox.
-        if self.vp_use_project:
-            self.module_project = True
-        if self.vp_use_timesheets:
-            self.module_hr_timesheet = True
-        if self.vp_use_crm:
-            self.module_crm = True
-        if self.vp_use_expenses:
-            self.module_hr_expense = True
-        if self.vp_use_maintenance:
-            self.module_maintenance = True
-        if self.vp_use_social:
-            self.module_social = True
+        # Turning an integration on queues the module it needs for installation, so users
+        # never have to tick a separate checkbox. Only the switch from off to on does this:
+        # an integration left on must not reinstall a module that was uninstalled since,
+        # every time any settings page is saved.
+        get = self.env['ir.config_parameter'].sudo().get_param
+        for toggle, module_field in self._VP_INTEGRATION_MODULES.items():
+            param = self._fields[toggle].config_parameter
+            if self[toggle] and get(param, 'False') != 'True':
+                self[module_field] = True
         super().set_values()

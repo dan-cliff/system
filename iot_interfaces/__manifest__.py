@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'IoT Interfaces',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Internet of Things',
     'summary': 'Nodes (Raspberry Pis) that connect Odoo to hardware on the local network, with rolling-key security',
     'description': """

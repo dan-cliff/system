@@ -15,6 +15,12 @@ class AssetLocationLog(models.Model):
         ondelete='cascade',
         index=True,
     )
+    company_id = fields.Many2one(
+        related='asset_id.company_id',
+        store=True,
+        index=True,
+        string='Company',
+    )
     latitude = fields.Float(string='Latitude', digits=(10, 7))
     longitude = fields.Float(string='Longitude', digits=(10, 7))
     accuracy = fields.Float(string='Accuracy (m)', digits=(10, 2))

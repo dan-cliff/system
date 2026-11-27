@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Show dates as dd/mm/yyyy for English (see CLAUDE.md > Dates). noupdate so
+             an administrator's own language settings survive upgrades. -->
+        <record id="base.lang_en" model="res.lang">
+            <field name="date_format">%d/%m/%Y</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="hoop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="fabric" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="clamp" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3D55A8"/>
+      <stop offset="1" stop-color="#2A3F8F"/>
+    </linearGradient>
+    <linearGradient id="thread" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5B3DB8"/>
+      <stop offset="0.45" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="flange" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Soft shadow below -->
+  <ellipse cx="500" cy="905" rx="380" ry="34" fill="url(#shadow)"/>
+
+  <!-- Hoop clamp -->
+  <rect x="410" y="96" width="120" height="96" rx="28" fill="url(#clamp)"/>
+  <rect x="432" y="110" width="50" height="14" rx="7" fill="#FFFFFF" opacity="0.25"/>
+
+  <!-- Embroidery hoop with fabric -->
+  <g filter="url(#soft)">
+    <circle cx="470" cy="500" r="350" fill="url(#hoop)"/>
+  </g>
+  <circle cx="470" cy="500" r="296" fill="url(#fabric)"/>
+  <!-- Highlight on the hoop -->
+  <path d="M220 330 A320 320 0 0 1 470 172" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"
+        fill="none" opacity="0.35"/>
+
+  <!-- Stitched design: a heart in running stitches -->
+  <path d="M470 660 C 360 580 290 520 290 440 C 290 380 335 340 390 340 C 430 340 455 362 470 392
+           C 485 362 510 340 550 340 C 605 340 650 380 650 440 C 650 520 580 580 470 660 Z"
+        fill="#FF5A6E" opacity="0.14"/>
+  <path d="M470 660 C 360 580 290 520 290 440 C 290 380 335 340 390 340 C 430 340 455 362 470 392
+           C 485 362 510 340 550 340 C 605 340 650 380 650 440 C 650 520 580 580 470 660 Z"
+        fill="none" stroke="#FF5A6E" stroke-width="24" stroke-linecap="round" stroke-dasharray="34 26"/>
+  <!-- Satin fill stitches inside -->
+  <g stroke="#F9A3A3" stroke-width="18" stroke-linecap="round">
+    <path d="M370 420 L430 420"/>
+    <path d="M510 420 L570 420"/>
+    <path d="M380 480 L560 480"/>
+    <path d="M420 540 L520 540"/>
+  </g>
+
+  <!-- Thread spool accent, overlapping the lower right corner -->
+  <g filter="url(#soft)">
+    <rect x="640" y="560" width="250" height="56" rx="24" fill="url(#flange)"/>
+    <rect x="664" y="608" width="202" height="232" rx="20" fill="url(#thread)"/>
+    <rect x="640" y="832" width="250" height="56" rx="24" fill="url(#flange)"/>
+  </g>
+  <!-- Thread wraps and highlight -->
+  <g stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" opacity="0.28">
+    <path d="M680 660 L850 640"/>
+    <path d="M680 710 L850 690"/>
+    <path d="M680 760 L850 740"/>
+    <path d="M680 810 L850 790"/>
+  </g>
+  <rect x="690" y="622" width="22" height="200" rx="11" fill="#FFFFFF" opacity="0.3"/>
+  <rect x="660" y="570" width="120" height="12" rx="6" fill="#FFFFFF" opacity="0.35"/>
+  <!-- Loose thread running from the spool to the design -->
+  <path d="M664 700 C 600 700 610 640 560 620" stroke="#8E5CF0" stroke-width="12" stroke-linecap="round" fill="none"/>
+</svg>

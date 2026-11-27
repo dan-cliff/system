@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.dev_management</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="93"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Development" id="dev_management" string="Development" name="dev_management"
+                     groups="dev_management.group_dev_admin">
+                    <field name="dev_ai_available" invisible="1"/>
+                    <block title="Release Names" id="dev_release_names">
+                        <setting id="dev_release_name_prompt" string="Name Releases with AI"
+                                 help="When a prompt is set, every new release is named by the AI following it, and its Trivia is filled in with key facts about the name.">
+                            <field name="dev_release_name_prompt" widget="text" class="w-100"
+                                   placeholder="e.g. Stars and planets, or Famous people from history"/>
+                            <div class="text-muted small mt-1" invisible="not dev_ai_available">
+                                Uses <field name="dev_ai_provider" class="oe_inline" readonly="1"/>.
+                            </div>
+                            <div class="alert alert-warning small mt-2 mb-0" role="alert" invisible="dev_ai_available">
+                                No AI is set up, so releases are named after their release number. Add a Claude AI
+                                (preferred) or Google Gemini API key in Settings &gt; General Settings &gt;
+                                Integrations (AI Integration Settings app), or in the Odoo AI app's settings, to turn
+                                on AI naming and the other AI features of Development.
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Release Cycle" id="dev_release_cycle">
+                        <setting id="dev_release_cycle_dates" string="Release Dates"
+                                 help="A release starts on the first Monday after it is created. Its other dates follow from these numbers of days; every date can still be changed on the release.">
+                            <div class="content-group mt-2">
+                                <div class="mt-1">
+                                    <label for="dev_sprint_days" class="o_light_label me-2"/>
+                                    <field name="dev_sprint_days" class="oe_inline" style="width: 4rem;"/>
+                                    <span class="text-muted"> days, Start to End Date</span>
+                                </div>
+                                <div class="mt-1">
+                                    <label for="dev_alpha_days" class="o_light_label me-2"/>
+                                    <field name="dev_alpha_days" class="oe_inline" style="width: 4rem;"/>
+                                    <span class="text-muted"> days after the End Date</span>
+                                </div>
+                                <div class="mt-1">
+                                    <label for="dev_beta_days" class="o_light_label me-2"/>
+                                    <field name="dev_beta_days" class="oe_inline" style="width: 4rem;"/>
+                                    <span class="text-muted"> days after the Alpha Release</span>
+                                </div>
+                                <div class="mt-1">
+                                    <label for="dev_core_days" class="o_light_label me-2"/>
+                                    <field name="dev_core_days" class="oe_inline" style="width: 4rem;"/>
+                                    <span class="text-muted"> days after the Beta Release</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="GitHub" id="dev_github">
+                        <setting id="dev_github_repositories" string="Repositories"
+                                 help="Each GitHub repository holds its own access token.">
+                            <button name="%(dev_management.dev_repository_action)d" type="action" string="Repositories"
+                                    class="btn-link" icon="fa-arrow-right"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="dev_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'dev_management', 'bin_size': False}</field>
+    </record>
+</odoo>

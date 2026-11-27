@@ -1,6 +1,6 @@
 {
     'name': 'Boarding Kennel Manager',
-    'version': '19.0.1.2.3',
+    'version': '19.0.1.2.4',
     'category': 'Services',
     'summary': 'Manage the dog and cat boarding kennels',
     'description': """

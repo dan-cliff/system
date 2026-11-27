@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access model (see CLAUDE.md > Permissions): every Account and Contact
+         permission below is its own privilege with one "Allowed" group, whose
+         record rules give it its meaning. All of them imply the technical
+         Advanced Accounts user group, which holds the ACLs and a deny rule.
+         "Own" = created by them or owned by them (the Account / Contact Owner).
+
+         Every internal user can read and pick Accounts and Contacts: they are
+         the customer list every app selects from, as Odoo's partners are. The
+         permissions decide who creates, edits and deletes them. -->
+
+    <record id="module_category_advanced_accounts" model="ir.module.category">
+        <field name="name">Advanced Accounts</field>
+        <field name="description">Accounts and the Contacts who work at them.</field>
+        <field name="sequence">7</field>
+    </record>
+
+    <record id="res_groups_privilege_advanced_accounts" model="res.groups.privilege">
+        <field name="name">Advanced Accounts</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">10</field>
+        <field name="description">Configuration of the Advanced Accounts app.</field>
+    </record>
+
+    <record id="group_advanced_accounts_user" model="res.groups">
+        <field name="name">Advanced Accounts: User</field>
+        <field name="privilege_id" eval="False"/>
+        <field name="comment">Technical: given by every Advanced Accounts permission. Opens the app; what users can do with Accounts and Contacts comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_account_create_only" model="res.groups.privilege">
+        <field name="name">Accounts: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">20</field>
+        <field name="description">Create accounts, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_advanced_account_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_account_create_only"/>
+        <field name="comment">Create accounts, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_account_edit_own" model="res.groups.privilege">
+        <field name="name">Accounts: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">30</field>
+        <field name="description">Create accounts, and view and edit their own (created by them or owned by them).</field>
+    </record>
+    <record id="group_advanced_account_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_account_edit_own"/>
+        <field name="comment">Create accounts, and view and edit their own (created by them or owned by them).</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_account_edit_team" model="res.groups.privilege">
+        <field name="name">Accounts: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">40</field>
+        <field name="description">Create accounts, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_advanced_account_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_account_edit_team"/>
+        <field name="comment">Create accounts, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_account_edit_all" model="res.groups.privilege">
+        <field name="name">Accounts: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">50</field>
+        <field name="description">Create, view and edit all accounts.</field>
+    </record>
+    <record id="group_advanced_account_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_account_edit_all"/>
+        <field name="comment">Create, view and edit all accounts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_account_view_all" model="res.groups.privilege">
+        <field name="name">Accounts: View All</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">60</field>
+        <field name="description">View all accounts.</field>
+    </record>
+    <record id="group_advanced_account_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_account_view_all"/>
+        <field name="comment">View all accounts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_account_delete_own" model="res.groups.privilege">
+        <field name="name">Accounts: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">70</field>
+        <field name="description">Delete their own accounts (created by them or owned by them).</field>
+    </record>
+    <record id="group_advanced_account_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_account_delete_own"/>
+        <field name="comment">Delete their own accounts (created by them or owned by them).</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_account_delete_all" model="res.groups.privilege">
+        <field name="name">Accounts: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">80</field>
+        <field name="description">Delete any of the accounts.</field>
+    </record>
+    <record id="group_advanced_account_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_account_delete_all"/>
+        <field name="comment">Delete any of the accounts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_contact_create_only" model="res.groups.privilege">
+        <field name="name">Contacts: Create Only</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">90</field>
+        <field name="description">Create contacts, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_advanced_contact_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_create_only"/>
+        <field name="comment">Create contacts, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_contact_edit_own" model="res.groups.privilege">
+        <field name="name">Contacts: Create and Edit Own</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">100</field>
+        <field name="description">Create contacts, and view and edit their own (created by them or owned by them).</field>
+    </record>
+    <record id="group_advanced_contact_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_edit_own"/>
+        <field name="comment">Create contacts, and view and edit their own (created by them or owned by them).</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_contact_edit_team" model="res.groups.privilege">
+        <field name="name">Contacts: Create and Edit My Team</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">110</field>
+        <field name="description">Create contacts, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_advanced_contact_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_edit_team"/>
+        <field name="comment">Create contacts, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_contact_edit_all" model="res.groups.privilege">
+        <field name="name">Contacts: Create and Edit All</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">120</field>
+        <field name="description">Create, view and edit all contacts.</field>
+    </record>
+    <record id="group_advanced_contact_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_edit_all"/>
+        <field name="comment">Create, view and edit all contacts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_contact_view_all" model="res.groups.privilege">
+        <field name="name">Contacts: View All</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">130</field>
+        <field name="description">View all contacts.</field>
+    </record>
+    <record id="group_advanced_contact_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_view_all"/>
+        <field name="comment">View all contacts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_contact_delete_own" model="res.groups.privilege">
+        <field name="name">Contacts: Delete Own</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">140</field>
+        <field name="description">Delete their own contacts (created by them or owned by them).</field>
+    </record>
+    <record id="group_advanced_contact_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_delete_own"/>
+        <field name="comment">Delete their own contacts (created by them or owned by them).</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="privilege_advanced_contact_delete_all" model="res.groups.privilege">
+        <field name="name">Contacts: Delete All</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">150</field>
+        <field name="description">Delete any of the contacts.</field>
+    </record>
+    <record id="group_advanced_contact_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_delete_all"/>
+        <field name="comment">Delete any of the contacts.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <!-- Workflow: a login for a Contact (a portal user on the Contact's partner) -->
+    <record id="privilege_advanced_contact_create_user" model="res.groups.privilege">
+        <field name="name">Contacts: Create Users</field>
+        <field name="category_id" ref="module_category_advanced_accounts"/>
+        <field name="sequence">160</field>
+        <field name="description">Give a Contact a portal login that stays in sync with it.</field>
+    </record>
+    <record id="group_advanced_contact_create_user" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_advanced_contact_create_user"/>
+        <field name="comment">Give a Contact a portal login that stays in sync with it.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+    </record>
+
+    <record id="group_advanced_accounts_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_advanced_accounts"/>
+        <field name="comment">Every Advanced Accounts permission, including deleting any Account or Contact and creating users for Contacts, plus Configuration.</field>
+        <field name="implied_ids" eval="[(4, ref('group_advanced_account_create_only')), (4, ref('group_advanced_account_edit_own')), (4, ref('group_advanced_account_edit_team')), (4, ref('group_advanced_account_edit_all')), (4, ref('group_advanced_account_view_all')), (4, ref('group_advanced_account_delete_own')), (4, ref('group_advanced_account_delete_all')), (4, ref('group_advanced_contact_create_only')), (4, ref('group_advanced_contact_edit_own')), (4, ref('group_advanced_contact_edit_team')), (4, ref('group_advanced_contact_edit_all')), (4, ref('group_advanced_contact_view_all')), (4, ref('group_advanced_contact_delete_own')), (4, ref('group_advanced_contact_delete_all')), (4, ref('group_advanced_contact_create_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Accounts -->
+    <record id="rule_advanced_account_company" model="ir.rule">
+        <field name="name">Accounts: multi-company</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_advanced_account_read" model="ir.rule">
+        <field name="name">Accounts: every internal user can pick them</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_account_deny" model="ir.rule">
+        <field name="name">Accounts: only through a permission</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <record id="rule_advanced_account_create_only" model="ir.rule">
+        <field name="name">Accounts: Create Only</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_account_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_account_edit_own" model="ir.rule">
+        <field name="name">Accounts: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_account_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_account_edit_team" model="ir.rule">
+        <field name="name">Accounts: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_account_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_account_edit_all" model="ir.rule">
+        <field name="name">Accounts: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_account_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_account_view_all" model="ir.rule">
+        <field name="name">Accounts: View All</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_account_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_account_delete_own" model="ir.rule">
+        <field name="name">Accounts: Delete Own</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_account_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_account_delete_all" model="ir.rule">
+        <field name="name">Accounts: Delete All</field>
+        <field name="model_id" ref="model_advanced_account"/>
+        <field name="groups" eval="[(4, ref('group_advanced_account_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <!-- Contacts -->
+    <record id="rule_advanced_contact_company" model="ir.rule">
+        <field name="name">Contacts: multi-company</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_advanced_contact_read" model="ir.rule">
+        <field name="name">Contacts: every internal user can pick them</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_advanced_contact_deny" model="ir.rule">
+        <field name="name">Contacts: only through a permission</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_accounts_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
+    <record id="rule_advanced_contact_create_only" model="ir.rule">
+        <field name="name">Contacts: Create Only</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_contact_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_contact_edit_own" model="ir.rule">
+        <field name="name">Contacts: Create and Edit Own</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_contact_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_contact_edit_team" model="ir.rule">
+        <field name="name">Contacts: Create and Edit My Team</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_contact_edit_team'))]"/>
+        <field name="domain_force">['|', '|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids), ('user_id.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_contact_edit_all" model="ir.rule">
+        <field name="name">Contacts: Create and Edit All</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_contact_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_contact_view_all" model="ir.rule">
+        <field name="name">Contacts: View All</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_contact_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_contact_delete_own" model="ir.rule">
+        <field name="name">Contacts: Delete Own</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_contact_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+    <record id="rule_advanced_contact_delete_all" model="ir.rule">
+        <field name="name">Contacts: Delete All</field>
+        <field name="model_id" ref="model_advanced_contact"/>
+        <field name="groups" eval="[(4, ref('group_advanced_contact_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+    </record>
+
+</odoo>

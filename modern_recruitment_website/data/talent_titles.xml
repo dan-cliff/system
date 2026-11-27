@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Online Jobs' titles that say Recruitment (no-update records, so
+         written on every install and upgrade). -->
+    <function model="website.page" name="write"
+              eval="[[ref('website_hr_recruitment.thankyou')], {'name': 'Thank you (Talent)'}]"/>
+    <function model="ir.actions.act_url" name="write"
+              eval="[[ref('website_hr_recruitment.action_open_website')], {'name': 'Website Talent Form'}]"/>
+</odoo>

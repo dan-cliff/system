@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- One design page (label or sign), drawn from advanced.inventory.design.mixin._design_render. -->
+    <template id="design_page">
+        <div t-att-class="page_class or 'o_inventory_design_page'" t-att-style="page['page_style']">
+            <t t-foreach="page['elements']" t-as="element">
+                <div t-if="element['type'] in ('text', 'clock')" t-att-style="element['style']">
+                    <div t-att-style="element['cell_style']" t-att-data-clock="element.get('clock_format')"><t t-foreach="element['lines']" t-as="line"><t t-esc="line"/><br t-if="not line_last"/></t></div>
+                </div>
+                <div t-elif="element['type'] == 'stock_list'" t-att-style="element['style']">
+                    <table t-att-style="element['table_style']">
+                        <tr t-if="element['show_header']" t-att-style="element['header_style']">
+                            <th style="text-align:left;padding:0.15em 0.3em;" t-esc="element['name_label']"/>
+                            <th style="text-align:right;padding:0.15em 0.3em;" t-esc="element['qty_label']"/>
+                        </tr>
+                        <tr t-foreach="element['rows']" t-as="row" t-att-style="element['row_style']">
+                            <td style="padding:0.15em 0.3em;" t-esc="row[0]"/>
+                            <td style="padding:0.15em 0.3em;text-align:right;white-space:nowrap;" t-esc="row[1]"/>
+                        </tr>
+                    </table>
+                </div>
+                <div t-else="" t-att-style="element['style']"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- The full-screen sign. Used by the Inventory Signage PWA (logged-in
+         screens) and by Inventory Digital Sign Nodes (signed requests through
+         the Node agent). ``content_url`` returns the sign as JSON. -->
+    <template id="signage_page">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="theme-color" content="#5B3DB8"/>
+                <title t-esc="title or 'Inventory Signage'"/>
+                <link t-if="pwa" rel="manifest" href="/inventory/signage/manifest.webmanifest"/>
+                <link rel="icon" t-att-href="'/advanced_inventory/static/description/signage_192.png' if pwa else 'data:,'"/>
+                <style>
+                    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0f1218; cursor: none; }
+                    #o_sign_stage { position: absolute; top: 0; left: 0; transform-origin: top left; }
+                    #o_sign_message { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+                        color: #A9ABDC; font: 3.5vh 'Lato', 'Helvetica Neue', Arial, sans-serif; text-align: center; }
+                    #o_sign_offline { position: absolute; right: 1vh; bottom: 1vh; width: 1.4vh; height: 1.4vh; border-radius: 50%;
+                        background: #FF5A6E; display: none; }
+                </style>
+            </head>
+            <body>
+                <div id="o_sign_message">Loading the sign…</div>
+                <div id="o_sign_stage"/>
+                <div id="o_sign_offline" title="Offline: showing the last sign"/>
+                <script t-att-data-content-url="content_url" t-att-data-pwa="'1' if pwa else ''" id="o_sign_script">
+                    (function () {
+                        "use strict";
+                        var script = document.getElementById("o_sign_script");
+                        var contentUrl = script.dataset.contentUrl;
+                        var stage = document.getElementById("o_sign_stage");
+                        var message = document.getElementById("o_sign_message");
+                        var offline = document.getElementById("o_sign_offline");
+                        var digest = null, reload = null, size = null, timer = null;
+                        var cacheKey = "o_inventory_sign:" + contentUrl;
+
+                        function pad(n) { return (n &lt; 10 ? "0" : "") + n; }
+                        function tick() {
+                            var now = new Date();
+                            var date = pad(now.getDate()) + "/" + pad(now.getMonth() + 1) + "/" + now.getFullYear();
+                            var time = pad(now.getHours()) + ":" + pad(now.getMinutes());
+                            document.querySelectorAll("[data-clock]").forEach(function (el) {
+                                var fmt = el.dataset.clock;
+                                el.textContent = fmt === "date" ? date : fmt === "datetime" ? date + " " + time : time;
+                            });
+                        }
+                        function fit() {
+                            if (!size) { return; }
+                            var scale = Math.min(window.innerWidth / size[0], window.innerHeight / size[1]);
+                            stage.style.transform = "scale(" + scale + ")";
+                            stage.style.left = Math.max((window.innerWidth - size[0] * scale) / 2, 0) + "px";
+                            stage.style.top = Math.max((window.innerHeight - size[1] * scale) / 2, 0) + "px";
+                        }
+                        function show(data) {
+                            if (data.reload !== undefined) {
+                                if (reload !== null &amp;&amp; data.reload !== reload) { window.location.reload(); return; }
+                                reload = data.reload;
+                            }
+                            document.title = data.name || document.title;
+                            document.body.style.background = data.background || "#FFFFFF";
+                            if (data.digest !== digest) {
+                                digest = data.digest;
+                                size = [data.width, data.height];
+                                stage.style.width = data.width + "px";
+                                stage.style.height = data.height + "px";
+                                stage.innerHTML = data.html;
+                                message.style.display = "none";
+                                fit();
+                                tick();
+                            }
+                        }
+                        function schedule(seconds) {
+                            clearTimeout(timer);
+                            timer = setTimeout(load, Math.max(seconds || 60, 10) * 1000);
+                        }
+                        function load() {
+                            var url = contentUrl + (contentUrl.indexOf("?") &lt; 0 ? "?" : "&amp;") +
+                                "w=" + window.screen.width + "&amp;h=" + window.screen.height;
+                            fetch(url, { credentials: "same-origin", cache: "no-store" })
+                                .then(function (response) {
+                                    if (response.status === 401 || response.status === 403) {
+                                        throw new Error("auth");
+                                    }
+                                    return response.json();
+                                })
+                                .then(function (data) {
+                                    if (data.status === "error") { throw new Error(data.message); }
+                                    offline.style.display = "none";
+                                    try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch (e) { /* storage full or blocked */ }
+                                    show(data);
+                                    schedule(data.refresh);
+                                })
+                                .catch(function (error) {
+                                    var saved = null;
+                                    try { saved = JSON.parse(localStorage.getItem(cacheKey) || "null"); } catch (e) { saved = null; }
+                                    if (saved &amp;&amp; digest === null) { show(saved); }
+                                    if (digest !== null) {
+                                        offline.style.display = "block";
+                                    } else {
+                                        message.textContent = error.message === "auth"
+                                            ? "Log in to Odoo on this screen to show the sign."
+                                            : "Waiting for the sign… (" + error.message + ")";
+                                    }
+                                    schedule(30);
+                                });
+                        }
+                        window.addEventListener("resize", fit);
+                        setInterval(tick, 1000);
+                        if (script.dataset.pwa &amp;&amp; "serviceWorker" in navigator) {
+                            navigator.serviceWorker.register("/inventory/signage/sw.js", { scope: "/inventory/signage/" })
+                                .catch(function () { /* the sign works without it */ });
+                        }
+                        load();
+                    })();
+                </script>
+            </body>
+        </html>
+    </template>
+
+    <!-- Inventory Signage PWA start page: the signs this user can open. -->
+    <template id="signage_picker">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="theme-color" content="#5B3DB8"/>
+                <title>Inventory Signage</title>
+                <link rel="manifest" href="/inventory/signage/manifest.webmanifest"/>
+                <link rel="icon" href="/advanced_inventory/static/description/signage_192.png"/>
+                <style>
+                    body { margin: 0; font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif; background: #F2F2FA; color: #2A3F8F; }
+                    header { padding: 20px 16px; background: linear-gradient(135deg, #B65CCB 0%, #5B2E9E 55%, #14A3A3 100%); color: #fff;
+                        display: flex; align-items: center; gap: 12px; }
+                    header img { width: 40px; height: 40px; }
+                    header h1 { font-size: 22px; margin: 0; flex: 1; }
+                    main { max-width: 900px; margin: 0 auto; padding: 16px; }
+                    .o_sign_card { display: flex; align-items: center; gap: 12px; padding: 16px; margin-bottom: 10px; border-radius: 14px;
+                        background: #fff; color: inherit; text-decoration: none; box-shadow: 0 4px 14px rgba(42, 63, 143, 0.12); }
+                    .o_sign_card strong { display: block; font-size: 18px; }
+                    .o_sign_card span { color: #5B3DB8; font-size: 14px; }
+                    .o_sign_card .o_go { margin-left: auto; font-size: 22px; color: #A9ABDC; }
+                    button { border: 0; border-radius: 999px; padding: 10px 18px; background: #fff; color: #5B2E9E; font-weight: bold; font-size: 15px; }
+                    .o_empty { padding: 32px 16px; text-align: center; color: #5B3DB8; }
+                </style>
+            </head>
+            <body>
+                <header>
+                    <img src="/advanced_inventory/static/description/signage_192.png" alt=""/>
+                    <h1>Inventory Signage</h1>
+                    <button id="o_install" type="button" style="display:none">Install</button>
+                </header>
+                <main>
+                    <p>Pick the sign this screen shows. It opens full screen and keeps itself up to date.</p>
+                    <a t-foreach="signs" t-as="sign" class="o_sign_card" t-attf-href="/inventory/signage/{{ sign.id }}">
+                        <div>
+                            <strong t-esc="sign.name"/>
+                            <span><t t-esc="sign.template_id.name"/> · <t t-esc="sign._sign_record().display_name"/></span>
+                        </div>
+                        <div class="o_go">›</div>
+                    </a>
+                    <div t-if="not signs" class="o_empty">
+                        No digital signs yet. Add them in Inventory › Configuration › Digital Signs.
+                    </div>
+                </main>
+                <script>
+                    (function () {
+                        "use strict";
+                        var prompt = null;
+                        var button = document.getElementById("o_install");
+                        window.addEventListener("beforeinstallprompt", function (ev) {
+                            ev.preventDefault();
+                            prompt = ev;
+                            button.style.display = "inline-block";
+                        });
+                        button.addEventListener("click", function () {
+                            if (prompt) { prompt.prompt(); prompt = null; button.style.display = "none"; }
+                        });
+                        if ("serviceWorker" in navigator) {
+                            navigator.serviceWorker.register("/inventory/signage/sw.js", { scope: "/inventory/signage/" })
+                                .catch(function () { /* the picker works without it */ });
+                        }
+                    })();
+                </script>
+            </body>
+        </html>
+    </template>
+</odoo>

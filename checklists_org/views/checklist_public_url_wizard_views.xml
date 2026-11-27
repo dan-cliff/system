@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="checklist_public_url_wizard_view_form" model="ir.ui.view">
+        <field name="name">checklist.public.url.wizard.form.inherit.org</field>
+        <field name="model">checklist.public.url.wizard</field>
+        <field name="inherit_id" ref="checklists.checklist_public_url_wizard_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Each level shows when it is enabled and has units (org_structure
+                 hides disabled levels and relabels them). -->
+            <group name="checklist_fields" position="after">
+                <group string="Organisation" name="org_structure"
+                       invisible="not org_show_division and not org_show_business_unit and not org_show_location and not org_show_department">
+                    <field name="org_show_division" invisible="1"/>
+                    <field name="org_show_business_unit" invisible="1"/>
+                    <field name="org_show_location" invisible="1"/>
+                    <field name="org_show_department" invisible="1"/>
+                    <field name="org_division_id" invisible="not org_show_division" options="{'no_create': True}"/>
+                    <field name="org_business_unit_id" invisible="not org_show_business_unit" options="{'no_create': True}"/>
+                    <field name="org_location_id" invisible="not org_show_location" options="{'no_create': True}"/>
+                    <field name="org_department_id" invisible="not org_show_department" options="{'no_create': True}"/>
+                </group>
+            </group>
+        </field>
+    </record>
+
+</odoo>

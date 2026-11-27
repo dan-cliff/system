@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="advanced_inventory.BulkScan">
+        <div class="o_bulk_scan p-3">
+            <div t-if="!state.available" class="alert alert-warning mb-3">
+                <i class="fa fa-info-circle me-1"/>
+                The Barcode Database is off, so scanned barcodes can't become products yet. Add a barcodelookup.com
+                API key in Inventory › Configuration › Settings › Barcode Database.
+            </div>
+            <label class="form-label fw-bold" for="o_bulk_scan_input">Scan barcodes</label>
+            <div class="input-group input-group-lg mb-2">
+                <span class="input-group-text"><i class="fa fa-barcode"/></span>
+                <input id="o_bulk_scan_input" t-ref="input" type="text" class="form-control o_bulk_scan_input"
+                       autocomplete="off" placeholder="Scan a barcode, or type one and press Enter…"
+                       t-model="state.value" t-on-keydown="onKeydown" t-on-paste="onPaste" t-on-blur="onBlur"/>
+                <button class="btn btn-primary" t-on-click="submit" t-att-disabled="!state.value.trim()">Add</button>
+            </div>
+            <p class="text-muted small mb-3">
+                Keep scanning: each barcode is looked up in the Barcode Database and its product created in the
+                background. Barcodes that already belong to a product are skipped.
+            </p>
+
+            <t t-set="tally" t-value="counts"/>
+            <div class="d-flex flex-wrap gap-2 mb-2 o_bulk_scan_counts">
+                <span class="badge rounded-pill text-bg-success"><t t-esc="tally.created"/> created</span>
+                <span class="badge rounded-pill text-bg-info"><t t-esc="tally.exists"/> already products</span>
+                <span class="badge rounded-pill text-bg-danger"><t t-esc="tally.failed"/> failed</span>
+                <span t-if="tally.pending" class="badge rounded-pill text-bg-secondary">
+                    <i class="fa fa-circle-o-notch fa-spin me-1"/><t t-esc="tally.pending"/> in progress
+                </span>
+            </div>
+
+            <div class="o_bulk_scan_results">
+                <p t-if="!state.rows.length" class="text-muted text-center py-4 mb-0">Nothing scanned yet.</p>
+                <table t-else="" class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr><th>Barcode</th><th>Product</th><th>Result</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.rows" t-as="row" t-key="row.id"
+                            t-attf-class="o_bulk_scan_row o_bulk_scan_{{row.status}}">
+                            <td class="font-monospace" t-esc="row.barcode"/>
+                            <td>
+                                <a t-if="row.resId" t-att-href="productUrl(row)" target="_blank"
+                                   class="o_bulk_scan_keep_focus" t-esc="row.name"/>
+                            </td>
+                            <td>
+                                <i t-if="row.status === 'pending'" class="fa fa-circle-o-notch fa-spin text-muted me-1"/>
+                                <i t-elif="row.status === 'created'" class="fa fa-check-circle text-success me-1"/>
+                                <i t-elif="row.status === 'exists'" class="fa fa-info-circle text-info me-1"/>
+                                <i t-else="" class="fa fa-times-circle text-danger me-1"/>
+                                <span class="o_bulk_scan_message" t-esc="row.message"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="btn btn-secondary" t-on-click="clearDone" t-att-disabled="!state.rows.length">Clear List</button>
+                <button class="btn btn-primary o_bulk_scan_close" t-on-click="close">Close</button>
+            </div>
+        </div>
+    </t>
+</templates>

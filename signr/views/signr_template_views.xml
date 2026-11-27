@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="signr_template_view_list" model="ir.ui.view">
+        <field name="name">signr.template.list</field>
+        <field name="model">signr.template</field>
+        <field name="arch" type="xml">
+            <list string="Templates">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="document_type_id" optional="show"/>
+                <field name="app_id" optional="show"/>
+                <field name="model_id" optional="show"/>
+                <field name="role_ids" widget="many2many_tags" string="Signers" optional="show"/>
+                <field name="request_count" string="Requests" optional="show"/>
+                <field name="invalid_field_count" string="Code Problems" optional="hide"
+                       decoration-danger="invalid_field_count &gt; 0"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="signr_template_view_form" model="ir.ui.view">
+        <field name="name">signr.template.form</field>
+        <field name="model">signr.template</field>
+        <field name="arch" type="xml">
+            <form string="Template">
+                <header>
+                    <button name="action_download_document" type="object" string="Download Word Document"
+                            invisible="not document"/>
+                    <button name="action_rescan_document" type="object" string="Check Merge Codes"
+                            invisible="not document"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_requests" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="request_count" widget="statinfo" string="Sign Requests"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Employment Contract"/></h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="invalid_field_count == 0">
+                        <field name="invalid_field_count" class="fw-bold"/> merge code(s) in the Word document
+                        don't match a field. See the <strong>Codes in the Document</strong> tab, fix them in Word and
+                        upload the document again. Requests can't be sent until then.
+                    </div>
+                    <group>
+                        <group string="What It Is For">
+                            <field name="available_model_ids" invisible="1"/>
+                            <field name="app_id" options="{'no_create': True, 'no_open': True}"
+                                   placeholder="e.g. Employees"/>
+                            <field name="model_id" options="{'no_create': True, 'no_open': True}"
+                                   readonly="not app_id" placeholder="e.g. Employee"/>
+                            <field name="model_name" invisible="1"/>
+                            <field name="document_type_id" options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Document">
+                            <field name="document" filename="document_filename"
+                                   readonly="not model_id"/>
+                            <field name="document_filename" invisible="1"/>
+                            <field name="sign_in_order"/>
+                            <field name="validity_days"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Signers" name="signers">
+                            <field name="role_ids" context="{'default_template_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="model_id" column_invisible="True"/>
+                                    <field name="name" placeholder="e.g. Employee"/>
+                                    <field name="signer_source"/>
+                                    <field name="partner_field_id" options="{'no_create': True, 'no_open': True}"
+                                           invisible="signer_source != 'field'"
+                                           required="signer_source == 'field'"/>
+                                    <field name="partner_id" invisible="signer_source != 'fixed'"
+                                           required="signer_source == 'fixed'"/>
+                                </list>
+                            </field>
+                            <div class="text-muted small">
+                                The first signer here is <code>signer_1</code> in the merge codes, the second
+                                <code>signer_2</code>, and so on. Each signer can come from a field of the record
+                                (e.g. the employee's manager), be the record itself (e.g. the employee), always be
+                                the same contact, be the person sending the request, or be picked when sending.
+                            </div>
+                        </page>
+                        <page string="Merge Fields" name="merge_fields" invisible="not model_id">
+                            <div class="o_signr_merge_help mb-3">
+                                <p class="mb-1">
+                                    Put a merge code in the Word document wherever a value from the record goes.
+                                    Either type it with double braces, e.g. <code>{{ name }}</code>, or insert a Word
+                                    merge field (<em>Insert › Quick Parts › Field › MergeField</em>) and give it the
+                                    code as its field name, e.g. <code>name</code>.
+                                </p>
+                                <p class="mb-1">
+                                    Click a field with <i class="fa fa-chevron-right"/> to see the fields of the record
+                                    it links to (e.g. the employee's Job Position). Fields marked
+                                    <span class="badge text-bg-info">repeats</span> hold several records: in a table
+                                    row, they repeat the row once per record (e.g. one row per order line); anywhere
+                                    else they list the records, separated by commas.
+                                </p>
+                                <p class="mb-0">
+                                    Dates come out as dd/mm/yyyy. Signatures (<code>signer_1.signature</code>) are
+                                    filled in once that signer has signed.
+                                </p>
+                            </div>
+                            <widget name="signr_merge_fields"/>
+                        </page>
+                        <page string="Codes in the Document" name="document_codes" invisible="not document">
+                            <field name="field_ids" readonly="1">
+                                <list decoration-danger="not valid" decoration-muted="valid">
+                                    <field name="code"/>
+                                    <field name="label"/>
+                                    <field name="valid" widget="boolean"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Email" name="email">
+                            <group>
+                                <field name="email_subject" placeholder="Please sign: Employment Contract – Jane Smith"/>
+                                <field name="email_message" placeholder="A note added to the email asking each signer to sign"/>
+                            </group>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="What this template is for, when to use it…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="signr_template_view_search" model="ir.ui.view">
+        <field name="name">signr.template.search</field>
+        <field name="model">signr.template</field>
+        <field name="arch" type="xml">
+            <search string="Templates">
+                <field name="name"/>
+                <field name="app_id"/>
+                <field name="model_id"/>
+                <field name="document_type_id"/>
+                <filter name="code_problems" string="Merge Code Problems" domain="[('field_ids.valid', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_app" string="App" context="{'group_by': 'app_id'}"/>
+                    <filter name="group_model" string="Model" context="{'group_by': 'model_id'}"/>
+                    <filter name="group_type" string="Document Type" context="{'group_by': 'document_type_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_signr_template" model="ir.actions.act_window">
+        <field name="name">Templates</field>
+        <field name="res_model">signr.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="signr_template_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first document template</p>
+            <p>Write the document in Microsoft Word with merge codes where the record's values go, pick the app
+                and model it is for, and upload it here. The Merge Fields tab lists every code you can use.</p>
+        </field>
+    </record>
+
+    <!-- Document types (Configuration) -->
+    <record id="signr_document_type_view_list" model="ir.ui.view">
+        <field name="name">signr.document.type.list</field>
+        <field name="model">signr.document.type</field>
+        <field name="arch" type="xml">
+            <list string="Document Types" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="description" optional="show"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="signr_document_type_view_form" model="ir.ui.view">
+        <field name="name">signr.document.type.form</field>
+        <field name="model">signr.document.type</field>
+        <field name="arch" type="xml">
+            <form string="Document Type">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active" invisible="1"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="signr_document_type_view_search" model="ir.ui.view">
+        <field name="name">signr.document.type.search</field>
+        <field name="model">signr.document.type</field>
+        <field name="arch" type="xml">
+            <search string="Document Types">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_signr_document_type" model="ir.actions.act_window">
+        <field name="name">Document Types</field>
+        <field name="res_model">signr.document.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

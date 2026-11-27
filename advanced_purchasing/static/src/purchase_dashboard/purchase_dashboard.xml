@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Estimated Balance Owing: what is still to be paid on confirmed orders
+         (retrieve_dashboard in models/purchase_order.py). -->
+    <t t-inherit="purchase.PurchaseDashboard" t-inherit-mode="extension">
+        <xpath expr="//div[@title='All Days to Order']" position="after">
+            <div class="g-col-12 p-0" t-on-click="setSearchContext" title="All Estimated Balance Owing"
+                 filter_name="balance_owing">
+                <a href="#" class="btn purchase-dashboard-card p-1 p-lg-2 bg-info-subtle text-info-emphasis text-truncate text-wrap"
+                   t-attf-class="o_purchase_dashboard_card_{{ multiuser ? 'top' : 'sole' }}">
+                    <div class="fs-2" t-out="purchaseData['global']['balance_owing']"/>Estimated Balance Owing
+                </a>
+            </div>
+        </xpath>
+        <xpath expr="//div[@title='My Days to Order']" position="after">
+            <div class="g-col-12 p-0" t-on-click="setSearchContext" title="My Estimated Balance Owing"
+                 filter_name="balance_owing,my_purchases">
+                <a href="#" class="o_purchase_dashboard_card_bottom btn purchase-dashboard-card p-1 p-lg-2 bg-info-subtle text-info-emphasis text-truncate text-wrap">
+                    <div t-out="purchaseData['my']['balance_owing']"/>
+                </a>
+            </div>
+        </xpath>
+    </t>
+</templates>

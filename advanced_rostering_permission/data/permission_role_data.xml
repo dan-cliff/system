@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_rostering_admin" model="permission.role">
+            <field name="name">Rostering – Administrator</field>
+            <field name="description">Everything in Rostering: every roster and leave permission, including deleting, publishing, unpublishing and approving any leave, plus Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_advanced_rostering'), 'group_id': ref('advanced_rostering.group_rostering_admin')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_own'), 'group_id': ref('advanced_rostering.group_roster_own')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_team'), 'group_id': ref('advanced_rostering.group_roster_team')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_view_all'), 'group_id': ref('advanced_rostering.group_roster_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_edit_draft'), 'group_id': ref('advanced_rostering.group_roster_edit_draft')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_edit_published'), 'group_id': ref('advanced_rostering.group_roster_edit_published')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_publish'), 'group_id': ref('advanced_rostering.group_roster_publish')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_unpublish'), 'group_id': ref('advanced_rostering.group_roster_unpublish')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_delete_own'), 'group_id': ref('advanced_rostering.group_roster_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_delete_all'), 'group_id': ref('advanced_rostering.group_roster_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_create_only'), 'group_id': ref('advanced_rostering.group_leave_create_only')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_edit_own'), 'group_id': ref('advanced_rostering.group_leave_edit_own')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_edit_team'), 'group_id': ref('advanced_rostering.group_leave_edit_team')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_edit_all'), 'group_id': ref('advanced_rostering.group_leave_edit_all')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_view_all'), 'group_id': ref('advanced_rostering.group_leave_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_delete_own'), 'group_id': ref('advanced_rostering.group_leave_delete_own')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_delete_all'), 'group_id': ref('advanced_rostering.group_leave_delete_all')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_approve'), 'group_id': ref('advanced_rostering.group_leave_approve')})
+            ]"/>
+        </record>
+        <record id="role_rostering_manager" model="permission.role">
+            <field name="name">Rostering – Manager</field>
+            <field name="description">Their own roster and their team&apos;s (with Personnel), and create, view and edit their own and their team&apos;s leave requests. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_own'), 'group_id': ref('advanced_rostering.group_roster_own')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_team'), 'group_id': ref('advanced_rostering.group_roster_team')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_edit_team'), 'group_id': ref('advanced_rostering.group_leave_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_rostering_employee" model="permission.role">
+            <field name="name">Rostering – Employee</field>
+            <field name="description">Their own roster, and create, view and edit their own leave requests. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_own'), 'group_id': ref('advanced_rostering.group_roster_own')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_edit_own'), 'group_id': ref('advanced_rostering.group_leave_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_rostering_planner" model="permission.role">
+            <field name="name">Rostering – Roster Planner</field>
+            <field name="description">See every roster, build and change unpublished and published rosters (and the Duties, Standard Shifts and Roster Templates libraries), and publish and unpublish them.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_view_all'), 'group_id': ref('advanced_rostering.group_roster_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_edit_draft'), 'group_id': ref('advanced_rostering.group_roster_edit_draft')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_edit_published'), 'group_id': ref('advanced_rostering.group_roster_edit_published')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_publish'), 'group_id': ref('advanced_rostering.group_roster_publish')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_roster_unpublish'), 'group_id': ref('advanced_rostering.group_roster_unpublish')})
+            ]"/>
+        </record>
+        <record id="role_rostering_leave_approver" model="permission.role">
+            <field name="name">Rostering – Leave Approver</field>
+            <field name="description">The leave team: see every leave request and approve or refuse those waiting in the To Approve queue.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_view_all'), 'group_id': ref('advanced_rostering.group_leave_view_all')}),
+                (0, 0, {'privilege_id': ref('advanced_rostering.privilege_leave_approve'), 'group_id': ref('advanced_rostering.group_leave_approve')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

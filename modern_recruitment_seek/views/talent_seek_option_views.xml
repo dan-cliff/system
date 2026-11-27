@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="talent_seek_category_view_list" model="ir.ui.view">
+        <field name="name">talent.seek.category.list</field>
+        <field name="model">talent.seek.category</field>
+        <field name="arch" type="xml">
+            <list string="SEEK Categories" create="0">
+                <field name="id" optional="show"/>
+                <field name="complete_name" string="Category"/>
+                <field name="seek_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="talent_seek_category_view_form" model="ir.ui.view">
+        <field name="name">talent.seek.category.form</field>
+        <field name="model">talent.seek.category</field>
+        <field name="arch" type="xml">
+            <form string="SEEK Category" create="0">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="parent_id"/>
+                        <field name="seek_id" readonly="1"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="talent_seek_category_view_search" model="ir.ui.view">
+        <field name="name">talent.seek.category.search</field>
+        <field name="model">talent.seek.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="complete_name" string="Category"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_talent_seek_category" model="ir.actions.act_window">
+        <field name="name">SEEK Categories</field>
+        <field name="res_model">talent.seek.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No SEEK categories yet</p>
+            <p>Load them from Settings › Talent › Job Boards › SEEK › Load SEEK Categories.</p>
+        </field>
+    </record>
+
+    <record id="talent_seek_location_view_list" model="ir.ui.view">
+        <field name="name">talent.seek.location.list</field>
+        <field name="model">talent.seek.location</field>
+        <field name="arch" type="xml">
+            <list string="SEEK Locations" create="0">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="country_code" optional="show"/>
+                <field name="seek_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="talent_seek_location_view_form" model="ir.ui.view">
+        <field name="name">talent.seek.location.form</field>
+        <field name="model">talent.seek.location</field>
+        <field name="arch" type="xml">
+            <form string="SEEK Location" create="0">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="country_code"/>
+                        <field name="seek_id" readonly="1"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_talent_seek_location" model="ir.actions.act_window">
+        <field name="name">SEEK Locations</field>
+        <field name="res_model">talent.seek.location</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No SEEK locations yet</p>
+            <p>Locations are added when you find one from a job position's SEEK tab.</p>
+        </field>
+    </record>
+
+    <record id="talent_seek_location_wizard_view_form" model="ir.ui.view">
+        <field name="name">talent.seek.location.wizard.form</field>
+        <field name="model">talent.seek.location.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Find a SEEK Location">
+                <group>
+                    <field name="job_id" invisible="1"/>
+                    <label for="query"/>
+                    <div class="o_row">
+                        <field name="query" placeholder="e.g. Parramatta"/>
+                        <button name="action_search" type="object" string="Search SEEK" class="btn-secondary" icon="fa-search"/>
+                    </div>
+                    <field name="result_ids" invisible="1"/>
+                    <field name="location_id" invisible="not result_ids" options="{'no_create': True, 'no_open': True}"
+                           widget="radio"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Use Location" class="btn-primary"
+                            invisible="not location_id"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="talent_seek_ad_product_view_list" model="ir.ui.view">
+        <field name="name">talent.seek.ad.product.list</field>
+        <field name="model">talent.seek.ad.product</field>
+        <field name="arch" type="xml">
+            <list string="SEEK Ad Products" create="0" edit="0">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="price"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+</odoo>

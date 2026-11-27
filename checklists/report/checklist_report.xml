@@ -29,7 +29,16 @@
                     </tr>
                     <tr>
                         <th>Completed By</th>
-                        <td><span t-field="doc.user_id"/></td>
+                        <td t-esc="doc._completed_by_name()"/>
+                    </tr>
+                    <!-- Public submissions: how to reach the person. -->
+                    <tr t-if="doc.is_public and doc.public_email">
+                        <th>Email</th>
+                        <td t-esc="doc.public_email"/>
+                    </tr>
+                    <tr t-if="doc.is_public and doc.public_phone">
+                        <th>Phone Number</th>
+                        <td t-esc="doc.public_phone"/>
                     </tr>
                     <tr>
                         <th>Status</th>

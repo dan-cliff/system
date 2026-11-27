@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_partner_view_form_modern_crm" model="ir.ui.view">
+        <field name="name">res.partner.form.modern_crm</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_modern_opportunities" type="object" class="oe_stat_button"
+                        icon="fa-handshake-o" groups="modern_crm.group_modern_crm_user"
+                        invisible="not modern_opportunity_count">
+                    <field name="modern_opportunity_count" widget="statinfo" string="Opportunities"/>
+                </button>
+            </div>
+        </field>
+    </record>
+
+    <!-- Accounts (companies) and Contacts (people), Salesforce style -->
+    <record id="modern_crm_account_action" model="ir.actions.act_window">
+        <field name="name">Accounts</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_company', '=', True)]</field>
+        <field name="context">{'default_is_company': True, 'res_partner_search_mode': 'customer'}</field>
+    </record>
+    <record id="modern_crm_contact_action" model="ir.actions.act_window">
+        <field name="name">Contacts</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_company', '=', False)]</field>
+        <field name="context">{'default_is_company': False, 'res_partner_search_mode': 'customer'}</field>
+    </record>
+</odoo>

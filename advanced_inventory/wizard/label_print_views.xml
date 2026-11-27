@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="label_print_view_form" model="ir.ui.view">
+        <field name="name">advanced.inventory.label.print.form</field>
+        <field name="model">advanced.inventory.label.print</field>
+        <field name="arch" type="xml">
+            <form string="Print Labels">
+                <field name="product_tmpl_ids" invisible="1"/>
+                <field name="product_ids" invisible="1"/>
+                <field name="picking_ids" invisible="1"/>
+                <group>
+                    <field name="label_template_id" options="{'no_create': True, 'no_open': True}"
+                           placeholder="Pick a product label design"/>
+                    <field name="quantity_mode" widget="radio" invisible="not picking_ids"/>
+                    <field name="copies" invisible="picking_ids and quantity_mode == 'transfer'"/>
+                    <field name="variant_count"/>
+                    <field name="label_count"/>
+                </group>
+                <p class="text-muted small">
+                    Label designs are made in Inventory › Configuration › Labels &amp; Signage › Label Designs, with
+                    fields, pictures, QR codes and barcodes the Scanner app reads. Products print one label per variant.
+                </p>
+                <footer>
+                    <button name="action_print" type="object" string="Print" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

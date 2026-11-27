@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advanced_action_form_incident" model="ir.ui.view">
+        <field name="name">advanced.action.form.incident</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_checklist_id']" position="after">
+                <field name="incident_id" invisible="source_app != 'incident'"
+                       required="source_app == 'incident'" options="{'no_create': True}"/>
+                <field name="control_type_id" invisible="source_app != 'incident'"
+                       options="{'no_create': True}"/>
+                <field name="icam_finding_id" invisible="source_app != 'incident' or not incident_id"
+                       options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Completion" name="incident_completion" invisible="source_app != 'incident'">
+                    <group>
+                        <group>
+                            <field name="verification_required"/>
+                        </group>
+                        <group>
+                            <field name="verified_by_id" invisible="not verification_required"
+                                   options="{'no_create': True}"/>
+                            <field name="verification_date" invisible="not verification_required"
+                                   options="{'numeric': True}"/>
+                        </group>
+                    </group>
+                    <field name="completion_notes"
+                           placeholder="Describe how the action was completed, reference supporting evidence…"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_advanced_action_search_incident" model="ir.ui.view">
+        <field name="name">advanced.action.search.incident</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='checklist_template_id']" position="after">
+                <field name="incident_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='app_checklists']" position="after">
+                <filter name="app_incident" string="Incidents" domain="[('source_app', '=', 'incident')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- The Incidents app's list: the incident and its Hierarchy of Controls. -->
+    <record id="view_advanced_action_list_incident" model="ir.ui.view">
+        <field name="name">advanced.action.list.incident</field>
+        <field name="model">advanced.action</field>
+        <field name="inherit_id" ref="advanced_actions.view_advanced_action_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="incident_id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="control_type_id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='source_app']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='source_display']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Incidents › Management › Corrective Actions: filtered to Incidents,
+         filter removable. -->
+    <record id="action_advanced_action_incident" model="ir.actions.act_window">
+        <field name="name">Corrective Actions</field>
+        <field name="res_model">advanced.action</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_advanced_action_list_incident')}),
+            (0, 0, {'view_mode': 'kanban'}),
+            (0, 0, {'view_mode': 'form'}),
+            (0, 0, {'view_mode': 'activity'})]"/>
+        <field name="context">{'search_default_app_incident': 1, 'search_default_open': 1, 'default_source_app': 'incident'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No corrective actions yet</p>
+            <p>Corrective actions are added to incidents during the investigation. Remove the
+               Incidents filter to see actions from every app.</p>
+        </field>
+    </record>
+
+    <record id="incident_management.menu_corrective_actions" model="ir.ui.menu">
+        <field name="action" ref="action_advanced_action_incident"/>
+    </record>
+</odoo>

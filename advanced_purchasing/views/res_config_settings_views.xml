@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced_purchasing</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='purchase']" position="attributes">
+                <attribute name="data-string">Purchasing</attribute>
+                <attribute name="string">Purchasing</attribute>
+            </xpath>
+            <!-- Spend Levels replace Odoo's single approval amount. -->
+            <setting id="po_order_approval" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </setting>
+            <setting id="po_order_approval" position="after">
+                <setting id="purchasing_spend_levels" string="Spend Levels"
+                         help="Bands of order value, each saying who approves orders in it: no one, or the buyer's 1st to 4th Up Manager (with Personnel). Without Personnel, orders that need approval go to the users with Purchase Orders: Approve Any.">
+                    <div class="mt8">
+                        <button name="%(advanced_purchasing.action_spend_level)d" icon="oi-arrow-right" type="action"
+                                string="Spend Levels" class="btn-link"/>
+                    </div>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

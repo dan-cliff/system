@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Manufacturing takes the place of Odoo's Manufacturing app on the home
+         screen, with its own icon, opening on its Dashboard. Odoo's menus and
+         actions are reloaded when it upgrades, and this module (which depends
+         on it) is upgraded with it, so these come back each time. The
+         uninstall hook gives Odoo's Manufacturing its own back. -->
+    <record id="mrp.menu_mrp_root" model="ir.ui.menu">
+        <field name="name">Manufacturing</field>
+        <field name="web_icon">advanced_manufacturing,static/description/icon.png</field>
+        <field name="action" ref="advanced_manufacturing.action_manufacturing_dashboard"/>
+    </record>
+
+    <record id="mrp.mrp_workcenter_action" model="ir.actions.act_window">
+        <field name="name">Work Centres</field>
+    </record>
+    <record id="mrp.menu_view_resource_search_mrp" model="ir.ui.menu">
+        <field name="name">Work Centres</field>
+    </record>
+</odoo>

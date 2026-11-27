@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="dev_ticket_bulk_update_view_form" model="ir.ui.view">
+        <field name="name">dev.ticket.bulk.update.form.inherit.org</field>
+        <field name="model">dev.ticket.bulk.update</field>
+        <field name="inherit_id" ref="dev_management.dev_ticket_bulk_update_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Each level shows when it is enabled and has units (org_structure
+                 hides disabled levels and relabels them). -->
+            <group name="fields" position="after">
+                <group string="Organisation" name="org_structure"
+                       invisible="not org_show_division and not org_show_business_unit and not org_show_location and not org_show_department">
+                    <field name="org_show_division" invisible="1"/>
+                    <field name="org_show_business_unit" invisible="1"/>
+                    <field name="org_show_location" invisible="1"/>
+                    <field name="org_show_department" invisible="1"/>
+                    <field name="update_org"/>
+                    <field name="org_division_id" invisible="not org_show_division" readonly="not update_org"
+                           options="{'no_create': True}"/>
+                    <field name="org_business_unit_id" invisible="not org_show_business_unit" readonly="not update_org"
+                           options="{'no_create': True}"/>
+                    <field name="org_location_id" invisible="not org_show_location" readonly="not update_org"
+                           options="{'no_create': True}"/>
+                    <field name="org_department_id" invisible="not org_show_department" readonly="not update_org"
+                           options="{'no_create': True}"/>
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>

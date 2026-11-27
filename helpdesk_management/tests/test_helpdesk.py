@@ -14,9 +14,9 @@ class TestHelpdesk(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))
-        cls.agent_1 = new_test_user(cls.env, 'hd_agent_1', groups='helpdesk_management.group_helpdesk_user')
-        cls.agent_2 = new_test_user(cls.env, 'hd_agent_2', groups='helpdesk_management.group_helpdesk_user')
-        cls.agent_3 = new_test_user(cls.env, 'hd_agent_3', groups='helpdesk_management.group_helpdesk_user')
+        cls.agent_1 = new_test_user(cls.env, 'hd_agent_1', groups='helpdesk_management.group_helpdesk_ticket_edit_all')
+        cls.agent_2 = new_test_user(cls.env, 'hd_agent_2', groups='helpdesk_management.group_helpdesk_ticket_edit_all')
+        cls.agent_3 = new_test_user(cls.env, 'hd_agent_3', groups='helpdesk_management.group_helpdesk_ticket_edit_all')
         cls.manager = new_test_user(cls.env, 'hd_manager', groups='helpdesk_management.group_helpdesk_manager')
         cls.stage_new = cls.env.ref('helpdesk_management.stage_new')
         cls.stage_progress = cls.env.ref('helpdesk_management.stage_in_progress')
@@ -295,6 +295,7 @@ class TestHelpdesk(TransactionCase):
         self.assertEqual(ticket.team_id, self.team)
         self.assertEqual(ticket.partner_id.email, 'sam@example.org')
         self.assertIn('My password does not work.', str(ticket.description))
+        self.assertEqual(ticket.source_id, self.env.ref('helpdesk_management.ticket_source_email'))
 
     def test_stage_template_sent(self):
         template = self.env.ref('helpdesk_management.ticket_received_email_template')

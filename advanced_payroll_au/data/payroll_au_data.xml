@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Australian payroll, 2026–27 income year. Shipped as noupdate data so
+         administrators can update the rates each year. -->
+    <data noupdate="1">
+        <record id="payroll_country_au" model="payroll.country">
+            <field name="name">Australia</field>
+            <field name="code">AU</field>
+            <field name="country_id" ref="base.au"/>
+            <field name="sequence">10</field>
+            <field name="tax_year_start_month">7</field>
+            <field name="tax_year_start_day">1</field>
+            <field name="default_pay_frequency_id" ref="advanced_payroll.pay_frequency_fortnightly"/>
+            <field name="standard_hours_per_week">38</field>
+            <field name="ordinary_pay_item_id" ref="advanced_payroll.pay_item_ordinary"/>
+            <field name="note">&lt;p&gt;Tax year 1 July – 30 June. Rates for 2026–27: check them against the ATO's current figures each year.&lt;/p&gt;</field>
+        </record>
+
+        <!-- Pay items -->
+        <record id="pay_item_au_annual_leave" model="payroll.pay.item">
+            <field name="name">Annual Leave</field>
+            <field name="code">AU_AL</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">30</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+        <record id="pay_item_au_personal_leave" model="payroll.pay.item">
+            <field name="name">Personal/Carer's Leave</field>
+            <field name="code">AU_PCL</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">31</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+        <record id="pay_item_au_long_service" model="payroll.pay.item">
+            <field name="name">Long Service Leave</field>
+            <field name="code">AU_LSL</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">32</field>
+            <field name="category">leave</field>
+            <field name="calculation">hours</field>
+        </record>
+        <record id="pay_item_au_leave_loading" model="payroll.pay.item">
+            <field name="name">Leave Loading (17.5%)</field>
+            <field name="code">AU_LL</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">33</field>
+            <field name="category">allowance</field>
+            <field name="calculation">hours</field>
+            <field name="rate_multiplier">0.175</field>
+            <field name="retirement_eligible" eval="False"/>
+            <field name="description">Enter the annual leave hours taken: they are paid at 17.5% of the hourly rate.</field>
+        </record>
+
+        <!-- Tax tables (annual rates, 2026–27) -->
+        <record id="tax_table_au_resident_threshold" model="payroll.tax.table">
+            <field name="name">Resident – tax-free threshold claimed (2026–27)</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">10</field>
+            <field name="note">Resident tax rates from 1 July 2026: 0% to $18,200, 15% to $45,000, 30% to $135,000, 37% to $190,000, then 45%.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 0}),
+                (0, 0, {'threshold': 18200, 'rate': 15}),
+                (0, 0, {'threshold': 45000, 'rate': 30}),
+                (0, 0, {'threshold': 135000, 'rate': 37}),
+                (0, 0, {'threshold': 190000, 'rate': 45})]"/>
+        </record>
+        <record id="tax_table_au_resident_no_threshold" model="payroll.tax.table">
+            <field name="name">Resident – no tax-free threshold (2026–27)</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">20</field>
+            <field name="note">The resident rates without the tax-free threshold (each bracket $18,200 lower), for second jobs.</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 15}),
+                (0, 0, {'threshold': 26800, 'rate': 30}),
+                (0, 0, {'threshold': 116800, 'rate': 37}),
+                (0, 0, {'threshold': 171800, 'rate': 45})]"/>
+        </record>
+        <record id="tax_table_au_foreign" model="payroll.tax.table">
+            <field name="name">Foreign Resident (2026–27)</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">30</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 30}),
+                (0, 0, {'threshold': 135000, 'rate': 37}),
+                (0, 0, {'threshold': 190000, 'rate': 45})]"/>
+        </record>
+        <record id="tax_table_au_whm" model="payroll.tax.table">
+            <field name="name">Working Holiday Maker (2026–27)</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">40</field>
+            <field name="bracket_ids" eval="[
+                (0, 0, {'threshold': 0, 'rate': 15}),
+                (0, 0, {'threshold': 45000, 'rate': 30}),
+                (0, 0, {'threshold': 135000, 'rate': 37}),
+                (0, 0, {'threshold': 190000, 'rate': 45})]"/>
+        </record>
+        <record id="tax_table_au_no_tfn" model="payroll.tax.table">
+            <field name="name">No TFN Provided</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">50</field>
+            <field name="note">Residents who have not given a TFN: 47%.</field>
+            <field name="bracket_ids" eval="[(0, 0, {'threshold': 0, 'rate': 47})]"/>
+        </record>
+
+        <!-- Tax scales -->
+        <record id="tax_scale_resident_threshold" model="payroll.au.tax.scale">
+            <field name="name">Resident – tax-free threshold claimed</field>
+            <field name="sequence">10</field>
+            <field name="tax_table_id" ref="tax_table_au_resident_threshold"/>
+            <field name="medicare_levy" eval="True"/>
+        </record>
+        <record id="tax_scale_resident_no_threshold" model="payroll.au.tax.scale">
+            <field name="name">Resident – no tax-free threshold</field>
+            <field name="sequence">20</field>
+            <field name="tax_table_id" ref="tax_table_au_resident_no_threshold"/>
+            <field name="medicare_levy" eval="True"/>
+        </record>
+        <record id="tax_scale_foreign" model="payroll.au.tax.scale">
+            <field name="name">Foreign Resident</field>
+            <field name="sequence">30</field>
+            <field name="tax_table_id" ref="tax_table_au_foreign"/>
+            <field name="medicare_levy" eval="False"/>
+        </record>
+        <record id="tax_scale_whm" model="payroll.au.tax.scale">
+            <field name="name">Working Holiday Maker</field>
+            <field name="sequence">40</field>
+            <field name="tax_table_id" ref="tax_table_au_whm"/>
+            <field name="medicare_levy" eval="False"/>
+        </record>
+        <record id="tax_scale_no_tfn" model="payroll.au.tax.scale">
+            <field name="name">No TFN Provided</field>
+            <field name="sequence">50</field>
+            <field name="tax_table_id" ref="tax_table_au_no_tfn"/>
+            <field name="medicare_levy" eval="False"/>
+        </record>
+
+        <!-- Rules -->
+        <record id="rule_au_payg" model="payroll.rule">
+            <field name="name">PAYG Withholding</field>
+            <field name="code">AU_PAYG</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">10</field>
+            <field name="category">tax</field>
+            <field name="compute_method">brackets</field>
+            <field name="base">taxable</field>
+            <field name="tax_table_id" ref="tax_table_au_resident_threshold"/>
+            <field name="description">Income tax withheld at the employee's tax scale, on annualised taxable pay.</field>
+        </record>
+        <record id="rule_au_medicare" model="payroll.rule">
+            <field name="name">Medicare Levy</field>
+            <field name="code">AU_MEDICARE</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">20</field>
+            <field name="category">tax</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">taxable</field>
+            <field name="rate">2</field>
+            <field name="description">2% of taxable pay, for tax scales with the Medicare levy.</field>
+        </record>
+        <record id="rule_au_super" model="payroll.rule">
+            <field name="name">Superannuation Guarantee</field>
+            <field name="code">AU_SG</field>
+            <field name="country_id" ref="payroll_country_au"/>
+            <field name="sequence">50</field>
+            <field name="category">employer</field>
+            <field name="compute_method">percentage</field>
+            <field name="base">retirement</field>
+            <field name="rate">12</field>
+            <field name="description">12% of ordinary time earnings, paid by the employer to the employee's super fund (Payday Super from 1 July 2026).</field>
+        </record>
+    </data>
+</odoo>

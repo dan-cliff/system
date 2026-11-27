@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_expense_view_form_account" model="ir.ui.view">
+        <field name="name">advanced.expense.form.account</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_form"/>
+        <field name="arch" type="xml">
+            <button name="action_mark_paid" position="before">
+                <button name="action_create_bill" type="object" string="Create Bill" class="btn-primary"
+                        invisible="not can_pay" groups="advanced_expenses.group_expense_pay"/>
+            </button>
+            <button name="action_mark_paid" position="attributes">
+                <attribute name="class">btn-secondary</attribute>
+            </button>
+            <field name="state" position="attributes">
+                <attribute name="statusbar_visible">draft,submitted,approved,posted,paid</attribute>
+            </field>
+            <div name="button_box" position="inside">
+                <button name="action_open_bill" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                        invisible="not account_move_id" groups="account.group_account_invoice">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Bill</span>
+                        <span class="o_stat_value"><field name="payment_state" readonly="1"/></span>
+                    </div>
+                </button>
+            </div>
+            <field name="vendor_id" position="after">
+                <field name="account_id" options="{'no_create': True}" groups="account.group_account_invoice"
+                       readonly="account_move_id"/>
+                <field name="account_move_id" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_list_account" model="ir.ui.view">
+        <field name="name">advanced.expense.list.account</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_list"/>
+        <field name="arch" type="xml">
+            <button name="action_mark_paid" position="before">
+                <button name="action_create_bill" type="object" string="Create Bills"
+                        groups="advanced_expenses.group_expense_pay"/>
+            </button>
+            <field name="state" position="attributes">
+                <attribute name="decoration-muted">state == 'posted'</attribute>
+            </field>
+            <field name="paid_by" position="after">
+                <field name="account_move_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="advanced_expense_view_search_account" model="ir.ui.view">
+        <field name="name">advanced.expense.search.account</field>
+        <field name="model">advanced.expense</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_view_search"/>
+        <field name="arch" type="xml">
+            <filter name="paid" position="before">
+                <filter name="posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>
