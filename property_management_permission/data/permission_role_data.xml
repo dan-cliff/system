@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_property_admin" model="permission.role">
+            <field name="name">Property – Administrator</field>
+            <field name="description">Everything in Property: create, edit and delete any property, lease or contract, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('property_management.privilege_property'), 'group_id': ref('property_management.group_property_admin')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_create_only'), 'group_id': ref('property_management.group_property_property_create_only')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_edit_own'), 'group_id': ref('property_management.group_property_property_edit_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_edit_team'), 'group_id': ref('property_management.group_property_property_edit_team')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_edit_all'), 'group_id': ref('property_management.group_property_property_edit_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_view_all'), 'group_id': ref('property_management.group_property_property_view_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_delete_own'), 'group_id': ref('property_management.group_property_property_delete_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_delete_all'), 'group_id': ref('property_management.group_property_property_delete_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_create_only'), 'group_id': ref('property_management.group_property_lease_create_only')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_edit_own'), 'group_id': ref('property_management.group_property_lease_edit_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_edit_team'), 'group_id': ref('property_management.group_property_lease_edit_team')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_edit_all'), 'group_id': ref('property_management.group_property_lease_edit_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_view_all'), 'group_id': ref('property_management.group_property_lease_view_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_delete_own'), 'group_id': ref('property_management.group_property_lease_delete_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_delete_all'), 'group_id': ref('property_management.group_property_lease_delete_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_create_only'), 'group_id': ref('property_management.group_property_contract_create_only')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_edit_own'), 'group_id': ref('property_management.group_property_contract_edit_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_edit_team'), 'group_id': ref('property_management.group_property_contract_edit_team')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_edit_all'), 'group_id': ref('property_management.group_property_contract_edit_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_view_all'), 'group_id': ref('property_management.group_property_contract_view_all')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_delete_own'), 'group_id': ref('property_management.group_property_contract_delete_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_delete_all'), 'group_id': ref('property_management.group_property_contract_delete_all')})
+            ]"/>
+        </record>
+        <record id="role_property_manager" model="permission.role">
+            <field name="name">Property – Manager</field>
+            <field name="description">Create, view and edit their own and their team's properties, leases and contracts. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_edit_team'), 'group_id': ref('property_management.group_property_property_edit_team')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_edit_team'), 'group_id': ref('property_management.group_property_lease_edit_team')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_edit_team'), 'group_id': ref('property_management.group_property_contract_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_property_employee" model="permission.role">
+            <field name="name">Property – Employee</field>
+            <field name="description">Create, view and edit their own properties, leases and contracts. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_property_edit_own'), 'group_id': ref('property_management.group_property_property_edit_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_lease_edit_own'), 'group_id': ref('property_management.group_property_lease_edit_own')}),
+                (0, 0, {'privilege_id': ref('property_management.privilege_property_contract_edit_own'), 'group_id': ref('property_management.group_property_contract_edit_own')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

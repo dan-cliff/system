@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="property_photo_view_kanban" model="ir.ui.view">
+        <field name="name">property.photo.kanban</field>
+        <field name="model">property.photo</field>
+        <field name="arch" type="xml">
+            <kanban class="o_property_photo_kanban" default_order="sequence, id">
+                <field name="sequence"/>
+                <field name="is_cover"/>
+                <templates>
+                    <t t-name="card" class="p-0">
+                        <field name="image_1920" widget="image" class="w-100"
+                               options="{'size': [false, 160], 'img_class': 'w-100 object-fit-cover', 'zoom': true, 'preview_image': 'image_512'}"/>
+                        <div class="p-2 d-flex align-items-center gap-1">
+                            <i class="fa fa-star text-warning" title="Cover Photo" invisible="not is_cover"/>
+                            <field name="name" class="text-truncate"/>
+                            <field name="date_taken" class="ms-auto small text-muted" options="{'numeric': True}"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="property_photo_view_form" model="ir.ui.view">
+        <field name="name">property.photo.form</field>
+        <field name="model">property.photo</field>
+        <field name="arch" type="xml">
+            <form string="Photo">
+                <header>
+                    <button name="action_set_cover" type="object" string="Use as Cover Photo"
+                            invisible="is_cover or not id"/>
+                </header>
+                <sheet>
+                    <field name="is_cover" invisible="1"/>
+                    <field name="property_id" invisible="1"/>
+                    <div class="text-center mb-3">
+                        <field name="image_1920" widget="image" options="{'preview_image': 'image_1024', 'zoom': true}"/>
+                    </div>
+                    <group>
+                        <field name="name" placeholder="e.g. Front entrance"/>
+                        <field name="date_taken" options="{'numeric': True}"/>
+                        <field name="sequence" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="property_photo_view_list" model="ir.ui.view">
+        <field name="name">property.photo.list</field>
+        <field name="model">property.photo</field>
+        <field name="arch" type="xml">
+            <list string="Photos">
+                <field name="sequence" widget="handle"/>
+                <field name="id" optional="show"/>
+                <field name="image_128" widget="image" options="{'size': [48, 48]}"/>
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="date_taken" options="{'numeric': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="property_photo_upload_view_form" model="ir.ui.view">
+        <field name="name">property.photo.upload.form</field>
+        <field name="model">property.photo.upload</field>
+        <field name="arch" type="xml">
+            <form string="Upload Photos">
+                <field name="property_id" invisible="1"/>
+                <p class="text-muted">
+                    Choose one or more image files. Each becomes a photo in the property's photo library,
+                    captioned with its file name (you can change the captions afterwards).
+                </p>
+                <group>
+                    <field name="attachment_ids" widget="many2many_binary" string="Photos"
+                           options="{'accepted_file_extensions': 'image/*'}"/>
+                    <field name="date_taken" options="{'numeric': True}"/>
+                </group>
+                <footer>
+                    <button name="action_upload" type="object" string="Upload" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

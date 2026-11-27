@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Checklist users pick the property a checklist is for, so they can read
+         the properties (only read; the Property permissions still decide what
+         else they can do). Rules of different groups are OR-ed with the
+         Property rules. -->
+    <record id="access_property_property_checklist_user" model="ir.model.access">
+        <field name="name">property.property checklist user</field>
+        <field name="model_id" ref="property_management.model_property_property"/>
+        <field name="group_id" ref="checklists.group_checklist_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_property_property_checklist_read" model="ir.rule">
+        <field name="name">Properties: read, to link checklists</field>
+        <field name="model_id" ref="property_management.model_property_property"/>
+        <field name="groups" eval="[(4, ref('checklists.group_checklist_user'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Starting options; admins add, rename and archive them under Configuration. -->
+    <data noupdate="1">
+        <record id="category_residential" model="property.category">
+            <field name="name">Residential</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="category_commercial" model="property.category">
+            <field name="name">Commercial</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="category_industrial" model="property.category">
+            <field name="name">Industrial</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="category_mixed_use" model="property.category">
+            <field name="name">Mixed Use</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="category_rural" model="property.category">
+            <field name="name">Rural</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="type_house" model="property.type">
+            <field name="name">House</field>
+            <field name="sequence">10</field>
+            <field name="category_ids" eval="[(4, ref('category_residential')), (4, ref('category_rural'))]"/>
+        </record>
+        <record id="type_apartment" model="property.type">
+            <field name="name">Apartment / Unit</field>
+            <field name="sequence">20</field>
+            <field name="category_ids" eval="[(4, ref('category_residential'))]"/>
+        </record>
+        <record id="type_townhouse" model="property.type">
+            <field name="name">Townhouse</field>
+            <field name="sequence">30</field>
+            <field name="category_ids" eval="[(4, ref('category_residential'))]"/>
+        </record>
+        <record id="type_office" model="property.type">
+            <field name="name">Office</field>
+            <field name="sequence">40</field>
+            <field name="category_ids" eval="[(4, ref('category_commercial')), (4, ref('category_mixed_use'))]"/>
+        </record>
+        <record id="type_retail" model="property.type">
+            <field name="name">Retail / Shop</field>
+            <field name="sequence">50</field>
+            <field name="category_ids" eval="[(4, ref('category_commercial')), (4, ref('category_mixed_use'))]"/>
+        </record>
+        <record id="type_warehouse" model="property.type">
+            <field name="name">Warehouse</field>
+            <field name="sequence">60</field>
+            <field name="category_ids" eval="[(4, ref('category_industrial')), (4, ref('category_commercial'))]"/>
+        </record>
+        <record id="type_factory" model="property.type">
+            <field name="name">Factory / Workshop</field>
+            <field name="sequence">70</field>
+            <field name="category_ids" eval="[(4, ref('category_industrial'))]"/>
+        </record>
+        <record id="type_farm" model="property.type">
+            <field name="name">Farm</field>
+            <field name="sequence">80</field>
+            <field name="category_ids" eval="[(4, ref('category_rural'))]"/>
+        </record>
+        <record id="type_land" model="property.type">
+            <field name="name">Vacant Land</field>
+            <field name="sequence">90</field>
+        </record>
+        <record id="type_car_park" model="property.type">
+            <field name="name">Car Park</field>
+            <field name="sequence">100</field>
+            <field name="category_ids" eval="[(4, ref('category_commercial'))]"/>
+        </record>
+        <record id="type_storage" model="property.type">
+            <field name="name">Storage Unit</field>
+            <field name="sequence">110</field>
+        </record>
+        <record id="stage_prospective" model="property.stage">
+            <field name="name">Prospective</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="stage_active" model="property.stage">
+            <field name="name">Active</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="stage_vacant" model="property.stage">
+            <field name="name">Vacant</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="stage_for_sale" model="property.stage">
+            <field name="name">For Sale or Lease</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="stage_disposed" model="property.stage">
+            <field name="name">Disposed</field>
+            <field name="sequence">50</field>
+            <field name="fold" eval="True"/>
+            <field name="is_closed" eval="True"/>
+        </record>
+        <record id="rent_frequency_weekly" model="property.rent.frequency">
+            <field name="name">Weekly</field>
+            <field name="sequence">10</field>
+            <field name="periods_per_year">52</field>
+        </record>
+        <record id="rent_frequency_fortnightly" model="property.rent.frequency">
+            <field name="name">Fortnightly</field>
+            <field name="sequence">20</field>
+            <field name="periods_per_year">26</field>
+        </record>
+        <record id="rent_frequency_monthly" model="property.rent.frequency">
+            <field name="name">Monthly</field>
+            <field name="sequence">30</field>
+            <field name="periods_per_year">12</field>
+        </record>
+        <record id="rent_frequency_quarterly" model="property.rent.frequency">
+            <field name="name">Quarterly</field>
+            <field name="sequence">40</field>
+            <field name="periods_per_year">4</field>
+        </record>
+        <record id="rent_frequency_half_yearly" model="property.rent.frequency">
+            <field name="name">Half-Yearly</field>
+            <field name="sequence">50</field>
+            <field name="periods_per_year">2</field>
+        </record>
+        <record id="rent_frequency_annually" model="property.rent.frequency">
+            <field name="name">Annually</field>
+            <field name="sequence">60</field>
+            <field name="periods_per_year">1</field>
+        </record>
+        <record id="rent_review_type_cpi" model="property.rent.review.type">
+            <field name="name">CPI</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="rent_review_type_market" model="property.rent.review.type">
+            <field name="name">Market Review</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="rent_review_type_fixed" model="property.rent.review.type">
+            <field name="name">Fixed Increase</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="rent_review_type_none" model="property.rent.review.type">
+            <field name="name">No Review</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="contract_type_insurance" model="property.contract.type">
+            <field name="name">Insurance</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="contract_type_cleaning" model="property.contract.type">
+            <field name="name">Cleaning</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="contract_type_security" model="property.contract.type">
+            <field name="name">Security</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="contract_type_maintenance" model="property.contract.type">
+            <field name="name">Maintenance</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="contract_type_utilities" model="property.contract.type">
+            <field name="name">Utilities</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="contract_type_waste" model="property.contract.type">
+            <field name="name">Waste Removal</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="contract_type_grounds" model="property.contract.type">
+            <field name="name">Grounds and Gardens</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="contract_type_fire" model="property.contract.type">
+            <field name="name">Fire Safety</field>
+            <field name="sequence">80</field>
+        </record>
+        <record id="contract_type_property_management" model="property.contract.type">
+            <field name="name">Property Management</field>
+            <field name="sequence">90</field>
+        </record>
+        <record id="contract_type_other" model="property.contract.type">
+            <field name="name">Other</field>
+            <field name="sequence">100</field>
+        </record>
+    </data>
+</odoo>

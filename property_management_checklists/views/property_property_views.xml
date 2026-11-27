@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="property_property_view_form_checklists" model="ir.ui.view">
+        <field name="name">property.property.form.checklists</field>
+        <field name="model">property.property</field>
+        <field name="inherit_id" ref="property_management.property_property_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <field name="property_checklist_enabled" invisible="1"/>
+                <button name="action_view_checklists" type="object" class="oe_stat_button" icon="fa-check-square-o"
+                        invisible="not property_checklist_enabled and not checklist_count"
+                        groups="checklists.group_checklist_user">
+                    <field name="checklist_count" widget="statinfo" string="Checklists"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Each old field shows only while it holds a partner that isn't an
+         Account / Contact (e.g. one of our own users), so nothing is lost. -->
+
+    <!-- Properties -->
+    <record id="property_property_view_form" model="ir.ui.view">
+        <field name="name">property.property.form.advanced_accounts</field>
+        <field name="model">property.property</field>
+        <field name="inherit_id" ref="property_management.property_property_view_form"/>
+        <field name="arch" type="xml">
+            <field name="landlord_id" position="before">
+                <field name="adv_landlord_id" invisible="is_owned" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="landlord_id" position="attributes">
+                <attribute name="invisible">is_owned or adv_landlord_id or not landlord_id</attribute>
+            </field>
+            <field name="agent_id" position="before">
+                <field name="adv_agent_id" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="agent_id" position="attributes">
+                <attribute name="invisible">adv_agent_id or not agent_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="property_property_view_list" model="ir.ui.view">
+        <field name="name">property.property.list.advanced_accounts</field>
+        <field name="model">property.property</field>
+        <field name="inherit_id" ref="property_management.property_property_view_list"/>
+        <field name="arch" type="xml">
+            <field name="landlord_id" position="before">
+                <field name="adv_landlord_id" optional="show"/>
+                <field name="adv_agent_id" optional="hide"/>
+            </field>
+            <field name="landlord_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Landlord (Partner)</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="property_property_view_search" model="ir.ui.view">
+        <field name="name">property.property.search.advanced_accounts</field>
+        <field name="model">property.property</field>
+        <field name="inherit_id" ref="property_management.property_property_view_search"/>
+        <field name="arch" type="xml">
+            <field name="landlord_id" position="before">
+                <field name="adv_landlord_id"/>
+                <field name="adv_agent_id"/>
+            </field>
+            <filter name="group_user" position="after">
+                <filter name="group_adv_landlord" string="Landlord" context="{'group_by': 'adv_landlord_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <!-- Leases -->
+    <record id="property_lease_view_form" model="ir.ui.view">
+        <field name="name">property.lease.form.advanced_accounts</field>
+        <field name="model">property.lease</field>
+        <field name="inherit_id" ref="property_management.property_lease_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[label[@for='partner_id']]" position="before">
+                <div class="o_td_label">
+                    <label for="adv_party_id" string="Landlord" invisible="lease_type != 'in'"/>
+                    <label for="adv_party_id" string="Tenant" invisible="lease_type != 'out'"/>
+                </div>
+                <field name="adv_party_id" nolabel="1" options="{'no_quick_create': True}"/>
+            </xpath>
+            <xpath expr="//div[label[@for='partner_id']]" position="attributes">
+                <attribute name="invisible">adv_party_id or not partner_id</attribute>
+            </xpath>
+            <field name="partner_id" position="attributes">
+                <attribute name="invisible">adv_party_id or not partner_id</attribute>
+            </field>
+            <field name="agent_id" position="before">
+                <field name="adv_agent_id" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="agent_id" position="attributes">
+                <attribute name="invisible">adv_agent_id or not agent_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="property_lease_view_list" model="ir.ui.view">
+        <field name="name">property.lease.list.advanced_accounts</field>
+        <field name="model">property.lease</field>
+        <field name="inherit_id" ref="property_management.property_lease_view_list"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_party_id"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Landlord / Tenant (Partner)</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="property_lease_view_search" model="ir.ui.view">
+        <field name="name">property.lease.search.advanced_accounts</field>
+        <field name="model">property.lease</field>
+        <field name="inherit_id" ref="property_management.property_lease_view_search"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_party_id"/>
+                <field name="adv_agent_id"/>
+            </field>
+            <filter name="group_partner" position="after">
+                <filter name="group_adv_party" string="Account" context="{'group_by': 'adv_party_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <!-- Contracts -->
+    <record id="property_contract_view_form" model="ir.ui.view">
+        <field name="name">property.contract.form.advanced_accounts</field>
+        <field name="model">property.contract</field>
+        <field name="inherit_id" ref="property_management.property_contract_view_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" string="Supplier" options="{'no_quick_create': True}"/>
+                <field name="adv_contact_id" options="{'no_quick_create': True}"
+                       context="{'default_account_id': adv_account_id}"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="invisible">adv_account_id or adv_contact_id or not partner_id</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="property_contract_view_list" model="ir.ui.view">
+        <field name="name">property.contract.list.advanced_accounts</field>
+        <field name="model">property.contract</field>
+        <field name="inherit_id" ref="property_management.property_contract_view_list"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id" string="Supplier"/>
+                <field name="adv_contact_id" optional="hide"/>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Supplier (Partner)</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="property_contract_view_search" model="ir.ui.view">
+        <field name="name">property.contract.search.advanced_accounts</field>
+        <field name="model">property.contract</field>
+        <field name="inherit_id" ref="property_management.property_contract_view_search"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="adv_account_id"/>
+                <field name="adv_contact_id"/>
+            </field>
+            <filter name="group_partner" position="after">
+                <filter name="group_adv_account" string="Account" context="{'group_by': 'adv_account_id'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>
