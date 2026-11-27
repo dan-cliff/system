@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Video Rooms app icon (illustrated "clay" style, docs/icon_style): a meeting-room
+       screen showing a call grid, with a camera as the accent. Transparent background, no text. -->
+  <defs>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3EDBBC"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="cam" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <radialGradient id="lens" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#4A62C0"/>
+      <stop offset="1" stop-color="#2A3F8F"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#2A3F8F" flood-opacity="0.22"/>
+    </filter>
+    <filter id="tile" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Screen on its stand -->
+  <g filter="url(#soft)">
+    <rect x="452" y="760" width="120" height="70" rx="24" fill="#5B3DB8"/>
+    <rect x="352" y="806" width="320" height="52" rx="26" fill="#8E5CF0"/>
+    <rect x="96" y="150" width="832" height="620" rx="72" fill="url(#bezel)"/>
+    <rect x="140" y="194" width="744" height="532" rx="40" fill="url(#panel)"/>
+  </g>
+  <!-- Highlight on the bezel -->
+  <rect x="140" y="166" width="744" height="16" rx="8" fill="#FFFFFF" opacity="0.28"/>
+
+  <!-- Call grid: four people -->
+  <g filter="url(#tile)">
+    <rect x="176" y="228" width="324" height="224" rx="30" fill="url(#coral)"/>
+    <rect x="524" y="228" width="324" height="224" rx="30" fill="url(#yellow)"/>
+    <rect x="176" y="472" width="324" height="224" rx="30" fill="url(#blue)"/>
+    <rect x="524" y="472" width="324" height="224" rx="30" fill="url(#teal)"/>
+  </g>
+  <g fill="#FFFFFF">
+    <circle cx="338" cy="320" r="40"/>
+    <path d="M262 440c0-48 34-78 76-78s76 30 76 78z"/>
+    <circle cx="686" cy="320" r="40"/>
+    <path d="M610 440c0-48 34-78 76-78s76 30 76 78z"/>
+    <circle cx="338" cy="564" r="40"/>
+    <path d="M262 684c0-48 34-78 76-78s76 30 76 78z"/>
+  </g>
+  <!-- The fourth tile is the shared screen: placeholder bars -->
+  <g fill="#FFFFFF" opacity="0.9">
+    <rect x="566" y="520" width="200" height="24" rx="12"/>
+    <rect x="566" y="564" width="236" height="24" rx="12" opacity="0.8"/>
+    <rect x="566" y="608" width="150" height="24" rx="12" opacity="0.7"/>
+  </g>
+
+  <!-- Accent: the room camera, overlapping the lower right -->
+  <g filter="url(#soft)">
+    <rect x="700" y="640" width="250" height="190" rx="64" fill="url(#cam)"/>
+    <path d="M928 700l58-34c12-7 26 2 26 16v106c0 14-14 23-26 16l-58-34z" fill="#0A6CF0"/>
+  </g>
+  <circle cx="815" cy="735" r="66" fill="#F2F2FA"/>
+  <circle cx="815" cy="735" r="44" fill="url(#lens)"/>
+  <circle cx="800" cy="718" r="13" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="912" cy="672" r="10" fill="#FF5A6E"/>
+  <rect x="720" y="652" width="160" height="14" rx="7" fill="#FFFFFF" opacity="0.3"/>
+</svg>

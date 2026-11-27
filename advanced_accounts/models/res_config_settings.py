@@ -22,3 +22,4 @@ class ResConfigSettings(models.TransientModel):
     module_advanced_accounts_asset = fields.Boolean("Accounts and Contacts in Asset Management")
     module_advanced_accounts_accounting = fields.Boolean("Accounts and Contacts in Accounting")
     module_advanced_accounts_property_management = fields.Boolean("Accounts and Contacts in Property")
+    module_advanced_accounts_video_rooms = fields.Boolean("Accounts and Contacts in Video Rooms")

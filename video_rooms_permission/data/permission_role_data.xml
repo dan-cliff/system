@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_video_rooms_admin" model="permission.role">
+            <field name="name">Video Rooms – Administrator</field>
+            <field name="description">Everything in Video Rooms: create, edit and delete any room, call and Room Board, control and design rooms, see every booking's joining details, and Configuration.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_video_rooms'), 'group_id': ref('video_rooms.group_video_rooms_admin')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_create_only'), 'group_id': ref('video_rooms.group_room_create_only')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_edit_own'), 'group_id': ref('video_rooms.group_room_edit_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_edit_team'), 'group_id': ref('video_rooms.group_room_edit_team')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_edit_all'), 'group_id': ref('video_rooms.group_room_edit_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_view_all'), 'group_id': ref('video_rooms.group_room_view_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_delete_own'), 'group_id': ref('video_rooms.group_room_delete_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_delete_all'), 'group_id': ref('video_rooms.group_room_delete_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_create_only'), 'group_id': ref('video_rooms.group_call_create_only')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_edit_own'), 'group_id': ref('video_rooms.group_call_edit_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_edit_team'), 'group_id': ref('video_rooms.group_call_edit_team')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_edit_all'), 'group_id': ref('video_rooms.group_call_edit_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_view_all'), 'group_id': ref('video_rooms.group_call_view_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_delete_own'), 'group_id': ref('video_rooms.group_call_delete_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_delete_all'), 'group_id': ref('video_rooms.group_call_delete_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_create_only'), 'group_id': ref('video_rooms.group_board_create_only')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_edit_own'), 'group_id': ref('video_rooms.group_board_edit_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_edit_team'), 'group_id': ref('video_rooms.group_board_edit_team')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_edit_all'), 'group_id': ref('video_rooms.group_board_edit_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_view_all'), 'group_id': ref('video_rooms.group_board_view_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_delete_own'), 'group_id': ref('video_rooms.group_board_delete_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_delete_all'), 'group_id': ref('video_rooms.group_board_delete_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_video_rooms_control'), 'group_id': ref('video_rooms.group_video_rooms_control')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_video_rooms_design'), 'group_id': ref('video_rooms.group_video_rooms_design')})
+            ]"/>
+        </record>
+        <record id="role_video_rooms_manager" model="permission.role">
+            <field name="name">Video Rooms – Manager</field>
+            <field name="description">Create, view and edit their own and their team's rooms, calls and Room Boards. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_edit_team'), 'group_id': ref('video_rooms.group_room_edit_team')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_edit_team'), 'group_id': ref('video_rooms.group_call_edit_team')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_edit_team'), 'group_id': ref('video_rooms.group_board_edit_team')})
+            ]"/>
+        </record>
+        <record id="role_video_rooms_employee" model="permission.role">
+            <field name="name">Video Rooms – Employee</field>
+            <field name="description">Create, view and edit their own rooms, calls and Room Boards. No deleting.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_edit_own'), 'group_id': ref('video_rooms.group_room_edit_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_edit_own'), 'group_id': ref('video_rooms.group_call_edit_own')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_edit_own'), 'group_id': ref('video_rooms.group_board_edit_own')})
+            ]"/>
+        </record>
+        <record id="role_video_rooms_operator" model="permission.role">
+            <field name="name">Video Rooms – Room Operator</field>
+            <field name="description">See every room, call and Room Board, and control rooms from Odoo: join, leave, Do Not Disturb, identify screens.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_view_all'), 'group_id': ref('video_rooms.group_room_view_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_call_view_all'), 'group_id': ref('video_rooms.group_call_view_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_board_view_all'), 'group_id': ref('video_rooms.group_board_view_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_video_rooms_control'), 'group_id': ref('video_rooms.group_video_rooms_control')})
+            ]"/>
+        </record>
+        <record id="role_video_rooms_designer" model="permission.role">
+            <field name="name">Video Rooms – Room Designer</field>
+            <field name="description">Edit every room and lay out its screens, Console and door screen in the Room Designer.</field>
+            <field name="line_ids" eval="[
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_room_edit_all'), 'group_id': ref('video_rooms.group_room_edit_all')}),
+                (0, 0, {'privilege_id': ref('video_rooms.privilege_video_rooms_design'), 'group_id': ref('video_rooms.group_video_rooms_design')})
+            ]"/>
+        </record>
+    </data>
+</odoo>

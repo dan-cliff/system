@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Video Rooms Share</title>
+<style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    p { position: fixed; inset: auto 0 2vh; text-align: center; color: #A9ABDC; font: 2.4vh system-ui; margin: 0; }
+</style>
+</head>
+<body>
+<!-- The window the meeting shares (Chrome picks it by its title: "Video Rooms Share").
+     mode=hdmi: the HDMI capture card. mode=wireless: a laptop's screen over WebRTC. -->
+<video id="video" autoplay playsinline muted></video>
+<p id="msg"></p>
+<script src="/video_rooms/static/src/display/share_receiver.js"></script>
+<script>
+    const params = new URLSearchParams(location.search);
+    const video = document.getElementById("video");
+    const msg = document.getElementById("msg");
+    async function hdmi() {
+        const wanted = (params.get("device") || "").toLowerCase();
+        // Ask once so device labels are visible, then pick the capture card.
+        const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+        probe.getTracks().forEach((t) => t.stop());
+        const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput");
+        const device = devices.find((d) => wanted && d.label.toLowerCase().includes(wanted)) || devices[devices.length - 1];
+        video.srcObject = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: { exact: device.deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+        });
+    }
+    if (params.get("mode") === "wireless") {
+        window.VideoRoomsShareReceiver?.start(video, msg);
+    } else {
+        hdmi().catch((error) => { msg.textContent = `HDMI capture: ${error.message}`; });
+    }
+</script>
+</body>
+</html>
