@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8E5CF0"/>
+      <stop offset="1" stop-color="#5B3DB8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F2FA"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF7A8A"/>
+      <stop offset="1" stop-color="#FF5A6E"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC93C"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14C9A5"/>
+      <stop offset="1" stop-color="#14A3A3"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3BB8FF"/>
+      <stop offset="1" stop-color="#0A6CF0"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2A3F8F" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2A3F8F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A3F8F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Soft shadow below -->
+  <ellipse cx="512" cy="930" rx="400" ry="34" fill="url(#shadow)"/>
+
+  <!-- Receipt: a tall slip with a torn (zig-zag) bottom edge -->
+  <g filter="url(#soft)">
+    <path d="M196 90 H628 A56 56 0 0 1 684 146 V836
+             L640 872 L596 836 L552 872 L508 836 L464 872 L420 836 L376 872 L332 836 L288 872 L244 836 L196 872 L140 836
+             V146 A56 56 0 0 1 196 90 Z" fill="url(#panel)" stroke-linejoin="round"/>
+    <path d="M196 90 H628 A56 56 0 0 1 684 146 V204 H140 V146 A56 56 0 0 1 196 90 Z" fill="url(#header)"/>
+  </g>
+  <rect x="190" y="106" width="440" height="14" rx="7" fill="#FFFFFF" opacity="0.2"/>
+  <rect x="200" y="140" width="190" height="28" rx="14" fill="#FFFFFF" opacity="0.9"/>
+
+  <!-- Receipt lines: description and price -->
+  <rect x="200" y="252" width="230" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="520" y="252" width="104" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="200" y="314" width="180" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="520" y="314" width="104" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="200" y="376" width="210" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="520" y="376" width="104" height="22" rx="11" fill="#A9ABDC"/>
+  <rect x="200" y="438" width="150" height="22" rx="11" fill="#A9ABDC" opacity="0.55"/>
+  <rect x="520" y="438" width="104" height="22" rx="11" fill="#A9ABDC" opacity="0.55"/>
+
+  <!-- Total -->
+  <rect x="200" y="502" width="424" height="6" rx="3" fill="#E3E3F3"/>
+  <rect x="200" y="536" width="184" height="36" rx="18" fill="url(#coral)"/>
+  <rect x="200" y="610" width="200" height="16" rx="8" fill="#A9ABDC" opacity="0.45"/>
+
+  <!-- Wallet with a coin (accent over the lower right corner) -->
+  <g filter="url(#soft)">
+    <!-- White outline separating the wallet from the receipt -->
+    <g fill="#FFFFFF">
+      <rect x="470" y="560" width="470" height="330" rx="72"/>
+      <circle cx="560" cy="560" r="112"/>
+    </g>
+    <!-- Coin -->
+    <circle cx="560" cy="560" r="92" fill="url(#yellow)"/>
+    <circle cx="560" cy="560" r="62" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="14"/>
+    <path d="M512 510 A70 70 0 0 1 600 492" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="12" stroke-linecap="round"/>
+    <!-- Wallet body -->
+    <rect x="490" y="600" width="430" height="270" rx="56" fill="url(#blue)"/>
+    <path d="M546 600 H864 A56 56 0 0 1 920 656 V664 H490 V656 A56 56 0 0 1 546 600 Z" fill="#FFFFFF" opacity="0.22"/>
+    <!-- Clasp flap -->
+    <rect x="740" y="684" width="200" height="120" rx="44" fill="#2A3F8F"/>
+    <circle cx="804" cy="744" r="24" fill="url(#teal)"/>
+    <circle cx="798" cy="738" r="8" fill="#FFFFFF" opacity="0.6"/>
+  </g>
+</svg>

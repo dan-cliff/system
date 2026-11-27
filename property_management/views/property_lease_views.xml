@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="property_lease_view_form" model="ir.ui.view">
+        <field name="name">property.lease.form</field>
+        <field name="model">property.lease</field>
+        <field name="arch" type="xml">
+            <form string="Lease">
+                <header>
+                    <button name="action_activate" type="object" string="Activate" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_renew" type="object" string="Renew"
+                            invisible="state not in ('active', 'expired') or renewal_lease_id"/>
+                    <button name="action_terminate" type="object" string="Terminate"
+                            invisible="state != 'active'"
+                            confirm="Terminate this lease before its expiry date?"/>
+                    <button name="action_reset_draft" type="object" string="Reset to Draft"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,expired"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Expiring Soon" bg_color="text-bg-warning"
+                            invisible="not active or not is_expiring"/>
+                    <field name="active" invisible="1"/>
+                    <field name="is_expiring" invisible="1"/>
+                    <field name="renewal_lease_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group name="lease_main">
+                            <field name="property_id" readonly="state != 'draft'"/>
+                            <field name="lease_type" widget="radio" readonly="state != 'draft'"/>
+                            <div class="o_td_label">
+                                <label for="partner_id" string="Landlord" invisible="lease_type != 'in'"/>
+                                <label for="partner_id" string="Tenant" invisible="lease_type != 'out'"/>
+                            </div>
+                            <field name="partner_id" nolabel="1"/>
+                            <field name="agent_id"/>
+                            <field name="premises" placeholder="Whole property"/>
+                            <field name="leased_area"/>
+                            <field name="permitted_use"/>
+                        </group>
+                        <group name="lease_term" string="Term">
+                            <field name="date_signed" options="{'numeric': True}"/>
+                            <field name="date_start" options="{'numeric': True}"/>
+                            <field name="date_end" options="{'numeric': True}"/>
+                            <field name="term_months" invisible="not date_end"/>
+                            <field name="days_to_expiry" invisible="state != 'active' or not date_end"/>
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rent" name="rent">
+                            <group>
+                                <group string="Rent" name="rent_amounts">
+                                    <field name="rent_amount"/>
+                                    <field name="frequency_id" options="{'no_create': True}"/>
+                                    <field name="annual_rent"/>
+                                    <field name="rent_due_day"/>
+                                    <field name="currency_id" groups="base.group_multi_currency"/>
+                                </group>
+                                <group string="Security" name="rent_security">
+                                    <field name="bond_amount"/>
+                                    <field name="bond_reference"/>
+                                    <field name="bank_guarantee"/>
+                                </group>
+                                <group string="Rent Review" name="rent_review">
+                                    <field name="review_type_id" options="{'no_create': True}"/>
+                                    <field name="review_rate" invisible="not review_type_id"/>
+                                    <field name="next_review_date" options="{'numeric': True}"/>
+                                    <field name="review_notes"/>
+                                </group>
+                                <group string="Outgoings and Incentives" name="outgoings">
+                                    <field name="outgoings"/>
+                                    <field name="outgoings_notes"/>
+                                    <field name="incentives"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Options and Terms" name="terms">
+                            <group>
+                                <group string="Options to Renew" name="options">
+                                    <field name="renewal_options"/>
+                                    <field name="option_notice_date" options="{'numeric': True}"/>
+                                    <field name="notice_period_days"/>
+                                    <field name="previous_lease_id" invisible="not previous_lease_id"/>
+                                </group>
+                                <group string="Other Terms" name="other_terms">
+                                    <field name="break_clause"/>
+                                    <field name="holding_over"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Document" name="document">
+                            <group>
+                                <field name="document_name" invisible="1"/>
+                                <field name="document" filename="document_name"/>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="property_lease_view_list" model="ir.ui.view">
+        <field name="name">property.lease.list</field>
+        <field name="model">property.lease</field>
+        <field name="arch" type="xml">
+            <list string="Leases" decoration-muted="state in ('expired', 'terminated')"
+                  decoration-info="state == 'draft'" decoration-warning="is_expiring">
+                <field name="id" optional="show"/>
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="lease_type"/>
+                <field name="partner_id"/>
+                <field name="premises" optional="hide"/>
+                <field name="date_start" options="{'numeric': True}"/>
+                <field name="date_end" options="{'numeric': True}"/>
+                <field name="option_notice_date" optional="hide" options="{'numeric': True}"/>
+                <field name="next_review_date" optional="hide" options="{'numeric': True}"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="rent_amount" optional="hide"/>
+                <field name="frequency_id" optional="hide"/>
+                <field name="annual_rent" sum="Total"/>
+                <field name="user_id" optional="show" widget="many2one_avatar_user"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="is_expiring" column_invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="property_lease_view_calendar" model="ir.ui.view">
+        <field name="name">property.lease.calendar</field>
+        <field name="model">property.lease</field>
+        <field name="arch" type="xml">
+            <calendar string="Leases" date_start="date_start" date_stop="date_end" color="property_id"
+                      mode="year" event_open_popup="1" quick_create="0">
+                <field name="property_id"/>
+                <field name="partner_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="property_lease_view_pivot" model="ir.ui.view">
+        <field name="name">property.lease.pivot</field>
+        <field name="model">property.lease</field>
+        <field name="arch" type="xml">
+            <pivot string="Leases" sample="1">
+                <field name="property_id" type="row"/>
+                <field name="lease_type" type="col"/>
+                <field name="annual_rent_company" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="property_lease_view_search" model="ir.ui.view">
+        <field name="name">property.lease.search</field>
+        <field name="model">property.lease</field>
+        <field name="arch" type="xml">
+            <search string="Leases">
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <filter name="my_leases" string="My Leases" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="lease_in" string="We are the Tenant" domain="[('lease_type', '=', 'in')]"/>
+                <filter name="lease_out" string="We are the Landlord" domain="[('lease_type', '=', 'out')]"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="current" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="expiring" string="Expiring Soon" domain="[('is_expiring', '=', True)]"/>
+                <filter name="ended" string="Expired or Terminated" domain="[('state', 'in', ('expired', 'terminated'))]"/>
+                <separator/>
+                <filter name="date_end" string="Expires" date="date_end"/>
+                <filter name="next_review_date" string="Next Review" date="next_review_date"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_property" string="Property" context="{'group_by': 'property_id'}"/>
+                    <filter name="group_type" string="Lease Type" context="{'group_by': 'lease_type'}"/>
+                    <filter name="group_partner" string="Landlord / Tenant" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_date_end" string="Expiry" context="{'group_by': 'date_end:month'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_property_lease" model="ir.actions.act_window">
+        <field name="name">Leases</field>
+        <field name="res_model">property.lease</field>
+        <field name="view_mode">list,form,calendar,pivot</field>
+        <field name="search_view_id" ref="property_lease_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Record your first lease</p>
+            <p>Leases where the business is the tenant, and leases of its own premises to others,
+               with their term, rent, reviews and options. Reminders are scheduled before they
+               expire, before options must be exercised and before rent reviews.</p>
+        </field>
+    </record>
+
+    <record id="action_property_lease_expiring" model="ir.actions.act_window">
+        <field name="name">Expiring Leases</field>
+        <field name="res_model">property.lease</field>
+        <field name="view_mode">list,form,calendar,pivot</field>
+        <field name="search_view_id" ref="property_lease_view_search"/>
+        <field name="context">{'search_default_expiring': 1}</field>
+    </record>
+
+</odoo>

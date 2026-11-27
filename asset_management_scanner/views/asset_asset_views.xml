@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- An asset opened from the Scanner's Look Up tile (context from_scanner)
+         gets a Return to Scanner button that saves it and goes back. -->
+    <record id="view_asset_asset_form_scanner" model="ir.ui.view">
+        <field name="name">asset.asset.form.inherit.asset_management_scanner</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_return_to_scanner" type="object"
+                        string="Return to Scanner" class="btn-primary o_asset_return_to_scanner"
+                        icon="fa-barcode"
+                        invisible="not context.get('from_scanner')"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -64,8 +64,8 @@
                             <field name="module_advanced_accounts_purchase"/>
                         </setting>
                         <setting id="advanced_accounts_expense" string="Expenses"
-                                 help="Expenses paid by the company pick a vendor Account and Contact.">
-                            <field name="module_advanced_accounts_expense"/>
+                                 help="Expenses pick a vendor Account and Contact.">
+                            <field name="module_advanced_accounts_advanced_expenses"/>
                         </setting>
                         <setting id="advanced_accounts_pos" string="Point of Sale"
                                  help="Orders show an Account and Contact instead of a Customer.">
@@ -76,8 +76,12 @@
                             <field name="module_advanced_accounts_asset"/>
                         </setting>
                         <setting id="advanced_accounts_accounting" string="Accounting"
-                                 help="The vendor of assets and the partner of recurring payments become an Account and a Contact.">
+                                 help="The vendor of assets, the partner of recurring payments and the customer of subscriptions become an Account and a Contact.">
                             <field name="module_advanced_accounts_accounting"/>
+                        </setting>
+                        <setting id="advanced_accounts_property_management" string="Property"
+                                 help="Landlords, tenants, managing agents and contract suppliers become Accounts (and Contacts).">
+                            <field name="module_advanced_accounts_property_management"/>
                         </setting>
                         <setting id="advanced_accounts_video_rooms" string="Video Rooms"
                                  help="A call's Organiser (who invited the room) becomes an Account and a Contact.">

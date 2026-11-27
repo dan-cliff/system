@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="advanced_expense_category_view_form_account" model="ir.ui.view">
+        <field name="name">advanced.expense.category.form.account</field>
+        <field name="model">advanced.expense.category</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_category_view_form"/>
+        <field name="arch" type="xml">
+            <group name="rules" position="inside">
+                <field name="account_id" options="{'no_create': True}"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="advanced_expense_category_view_list_account" model="ir.ui.view">
+        <field name="name">advanced.expense.category.list.account</field>
+        <field name="model">advanced.expense.category</field>
+        <field name="inherit_id" ref="advanced_expenses.advanced_expense_category_view_list"/>
+        <field name="arch" type="xml">
+            <field name="receipt_required" position="after">
+                <field name="account_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

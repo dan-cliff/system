@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_property_root"
+              name="Property"
+              sequence="62"
+              web_icon="property_management,static/description/icon.png"
+              groups="property_management.group_property_user"/>
+
+    <menuitem id="menu_property_properties"
+              name="Properties"
+              parent="menu_property_root"
+              action="action_property_property"
+              sequence="10"/>
+
+    <menuitem id="menu_property_leases_top"
+              name="Leases"
+              parent="menu_property_root"
+              sequence="20"/>
+    <menuitem id="menu_property_leases"
+              name="All Leases"
+              parent="menu_property_leases_top"
+              action="action_property_lease"
+              sequence="10"/>
+    <menuitem id="menu_property_leases_expiring"
+              name="Expiring Leases"
+              parent="menu_property_leases_top"
+              action="action_property_lease_expiring"
+              sequence="20"/>
+
+    <menuitem id="menu_property_contracts"
+              name="Contracts"
+              parent="menu_property_root"
+              action="action_property_contract"
+              sequence="30"/>
+
+    <!-- Where Report Builder saves this app's reports (CLAUDE.md > Reports menu).
+         It has no action, so Odoo hides it until a report is placed under it. -->
+    <menuitem id="menu_property_reports" name="Reports" parent="menu_property_root" sequence="90"/>
+
+    <menuitem id="menu_property_config"
+              name="Configuration"
+              parent="menu_property_root"
+              sequence="100"
+              groups="property_management.group_property_admin"/>
+    <menuitem id="menu_property_settings"
+              name="Settings"
+              parent="menu_property_config"
+              action="action_property_config_settings"
+              sequence="0"
+              groups="base.group_system"/>
+    <menuitem id="menu_property_categories"
+              name="Categories"
+              parent="menu_property_config"
+              action="action_property_category"
+              sequence="10"/>
+    <menuitem id="menu_property_types"
+              name="Property Types"
+              parent="menu_property_config"
+              action="action_property_type"
+              sequence="20"/>
+    <menuitem id="menu_property_stages"
+              name="Statuses"
+              parent="menu_property_config"
+              action="action_property_stage"
+              sequence="30"/>
+    <menuitem id="menu_property_rent_frequencies"
+              name="Payment Frequencies"
+              parent="menu_property_config"
+              action="action_property_rent_frequency"
+              sequence="40"/>
+    <menuitem id="menu_property_rent_review_types"
+              name="Rent Review Types"
+              parent="menu_property_config"
+              action="action_property_rent_review_type"
+              sequence="50"/>
+    <menuitem id="menu_property_contract_types"
+              name="Contract Types"
+              parent="menu_property_config"
+              action="action_property_contract_type"
+              sequence="60"/>
+</odoo>

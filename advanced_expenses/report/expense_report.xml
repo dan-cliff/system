@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_expense" model="ir.actions.report">
+        <field name="name">Expense Claim</field>
+        <field name="model">advanced.expense</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">advanced_expenses.report_expense</field>
+        <field name="report_file">advanced_expenses.report_expense</field>
+        <field name="print_report_name">'Expense Claim - %s' % (object.employee_id.name or '')</field>
+        <field name="binding_model_id" ref="model_advanced_expense"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- One claim per employee (and company) with all their selected expenses. -->
+    <template id="report_expense">
+        <t t-call="web.html_container">
+            <t t-foreach="docs.grouped(lambda e: (e.employee_id, e.company_id)).items()" t-as="group">
+                <t t-set="employee" t-value="group[0][0]"/>
+                <t t-set="company" t-value="group[0][1]"/>
+                <t t-set="expenses" t-value="group[1].sorted(lambda e: (e.date, e.id))"/>
+                <t t-set="o" t-value="expenses[0]"/>
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Expense Claim</h2>
+                        <div class="row mt-3 mb-3">
+                            <div class="col-6">
+                                <strong>Employee:</strong> <span t-out="employee.name"/><br/>
+                                <t t-if="employee.department_id"><strong>Department:</strong> <span t-out="employee.department_id.name"/><br/></t>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong>Printed:</strong> <span t-out="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/><br/>
+                                <strong>Period:</strong>
+                                <span t-out="min(expenses.mapped('date')).strftime('%d/%m/%Y')"/> –
+                                <span t-out="max(expenses.mapped('date')).strftime('%d/%m/%Y')"/>
+                            </div>
+                        </div>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Reference</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Paid By</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Tax Included</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="expenses" t-as="expense">
+                                    <td><span t-out="expense.date.strftime('%d/%m/%Y')"/></td>
+                                    <td><span t-field="expense.reference"/></td>
+                                    <td>
+                                        <span t-field="expense.name"/>
+                                        <t t-if="expense.vendor_id"><br/><small class="text-muted" t-field="expense.vendor_id"/></t>
+                                    </td>
+                                    <td><span t-field="expense.category_id"/></td>
+                                    <td><span t-field="expense.paid_by"/></td>
+                                    <td><span t-field="expense.state"/></td>
+                                    <td class="text-end"><span t-field="expense.tax_amount"/></td>
+                                    <td class="text-end">
+                                        <span t-field="expense.total_amount_company"/>
+                                        <t t-if="expense.is_multiple_currency"><br/><small class="text-muted" t-field="expense.total_amount"/></t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <t t-set="currency" t-value="company.currency_id"/>
+                        <div class="row justify-content-end">
+                            <div class="col-5">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>To reimburse to the employee</td>
+                                        <td class="text-end" t-out="sum(expenses.filtered(lambda e: e.paid_by == 'employee').mapped('total_amount_company'))"
+                                            t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                    </tr>
+                                    <tr>
+                                        <td>Paid by the company</td>
+                                        <td class="text-end" t-out="sum(expenses.filtered(lambda e: e.paid_by == 'company').mapped('total_amount_company'))"
+                                            t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                    </tr>
+                                    <tr class="fw-bold">
+                                        <td>Total</td>
+                                        <td class="text-end" t-out="sum(expenses.mapped('total_amount_company'))"
+                                            t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row mt-5">
+                            <div class="col-6">
+                                <p>Employee signature</p>
+                                <p class="mt-4">________________________________</p>
+                            </div>
+                            <div class="col-6">
+                                <p>Approved by</p>
+                                <p class="mt-4">________________________________</p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

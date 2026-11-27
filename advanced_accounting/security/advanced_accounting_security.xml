@@ -1015,18 +1015,291 @@
         <field name="domain_force">[(0, '=', 1)]</field>
     </record>
 
+    <!-- ============ Subscriptions ============ -->
+    <!-- Subscriptions are sold by the sales team: their permissions imply the
+         technical Subscriptions user group below, which gives Sales access (the
+         orders, pricelists and products a subscription works with), not the
+         Billing access of the Accounting user group. Invoices are created as the
+         superuser once the Create Invoices permission is checked. -->
+    <record id="group_subscription_user" model="res.groups">
+        <field name="name">Subscriptions: User</field>
+        <field name="comment">Technical: given by every Subscriptions permission. Opens the subscriptions with Sales access; what users can do comes from their permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+    </record>
+    <record id="privilege_subscription_create_only" model="res.groups.privilege">
+        <field name="name">Subscriptions: Create Only</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">134</field>
+        <field name="description">Create subscriptions, and view their own (no editing after saving).</field>
+    </record>
+    <record id="group_subscription_create_only" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_create_only"/>
+        <field name="comment">Create subscriptions, and view their own (no editing after saving).</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="rule_subscription_create_only" model="ir.rule">
+        <field name="name">Subscriptions: Create Only</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_create_only'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_subscription_line_create_only" model="ir.rule">
+        <field name="name">Subscription Products: Create Only</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_create_only'))]"/>
+        <field name="domain_force">['|', ('sale_subscription_id.create_uid', '=', user.id), ('sale_subscription_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_subscription_edit_own" model="res.groups.privilege">
+        <field name="name">Subscriptions: Create and Edit Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">135</field>
+        <field name="description">Create subscriptions, and view and edit their own.</field>
+    </record>
+    <record id="group_subscription_edit_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_edit_own"/>
+        <field name="comment">Create subscriptions, and view and edit their own.</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="rule_subscription_edit_own" model="ir.rule">
+        <field name="name">Subscriptions: Create and Edit Own</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_edit_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_subscription_line_edit_own" model="ir.rule">
+        <field name="name">Subscription Products: Create and Edit Own</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_edit_own'))]"/>
+        <field name="domain_force">['|', ('sale_subscription_id.create_uid', '=', user.id), ('sale_subscription_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_subscription_edit_team" model="res.groups.privilege">
+        <field name="name">Subscriptions: Create and Edit My Team</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">136</field>
+        <field name="description">Create subscriptions, and view and edit their own and their team&apos;s.</field>
+    </record>
+    <record id="group_subscription_edit_team" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_edit_team"/>
+        <field name="comment">Create subscriptions, and view and edit their own and their team&apos;s.</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="rule_subscription_edit_team" model="ir.rule">
+        <field name="name">Subscriptions: Create and Edit My Team</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('create_uid', '=', user.id), ('user_id', '=', user.id), ('create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_subscription_line_edit_team" model="ir.rule">
+        <field name="name">Subscription Products: Create and Edit My Team</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_edit_team'))]"/>
+        <field name="domain_force">['|', '|', ('sale_subscription_id.create_uid', '=', user.id), ('sale_subscription_id.user_id', '=', user.id), ('sale_subscription_id.create_uid.employee_ids', 'child_of', user.employee_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_subscription_edit_all" model="res.groups.privilege">
+        <field name="name">Subscriptions: Create and Edit All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">137</field>
+        <field name="description">Create, view and edit all subscriptions.</field>
+    </record>
+    <record id="group_subscription_edit_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_edit_all"/>
+        <field name="comment">Create, view and edit all subscriptions.</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="rule_subscription_edit_all" model="ir.rule">
+        <field name="name">Subscriptions: Create and Edit All</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_subscription_line_edit_all" model="ir.rule">
+        <field name="name">Subscription Products: Create and Edit All</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_edit_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_subscription_view_all" model="res.groups.privilege">
+        <field name="name">Subscriptions: View All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">138</field>
+        <field name="description">View all subscriptions.</field>
+    </record>
+    <record id="group_subscription_view_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_view_all"/>
+        <field name="comment">View all subscriptions.</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="rule_subscription_view_all" model="ir.rule">
+        <field name="name">Subscriptions: View All</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_subscription_line_view_all" model="ir.rule">
+        <field name="name">Subscription Products: View All</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_view_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="privilege_subscription_delete_own" model="res.groups.privilege">
+        <field name="name">Subscriptions: Delete Own</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">139</field>
+        <field name="description">Delete their own subscriptions.</field>
+    </record>
+    <record id="group_subscription_delete_own" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_delete_own"/>
+        <field name="comment">Delete their own subscriptions.</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="rule_subscription_delete_own" model="ir.rule">
+        <field name="name">Subscriptions: Delete Own</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_delete_own'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_subscription_line_delete_own" model="ir.rule">
+        <field name="name">Subscription Products: Delete Own</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_delete_own'))]"/>
+        <field name="domain_force">['|', ('sale_subscription_id.create_uid', '=', user.id), ('sale_subscription_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_subscription_delete_all" model="res.groups.privilege">
+        <field name="name">Subscriptions: Delete All</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">140</field>
+        <field name="description">Delete any subscriptions.</field>
+    </record>
+    <record id="group_subscription_delete_all" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_delete_all"/>
+        <field name="comment">Delete any subscriptions.</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="rule_subscription_delete_all" model="ir.rule">
+        <field name="name">Subscriptions: Delete All</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="rule_subscription_line_delete_all" model="ir.rule">
+        <field name="name">Subscription Products: Delete All</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_delete_all'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="privilege_subscription_manage" model="res.groups.privilege">
+        <field name="name">Subscriptions: Start, Pause and Close</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">141</field>
+        <field name="description">Start, pause, resume and close subscriptions, and move them to another stage.</field>
+    </record>
+    <record id="group_subscription_manage" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_manage"/>
+        <field name="comment">Start, pause, resume and close subscriptions, and move them to another stage.</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <record id="privilege_subscription_invoice" model="res.groups.privilege">
+        <field name="name">Subscriptions: Create Invoices</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">142</field>
+        <field name="description">Invoice subscriptions by hand (the scheduled action invoices them when they are due).</field>
+    </record>
+    <record id="group_subscription_invoice" model="res.groups">
+        <field name="name">Allowed</field>
+        <field name="privilege_id" ref="privilege_subscription_invoice"/>
+        <field name="comment">Invoice subscriptions by hand (the scheduled action invoices them when they are due).</field>
+        <field name="implied_ids" eval="[(4, ref('group_subscription_user'))]"/>
+    </record>
+    <!-- Without a permission, nothing -->
+    <record id="rule_sale_subscription_deny" model="ir.rule">
+        <field name="name">Subscriptions: only through a permission</field>
+        <field name="model_id" ref="model_sale_subscription"/>
+        <field name="groups" eval="[(4, ref('group_subscription_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+    <record id="rule_sale_subscription_line_deny" model="ir.rule">
+        <field name="name">Subscription Products: only through a permission</field>
+        <field name="model_id" ref="model_sale_subscription_line"/>
+        <field name="groups" eval="[(4, ref('group_subscription_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+    </record>
+
     <!-- ============ Administrator ============ -->
     <record id="privilege_accounting_admin" model="res.groups.privilege">
         <field name="name">Accounting Administration</field>
         <field name="category_id" ref="base.module_category_accounting"/>
-        <field name="sequence">133</field>
-        <field name="description">Every Accounting permission, plus the Accounting Configuration (asset categories, budgetary positions, recurring templates, fiscal years, closing tasks, follow-up plans and financial reports).</field>
+        <field name="sequence">150</field>
+        <field name="description">Every Accounting permission, plus the Accounting Configuration (asset categories, budgetary positions, recurring templates, subscription templates and stages, fiscal years, closing tasks, follow-up plans and financial reports).</field>
     </record>
     <record id="group_accounting_admin" model="res.groups">
         <field name="name">Administrator</field>
         <field name="privilege_id" ref="privilege_accounting_admin"/>
         <field name="comment">Every Accounting permission, including deleting any record and every workflow action, plus Configuration.</field>
-        <field name="implied_ids" eval="[(4, ref('group_asset_create_only')), (4, ref('group_asset_edit_own')), (4, ref('group_asset_edit_team')), (4, ref('group_asset_edit_all')), (4, ref('group_asset_view_all')), (4, ref('group_asset_delete_own')), (4, ref('group_asset_delete_all')), (4, ref('group_asset_post')), (4, ref('group_budget_create_only')), (4, ref('group_budget_edit_own')), (4, ref('group_budget_edit_team')), (4, ref('group_budget_edit_all')), (4, ref('group_budget_view_all')), (4, ref('group_budget_delete_own')), (4, ref('group_budget_delete_all')), (4, ref('group_budget_approve')), (4, ref('group_recurring_create_only')), (4, ref('group_recurring_edit_own')), (4, ref('group_recurring_edit_team')), (4, ref('group_recurring_edit_all')), (4, ref('group_recurring_view_all')), (4, ref('group_recurring_delete_own')), (4, ref('group_recurring_delete_all')), (4, ref('group_recurring_confirm')), (4, ref('group_closing_create_only')), (4, ref('group_closing_edit_own')), (4, ref('group_closing_edit_team')), (4, ref('group_closing_edit_all')), (4, ref('group_closing_view_all')), (4, ref('group_closing_delete_own')), (4, ref('group_closing_delete_all')), (4, ref('group_closing_close'))]"/>
+        <field name="implied_ids" eval="[(4, ref('group_asset_create_only')), (4, ref('group_asset_edit_own')), (4, ref('group_asset_edit_team')), (4, ref('group_asset_edit_all')), (4, ref('group_asset_view_all')), (4, ref('group_asset_delete_own')), (4, ref('group_asset_delete_all')), (4, ref('group_asset_post')), (4, ref('group_budget_create_only')), (4, ref('group_budget_edit_own')), (4, ref('group_budget_edit_team')), (4, ref('group_budget_edit_all')), (4, ref('group_budget_view_all')), (4, ref('group_budget_delete_own')), (4, ref('group_budget_delete_all')), (4, ref('group_budget_approve')), (4, ref('group_recurring_create_only')), (4, ref('group_recurring_edit_own')), (4, ref('group_recurring_edit_team')), (4, ref('group_recurring_edit_all')), (4, ref('group_recurring_view_all')), (4, ref('group_recurring_delete_own')), (4, ref('group_recurring_delete_all')), (4, ref('group_recurring_confirm')), (4, ref('group_closing_create_only')), (4, ref('group_closing_edit_own')), (4, ref('group_closing_edit_team')), (4, ref('group_closing_edit_all')), (4, ref('group_closing_view_all')), (4, ref('group_closing_delete_own')), (4, ref('group_closing_delete_all')), (4, ref('group_closing_close')), (4, ref('group_subscription_create_only')), (4, ref('group_subscription_edit_own')), (4, ref('group_subscription_edit_team')), (4, ref('group_subscription_edit_all')), (4, ref('group_subscription_view_all')), (4, ref('group_subscription_delete_own')), (4, ref('group_subscription_delete_all')), (4, ref('group_subscription_manage')), (4, ref('group_subscription_invoice'))]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 </odoo>

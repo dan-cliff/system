@@ -1,6 +1,6 @@
 {
     'name': 'Home Menu',
-    'version': '19.0.1.1.5',
+    'version': '19.0.1.2.0',
     'category': 'Extra Tools',
     'summary': 'Enterprise-style app grid home screen for the /odoo page',
     'description': """
@@ -35,6 +35,9 @@ take the user straight to that URL. Administrators set the buttons
 shown to everyone under Settings > General Settings > Home Screen;
 users add, edit and remove their own from the home screen's "Edit
 layout" mode, and see them after everyone's buttons.
+
+The Apps and Settings menus get icons in the same style as our own
+apps (Odoo's icons come back when the module is uninstalled).
 """,
     'author': 'Bendigo Scouts',
     'license': 'LGPL-3',
@@ -43,6 +46,7 @@ layout" mode, and see them after everyone's buttons.
         'security/ir.model.access.csv',
         'security/home_menu_security.xml',
         'data/actions.xml',
+        'data/menu_icons.xml',
         'data/res_lang_data.xml',
         'views/home_menu_folder_views.xml',
         'views/home_menu_quick_link_views.xml',
@@ -61,6 +65,7 @@ layout" mode, and see them after everyone's buttons.
             'web_home_menu/static/src/webclient_patch/webclient_patch.js',
         ],
     },
+    'uninstall_hook': 'uninstall_hook',
     'installable': True,
     'application': False,
 }

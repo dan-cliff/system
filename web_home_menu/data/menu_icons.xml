@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Our own icons for Odoo's Apps and Settings menus, in the house
+         icon style (docs/icon_style). The SVG sources sit next to the
+         PNGs. Uninstalling the module puts Odoo's icons back. -->
+    <record id="base.menu_management" model="ir.ui.menu">
+        <field name="web_icon">web_home_menu,static/img/menu_apps.png</field>
+    </record>
+    <record id="base.menu_administration" model="ir.ui.menu">
+        <field name="web_icon">web_home_menu,static/img/menu_settings.png</field>
+    </record>
+</odoo>

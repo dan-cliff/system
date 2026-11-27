@@ -4,12 +4,13 @@
          moves is defined in the file of its feature.
 
          Accounting
-         ├── Dashboard / Customers / Vendors / Accounting / Review  (core)
+         ├── Dashboard / Customers / Vendors / Accounting / Review  (core;
+         │   Customers › Subscriptions, also in Sales › Orders)
          ├── Management   assets, budgets, recurring payments, period closings
          ├── Follow-ups
          ├── Reporting    (core, plus the PDF reports and analyses)
          ├── Reports      Report Builder's folder: only shows once it holds reports
-         └── Configuration › Management  the option lists of the above
+         └── Configuration › Management, Subscriptions  the option lists of the above
 
          Each Management menu shows to the users with a permission on its
          records (see security/advanced_accounting_security.xml). -->
@@ -76,6 +77,35 @@
         <field name="sequence">2</field>
     </record>
 
+    <!-- ============ Subscriptions ============ -->
+    <!-- Accounting › Customers › Subscriptions, and in Sales for the salespeople
+         without Billing access. The external IDs are those of the Subscription
+         management app (subscription_oca). -->
+    <menuitem id="sale_subscription_menu"
+              name="Subscriptions"
+              parent="account.menu_finance_receivables"
+              action="sale_subscription_action"
+              sequence="5"/>
+    <record id="sale_subscription_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('group_subscription_create_only'), ref('group_subscription_edit_own'), ref('group_subscription_edit_team'), ref('group_subscription_edit_all'), ref('group_subscription_view_all'), ref('group_subscription_delete_own'), ref('group_subscription_delete_all'), ref('group_subscription_manage'), ref('group_subscription_invoice')])]"/>
+    </record>
+    <menuitem id="menu_sale_subscription_sales"
+              name="Subscriptions"
+              parent="sale.sale_order_menu"
+              action="sale_subscription_action"
+              sequence="25"/>
+    <record id="menu_sale_subscription_sales" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('group_subscription_create_only'), ref('group_subscription_edit_own'), ref('group_subscription_edit_team'), ref('group_subscription_edit_all'), ref('group_subscription_view_all'), ref('group_subscription_delete_own'), ref('group_subscription_delete_all'), ref('group_subscription_manage'), ref('group_subscription_invoice')])]"/>
+    </record>
+    <menuitem id="product_subscription_menu"
+              name="Subscription Products"
+              parent="sale.product_menu_catalog"
+              action="subscription_product_template_action"
+              sequence="25"/>
+    <record id="product_subscription_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('group_subscription_create_only'), ref('group_subscription_edit_own'), ref('group_subscription_edit_team'), ref('group_subscription_edit_all'), ref('group_subscription_view_all'), ref('group_subscription_delete_own'), ref('group_subscription_delete_all'), ref('group_subscription_manage'), ref('group_subscription_invoice')])]"/>
+    </record>
+
     <!-- ============ Follow-ups ============ -->
     <record id="menu_finance_followup" model="ir.ui.menu">
         <field name="sequence">10</field>
@@ -129,6 +159,17 @@
         <field name="parent_id" ref="menu_account_management_config"/>
         <field name="sequence">50</field>
     </record>
+
+    <!-- Configuration > Subscriptions: the option lists of Subscriptions -->
+    <menuitem id="sale_subscription_configuration_menu"
+              name="Subscriptions"
+              parent="account.menu_finance_configuration"
+              sequence="35">
+        <menuitem id="sale_template_subscription_menu" action="sale_subscription_template_act_window" sequence="10"/>
+        <menuitem id="subscription_stage_menu" action="subscription_stage_action" sequence="20"/>
+        <menuitem id="subscription_tag_menu" action="subscription_tag_action" sequence="30"/>
+        <menuitem id="subscription_close_reason_menu" action="subscription_close_reason_action" sequence="40"/>
+    </menuitem>
 
     <!-- Configuration > Accounting: room between the standard settings for the ones of the apps -->
     <record id="account.menu_action_account_form" model="ir.ui.menu">

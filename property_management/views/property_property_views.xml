@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="property_property_view_form" model="ir.ui.view">
+        <field name="name">property.property.form</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <form string="Property">
+                <header>
+                    <button name="action_upload_photos" type="object" string="Upload Photos"/>
+                    <button name="action_new_lease" type="object" string="New Lease"
+                            invisible="ownership == 'owned_occupied'"/>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_leases" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="lease_count" widget="statinfo" string="Leases"/>
+                        </button>
+                        <button name="action_view_contracts" type="object" class="oe_stat_button" icon="fa-handshake-o">
+                            <field name="contract_count" widget="statinfo" string="Contracts"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="is_owned" invisible="1"/>
+                    <field name="leases_out" invisible="1"/>
+                    <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <div class="oe_title">
+                        <div class="text-muted" invisible="not id">
+                            <field name="reference" readonly="1"/>
+                        </div>
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Head Office, 12 Main Street"/></h1>
+                    </div>
+                    <group>
+                        <group name="property_main">
+                            <field name="ownership"/>
+                            <field name="category_id" options="{'no_create': True}"/>
+                            <field name="type_id" options="{'no_create': True}"/>
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group name="property_address" string="Address">
+                            <div class="o_address_format" colspan="2">
+                                <field name="street" placeholder="Street..." class="o_address_street"/>
+                                <field name="street2" placeholder="Street 2..." class="o_address_street"/>
+                                <field name="city" placeholder="City" class="o_address_city"/>
+                                <field name="state_id" class="o_address_state" placeholder="State"
+                                       options="{'no_open': True, 'no_quick_create': True}"/>
+                                <field name="zip" placeholder="ZIP" class="o_address_zip"/>
+                                <field name="country_id" placeholder="Country" class="o_address_country"
+                                       options="{'no_open': True, 'no_create': True}"/>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Details" name="details">
+                            <group>
+                                <group string="Premises" name="premises">
+                                    <field name="floor_area"/>
+                                    <field name="land_area"/>
+                                    <field name="storeys"/>
+                                    <field name="bedrooms"/>
+                                    <field name="bathrooms"/>
+                                    <field name="car_spaces"/>
+                                    <field name="year_built" widget="year_date"/>
+                                </group>
+                                <group string="Title and Planning" name="title">
+                                    <field name="title_reference"/>
+                                    <field name="local_authority"/>
+                                    <field name="zoning"/>
+                                </group>
+                            </group>
+                            <field name="description" placeholder="Describe the property: layout, fit-out, access, services…"/>
+                        </page>
+                        <page string="Ownership" name="ownership">
+                            <group>
+                                <group string="Landlord and Agent" name="landlord">
+                                    <field name="landlord_id" invisible="is_owned"/>
+                                    <field name="agent_id"/>
+                                </group>
+                                <group string="Acquisition and Value" name="acquisition" invisible="not is_owned">
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="acquisition_date" options="{'numeric': True}"/>
+                                    <field name="purchase_price"/>
+                                    <field name="current_value"/>
+                                    <field name="valuation_date" options="{'numeric': True}"/>
+                                    <field name="valuer"/>
+                                </group>
+                                <group string="Leasing Summary" name="lease_summary">
+                                    <field name="annual_rent_payable" invisible="is_owned"/>
+                                    <field name="annual_rent_receivable" invisible="not leases_out"/>
+                                    <field name="tenant_ids" widget="many2many_tags" invisible="not leases_out"/>
+                                    <field name="next_lease_end" options="{'numeric': True}"
+                                           invisible="ownership == 'owned_occupied'"/>
+                                    <field name="annual_contract_cost"/>
+                                </group>
+                                <group string="Disposal" name="disposal" invisible="not is_owned">
+                                    <field name="disposal_date" options="{'numeric': True}"/>
+                                    <field name="sale_price"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Leases" name="leases" invisible="ownership == 'owned_occupied' and not lease_ids">
+                            <field name="lease_ids" context="{'default_property_id': id}">
+                                <list decoration-muted="state in ('expired', 'terminated')"
+                                      decoration-info="state == 'draft'">
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="lease_type"/>
+                                    <field name="partner_id"/>
+                                    <field name="premises" optional="show"/>
+                                    <field name="date_start" options="{'numeric': True}"/>
+                                    <field name="date_end" options="{'numeric': True}"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="annual_rent" sum="Total"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'active'" decoration-info="state == 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Contracts" name="contracts">
+                            <field name="contract_ids" context="{'default_property_id': id}">
+                                <list decoration-muted="state in ('expired', 'cancelled')"
+                                      decoration-info="state == 'draft'">
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="contract_type_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="date_start" options="{'numeric': True}"/>
+                                    <field name="date_end" options="{'numeric': True}"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="annual_amount" sum="Total"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'active'" decoration-info="state == 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Photos" name="photos">
+                            <div class="mb-2">
+                                <button name="action_upload_photos" type="object" class="btn btn-secondary"
+                                        icon="fa-upload" string="Upload Photos"/>
+                                <span class="text-muted ms-2">Upload several photos at once, or add them one by one below.</span>
+                            </div>
+                            <field name="photo_ids" mode="kanban" context="{'default_property_id': id}"/>
+                        </page>
+                        <page string="Floor Plans" name="floor_plans">
+                            <field name="floor_plan_ids" context="{'default_property_id': id}">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="area" optional="show"/>
+                                    <field name="revision_date" options="{'numeric': True}" optional="show"/>
+                                    <field name="file_kind" optional="show"/>
+                                    <field name="plan_file_name" column_invisible="1"/>
+                                    <field name="plan_file" widget="binary" filename="plan_file_name"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Internal notes about this property…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="property_property_view_list" model="ir.ui.view">
+        <field name="name">property.property.list</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <list string="Properties">
+                <field name="id" optional="show"/>
+                <field name="reference" optional="show"/>
+                <field name="name"/>
+                <field name="ownership"/>
+                <field name="category_id" optional="show"/>
+                <field name="type_id" optional="show"/>
+                <field name="city" optional="show"/>
+                <field name="state_id" optional="hide"/>
+                <field name="country_id" optional="hide"/>
+                <field name="floor_area" optional="hide" sum="Total"/>
+                <field name="user_id" optional="show" widget="many2one_avatar_user"/>
+                <field name="landlord_id" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="current_value" optional="hide" sum="Total"/>
+                <field name="acquisition_date" optional="hide" options="{'numeric': True}"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+                <field name="stage_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="property_property_view_kanban" model="ir.ui.view">
+        <field name="name">property.property.kanban</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_mobile" sample="1">
+                <field name="color"/>
+                <field name="image_128"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="o_kanban_aside_full" t-if="record.image_128.raw_value">
+                            <field name="image_128" widget="image" class="o_kanban_image_fill w-100"
+                                   options="{'img_class': 'object-fit-cover'}" alt="Property"/>
+                        </aside>
+                        <main class="ms-2">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <field name="reference" class="text-muted small"/>
+                            <field name="address" class="small"/>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                <field name="ownership" widget="badge"/>
+                                <field name="category_id" widget="badge"/>
+                                <field name="type_id" widget="badge"/>
+                            </div>
+                            <footer class="pt-1">
+                                <field name="company_id" groups="base.group_multi_company" class="small text-muted"/>
+                                <field name="user_id" widget="many2one_avatar_user" class="ms-auto"/>
+                            </footer>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="property_property_view_search" model="ir.ui.view">
+        <field name="name">property.property.search</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <search string="Properties">
+                <field name="name" string="Property" filter_domain="['|', '|', '|', ('name', 'ilike', self), ('reference', 'ilike', self), ('street', 'ilike', self), ('city', 'ilike', self)]"/>
+                <field name="category_id"/>
+                <field name="type_id"/>
+                <field name="landlord_id"/>
+                <field name="user_id"/>
+                <filter name="my_properties" string="My Properties" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="leased_in" string="Leased" domain="[('ownership', '=', 'leased_in')]"/>
+                <filter name="owned" string="Owned"
+                        domain="[('ownership', 'in', ('owned_occupied', 'owned_leased_out', 'owned_mixed'))]"/>
+                <filter name="leases_out" string="Leased Out"
+                        domain="[('ownership', 'in', ('owned_leased_out', 'owned_mixed'))]"/>
+                <separator/>
+                <filter name="held" string="Held" domain="[('stage_id.is_closed', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_stage" string="Status" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_ownership" string="Ownership" context="{'group_by': 'ownership'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                    <filter name="group_type" string="Property Type" context="{'group_by': 'type_id'}"/>
+                    <filter name="group_city" string="City" context="{'group_by': 'city'}"/>
+                    <filter name="group_user" string="Property Manager" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_property_property" model="ir.actions.act_window">
+        <field name="name">Properties</field>
+        <field name="res_model">property.property</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="property_property_view_search"/>
+        <field name="context">{'search_default_held': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first property</p>
+            <p>Keep every premises the business leases, owns and occupies, or owns and leases out,
+               with its details, leases, contracts, photos and floor plans.</p>
+        </field>
+    </record>
+
+</odoo>
