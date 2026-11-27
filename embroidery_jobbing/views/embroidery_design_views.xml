@@ -30,9 +30,11 @@
         <field name="model">embroidery.design</field>
         <field name="arch" type="xml">
             <list>
+                <field name="id" optional="show"/>
                 <field name="name"/>
                 <field name="partner_id" optional="show"/>
                 <field name="design_filename" optional="hide"/>
+                <field name="artwork_filename" optional="hide"/>
                 <field name="stitch_count" sum="Total"/>
                 <field name="color_count"/>
                 <field name="size_display"/>
@@ -46,6 +48,11 @@
         <field name="model">embroidery.design</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_digitise" type="object" string="Digitise Again" class="btn-secondary"
+                            invisible="not artwork_file"
+                            help="Digitise the artwork again, e.g. after adding or changing thread products."/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_jobs" type="object" class="oe_stat_button" icon="fa-tasks">
@@ -61,7 +68,13 @@
                     </div>
                     <group>
                         <group string="Design">
-                            <field name="design_file" filename="design_filename"/>
+                            <field name="artwork_file" filename="artwork_filename"
+                                   string="Artwork to Digitise"
+                                   options="{'accepted_file_extensions': '.png,.jpg,.jpeg,.svg'}"/>
+                            <field name="artwork_filename" invisible="1"/>
+                            <field name="design_file" filename="design_filename"
+                                   readonly="artwork_file" required="not artwork_file"
+                                   options="{'accepted_file_extensions': '.pes'}"/>
                             <field name="design_filename" invisible="1"/>
                             <field name="partner_id"/>
                             <field name="company_id" groups="base.group_multi_company"/>
@@ -77,17 +90,63 @@
                             <field name="pes_version"/>
                         </group>
                     </group>
+                    <div class="alert alert-info mb-3" role="status" invisible="artwork_file or design_file">
+                        Upload a Brother <strong>.pes</strong> design file, or a <strong>PNG, JPG or SVG</strong>
+                        picture as the <strong>Artwork to Digitise</strong>: it is turned into stitches when you
+                        save, with its colours matched to your thread products.
+                    </div>
                     <notebook>
                         <page string="Thread Colours" name="colours">
                             <field name="color_ids">
-                                <list>
+                                <list editable="bottom" create="0" delete="0">
                                     <field name="sequence"/>
                                     <field name="color_hex" widget="color" readonly="1"/>
                                     <field name="name"/>
-                                    <field name="palette_index"/>
+                                    <field name="product_id" options="{'no_create': True}"/>
+                                    <field name="artwork_color_hex" widget="color" readonly="1"
+                                           column_invisible="not parent.artwork_file"/>
+                                    <field name="color_difference" column_invisible="not parent.artwork_file"
+                                           decoration-success="color_difference &lt; 5"
+                                           decoration-warning="color_difference &gt;= 5 and color_difference &lt; 10"
+                                           decoration-danger="color_difference &gt;= 10"/>
+                                    <field name="palette_index" optional="hide"/>
                                     <field name="stitch_count" sum="Total"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Digitising" name="digitising" invisible="not artwork_file">
+                            <div class="alert alert-warning mb-3" role="alert" invisible="thread_catalogue_count">
+                                No thread products to match, so Brother's standard colours are used. Tick
+                                <strong>Includes Threads</strong> on your thread product category, give each thread
+                                a <strong>Thread Colour</strong> under <strong>Advanced Details</strong>, then click
+                                <strong>Digitise Again</strong>.
+                            </div>
+                            <group>
+                                <group string="Size and Colours">
+                                    <field name="digitise_width_mm"/>
+                                    <field name="digitise_height_mm"/>
+                                    <field name="digitise_max_colors"/>
+                                    <field name="digitise_min_area"/>
+                                    <field name="digitise_remove_background"/>
+                                </group>
+                                <group string="Stitches">
+                                    <field name="digitise_row_spacing"/>
+                                    <field name="digitise_stitch_length"/>
+                                    <field name="digitise_fill_angle"/>
+                                    <field name="digitise_underlay"/>
+                                </group>
+                                <group string="Threads to Match">
+                                    <field name="digitise_manufacturer_id" options="{'no_create': True}"/>
+                                    <field name="digitise_thread_type_ids" widget="many2many_tags"
+                                           options="{'no_create': True}"/>
+                                    <field name="thread_catalogue_count"/>
+                                </group>
+                            </group>
+                            <p class="text-muted">
+                                Changes are digitised again when you save. Text in an SVG must be converted to
+                                outlines first. Areas are stitched as fills; check fine lines and small text in
+                                the preview and tidy them in Embrilliance if needed.
+                            </p>
                         </page>
                         <page string="Notes" name="notes">
                             <field name="note"/>
@@ -104,8 +163,10 @@
         <field name="model">embroidery.design</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('design_filename', 'ilike', self)]"/>
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('design_filename', 'ilike', self), ('artwork_filename', 'ilike', self)]"/>
                 <field name="partner_id"/>
+                <filter string="Digitised from Artwork" name="digitised" domain="[('artwork_filename', '!=', False)]"/>
+                <separator/>
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
                 <group>
                     <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
@@ -121,8 +182,10 @@
         <field name="res_model">embroidery.design</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Upload your first .pes design</p>
-            <p>The stitch count, thread colours, size and a stitch preview are read from the file.</p>
+            <p class="o_view_nocontent_smiling_face">Upload your first .pes design, or artwork to digitise</p>
+            <p>The stitch count, thread colours, size and a stitch preview are read from the file.
+               A PNG, JPG or SVG picture is digitised into stitches, with its colours matched to your
+               thread products.</p>
         </field>
     </record>
 

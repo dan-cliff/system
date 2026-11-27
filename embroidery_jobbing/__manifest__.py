@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Embroidery Jobbing',
-    'version': '19.0.1.2.1',
+    'version': '19.0.1.3.0',
     'category': 'Manufacturing/Embroidery',
-    'summary': 'Embroidery work orders, a .pes design library and machine management with live stitch-out progress',
+    'summary': 'Embroidery work orders, a .pes design library with digitising from artwork, '
+               'thread products and machine management with live stitch-out progress',
     'description': """
         Embroidery Jobbing
 
@@ -11,6 +12,11 @@
           with their hoops, speed and live status
         - Designs: a library of Brother .pes files - stitch count, colours, size
           and a stitch preview are read from the file
+        - Digitising: upload a PNG, JPG or SVG picture and it is turned into a
+          .pes design, its colours matched to your thread products
+        - Threads: product categories that include threads give their products
+          an Advanced Details tab with the thread's manufacturer, name, colour
+          and type
         - Jobs: work orders for the customer, product, placement, hoop, stabiliser
           and design, sent straight to a machine one piece at a time
         - Progress monitor: each stitch out shows its progress, current colour,
@@ -31,9 +37,12 @@
         'data/res_lang_data.xml',
         'data/embroidery_sequence_data.xml',
         'data/embroidery_options_data.xml',
+        'data/embroidery_thread_type_data.xml',
         'data/iot_program_data.xml',
         'wizard/embroidery_stitchout_error_wizard_views.xml',
         'views/embroidery_options_views.xml',
+        'views/embroidery_thread_type_views.xml',
+        'views/product_views.xml',
         'views/embroidery_machine_views.xml',
         'views/embroidery_design_views.xml',
         'views/embroidery_stitchout_views.xml',
@@ -46,6 +55,7 @@
     'assets': {
         'web.assets_backend': [
             'embroidery_jobbing/static/src/progress_monitor/*',
+            'embroidery_jobbing/static/src/hex_colour_field/*',
         ],
     },
     'application': True,
